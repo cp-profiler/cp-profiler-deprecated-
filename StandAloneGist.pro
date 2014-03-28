@@ -22,7 +22,8 @@ SOURCES += main.cpp\
     nodestats.cpp \
     preferences.cpp \
     qtgist.cpp \
-    spacenode.cpp
+    spacenode.cpp \
+    node.cpp
 
 HEADERS  += mainwindow.h \
     qtgist.hh \

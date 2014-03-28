@@ -67,14 +67,21 @@
   SpaceNode::getNumberOfChildNodes(NodeAllocator& na) {
     int kids = 0;
     if (isUndetermined()) {
-        kids = 0;
-        setStatus(SOLVED);
-        setHasOpenChildren(false);
-        setHasSolvedChildren(true);
-        setHasFailedChildren(false);
         SpaceNode* p = getParent(na);
+        if (p==NULL) {
+            kids = 2;
+            setStatus(BRANCH);
+            setHasOpenChildren(true);
+        } else {
+            kids = 0;
+            setStatus(SOLVED);
+            setHasOpenChildren(false);
+            setHasSolvedChildren(true);
+            setHasFailedChildren(false);
+        }
         if (p != NULL)
             p->closeChild(na, false, true);
+        setNumberOfChildren(kids, na);
     }
 //      stats.undetermined--;
 //      acquireSpace(na, curBest, c_d, a_d);
