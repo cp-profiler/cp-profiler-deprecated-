@@ -72,15 +72,16 @@
             kids = 2;
             setStatus(BRANCH);
             setHasOpenChildren(true);
-        } else {
-            kids = 0;
-            setStatus(SOLVED);
-            setHasOpenChildren(false);
-            setHasSolvedChildren(true);
-            setHasFailedChildren(false);
         }
-        if (p != NULL)
-            p->closeChild(na, false, true);
+//        else {
+//            kids = 0;
+//            setStatus(SOLVED);
+//            setHasOpenChildren(false);
+//            setHasSolvedChildren(true);
+//            setHasFailedChildren(false);
+//        }
+//        if (p != NULL)
+//            p->closeChild(na, false, true);
         setNumberOfChildren(kids, na);
     }
 //      stats.undetermined--;

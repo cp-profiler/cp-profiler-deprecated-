@@ -27,6 +27,7 @@ TreeCanvas::TreeCanvas(QWidget* parent)
     QMutexLocker locker(&mutex);
     na = new Node::NodeAllocator(false);
     int rootIdx = na->allocateRoot(0);
+
     assert(rootIdx == 0); (void) rootIdx;
     root = (*na)[0];
     root->layout(*na);
@@ -34,6 +35,17 @@ TreeCanvas::TreeCanvas(QWidget* parent)
     currentNode = root;
     pathHead = root;
     scale = LayoutConfig::defScale / 100.0;
+
+
+//    root->getChild(*na, 0)->setNumberOfChildren(2, *na);
+//    root->setNumberOfChildren(0, *na);
+//    VisualNode* newNode = root->getChild(*na, 0);
+//    newNode->setNumberOfChildren(0, *na);
+
+//    newNode->setStatus(BRANCH);
+//    newNode->setHasOpenChildren(true);
+
+
 
     setAutoFillBackground(true);
 
