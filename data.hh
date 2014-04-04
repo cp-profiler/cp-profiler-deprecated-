@@ -15,6 +15,8 @@ public:
 		node_id(-1), parent_db_id(_p), alt(_alt), numberOfKids(_kids) {
 	}
 
+	DbEntry(): node_id(-1) {}
+
 	int node_id; // id as it is in gist
 	int parent_db_id; // parent id in database 
 	int alt; // which child by order
@@ -31,14 +33,15 @@ private:
 
 	void show_db(void);
 	void connectToDB(void);
-	void readInstance(int db_id);
+	void readDB(int db_id);
+    static int callback(void*, int argc, char **argv, char **azColName);
 	~Data(void);
     
 public:
 	typedef NodeAllocatorBase<VisualNode> NodeAllocator;
 
 	static Data* self;
-    std::vector<DbEntry*>* db_array;
+    std::vector<DbEntry*> db_array;
     std::map<int, int> nid_to_db_id; 
 
     Data();
