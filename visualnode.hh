@@ -107,7 +107,7 @@ protected:
   bool containsCoordinateAtDepth(int x, int depth);
 public:
   /// Construct with parent \a p
-  VisualNode(int p);
+  VisualNode(int p, int db_id);
   /// Constructor for root node \a db_id
   VisualNode(int db_id, bool);
 

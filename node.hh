@@ -5,6 +5,8 @@
 #include <QHash>
 #include <QString>
 
+//#include "data.hh"
+
 class VisualNode;
 
 #include "heap.hpp"
@@ -43,8 +45,8 @@ public:
   NodeAllocatorBase(bool bab);
   /// Destructor
   ~NodeAllocatorBase(void);
-  /// Allocate new node with parent \a p
-  int allocate(int p);
+  /// Allocate new node with parent \a p and database id
+  int allocate(int p, int db_id);
   /// Allocate new root node
   int allocateRoot(int db_id);
   /// Return node for index \a i
@@ -121,6 +123,8 @@ public:
 
   /// Return index of this node
   int getIndex(const NodeAllocator& na) const;
+
+  int getNewIndex(void) const;
 
   /// Check if this node is the root of a tree
   bool isRoot(void) const;

@@ -1,6 +1,8 @@
 #include "spacenode.hh"
 #include "visualnode.hh"
 
+#include "data.hh"
+
 #include <QString>
 #include <QVector>
 
@@ -49,7 +51,7 @@
   }
 
   SpaceNode::SpaceNode(int db_id0,bool)
-  : Node(-1, false), db_id(db_id0),
+  : Node(-1, false), db_id(db_id0),  /// ???
     nstatus(0) {
 //    if (root == NULL) {
 //      setStatus(FAILED);
@@ -65,14 +67,26 @@
 
   int
   SpaceNode::getNumberOfChildNodes(NodeAllocator& na) {
-    int kids = 0;
+//      int kids = 0;
+    int kids = Data::self->getKids(db_id);
+
     if (isUndetermined()) {
-        SpaceNode* p = getParent(na);
-        if (p==NULL) {
-            kids = 2;
-            setStatus(BRANCH);
-            setHasOpenChildren(true);
-        }
+      if (kids > 0) {
+        setStatus(BRANCH);
+        setHasOpenChildren(true);
+      } else {
+        setStatus(SOLVED);
+        setHasOpenChildren(false);
+        setHasSolvedChildren(true);
+        setHasFailedChildren(false);
+      }
+
+//         SpaceNode* p = getParent(na);
+//         if (p==NULL) {
+//             kids = 2;
+//             setStatus(BRANCH);
+//             setHasOpenChildren(true);
+//         }
 //        else {
 //            kids = 0;
 //            setStatus(SOLVED);
@@ -80,72 +94,12 @@
 //            setHasSolvedChildren(true);
 //            setHasFailedChildren(false);
 //        }
-//        if (p != NULL)
-//            p->closeChild(na, false, true);
-        setNumberOfChildren(kids, na);
+//       if (p != NULL)
+//           p->closeChild(na, false, true);
+
+
+      setNumberOfChildren(kids, na);
     }
-//      stats.undetermined--;
-//      acquireSpace(na, curBest, c_d, a_d);
-//      QVector<QString> labels;
-//      switch (static_cast<Space*>(Support::funmark(copy))->status(stats)) {
-//      case SS_FAILED:
-//        {
-//          purge(na);
-//          kids = 0;
-//          setHasOpenChildren(false);
-//          setHasSolvedChildren(false);
-//          setHasFailedChildren(true);
-//          setStatus(FAILED);
-//          stats.failures++;
-//          SpaceNode* p = getParent(na);
-//          if (p != NULL)
-//            p->closeChild(na, true, false);
-//        }
-//        break;
-//      case SS_SOLVED:
-//        {
-//          // Deletes all pending branchers
-//          (void) static_cast<Space*>(Support::funmark(copy))->choice();
-//          kids = 0;
-//          setStatus(SOLVED);
-//          setHasOpenChildren(false);
-//          setHasSolvedChildren(true);
-//          setHasFailedChildren(false);
-//          stats.solutions++;
-//          if (curBest != NULL) {
-//            curBest->s = this;
-//          }
-//          SpaceNode* p = getParent(na);
-//          if (p != NULL)
-//            p->closeChild(na, false, true);
-//        }
-//        break;
-//      case SS_BRANCH:
-//        {
-//          Space* s = static_cast<Space*>(Support::funmark(copy));
-//          choice = s->choice();
-//          kids = choice->alternatives();
-//          setHasOpenChildren(true);
-//          if (dynamic_cast<const StopChoice*>(choice)) {
-//            setStatus(STOP);
-//          } else {
-//            setStatus(BRANCH);
-//            stats.choices++;
-//          }
-//          stats.undetermined += kids;
-//          for (int i=0; i<kids; i++) {
-//            std::ostringstream oss;
-//            s->print(*choice,i,oss);
-//            labels.push_back(QString(oss.str().c_str()));
-//          }
-//        }
-//        break;
-//      }
-//      static_cast<VisualNode*>(this)->changedStatus(na);
-//      setNumberOfChildren(kids, na);
-//    } else {
-//      kids = getNumberOfChildren();
-//    }
     return kids;
   }
 

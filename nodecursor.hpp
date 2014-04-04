@@ -52,8 +52,9 @@ NodeCursor<Node>::moveUpwards(void) {
 
 template<class Node>
 inline bool
-NodeCursor<Node>::mayMoveDownwards(void) {
-    return _node->getNumberOfChildren() > 0;
+NodeCursor<Node>::mayMoveDownwards(void) { /// bookmark
+    int n = _node->getNumberOfChildren();
+    return (n > 0);
 }
 
 template<class Node>

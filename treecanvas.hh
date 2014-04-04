@@ -58,6 +58,9 @@ public:
   /// Destructor
   ~TreeCanvas(void);
 
+  // data from the db
+  Data* data;
+
 //  /// Add inspector \a i
 //  void addDoubleClickInspector(Inspector* i);
 //  /// Set active inspector

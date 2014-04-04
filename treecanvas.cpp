@@ -7,6 +7,8 @@
 
 #include "treecanvas.hh"
 
+#include "data.hh"
+
 #include "nodevisitor.hh"
 #include "visualnode.hh"
 #include "drawingcursor.hh"
@@ -25,8 +27,10 @@ TreeCanvas::TreeCanvas(QWidget* parent)
     , targetW(0), targetH(0), targetScale(0)
     , layoutDoneTimerId(0) {
     QMutexLocker locker(&mutex);
+
+    data = new Data();
     na = new Node::NodeAllocator(false);
-    int rootIdx = na->allocateRoot(0);
+    int rootIdx = na->allocateRoot(0); // read root from db
 
     assert(rootIdx == 0); (void) rootIdx;
     root = (*na)[0];
@@ -37,8 +41,9 @@ TreeCanvas::TreeCanvas(QWidget* parent)
     scale = LayoutConfig::defScale / 100.0;
 
 
-//    root->getChild(*na, 0)->setNumberOfChildren(2, *na);
-//    root->setNumberOfChildren(0, *na);
+
+   // root->getChild(*na, 0)->setNumberOfChildren(2, *na);
+   // root->setNumberOfChildren(1, *na);
 //    VisualNode* newNode = root->getChild(*na, 0);
 //    newNode->setNumberOfChildren(0, *na);
 
@@ -331,6 +336,7 @@ public:
 void
 SearcherThread::run(void) {
     {
+        
         if (!node->isOpen())
             return;
         t->mutex.lock();
@@ -368,7 +374,7 @@ SearcherThread::run(void) {
             if (si.i == si.noOfChildren) {
                 stck.pop();
             } else {
-                VisualNode* n = si.n->getChild(*t->na,si.i);
+                VisualNode* n = si.n->getChild(*t->na,si.i); /// bookmark
                 if (n->isOpen()) {
                     if (n->getStatus() == UNDETERMINED)
                         nodeCount++;

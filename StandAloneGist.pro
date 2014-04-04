@@ -23,7 +23,9 @@ SOURCES += main.cpp\
     preferences.cpp \
     qtgist.cpp \
     spacenode.cpp \
-    node.cpp
+    node.cpp \
+    data.cpp \
+    sqlite/sqlite3.c
 
 HEADERS  += mainwindow.h \
     qtgist.hh \
@@ -46,6 +48,8 @@ HEADERS  += mainwindow.h \
     layoutcursor.hpp \
     nodevisitor.hh \
     nodevisitor.hpp \
-    zoomToFitIcon.hpp
+    zoomToFitIcon.hpp \
+    data.hh \
+    sqlite/sqlite3.h
 
 FORMS    +=

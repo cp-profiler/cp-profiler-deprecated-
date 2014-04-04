@@ -1,6 +1,8 @@
 #ifndef NODE_HPP
 #define NODE_HPP
 
+#include "data.hh"
+
 template<class T>
 void
 NodeAllocatorBase<T>::allocate(void) {
@@ -32,11 +34,12 @@ NodeAllocatorBase<T>::~NodeAllocatorBase(void) {
 
 template<class T>
 inline int
-NodeAllocatorBase<T>::allocate(int p) {
+NodeAllocatorBase<T>::allocate(int p, int _db_id) {
   cur_t++;
   if (cur_t==NodeBlockSize)
     allocate();
-  new (&b[cur_b]->b[cur_t]) T(p);
+  // new (&b[cur_b]->b[cur_t]) T(db_id, false); /// bookmark
+  new (&b[cur_b]->b[cur_t]) T(p, _db_id); /// bookmark
   b[cur_b]->best[cur_t] = -1;
   return cur_b*NodeBlockSize+cur_t;
 }
@@ -189,15 +192,25 @@ Node::getNumberOfChildren(void) const {
 }
 
 inline int
-Node::getIndex(const NodeAllocator& na) const {
+Node::getIndex(const NodeAllocator& na) const { 
+  int j;
   if (parent==-1)
     return 0;
   Node* p = na[parent];
   for (int i=p->getNumberOfChildren(); i--;)
-    if (p->getChild(na,i) == this)
+    if (p->getChild(na,i) == this){
+      j = p->getChild(i);
       return p->getChild(i);
+    }
   GECODE_NEVER;
-  return -1;
+   return -1;
 }
+
+inline int
+Node::getNewIndex(void) const {
+  return Data::self->getIndex();
+}
+
+
 
 #endif // NODE_HPP

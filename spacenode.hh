@@ -90,7 +90,7 @@ protected:
   void setStatus(NodeStatus s);
 public:
   /// Construct node with parent \a p
-  SpaceNode(int p);
+  SpaceNode(int p, int db_id);
   /// Construct root node
   SpaceNode(int db_id,bool);
 
