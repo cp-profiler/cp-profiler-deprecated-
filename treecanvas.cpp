@@ -31,6 +31,7 @@ TreeCanvas::TreeCanvas(QWidget* parent)
     data = new Data();
     na = new Node::NodeAllocator(false);
     int rootIdx = na->allocateRoot(0); // read root from db
+    qDebug() << this;
 
     assert(rootIdx == 0); (void) rootIdx;
     root = (*na)[0];
@@ -40,13 +41,17 @@ TreeCanvas::TreeCanvas(QWidget* parent)
     pathHead = root;
     scale = LayoutConfig::defScale / 100.0;
 
-    data->buildTree(*na);
+
+    root->setNumberOfChildren(2, *na);
+    qDebug() << root << "<- root";
+    root->setBookmarked(true);
+//    root->dirtyUp(*na);
 
 
    // root->getChild(*na, 0)->setNumberOfChildren(2, *na);
    // root->setNumberOfChildren(1, *na);
-//    VisualNode* newNode = root->getChild(*na, 0);
-//    newNode->setNumberOfChildren(0, *na);
+   // VisualNode* newNode = root->getChild(*na, 0);
+   // newNode->setNumberOfChildren(0, *na);
 
 //    newNode->setStatus(BRANCH);
 //    newNode->setHasOpenChildren(true);
@@ -254,6 +259,8 @@ TreeCanvas::statusChanged(bool finished) {
 
 void
 SearcherThread::search(VisualNode* n, bool all, TreeCanvas* ti) {
+    qDebug() << ti->root << "<- root in search";
+    qDebug() << ti;
     node = n;
     
     depth = -1;
@@ -336,84 +343,11 @@ public:
 
 void
 SearcherThread::run(void) {
-    {
-        
-        if (!node->isOpen())
-            return;
-        t->mutex.lock();
-        emit statusChanged(false);
-
-        unsigned int kids =
-                node->getNumberOfChildNodes(*t->na);
-        if (kids == 0 || node->getStatus() == STOP) {
-            t->mutex.unlock();
-            updateCanvas();
-            emit statusChanged(true);
-            return;
-        }
-
-        std::stack<SearchItem> stck;
-        stck.push(SearchItem(node,kids));
-        t->stats.maxDepth =
-                std::max(static_cast<long unsigned int>(t->stats.maxDepth),
-                         static_cast<long unsigned int>(depth+stck.size()));
-
-        VisualNode* sol = NULL;
-        int nodeCount = 0;
-        t->stopSearchFlag = false;
-        while (!stck.empty() && !t->stopSearchFlag) {
-            if (t->refresh > 0 && nodeCount >= t->refresh) {
-                node->dirtyUp(*t->na);
-                updateCanvas();
-                emit statusChanged(false);
-                nodeCount = 0;
-                if (t->refreshPause > 0)
-                    msleep(t->refreshPause);
-            }
-            SearchItem& si = stck.top();
-            si.i++;
-            if (si.i == si.noOfChildren) {
-                stck.pop();
-            } else {
-                VisualNode* n = si.n->getChild(*t->na,si.i); /// bookmark
-                if (n->isOpen()) {
-                    if (n->getStatus() == UNDETERMINED)
-                        nodeCount++;
-                    kids = n->getNumberOfChildNodes(*t->na);
-                    if (kids == 0) {
-                        if (n->getStatus() == SOLVED) {
-                            emit solution();
-                            sol = n;
-                            if (!a)
-                                break;
-                        }
-                    } else {
-                        if ( n->getStatus() != STOP )
-                            stck.push(SearchItem(n,kids));
-                        else if (!a)
-                            break;
-                        t->stats.maxDepth =
-                                std::max(static_cast<long unsigned int>(t->stats.maxDepth),
-                                         static_cast<long unsigned int>(depth+stck.size()));
-                    }
-                }
-                if (t->moveDuringSearch)
-                    emit moveToNode(n,false);
-            }
-        }
-        node->dirtyUp(*t->na);
-        t->stopSearchFlag = false;
-        t->mutex.unlock();
-        if (sol != NULL) {
-            t->setCurrentNode(sol,true,false);
-        } else {
-            t->setCurrentNode(node,true,false);
-        }
-    }
+    qDebug() << "in searcher thread";
+    // t->root->setNumberOfChildren(2, *(t->na));
+    // t->root->setBookmarked(true);
+    data->readInstance(*(t->na));
     updateCanvas();
-    emit statusChanged(true);
-    if (t->finishedFlag)
-        emit searchFinished();
 }
 
 void

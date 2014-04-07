@@ -108,13 +108,13 @@ protected:
   bool isUndetermined(void) const;
 
   /// Return index of child no \a n
-  int getChild(int n) const;
+
 public:
   typedef NodeAllocatorBase<VisualNode> NodeAllocator;
 
   /// Construct node with parent \a p
   Node(int p, bool failed = false);
-
+  int getChild(int n) const;
   /// Return the parent
   int getParent(void) const;
   /// Return the parent

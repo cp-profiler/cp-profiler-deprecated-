@@ -19,25 +19,26 @@ Data::Data() {
 	counter = 0;
 	Data::self = this;
 
- 	nid_to_db_id[0] = 0;
- 	nid_to_db_id[1] = 1;
- 	nid_to_db_id[3] = 2;
- 	nid_to_db_id[4] = 3;
+ 	// nid_to_db_id[0] = 0;
+ 	// nid_to_db_id[1] = 1;
+ 	// nid_to_db_id[3] = 2;
+ 	// nid_to_db_id[4] = 3;
 
- 	nid_to_db_id[5] = 4;
- 	nid_to_db_id[2] = 5;
- 	nid_to_db_id[10] = 6;
- 	nid_to_db_id[11] = 7;
+ 	// nid_to_db_id[5] = 4;
+ 	// nid_to_db_id[2] = 5;
+ 	// nid_to_db_id[10] = 6;
+ 	// nid_to_db_id[11] = 7;
 
- 	nid_to_db_id[6] = 8;
- 	nid_to_db_id[7] = 9;
- 	nid_to_db_id[8] = 10;
- 	nid_to_db_id[9] = 11;
+ 	// nid_to_db_id[6] = 8;
+ 	// nid_to_db_id[7] = 9;
+ 	// nid_to_db_id[8] = 10;
+ 	// nid_to_db_id[9] = 11;
 
- 	nid_to_db_id[12] = 12;
- 	nid_to_db_id[13] = 13;
- 	nid_to_db_id[14] = 14;
- 	nid_to_db_id[15] = 15;
+ 	// nid_to_db_id[12] = 12;
+ 	// nid_to_db_id[13] = 13;
+ 	// nid_to_db_id[14] = 14;
+ 	// nid_to_db_id[15] = 15;
+  lastRead = -1;
 
  	connectToDB();
   qDebug() << "size: " << db_array.size();
@@ -71,9 +72,27 @@ void Data::show_db(void) {
 
 //}
 
-void Data::buildTree(NodeAllocator &na) {
-  /// read instances one by one
-  na[0]->setNumberOfChildren(3, na);
+void Data::readInstance(NodeAllocator &na) {
+  int nid;
+  int parent_db_id;
+  int parent_nid;
+  int alt;
+  int nalt;
+  VisualNode* node;
+  if (lastRead == -1) {
+     na[0]->setNumberOfChildren(db_array[0]->numberOfKids, na);
+     lastRead++;
+  }
+  else {
+     lastRead++;
+     parent_db_id = db_array[lastRead]->parent_db_id;
+     alt = db_array[lastRead]->alt;
+     nalt = db_array[lastRead]->numberOfKids;
+     parent_nid = db_array[parent_db_id]->node_id;
+     node = na[parent_nid]->getChild(na, alt);
+     node->setNumberOfChildren(nalt, na);
+
+  }
 
 }
 
