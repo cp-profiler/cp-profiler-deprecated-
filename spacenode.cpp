@@ -67,39 +67,39 @@
 
   int
   SpaceNode::getNumberOfChildNodes(NodeAllocator& na) {
-//      int kids = 0;
-    int kids = Data::self->getKids(db_id);
+    int kids = noOfChildren;
+//     int kids = Data::self->getKids(db_id);
 
-    if (isUndetermined()) {
-      if (kids > 0) {
-        setStatus(BRANCH);
-        setHasOpenChildren(true);
-      } else {
-        setStatus(SOLVED);
-        setHasOpenChildren(false);
-        setHasSolvedChildren(true);
-        setHasFailedChildren(false);
-      }
+//     if (isUndetermined()) {
+//       if (kids > 0) {
+//         setStatus(BRANCH);
+//         setHasOpenChildren(true);
+//       } else {
+//         setStatus(SOLVED);
+//         setHasOpenChildren(false);
+//         setHasSolvedChildren(true);
+//         setHasFailedChildren(false);
+//       }
 
-//         SpaceNode* p = getParent(na);
-//         if (p==NULL) {
-//             kids = 2;
-//             setStatus(BRANCH);
-//             setHasOpenChildren(true);
-//         }
-//        else {
-//            kids = 0;
-//            setStatus(SOLVED);
-//            setHasOpenChildren(false);
-//            setHasSolvedChildren(true);
-//            setHasFailedChildren(false);
-//        }
-//       if (p != NULL)
-//           p->closeChild(na, false, true);
+// //         SpaceNode* p = getParent(na);
+// //         if (p==NULL) {
+// //             kids = 2;
+// //             setStatus(BRANCH);
+// //             setHasOpenChildren(true);
+// //         }
+// //        else {
+// //            kids = 0;
+// //            setStatus(SOLVED);
+// //            setHasOpenChildren(false);
+// //            setHasSolvedChildren(true);
+// //            setHasFailedChildren(false);
+// //        }
+// //       if (p != NULL)
+// //           p->closeChild(na, false, true);
 
 
-      setNumberOfChildren(kids, na);
-    }
+//       setNumberOfChildren(kids, na);
+//     }
     return kids;
   }
 

@@ -40,6 +40,7 @@ TreeCanvas::TreeCanvas(QWidget* parent)
     pathHead = root;
     scale = LayoutConfig::defScale / 100.0;
 
+    data->buildTree(*na);
 
 
    // root->getChild(*na, 0)->setNumberOfChildren(2, *na);

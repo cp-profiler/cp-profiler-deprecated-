@@ -2,7 +2,7 @@
 #define DATA_HH
 
 #include <vector>
-#include <map>
+#include <tr1/unordered_map>
 #include <sqlite3.h>
 
 #include "node.hh"
@@ -34,7 +34,8 @@ private:
 	void show_db(void);
 	void connectToDB(void);
 	void readDB(int db_id);
-    static int callback(void*, int argc, char **argv, char **azColName);
+	/// can I get rid of 'static' here?
+    static int callback(void*, int argc, char **argv, char **azColName); 
 	~Data(void);
     
 public:
@@ -42,11 +43,12 @@ public:
 
 	static Data* self;
     std::vector<DbEntry*> db_array;
-    std::map<int, int> nid_to_db_id; 
+    std::tr1::unordered_map<int, int> nid_to_db_id;
 
     Data();
     int specifyNId(Node::NodeAllocator &na, int db_id);
 	int getKids(int nid);
+	void buildTree(NodeAllocator &na);
 	int getIndex();
 	
 };

@@ -85,11 +85,6 @@ private:
   /// The children, or in case there are at most two, the first child
   void* childrenOrFirstChild;
 
-  /** The number of children, in case it is greater than 2, or the first
-   *  child (if negative)
-   */
-  int noOfChildren;
-
   /// The parent of this node, or NULL for the root
   int parent;
 
@@ -103,6 +98,12 @@ private:
   int getFirstChild(void) const;
 
 protected:
+
+  /** The number of children, in case it is greater than 2, or the first
+   *  child (if negative)
+   */
+  int noOfChildren;
+
   /// Return whether this node is undetermined
   bool isUndetermined(void) const;
 

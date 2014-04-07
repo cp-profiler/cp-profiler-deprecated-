@@ -3,6 +3,7 @@
 #include <string>
 #include <sstream>
 #include <sqlite3.h>
+#include "visualnode.hh"
 
 
 #include "data.hh"
@@ -17,28 +18,6 @@ Data* Data::self = 0;
 Data::Data() {
 	counter = 0;
 	Data::self = this;
-
- 	// db_array.push_back(new DbEntry(-1, -1, 2));
- 	// db_array.push_back(new DbEntry(0, 0, 2));
- 	// db_array.push_back(new DbEntry(1, 0, 0));
- 	// db_array.push_back(new DbEntry(1, 1, 2));
-
- 	// db_array.push_back(new DbEntry(3, 0, 0));
- 	// db_array.push_back(new DbEntry(0, 1, 1));
- 	// db_array.push_back(new DbEntry(5, 0, 2));
- 	// db_array.push_back(new DbEntry(6, 0, 0));
-
- 	// db_array.push_back(new DbEntry(3, 1, 3));
- 	// db_array.push_back(new DbEntry(8, 0, 0));
- 	// db_array.push_back(new DbEntry(8, 1, 0));
- 	// db_array.push_back(new DbEntry(8, 2, 0));
-
- 	// db_array.push_back(new DbEntry(6, 1, 3));
- 	// db_array.push_back(new DbEntry(12, 0, 0));
- 	// db_array.push_back(new DbEntry(12, 1, 0));
- 	// db_array.push_back(new DbEntry(12, 2, 0));
-
-  /// should I care about deleting DbEntries here?
 
  	nid_to_db_id[0] = 0;
  	nid_to_db_id[1] = 1;
@@ -87,6 +66,17 @@ void Data::show_db(void) {
     }
 }
 
+///// temporary
+//int Data::getNumberOfKids(int ) {
+
+//}
+
+void Data::buildTree(NodeAllocator &na) {
+  /// read instances one by one
+  na[0]->setNumberOfChildren(3, na);
+
+}
+
 void Data::connectToDB(void) {
 	int rc;
   // rc = sqlite3_open("/Users/maxim/Dropbox/dev/StandaloneGist/data.db", &db);  
@@ -101,15 +91,6 @@ void Data::connectToDB(void) {
 	
 
 }
-
-// static int callback(void *NotUsed, int argc, char **argv, char **azColName) {
-//   int i;
-//   qDebug() << "In the callback";
-//   for ( i = 0; i < argc; i++) {
-//     qDebug() << azColName[i] << (argv[i] ? argv[i] : "NULL");  
-//   }
-//   return 0;
-// }
 
 int Data::callback(void *NotUsed, int argc, char **argv, char **azColName) {
   int i;
