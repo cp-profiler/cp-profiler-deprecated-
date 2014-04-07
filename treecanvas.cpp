@@ -31,6 +31,7 @@ TreeCanvas::TreeCanvas(QWidget* parent)
     data = new Data();
     na = new Node::NodeAllocator(false);
     int rootIdx = na->allocateRoot(0); // read root from db
+    qDebug() << this;
 
     assert(rootIdx == 0); (void) rootIdx;
     root = (*na)[0];
@@ -40,13 +41,17 @@ TreeCanvas::TreeCanvas(QWidget* parent)
     pathHead = root;
     scale = LayoutConfig::defScale / 100.0;
 
-    data->buildTree(*na);
+
+    root->setNumberOfChildren(2, *na);
+    qDebug() << root << "<- root";
+    root->setBookmarked(true);
+//    root->dirtyUp(*na);
 
 
    // root->getChild(*na, 0)->setNumberOfChildren(2, *na);
    // root->setNumberOfChildren(1, *na);
-//    VisualNode* newNode = root->getChild(*na, 0);
-//    newNode->setNumberOfChildren(0, *na);
+   // VisualNode* newNode = root->getChild(*na, 0);
+   // newNode->setNumberOfChildren(0, *na);
 
 //    newNode->setStatus(BRANCH);
 //    newNode->setHasOpenChildren(true);
@@ -254,6 +259,8 @@ TreeCanvas::statusChanged(bool finished) {
 
 void
 SearcherThread::search(VisualNode* n, bool all, TreeCanvas* ti) {
+    qDebug() << ti->root << "<- root in search";
+    qDebug() << ti;
     node = n;
     
     depth = -1;
@@ -337,7 +344,6 @@ public:
 void
 SearcherThread::run(void) {
     {
-        
         if (!node->isOpen())
             return;
         t->mutex.lock();

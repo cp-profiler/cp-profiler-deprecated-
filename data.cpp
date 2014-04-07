@@ -73,7 +73,7 @@ void Data::show_db(void) {
 
 void Data::buildTree(NodeAllocator &na) {
   /// read instances one by one
-  na[0]->setNumberOfChildren(3, na);
+  // na[0]->setNumberOfChildren(2, na);
 
 }
 
