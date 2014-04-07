@@ -346,7 +346,8 @@ SearcherThread::run(void) {
     qDebug() << "in searcher thread";
     // t->root->setNumberOfChildren(2, *(t->na));
     // t->root->setBookmarked(true);
-    data->readInstance(*(t->na));
+    Data::self->readInstance(*(t->na));
+    Data::self->readInstance(*(t->na));
     updateCanvas();
 }
 
