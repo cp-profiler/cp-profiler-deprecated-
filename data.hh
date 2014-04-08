@@ -29,6 +29,7 @@ class Data {
 private:
 
 	int counter;
+	int lastRead;
 	sqlite3 *db;
 
 	void show_db(void);
@@ -48,8 +49,7 @@ public:
     Data();
     int specifyNId(Node::NodeAllocator &na, int db_id);
 	int getKids(int nid);
-	void buildTree(NodeAllocator &na);
-	int getIndex();
+	bool readInstance(NodeAllocator &na);
 	
 };
 

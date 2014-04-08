@@ -46,9 +46,9 @@ public:
   /// Destructor
   ~NodeAllocatorBase(void);
   /// Allocate new node with parent \a p and database id
-  int allocate(int p, int db_id);
+  int allocate(int p);
   /// Allocate new root node
-  int allocateRoot(int db_id);
+  int allocateRoot(void);
   /// Return node for index \a i
   T* operator [](int i) const;
   /// Return index of best node before \a i
@@ -108,13 +108,13 @@ protected:
   bool isUndetermined(void) const;
 
   /// Return index of child no \a n
-  int getChild(int n) const;
+
 public:
   typedef NodeAllocatorBase<VisualNode> NodeAllocator;
 
   /// Construct node with parent \a p
   Node(int p, bool failed = false);
-
+  int getChild(int n) const;
   /// Return the parent
   int getParent(void) const;
   /// Return the parent
@@ -124,8 +124,6 @@ public:
 
   /// Return index of this node
   int getIndex(const NodeAllocator& na) const;
-
-  int getNewIndex(void) const;
 
   /// Check if this node is the root of a tree
   bool isRoot(void) const;

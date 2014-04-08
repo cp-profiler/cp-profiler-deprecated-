@@ -41,8 +41,8 @@ SpaceNode::getStatus(void) const {
 }
 
 inline
-SpaceNode::SpaceNode(int p, int _db_id)
-: Node(p), db_id(_db_id), nstatus(0) {
+SpaceNode::SpaceNode(int p)
+: Node(p), nstatus(0) {
   setStatus(UNDETERMINED);
   setHasSolvedChildren(false);
   setHasFailedChildren(false);

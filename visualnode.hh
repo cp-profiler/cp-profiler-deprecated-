@@ -4,6 +4,8 @@
 #include "spacenode.hh"
 #include <string>
 
+class Data;
+
 /// \brief %Layout parameters
 class Layout {
 public:
@@ -87,6 +89,9 @@ public:
 
 /// \brief %Node class that supports visual layout
 class VisualNode : public SpaceNode {
+
+    friend Data;
+
 protected:
   /// Flags for VisualNodes
   enum VisualNodeFlags {
@@ -107,9 +112,9 @@ protected:
   bool containsCoordinateAtDepth(int x, int depth);
 public:
   /// Construct with parent \a p
-  VisualNode(int p, int db_id);
+  VisualNode(int p);
   /// Constructor for root node \a db_id
-  VisualNode(int db_id, bool);
+  VisualNode(bool);
 
   /// Return if node is hidden
   bool isHidden(void);

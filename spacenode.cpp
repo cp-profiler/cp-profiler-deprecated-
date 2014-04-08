@@ -50,8 +50,8 @@
 
   }
 
-  SpaceNode::SpaceNode(int db_id0,bool)
-  : Node(-1, false), db_id(db_id0),  /// ???
+  SpaceNode::SpaceNode(bool)
+  : Node(-1, false),
     nstatus(0) {
 //    if (root == NULL) {
 //      setStatus(FAILED);
@@ -67,24 +67,7 @@
 
   int
   SpaceNode::getNumberOfChildNodes(NodeAllocator& na) {
-    // int kids = noOfChildren;
-    int kids = Data::self->getKids(db_id);
 
-    // if (isUndetermined()) {
-    //   if (kids > 0) {
-    //     // setStatus(BRANCH);
-    //     // setHasOpenChildren(true);
-    //   } else {
-    //     // setStatus(SOLVED);
-    //     // setHasOpenChildren(false);
-    //     // setHasSolvedChildren(true);
-    //     // setHasFailedChildren(false);
-    //   }
-    if (db_id >= 0)
-      setNumberOfChildren(kids, na);
-
-    // }
-    return kids;
   }
 
   int

@@ -32,8 +32,8 @@ public:
 /// Allocate shapes statically
 ShapeAllocator shapeAllocator;
 
-VisualNode::VisualNode(int p, int _db_id)
-    : SpaceNode(p, _db_id)
+VisualNode::VisualNode(int p)
+    : SpaceNode(p)
     , offset(0)
 {
     shape = NULL;
@@ -45,8 +45,8 @@ VisualNode::VisualNode(int p, int _db_id)
     setBookmarked(false);
 }
 
-VisualNode::VisualNode(int db_id, bool)
-    : SpaceNode(db_id,true)
+VisualNode::VisualNode( bool)
+    : SpaceNode(true)
     , offset(0)
 {
     shape = NULL;

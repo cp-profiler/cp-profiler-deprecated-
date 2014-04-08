@@ -34,23 +34,23 @@ NodeAllocatorBase<T>::~NodeAllocatorBase(void) {
 
 template<class T>
 inline int
-NodeAllocatorBase<T>::allocate(int p, int _db_id) {
+NodeAllocatorBase<T>::allocate(int p) {
   cur_t++;
   if (cur_t==NodeBlockSize)
     allocate();
   // new (&b[cur_b]->b[cur_t]) T(db_id, false); /// bookmark
-  new (&b[cur_b]->b[cur_t]) T(p, _db_id); /// bookmark
+  new (&b[cur_b]->b[cur_t]) T(p); /// bookmark
   b[cur_b]->best[cur_t] = -1;
   return cur_b*NodeBlockSize+cur_t;
 }
 
 template<class T>
 inline int
-NodeAllocatorBase<T>::allocateRoot(int db_id) {
+NodeAllocatorBase<T>::allocateRoot() {
   cur_t++;
   if (cur_t==NodeBlockSize)
     allocate();
-  new (&b[cur_b]->b[cur_t]) T(db_id,true);
+  new (&b[cur_b]->b[cur_t]) T(true);
   b[cur_b]->best[cur_t] = -1;
   return cur_b*NodeBlockSize+cur_t;
 }
@@ -205,12 +205,6 @@ Node::getIndex(const NodeAllocator& na) const {
   GECODE_NEVER;
    return -1;
 }
-
-inline int
-Node::getNewIndex(void) const {
-  return Data::self->getIndex();
-}
-
 
 
 #endif // NODE_HPP

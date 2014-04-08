@@ -19,25 +19,26 @@ Data::Data() {
 	counter = 0;
 	Data::self = this;
 
- 	nid_to_db_id[0] = 0;
- 	nid_to_db_id[1] = 1;
- 	nid_to_db_id[3] = 2;
- 	nid_to_db_id[4] = 3;
+ 	// nid_to_db_id[0] = 0;
+ 	// nid_to_db_id[1] = 1;
+ 	// nid_to_db_id[3] = 2;
+ 	// nid_to_db_id[4] = 3;
 
- 	nid_to_db_id[5] = 4;
- 	nid_to_db_id[2] = 5;
- 	nid_to_db_id[10] = 6;
- 	nid_to_db_id[11] = 7;
+ 	// nid_to_db_id[5] = 4;
+ 	// nid_to_db_id[2] = 5;
+ 	// nid_to_db_id[10] = 6;
+ 	// nid_to_db_id[11] = 7;
 
- 	nid_to_db_id[6] = 8;
- 	nid_to_db_id[7] = 9;
- 	nid_to_db_id[8] = 10;
- 	nid_to_db_id[9] = 11;
+ 	// nid_to_db_id[6] = 8;
+ 	// nid_to_db_id[7] = 9;
+ 	// nid_to_db_id[8] = 10;
+ 	// nid_to_db_id[9] = 11;
 
- 	nid_to_db_id[12] = 12;
- 	nid_to_db_id[13] = 13;
- 	nid_to_db_id[14] = 14;
- 	nid_to_db_id[15] = 15;
+ 	// nid_to_db_id[12] = 12;
+ 	// nid_to_db_id[13] = 13;
+ 	// nid_to_db_id[14] = 14;
+ 	// nid_to_db_id[15] = 15;
+  lastRead = -1;
 
  	connectToDB();
   qDebug() << "size: " << db_array.size();
@@ -55,10 +56,6 @@ int Data::getKids(int nid) {
     return db_array[db_id]->numberOfKids;
 }
 
-int Data::getIndex() {
-	return ++counter;
-}
-
 void Data::show_db(void) {
     for (vector<DbEntry*>::iterator it = db_array.begin(); it != db_array.end(); it++) {
         qDebug() << "nid: " << (*it)->node_id << " p: " << (*it)->parent_db_id <<
@@ -66,14 +63,42 @@ void Data::show_db(void) {
     }
 }
 
-///// temporary
-//int Data::getNumberOfKids(int ) {
+/// return false if there is nothing to read
+bool Data::readInstance(NodeAllocator &na) {
+  int nid;
+  int parent_db_id;
+  int parent_nid;
+  int alt;
+  int nalt;
+  if (lastRead + 1 >= counter)
+    return false;
 
-//}
+  VisualNode* node;
+  if (lastRead == -1) {
+    lastRead++;
+    na[0]->setNumberOfChildren(db_array[0]->numberOfKids, na);
+    na[0]->setStatus(BRANCH);
+    na[0]->setHasSolvedChildren(true);
+    db_array[lastRead]->node_id = 0;
+     
+  }
+  else {
+     lastRead++;
+     parent_db_id = db_array[lastRead]->parent_db_id;
+     alt = db_array[lastRead]->alt;
+     nalt = db_array[lastRead]->numberOfKids;
+     parent_nid = db_array[parent_db_id]->node_id;
+     node = na[parent_nid]->getChild(na, alt);
+     db_array[lastRead]->node_id = node->getIndex(na);
+     node->setNumberOfChildren(nalt, na);
+     if (nalt > 0)
+       node->setStatus(BRANCH);
+     else
+       node->setStatus(SOLVED);
 
-void Data::buildTree(NodeAllocator &na) {
-  /// read instances one by one
-  // na[0]->setNumberOfChildren(2, na);
+  }
+
+  return true;
 
 }
 
@@ -93,10 +118,10 @@ void Data::connectToDB(void) {
 }
 
 int Data::callback(void *NotUsed, int argc, char **argv, char **azColName) {
-  int i;
   int id, parent, alt, kids;
   int col_n = 5;
   for (int i = 0; i < argc; i += col_n) {
+    Data::self->counter++;
     id = argv[i] ? atoi(argv[i]) : -1;
     parent = argv[i+2] ? atoi(argv[i+2]) : -1;
     alt = argv[i+3] ? atoi(argv[i+3]) : -1;
