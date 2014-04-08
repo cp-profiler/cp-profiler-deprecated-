@@ -20,6 +20,7 @@ static const unsigned int MAXDISTANCE = (1<<20)-1; //< Maximum representable dis
 static const unsigned int DISTANCEMASK = (1<<20)-1; //< Mask for accessing distance
 
 class TreeCanvas;
+class Data;
 
 /// %Statistics about the search tree
 class Statistics {
@@ -45,7 +46,8 @@ class SpaceNode;
 /// \brief A node of a search tree of %Gecode spaces
 class SpaceNode : public Node {
 
-    friend TreeCanvas;
+//    friend TreeCanvas;
+    friend Data;
 protected:
   /// Reference to node in database
   int db_id;

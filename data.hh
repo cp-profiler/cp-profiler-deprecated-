@@ -49,7 +49,7 @@ public:
     Data();
     int specifyNId(Node::NodeAllocator &na, int db_id);
 	int getKids(int nid);
-	void readInstance(NodeAllocator &na);
+	bool readInstance(NodeAllocator &na);
 	int getIndex();
 	
 };

@@ -42,9 +42,9 @@ TreeCanvas::TreeCanvas(QWidget* parent)
     scale = LayoutConfig::defScale / 100.0;
 
 
-    root->setNumberOfChildren(2, *na);
+    // root->setNumberOfChildren(2, *na);
     qDebug() << root << "<- root";
-    root->setBookmarked(true);
+    // root->setBookmarked(true);
 //    root->dirtyUp(*na);
 
 
@@ -344,10 +344,9 @@ public:
 void
 SearcherThread::run(void) {
     qDebug() << "in searcher thread";
-    // t->root->setNumberOfChildren(2, *(t->na));
-    // t->root->setBookmarked(true);
-    Data::self->readInstance(*(t->na));
-    Data::self->readInstance(*(t->na));
+
+    while(Data::self->readInstance(*(t->na))){};
+
     updateCanvas();
 }
 

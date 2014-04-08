@@ -67,24 +67,24 @@
 
   int
   SpaceNode::getNumberOfChildNodes(NodeAllocator& na) {
-    // int kids = noOfChildren;
-    int kids = Data::self->getKids(db_id);
+    // // int kids = noOfChildren;
+    // int kids = Data::self->getKids(db_id);
 
-    // if (isUndetermined()) {
-    //   if (kids > 0) {
-    //     // setStatus(BRANCH);
-    //     // setHasOpenChildren(true);
-    //   } else {
-    //     // setStatus(SOLVED);
-    //     // setHasOpenChildren(false);
-    //     // setHasSolvedChildren(true);
-    //     // setHasFailedChildren(false);
-    //   }
-    if (db_id >= 0)
-      setNumberOfChildren(kids, na);
+    // // if (isUndetermined()) {
+    // //   if (kids > 0) {
+    // //     // setStatus(BRANCH);
+    // //     // setHasOpenChildren(true);
+    // //   } else {
+    // //     // setStatus(SOLVED);
+    // //     // setHasOpenChildren(false);
+    // //     // setHasSolvedChildren(true);
+    // //     // setHasFailedChildren(false);
+    // //   }
+    // if (db_id >= 0)
+    //   setNumberOfChildren(kids, na);
 
-    // }
-    return kids;
+    // // }
+    // return kids;
   }
 
   int

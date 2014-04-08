@@ -4,6 +4,8 @@
 #include "spacenode.hh"
 #include <string>
 
+class Data;
+
 /// \brief %Layout parameters
 class Layout {
 public:
@@ -87,6 +89,9 @@ public:
 
 /// \brief %Node class that supports visual layout
 class VisualNode : public SpaceNode {
+
+    friend Data;
+
 protected:
   /// Flags for VisualNodes
   enum VisualNodeFlags {

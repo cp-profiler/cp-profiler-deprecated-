@@ -67,21 +67,24 @@ void Data::show_db(void) {
     }
 }
 
-///// temporary
-//int Data::getNumberOfKids(int ) {
-
-//}
-
-void Data::readInstance(NodeAllocator &na) {
+/// return false if there is nothing to read
+bool Data::readInstance(NodeAllocator &na) {
   int nid;
   int parent_db_id;
   int parent_nid;
   int alt;
   int nalt;
+  if (lastRead >= counter)
+    return false;
+
   VisualNode* node;
   if (lastRead == -1) {
-     na[0]->setNumberOfChildren(db_array[0]->numberOfKids, na);
-     lastRead++;
+    lastRead++;
+    na[0]->setNumberOfChildren(db_array[0]->numberOfKids, na);
+    na[0]->setStatus(BRANCH);
+    na[0]->setHasSolvedChildren(true);
+    db_array[lastRead]->node_id = 0;
+     
   }
   else {
      lastRead++;
@@ -90,9 +93,16 @@ void Data::readInstance(NodeAllocator &na) {
      nalt = db_array[lastRead]->numberOfKids;
      parent_nid = db_array[parent_db_id]->node_id;
      node = na[parent_nid]->getChild(na, alt);
+     db_array[lastRead]->node_id = node->getIndex(na);
      node->setNumberOfChildren(nalt, na);
+     if (nalt > 0)
+       node->setStatus(BRANCH);
+     else
+       node->setStatus(SOLVED);
 
   }
+
+  return true;
 
 }
 
