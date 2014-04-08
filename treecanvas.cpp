@@ -687,17 +687,7 @@ TreeCanvas::stopSearch(void) {
 void
 TreeCanvas::reset(void) {
     QMutexLocker locker(&mutex);
-//    Space* rootSpace =
-//            root->getStatus() == FAILED ? NULL :
-//                                          root->getSpace(*na,curBest,c_d,a_d);
-//    if (curBest != NULL) {
-//        delete curBest;
-//        curBest = new BestNode(NULL);
-//    }
-//    if (root) {
-//        DisposeCursor dc(root,*na);
-//        PreorderNodeVisitor<DisposeCursor>(dc).run();
-//    }
+
     delete na;
     na = new Node::NodeAllocator(false);
     int rootIdx = na->allocateRoot();

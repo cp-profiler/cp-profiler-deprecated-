@@ -19,30 +19,15 @@ Data::Data() {
 	counter = 0;
 	Data::self = this;
 
- 	// nid_to_db_id[0] = 0;
- 	// nid_to_db_id[1] = 1;
- 	// nid_to_db_id[3] = 2;
- 	// nid_to_db_id[4] = 3;
-
- 	// nid_to_db_id[5] = 4;
- 	// nid_to_db_id[2] = 5;
- 	// nid_to_db_id[10] = 6;
- 	// nid_to_db_id[11] = 7;
-
- 	// nid_to_db_id[6] = 8;
- 	// nid_to_db_id[7] = 9;
- 	// nid_to_db_id[8] = 10;
- 	// nid_to_db_id[9] = 11;
-
- 	// nid_to_db_id[12] = 12;
- 	// nid_to_db_id[13] = 13;
- 	// nid_to_db_id[14] = 14;
- 	// nid_to_db_id[15] = 15;
   lastRead = -1;
 
  	connectToDB();
   qDebug() << "size: " << db_array.size();
   readDB(0);
+  readDB(4);
+  readDB(8);
+  readDB(12);
+  readDB(16);
   show_db();
 }
 
@@ -112,21 +97,20 @@ void Data::connectToDB(void) {
 	} else {
 		qDebug() << "Successfully connected to DB";
 	}
-
-	
-
 }
 
 int Data::callback(void *NotUsed, int argc, char **argv, char **azColName) {
   int id, parent, alt, kids;
-  int col_n = 5;
+  int col_n = 7;
   for (int i = 0; i < argc; i += col_n) {
     Data::self->counter++;
     id = argv[i] ? atoi(argv[i]) : -1;
-    parent = argv[i+2] ? atoi(argv[i+2]) : -1;
-    alt = argv[i+3] ? atoi(argv[i+3]) : -1;
-    kids = argv[i+4] ? atoi(argv[i+4]) : -1;
+    parent = argv[i+3] ? atoi(argv[i+3]) : -1;
+    alt = argv[i+4] ? atoi(argv[i+4]) : -1;
+    kids = argv[i+5] ? atoi(argv[i+5]) : -1;
     Data::self->db_array.push_back(new DbEntry(parent, alt, kids));
+
+    // put readInstance here?
   }
   
   return 0;
@@ -135,8 +119,7 @@ int Data::callback(void *NotUsed, int argc, char **argv, char **azColName) {
 void Data::readDB(int db_id) {
   int rc;
   char *zErrMsg = 0;
-  // string query = "SELECT * FROM Nodes WHERE Id=" + SSTR(db_id);
-  string query = "SELECT * FROM Nodes WHERE Id>" + SSTR(db_id);
+  string query = "SELECT * FROM Nodes WHERE Id>" + SSTR(db_id) + " AND Id<=" + SSTR(db_id + Data::PORTION);
   query += ";";
   qDebug() << "command: " << query.c_str();
   rc = sqlite3_exec(db, query.c_str(), callback, 0, &zErrMsg);

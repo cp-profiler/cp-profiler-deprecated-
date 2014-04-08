@@ -28,6 +28,7 @@ class Data {
 
 private:
 
+	static const int PORTION = 4;
 	int counter;
 	int lastRead;
 	sqlite3 *db;
