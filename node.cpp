@@ -21,7 +21,8 @@ Node::setNumberOfChildren(unsigned int n, NodeAllocator& na) {
         childrenOrFirstChild =
                 reinterpret_cast<void*>(na.allocate(getIndex(na)) << 2);
 //                reinterpret_cast<void*>(na.allocate(getNewIndex()) << 2);
-        // idx = getIndex(na);
+        int idx = getIndex(na);
+
         noOfChildren = -na.allocate(getIndex(na));
 //        noOfChildren = -na.allocate(getNewIndex());
         setTag(TWO_CHILDREN);

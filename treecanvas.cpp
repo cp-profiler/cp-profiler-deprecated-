@@ -28,17 +28,17 @@ TreeCanvas::TreeCanvas(QWidget* parent)
     , layoutDoneTimerId(0) {
     QMutexLocker locker(&mutex);
 
-    data = new Data();
+    
     na = new Node::NodeAllocator(false);
     int rootIdx = na->allocateRoot(); // read root from db
-    qDebug() << this;
+    // qDebug() << this;
 
-    assert(rootIdx == 0); (void) rootIdx;
+    // // assert(rootIdx == 0); (void) rootIdx;
     root = (*na)[0];
-    root->layout(*na);
-    root->setMarked(true);
-    currentNode = root;
-    pathHead = root;
+    // root->layout(*na);
+    // root->setMarked(true);
+    // currentNode = root;
+    // pathHead = root;
     scale = LayoutConfig::defScale / 100.0;
 
 //    root->dirtyUp(*na);
@@ -78,6 +78,9 @@ TreeCanvas::TreeCanvas(QWidget* parent)
 
     connect(&scrollTimeLine, SIGNAL(frameChanged(int)),
             this, SLOT(scroll(int)));
+
+    connect(&searcher, SIGNAL(run), this, SLOT(readPartOfDB())); /// maxim
+
     scrollTimeLine.setCurveShape(QTimeLine::EaseInOutCurve);
 
     scaleBar = new QSlider(Qt::Vertical, this);
@@ -340,11 +343,20 @@ public:
 void
 SearcherThread::run(void) {
 
-    while(Data::self->readInstance(*(t->na))){};
+    // Data::self->startReading();
+    qDebug() << "na in run: " << t->na;
+     while(Data::self->readInstance(t->na)){};
+
     updateCanvas();
 }
 
 void
+TreeCanvas::readPartOfDB(void) {
+    qDebug() << "in readPartOfDB";
+    Data::self->readDB(0);
+}
+
+    void
 TreeCanvas::searchAll(void) {
     QMutexLocker locker(&mutex);
     searcher.search(currentNode, true, this);
@@ -690,6 +702,7 @@ TreeCanvas::reset(void) {
 
     delete na;
     na = new Node::NodeAllocator(false);
+
     int rootIdx = na->allocateRoot();
     assert(rootIdx == 0); (void) rootIdx;
     root = (*na)[0];
@@ -701,9 +714,30 @@ TreeCanvas::reset(void) {
     for (int i=bookmarks.size(); i--;)
         emit removedBookmark(i);
     bookmarks.clear();
-    root->layout(*na);
+    // root->layout(*na);
 
     emit statusChanged(currentNode, stats, true);
+    data = new Data(na, &mutex);
+
+    Data::self->readDB(0);
+    Data::self->readInstance(na);
+    Data::self->readInstance(na);
+    Data::self->readInstance(na);
+    Data::self->readInstance(na);
+
+    sleep(1);
+    Data::self->readDB(4);
+    update();
+    sleep(1);
+    Data::self->readDB(8);
+    update();
+    sleep(1);
+    Data::self->readDB(12);
+    update();
+    Data::self->printNA();
+    // sleep(1);
+    // Data::self->readDB(4);
+    // data->startReading();
     update();
 }
 

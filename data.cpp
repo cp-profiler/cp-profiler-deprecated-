@@ -3,9 +3,9 @@
 #include <string>
 #include <sstream>
 #include <sqlite3.h>
+#include <ctime>
+
 #include "visualnode.hh"
-
-
 #include "data.hh"
 
 using namespace std;
@@ -15,20 +15,21 @@ using namespace std;
 
 Data* Data::self = 0;
 
-Data::Data() {
+Data::Data(NodeAllocator *na, QMutex* m) : _na(na), mutex(m) {
+  Data::self = this;
 	counter = 0;
-	Data::self = this;
+	
 
   lastRead = -1;
 
  	connectToDB();
-  qDebug() << "size: " << db_array.size();
-  readDB(0);
-  readDB(4);
-  readDB(8);
-  readDB(12);
-  readDB(16);
-  show_db();
+  
+  // readDB(0);
+  // readDB(4);
+  // readDB(8);
+  // readDB(12);
+  // readDB(16);
+  // show_db();
 }
 
 int Data::specifyNId(NodeAllocator &na, int db_id) {
@@ -41,6 +42,15 @@ int Data::getKids(int nid) {
     return db_array[db_id]->numberOfKids;
 }
 
+void Data::startReading(void) {
+  qDebug() << "in startReading";
+  // QTimer *timer = new QTimer(this);
+  // connect(timer, SIGNAL(timeout()), this, SLOT(update()));
+  // timer->start(1000);
+  
+  readDB(0);
+}
+
 void Data::show_db(void) {
     for (vector<DbEntry*>::iterator it = db_array.begin(); it != db_array.end(); it++) {
         qDebug() << "nid: " << (*it)->node_id << " p: " << (*it)->parent_db_id <<
@@ -48,22 +58,31 @@ void Data::show_db(void) {
     }
 }
 
+void Data::printNA(void) {
+  VisualNode* v = (*_na)[0];
+  VisualNode* ch1 = v->getChild(*_na, 0);
+  VisualNode* ch2 = v->getChild(*_na, 1);
+  VisualNode* ch3 = v->getChild(*_na, 2);
+
+}
+
 /// return false if there is nothing to read
-bool Data::readInstance(NodeAllocator &na) {
+bool Data::readInstance(NodeAllocator *na) {
   int nid;
   int parent_db_id;
   int parent_nid;
   int alt;
   int nalt;
-  if (lastRead + 1 >= counter)
+
+  if (lastRead +1 >= counter)
     return false;
 
   VisualNode* node;
   if (lastRead == -1) {
     lastRead++;
-    na[0]->setNumberOfChildren(db_array[0]->numberOfKids, na);
-    na[0]->setStatus(BRANCH);
-    na[0]->setHasSolvedChildren(true);
+    (*na)[0]->setNumberOfChildren(db_array[0]->numberOfKids, *na);
+    (*na)[0]->setStatus(BRANCH);
+    (*na)[0]->setHasSolvedChildren(true);
     db_array[lastRead]->node_id = 0;
      
   }
@@ -73,16 +92,15 @@ bool Data::readInstance(NodeAllocator &na) {
      alt = db_array[lastRead]->alt;
      nalt = db_array[lastRead]->numberOfKids;
      parent_nid = db_array[parent_db_id]->node_id;
-     node = na[parent_nid]->getChild(na, alt);
-     db_array[lastRead]->node_id = node->getIndex(na);
-     node->setNumberOfChildren(nalt, na);
+     node = (*na)[parent_nid]->getChild(*na, alt);
+     db_array[lastRead]->node_id = node->getIndex(*na);
+     node->setNumberOfChildren(nalt, *na);
      if (nalt > 0)
        node->setStatus(BRANCH);
      else
        node->setStatus(SOLVED);
 
   }
-
   return true;
 
 }
@@ -100,17 +118,20 @@ void Data::connectToDB(void) {
 }
 
 int Data::callback(void *NotUsed, int argc, char **argv, char **azColName) {
+  QMutexLocker locker(Data::self->mutex);
   int id, parent, alt, kids;
   int col_n = 7;
   for (int i = 0; i < argc; i += col_n) {
     Data::self->counter++;
-    id = argv[i] ? atoi(argv[i]) : -1;
-    parent = argv[i+3] ? atoi(argv[i+3]) : -1;
-    alt = argv[i+4] ? atoi(argv[i+4]) : -1;
-    kids = argv[i+5] ? atoi(argv[i+5]) : -1;
+    id = argv[i] ? atoi(argv[i]) : -2;
+    parent = argv[i+3] ? atoi(argv[i+3]) : -2;
+    alt = argv[i+4] ? atoi(argv[i+4]) : -2;
+    kids = argv[i+5] ? atoi(argv[i+5]) : -2;
     Data::self->db_array.push_back(new DbEntry(parent, alt, kids));
 
+
     // put readInstance here?
+    // Data::self->readInstance(Data::self->_na);
   }
   
   return 0;

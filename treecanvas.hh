@@ -45,6 +45,8 @@ protected:
   void run(void);
 };
 
+
+
 /// \brief A canvas that displays the search tree
 class TreeCanvas : public QWidget {
   Q_OBJECT
@@ -77,8 +79,11 @@ public:
 //  void addComparator(Comparator* c);
 //  /// Set active comparator
 //  void activateComparator(int i, bool active);
+  
 
 public Q_SLOTS:
+/// just for testing
+  void readPartOfDB(void);
   /// Set scale factor to \a scale0
   void scaleTree(int scale0, int zoomx=-1, int zoomy=-1);
 
