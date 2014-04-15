@@ -1,6 +1,7 @@
 #include <QtGui/QPainter>
 #include <QPrinter>
 #include <QPrintDialog>
+#include <QTimer>
 
 #include <stack>
 #include <fstream>
@@ -710,7 +711,19 @@ TreeCanvas::reset(void) {
     data = new Data(na);
     data->startReading();
 
+    // QTimer* timer = new QTimer(this);
+    timer = new QTimer(this);
+   connect(timer, SIGNAL(timeout()), this, SLOT(readPartOfDB()));
+   QTimer::singleShot(5000, this, SLOT(update()));
+//    connect(timer, SIGNAL(timeout()), this, SLOT(update()));
+    timer->start(1000);
+
     update();
+}
+
+void
+TreeCanvas::readPartOfDB(void) {
+    data->readNext();
 }
 
 void

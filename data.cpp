@@ -3,6 +3,7 @@
 #include <string>
 #include <sstream>
 #include <sqlite3.h>
+
 #include <ctime>
 
 #include "visualnode.hh"
@@ -29,18 +30,19 @@ int Data::specifyNId(NodeAllocator &na, int db_id) {
 
 }
 
+
+void Data::readNext(void) {
+    readDB(nextToRead);
+    nextToRead += PORTION;
+}
+
 void Data::startReading(void) {
     qDebug() << "in startReading";
     
-    readDB(0);
-    sleep(1);
-    readDB(4);
-    // update();
-    sleep(1);
-    readDB(8);
-    // update();
-    sleep(1);
-    readDB(12);
+    // readDB(0);
+    // readDB(4);
+    // readDB(8);
+    // readDB(12);
 }
 
 void Data::show_db(void) {
@@ -83,6 +85,9 @@ bool Data::readInstance(NodeAllocator *na) {
             node->setStatus(BRANCH);
         else
             node->setStatus(SOLVED);
+
+        node->dirtyUp(*na);
+
     }
 
     return true;

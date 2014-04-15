@@ -35,6 +35,8 @@ private:
     int counter;
     int lastRead;
 
+    int nextToRead = 0;
+
     sqlite3 *db;
     NodeAllocator * _na;
     std::vector<DbEntry*> db_array;
@@ -54,6 +56,8 @@ public:
     static Data* self;
 
     void startReading(void);
+
+    void readNext(void);
 
     bool readInstance(NodeAllocator *na);
     

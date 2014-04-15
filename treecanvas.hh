@@ -4,6 +4,7 @@
 #include <QtGui>
 #if QT_VERSION >= 0x050000
 #include <QtWidgets>
+// #include <QTimer>
 #endif
 
 #include "visualnode.hh"
@@ -182,6 +183,9 @@ public Q_SLOTS:
   /// Resize to the outer widget size if auto zoom is enabled
   void resizeToOuter(void);
 
+  /// experimental
+  void readPartOfDB(void);
+
   /// Stop search and wait for it to finish
   bool finish(void);
 
@@ -203,6 +207,7 @@ Q_SIGNALS:
   /// Signals that a bookmark has been removed
   void removedBookmark(int idx);
 protected:
+  QTimer* timer;
   /// Mutex for synchronizing acccess to the tree
   QMutex mutex;
   /// Mutex for synchronizing layout and drawing
