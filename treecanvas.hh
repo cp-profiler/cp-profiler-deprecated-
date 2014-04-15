@@ -35,6 +35,10 @@ private:
 public:
   void search(VisualNode* n, bool all, TreeCanvas* ti);
 
+public Q_SLOTS:
+  /// experimental
+  void readPartOfDB(void);
+
 Q_SIGNALS:
   void update(int w, int h, int scale0);
   void statusChanged(bool);
@@ -182,9 +186,6 @@ public Q_SLOTS:
   void setMoveDuringSearch(bool b);
   /// Resize to the outer widget size if auto zoom is enabled
   void resizeToOuter(void);
-
-  /// experimental
-  void readPartOfDB(void);
 
   /// Stop search and wait for it to finish
   bool finish(void);

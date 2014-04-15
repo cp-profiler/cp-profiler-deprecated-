@@ -2,7 +2,6 @@
 #include <qdebug>
 #include <string>
 #include <sstream>
-#include <sqlite3.h>
 
 #include <ctime>
 
@@ -81,10 +80,14 @@ bool Data::readInstance(NodeAllocator *na) {
         node = (*na)[parent_nid]->getChild(*na, alt);
         db_array[lastRead]->node_id = node->getIndex(*na);
         node->setNumberOfChildren(nalt, *na);
-        if (nalt > 0)
-            node->setStatus(BRANCH);
-        else
+        if (nalt > 0) {
+           node->setStatus(BRANCH); 
+           node->setHasSolvedChildren(true);
+        } else {
             node->setStatus(SOLVED);
+            (*na)[parent_nid]->closeChild(*na, false, true);
+        }
+            
 
         node->dirtyUp(*na);
 

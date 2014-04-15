@@ -344,6 +344,56 @@ public:
 void
 SearcherThread::run(void) {
 
+    // QTimer* timer = new QTimer(t);
+    // connect(timer, SIGNAL(timeout()), this, SLOT(readPartOfDB()));
+    // QTimer::singleShot(5000, this, SLOT(update()));
+    // timer->start(1000);
+
+    readPartOfDB();
+    sleep(1);
+    updateCanvas();
+    readPartOfDB();
+    sleep(1);
+    updateCanvas();
+    readPartOfDB();
+    sleep(1);
+    readPartOfDB();
+    updateCanvas();
+    sleep(1);
+    readPartOfDB();
+    updateCanvas();
+    sleep(1);
+    readPartOfDB();
+    updateCanvas();
+    sleep(1);
+    readPartOfDB();
+    updateCanvas();
+    sleep(1);
+    readPartOfDB();
+    updateCanvas();
+    sleep(1);
+    readPartOfDB();
+    updateCanvas();
+    sleep(1);
+    readPartOfDB();
+    updateCanvas();
+    sleep(1);
+    readPartOfDB();
+    updateCanvas();
+    sleep(1);
+    readPartOfDB();
+    updateCanvas();
+    sleep(1);
+    readPartOfDB();
+    updateCanvas();
+    sleep(1);
+    readPartOfDB();
+    updateCanvas();
+    sleep(1);
+    readPartOfDB();
+    updateCanvas();
+    sleep(1);
+    readPartOfDB();
     updateCanvas();
 }
 
@@ -711,19 +761,14 @@ TreeCanvas::reset(void) {
     data = new Data(na);
     data->startReading();
 
-    // QTimer* timer = new QTimer(this);
-    timer = new QTimer(this);
-   connect(timer, SIGNAL(timeout()), this, SLOT(readPartOfDB()));
-   QTimer::singleShot(5000, this, SLOT(update()));
-//    connect(timer, SIGNAL(timeout()), this, SLOT(update()));
-    timer->start(1000);
+    // run();
 
     update();
 }
 
 void
-TreeCanvas::readPartOfDB(void) {
-    data->readNext();
+SearcherThread::readPartOfDB(void) {
+    Data::self->readNext();
 }
 
 void

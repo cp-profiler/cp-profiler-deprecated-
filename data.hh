@@ -4,7 +4,6 @@
 #include <vector>
 #include <tr1/unordered_map>
 #include <sqlite3.h>
-#include <QMutex>
 
 #include "node.hh"
 
@@ -31,7 +30,7 @@ class Data {
 
 private:
 
-    static const int PORTION = 4;
+    static const int PORTION = 1;
     int counter;
     int lastRead;
 
