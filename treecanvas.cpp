@@ -31,6 +31,7 @@ TreeCanvas::TreeCanvas(QWidget* parent)
 
     
     na = new Node::NodeAllocator(false);
+    timer = new QTimer(this);
     int rootIdx = na->allocateRoot(); // read root from db
     // qDebug() << this;
 
@@ -57,6 +58,7 @@ TreeCanvas::TreeCanvas(QWidget* parent)
 
     setAutoFillBackground(true);
 
+    connect(timer, SIGNAL(timeout()), &searcher, SLOT(readPartOfDB()));
     connect(&searcher, SIGNAL(update(int,int,int)), this,
             SLOT(layoutDone(int,int,int)));
     connect(&searcher, SIGNAL(statusChanged(bool)), this,
@@ -344,57 +346,56 @@ public:
 void
 SearcherThread::run(void) {
 
-    // QTimer* timer = new QTimer(t);
-    // connect(timer, SIGNAL(timeout()), this, SLOT(readPartOfDB()));
+    
     // QTimer::singleShot(5000, this, SLOT(update()));
-    // timer->start(1000);
+    t->timer->start(300);
 
-    readPartOfDB();
-    sleep(1);
-    updateCanvas();
-    readPartOfDB();
-    sleep(1);
-    updateCanvas();
-    readPartOfDB();
-    sleep(1);
-    readPartOfDB();
-    updateCanvas();
-    sleep(1);
-    readPartOfDB();
-    updateCanvas();
-    sleep(1);
-    readPartOfDB();
-    updateCanvas();
-    sleep(1);
-    readPartOfDB();
-    updateCanvas();
-    sleep(1);
-    readPartOfDB();
-    updateCanvas();
-    sleep(1);
-    readPartOfDB();
-    updateCanvas();
-    sleep(1);
-    readPartOfDB();
-    updateCanvas();
-    sleep(1);
-    readPartOfDB();
-    updateCanvas();
-    sleep(1);
-    readPartOfDB();
-    updateCanvas();
-    sleep(1);
-    readPartOfDB();
-    updateCanvas();
-    sleep(1);
-    readPartOfDB();
-    updateCanvas();
-    sleep(1);
-    readPartOfDB();
-    updateCanvas();
-    sleep(1);
-    readPartOfDB();
-    updateCanvas();
+    // readPartOfDB();
+    // sleep(1);
+    // updateCanvas();
+    // readPartOfDB();
+    // sleep(1);
+    // updateCanvas();
+    // readPartOfDB();
+    // sleep(1);
+    // readPartOfDB();
+    // updateCanvas();
+    // sleep(1);
+    // readPartOfDB();
+    // updateCanvas();
+    // sleep(1);
+    // readPartOfDB();
+    // updateCanvas();
+    // sleep(1);
+    // readPartOfDB();
+    // updateCanvas();
+    // sleep(1);
+    // readPartOfDB();
+    // updateCanvas();
+    // sleep(1);
+    // readPartOfDB();
+    // updateCanvas();
+    // sleep(1);
+    // readPartOfDB();
+    // updateCanvas();
+    // sleep(1);
+    // readPartOfDB();
+    // updateCanvas();
+    // sleep(1);
+    // readPartOfDB();
+    // updateCanvas();
+    // sleep(1);
+    // readPartOfDB();
+    // updateCanvas();
+    // sleep(1);
+    // readPartOfDB();
+    // updateCanvas();
+    // sleep(1);
+    // readPartOfDB();
+    // updateCanvas();
+    // sleep(1);
+    // readPartOfDB();
+    // updateCanvas();
 }
 
     void
@@ -769,6 +770,7 @@ TreeCanvas::reset(void) {
 void
 SearcherThread::readPartOfDB(void) {
     Data::self->readNext();
+    updateCanvas();
 }
 
 void

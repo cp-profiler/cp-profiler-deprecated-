@@ -50,6 +50,7 @@ protected:
   void run(void);
 };
 
+  
 
 
 /// \brief A canvas that displays the search tree
@@ -66,6 +67,7 @@ public:
   ~TreeCanvas(void);
 
   // data from the db
+  QTimer* timer;
   Data* data;
 
 //  /// Add inspector \a i
@@ -208,7 +210,6 @@ Q_SIGNALS:
   /// Signals that a bookmark has been removed
   void removedBookmark(int idx);
 protected:
-  QTimer* timer;
   /// Mutex for synchronizing acccess to the tree
   QMutex mutex;
   /// Mutex for synchronizing layout and drawing
