@@ -759,7 +759,7 @@ TreeCanvas::reset(void) {
     // root->layout(*na);
 
     emit statusChanged(currentNode, stats, true);
-    data = new Data(na);
+    data = new Data(this, na);
     data->startReading();
 
     // run();

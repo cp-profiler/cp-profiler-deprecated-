@@ -4,7 +4,6 @@
 #include <sstream>
 
 #include <ctime>
-
 #include "visualnode.hh"
 #include "data.hh"
 
@@ -15,7 +14,7 @@ using namespace std;
 
 Data* Data::self = 0;
 
-Data::Data(NodeAllocator *na) : _na(na) {
+Data::Data(TreeCanvas* tc, NodeAllocator* na) : _tc(tc), _na(na) {
     Data::self = this;
     counter = 0;
     
@@ -31,12 +30,19 @@ int Data::specifyNId(NodeAllocator &na, int db_id) {
 
 
 void Data::readNext(void) {
+    if (totalElements > 0 && nextToRead > totalElements) {
+        _tc->timer->stop();
+        return;
+    }
+        
+    // need to stop the timer
     readDB(nextToRead);
     nextToRead += PORTION;
 }
 
 void Data::startReading(void) {
     qDebug() << "in startReading";
+    countNodesInDB();
     
     // readDB(0);
     // readDB(4);
@@ -104,12 +110,10 @@ void Data::connectToDB(void) {
 
     if (rc) {
         qDebug() << "Can't connect to DB: " << sqlite3_errmsg(db);
-    } else {
-        qDebug() << "Successfully connected to DB";
     }
 }
 
-int Data::callback(void *NotUsed, int argc, char **argv, char **azColName) {
+int Data::handleNodeCallback(void*, int argc, char **argv, char **azColName) {
     int id, parent, alt, kids;
     int col_n = 7;
     for (int i = 0; i < argc; i += col_n) {
@@ -128,17 +132,34 @@ int Data::callback(void *NotUsed, int argc, char **argv, char **azColName) {
     return 0;
 }
 
+int Data::handleCountCallback(void*, int argc, char **argv, char **azColName) {
+    Data::self->totalElements = atoi(argv[0]);
+    return 0;
+}
+
 void Data::readDB(int db_id) {
     int rc;
     char *zErrMsg = 0;
     string query = "SELECT * FROM Nodes WHERE Id>" + SSTR(db_id) + " AND Id<=" + SSTR(db_id + Data::PORTION);
     query += ";";
     qDebug() << "command: " << query.c_str();
-    rc = sqlite3_exec(db, query.c_str(), callback, 0, &zErrMsg);
+    rc = sqlite3_exec(db, query.c_str(), handleNodeCallback, 0, &zErrMsg);
     if (rc != SQLITE_OK ) {
         qDebug() << "SQL error: " << zErrMsg;
     } else 
         qDebug() << "query sent " << zErrMsg;
+}
+
+void Data::countNodesInDB(void) {
+    int rc;
+    char *zErrMsg = 0;
+    if (totalElements > 0) return;
+    string query = "SELECT COUNT(*) FROM Nodes;";
+    qDebug() << "command: " << query.c_str();
+    rc = sqlite3_exec(db, query.c_str(), handleCountCallback, 0, &zErrMsg);
+    if (rc != SQLITE_OK ) {
+        qDebug() << "SQL error: " << zErrMsg;
+    }
 }
 
 Data::~Data(void) {

@@ -5,6 +5,7 @@
 #include <tr1/unordered_map>
 #include <sqlite3.h>
 
+#include "treecanvas.hh"
 #include "node.hh"
 
 typedef NodeAllocatorBase<VisualNode> NodeAllocator;
@@ -35,23 +36,29 @@ private:
     int lastRead;
 
     int nextToRead = 0;
+    int totalElements = -1;
 
     sqlite3 *db;
-    NodeAllocator * _na;
+    TreeCanvas* _tc;
+    NodeAllocator* _na;
     std::vector<DbEntry*> db_array;
     std::tr1::unordered_map<int, int> nid_to_db_id;
 
     void show_db(void);
     void connectToDB(void);
     void readDB(int db_id);
+    // calls "select count(*) from Nodes;" and specifies counter;
+    void countNodesInDB(void);
     int specifyNId(Node::NodeAllocator &na, int db_id);
+
     
     /// can I get rid of 'static' here?
-    static int callback(void*, int argc, char **argv, char **azColName); 
+    static int handleNodeCallback(void*, int argc, char **argv, char **azColName);
+    static int handleCountCallback(void*, int argc, char **argv, char **azColName);
     ~Data(void);
     
 public:
-    Data(NodeAllocator* na);
+    Data(TreeCanvas* tc, NodeAllocator* na);
     static Data* self;
 
     void startReading(void);
