@@ -4,6 +4,7 @@
 #include <vector>
 #include <tr1/unordered_map>
 #include <sqlite3.h>
+#include <QTimer>
 
 #include "treecanvas.hh"
 #include "node.hh"
@@ -27,11 +28,11 @@ public:
 
 };
 
-class Data {
-
+class Data : public QObject {
+Q_OBJECT
 private:
 
-    static const int PORTION = 1;
+    static const int PORTION = 4;
     int counter;
     int lastRead;
 
@@ -39,6 +40,7 @@ private:
     int totalElements = -1;
 
     sqlite3 *db;
+    QTimer* checkTimer;
     TreeCanvas* _tc;
     NodeAllocator* _na;
     std::vector<DbEntry*> db_array;
@@ -55,7 +57,12 @@ private:
     /// can I get rid of 'static' here?
     static int handleNodeCallback(void*, int argc, char **argv, char **azColName);
     static int handleCountCallback(void*, int argc, char **argv, char **azColName);
+    static int handleCheckCallback(void*, int argc, char **argv, char **azColName);
+    
     ~Data(void);
+
+private Q_SLOTS:
+    void checkIfDbComplete(void);
     
 public:
     Data(TreeCanvas* tc, NodeAllocator* na);

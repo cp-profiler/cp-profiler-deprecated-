@@ -346,56 +346,8 @@ public:
 void
 SearcherThread::run(void) {
 
-    
-    // QTimer::singleShot(5000, this, SLOT(update()));
     t->timer->start(300);
 
-    // readPartOfDB();
-    // sleep(1);
-    // updateCanvas();
-    // readPartOfDB();
-    // sleep(1);
-    // updateCanvas();
-    // readPartOfDB();
-    // sleep(1);
-    // readPartOfDB();
-    // updateCanvas();
-    // sleep(1);
-    // readPartOfDB();
-    // updateCanvas();
-    // sleep(1);
-    // readPartOfDB();
-    // updateCanvas();
-    // sleep(1);
-    // readPartOfDB();
-    // updateCanvas();
-    // sleep(1);
-    // readPartOfDB();
-    // updateCanvas();
-    // sleep(1);
-    // readPartOfDB();
-    // updateCanvas();
-    // sleep(1);
-    // readPartOfDB();
-    // updateCanvas();
-    // sleep(1);
-    // readPartOfDB();
-    // updateCanvas();
-    // sleep(1);
-    // readPartOfDB();
-    // updateCanvas();
-    // sleep(1);
-    // readPartOfDB();
-    // updateCanvas();
-    // sleep(1);
-    // readPartOfDB();
-    // updateCanvas();
-    // sleep(1);
-    // readPartOfDB();
-    // updateCanvas();
-    // sleep(1);
-    // readPartOfDB();
-    // updateCanvas();
 }
 
     void
@@ -762,7 +714,7 @@ TreeCanvas::reset(void) {
     data = new Data(this, na);
     data->startReading();
 
-    // run();
+    searchAll();
 
     update();
 }

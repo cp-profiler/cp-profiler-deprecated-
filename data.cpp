@@ -17,12 +17,19 @@ Data* Data::self = 0;
 Data::Data(TreeCanvas* tc, NodeAllocator* na) : _tc(tc), _na(na) {
     Data::self = this;
     counter = 0;
-    
+
     lastRead = -1;
 
     connectToDB();
+
+
+    checkTimer  = new QTimer(tc);
+    connect(checkTimer, SIGNAL(timeout()), this, SLOT(checkIfDbComplete()));
+    checkTimer->start(1000);
+
     
 }
+
 
 int Data::specifyNId(NodeAllocator &na, int db_id) {
 
@@ -42,12 +49,6 @@ void Data::readNext(void) {
 
 void Data::startReading(void) {
     qDebug() << "in startReading";
-    countNodesInDB();
-    
-    // readDB(0);
-    // readDB(4);
-    // readDB(8);
-    // readDB(12);
 }
 
 void Data::show_db(void) {
@@ -105,7 +106,6 @@ bool Data::readInstance(NodeAllocator *na) {
 
 void Data::connectToDB(void) {
     int rc;
-    // rc = sqlite3_open("/Users/maxim/Dropbox/dev/StandaloneGist/data.db", &db);  
     rc = sqlite3_open("/Users/maxim/Dropbox/dev/StandaloneGist/InitialGist/StandaloneGist/data.db", &db);   
 
     if (rc) {
@@ -137,6 +137,17 @@ int Data::handleCountCallback(void*, int argc, char **argv, char **azColName) {
     return 0;
 }
 
+int Data::handleCheckCallback(void*, int argc, char **argv, char **azColName) {
+    if (strcmp(argv[0], "isComplete") == 0) {
+        if (atoi(argv[1]) == 1) {
+            Data::self->countNodesInDB();
+            Data::self->checkTimer->stop();
+        }
+            
+    }
+    return 0;
+}
+
 void Data::readDB(int db_id) {
     int rc;
     char *zErrMsg = 0;
@@ -157,6 +168,17 @@ void Data::countNodesInDB(void) {
     string query = "SELECT COUNT(*) FROM Nodes;";
     qDebug() << "command: " << query.c_str();
     rc = sqlite3_exec(db, query.c_str(), handleCountCallback, 0, &zErrMsg);
+    if (rc != SQLITE_OK ) {
+        qDebug() << "SQL error: " << zErrMsg;
+    }
+}
+
+void Data::checkIfDbComplete(void) {
+    int rc;
+    char *zErrMsg = 0;
+    string query = "SELECT * from Flags;";
+    qDebug() << "command: " << query.c_str();
+    rc = sqlite3_exec(db, query.c_str(), handleCheckCallback, 0, &zErrMsg);
     if (rc != SQLITE_OK ) {
         qDebug() << "SQL error: " << zErrMsg;
     }
