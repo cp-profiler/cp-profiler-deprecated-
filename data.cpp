@@ -4,6 +4,7 @@
 #include <sstream>
 
 #include <ctime>
+
 #include "visualnode.hh"
 #include "data.hh"
 
@@ -22,12 +23,9 @@ Data::Data(TreeCanvas* tc, NodeAllocator* na) : _tc(tc), _na(na) {
 
     connectToDB();
 
-
     checkTimer  = new QTimer(tc);
     connect(checkTimer, SIGNAL(timeout()), this, SLOT(checkIfDbComplete()));
     checkTimer->start(1000);
-
-    
 }
 
 
