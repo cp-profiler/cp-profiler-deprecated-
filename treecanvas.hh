@@ -56,6 +56,7 @@ class TreeCanvas : public QWidget {
 
   friend class SearcherThread;
   friend class Gist;
+  friend class Data;
 
 public:
   /// Constructor

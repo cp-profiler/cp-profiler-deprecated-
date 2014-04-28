@@ -29,8 +29,8 @@ Gist::Gist(QWidget* parent) : QWidget(parent) {
     sa_layout->addWidget(canvas);
     scrollArea->viewport()->setLayout(sa_layout);
 
-    connect(canvas, SIGNAL(solution(const Space*)),
-            this, SIGNAL(solution(const Space*)));
+//    connect(canvas, SIGNAL(solution(const Space*)),
+//            this, SIGNAL(solution(const Space*)));
 
     connect(canvas, SIGNAL(searchFinished(void)), this, SIGNAL(searchFinished(void)));
 
@@ -246,8 +246,8 @@ Gist::Gist(QWidget* parent) : QWidget(parent) {
     solutionInspectorGroup = new QActionGroup(this);
     solutionInspectorGroup->setExclusive(false);
     solutionInspectorGroup->addAction(nullSolutionInspector);
-    connect(solutionInspectorGroup, SIGNAL(triggered(QAction*)),
-            this, SLOT(selectSolutionInspector(QAction*)));
+//    connect(solutionInspectorGroup, SIGNAL(triggered(QAction*)),
+//            this, SLOT(selectSolutionInspector(QAction*)));
 
     nullDoubleClickInspector = new QAction("<none>",this);
     nullDoubleClickInspector->setCheckable(true);
@@ -256,8 +256,8 @@ Gist::Gist(QWidget* parent) : QWidget(parent) {
     doubleClickInspectorGroup = new QActionGroup(this);
     doubleClickInspectorGroup->setExclusive(false);
     doubleClickInspectorGroup->addAction(nullDoubleClickInspector);
-    connect(doubleClickInspectorGroup, SIGNAL(triggered(QAction*)),
-            this, SLOT(selectDoubleClickInspector(QAction*)));
+//    connect(doubleClickInspectorGroup, SIGNAL(triggered(QAction*)),
+//            this, SLOT(selectDoubleClickInspector(QAction*)));
 
     nullMoveInspector = new QAction("<none>",this);
     nullMoveInspector->setCheckable(true);
@@ -266,8 +266,8 @@ Gist::Gist(QWidget* parent) : QWidget(parent) {
     moveInspectorGroup = new QActionGroup(this);
     moveInspectorGroup->setExclusive(false);
     moveInspectorGroup->addAction(nullMoveInspector);
-    connect(moveInspectorGroup, SIGNAL(triggered(QAction*)),
-            this, SLOT(selectMoveInspector(QAction*)));
+//    connect(moveInspectorGroup, SIGNAL(triggered(QAction*)),
+//            this, SLOT(selectMoveInspector(QAction*)));
 
     nullComparator = new QAction("<none>",this);
     nullComparator->setCheckable(true);
@@ -276,8 +276,8 @@ Gist::Gist(QWidget* parent) : QWidget(parent) {
     comparatorGroup = new QActionGroup(this);
     comparatorGroup->setExclusive(false);
     comparatorGroup->addAction(nullComparator);
-    connect(comparatorGroup, SIGNAL(triggered(QAction*)),
-            this, SLOT(selectComparator(QAction*)));
+//    connect(comparatorGroup, SIGNAL(triggered(QAction*)),
+//            this, SLOT(selectComparator(QAction*)));
 
     solutionInspectorMenu = new QMenu("Solution inspectors");
     solutionInspectorMenu->addActions(solutionInspectorGroup->actions());

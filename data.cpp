@@ -25,12 +25,7 @@ Data::Data(TreeCanvas* tc, NodeAllocator* na) : _tc(tc), _na(na) {
 
     checkTimer  = new QTimer(tc);
     connect(checkTimer, SIGNAL(timeout()), this, SLOT(checkIfDbComplete()));
-    checkTimer->start(1000);
-}
-
-
-int Data::specifyNId(NodeAllocator &na, int db_id) {
-
+    checkTimer->start(500);
 }
 
 
@@ -63,37 +58,63 @@ bool Data::readInstance(NodeAllocator *na) {
     int parent_nid;
     int alt;
     int nalt;
+    int status;
 
     if (lastRead +1 >= counter)
         return false;
 
     VisualNode* node;
+    VisualNode* parent;
+
     if (lastRead == -1) {
         lastRead++;
         (*na)[0]->setNumberOfChildren(db_array[0]->numberOfKids, *na);
         (*na)[0]->setStatus(BRANCH);
         (*na)[0]->setHasSolvedChildren(true);
-        db_array[lastRead]->node_id = 0;
-         
+        db_array[lastRead]->node_id = 0;        
     }
     else {
         lastRead++;
         parent_db_id = db_array[lastRead]->parent_db_id;
         alt = db_array[lastRead]->alt;
         nalt = db_array[lastRead]->numberOfKids;
+        status = db_array[lastRead]->status;
         parent_nid = db_array[parent_db_id]->node_id;
-        node = (*na)[parent_nid]->getChild(*na, alt);
+        parent = (*na)[parent_nid];
+        node = parent->getChild(*na, alt);
         db_array[lastRead]->node_id = node->getIndex(*na);
         node->setNumberOfChildren(nalt, *na);
-        if (nalt > 0) {
-           node->setStatus(BRANCH); 
-           node->setHasSolvedChildren(true);
-        } else {
-            node->setStatus(SOLVED);
-            (*na)[parent_nid]->closeChild(*na, false, true);
+        // if (nalt > 0) {
+        //    node->setHasSolvedChildren(true);
+        // } else {
+        //     (*na)[parent_nid]->closeChild(*na, false, true);
+        // }
+
+        switch (status) {
+            case FAILED: // 1
+                node->setHasOpenChildren(false);
+                node->setHasSolvedChildren(false);
+                node->setHasFailedChildren(true);
+                parent->closeChild(*na, true, false);
+                node->setStatus(FAILED);
+                _tc->stats.failures++;
+            break;
+            case SOLVED: // 0
+                node->setHasFailedChildren(false);
+                node->setHasSolvedChildren(true);
+                node->setHasOpenChildren(false);
+                parent->closeChild(*na, false, true);
+                node->setStatus(SOLVED);
+                _tc->stats.solutions++;
+            break;
+            case BRANCH: // 2
+                node->setHasOpenChildren(true);
+                node->setStatus(BRANCH);
+                _tc->stats.choices++;
+            break;
         }
             
-
+        static_cast<VisualNode*>(node)->changedStatus(*na);
         node->dirtyUp(*na);
 
     }
@@ -104,7 +125,7 @@ bool Data::readInstance(NodeAllocator *na) {
 
 void Data::connectToDB(void) {
     int rc;
-    rc = sqlite3_open("/Users/maxim/Dropbox/dev/StandaloneGist/InitialGist/StandaloneGist/data.db", &db);   
+    rc = sqlite3_open("/Users/maxim/Dropbox/dev/StandaloneGist/data2.db", &db);
 
     if (rc) {
         qDebug() << "Can't connect to DB: " << sqlite3_errmsg(db);
@@ -112,15 +133,16 @@ void Data::connectToDB(void) {
 }
 
 int Data::handleNodeCallback(void*, int argc, char **argv, char **azColName) {
-    int id, parent, alt, kids;
-    int col_n = 7;
+    int id, parent, alt, kids, status;
+    int col_n = 8;
     for (int i = 0; i < argc; i += col_n) {
         Data::self->counter++;
-        id = argv[i] ? atoi(argv[i]) : -2;
+        id = argv[i+1] ? atoi(argv[i+1]) : -2;
         parent = argv[i+3] ? atoi(argv[i+3]) : -2;
         alt = argv[i+4] ? atoi(argv[i+4]) : -2;
         kids = argv[i+5] ? atoi(argv[i+5]) : -2;
-        Data::self->db_array.push_back(new DbEntry(parent, alt, kids));
+        status = argv[i+6] ? atoi(argv[i+6]) : -2;
+        Data::self->db_array.push_back(new DbEntry(parent, alt, kids, status));
 
 
         // put readInstance here?
@@ -141,7 +163,6 @@ int Data::handleCheckCallback(void*, int argc, char **argv, char **azColName) {
             Data::self->countNodesInDB();
             Data::self->checkTimer->stop();
         }
-            
     }
     return 0;
 }

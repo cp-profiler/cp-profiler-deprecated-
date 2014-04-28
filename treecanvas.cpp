@@ -64,14 +64,14 @@ TreeCanvas::TreeCanvas(QWidget* parent)
     connect(&searcher, SIGNAL(statusChanged(bool)), this,
             SLOT(statusChanged(bool)));
 
-    connect(&searcher, SIGNAL(solution(const Space*)),
-            this, SIGNAL(solution(const Space*)),
-            Qt::BlockingQueuedConnection);
-    connect(this, SIGNAL(solution(const Space*)),
-            this, SLOT(inspectSolution(const Space*)));
-    connect(&searcher, SIGNAL(solution(const Space*)),
-            this, SLOT(inspectSolution(const Space*)),
-            Qt::BlockingQueuedConnection);
+//    connect(&searcher, SIGNAL(solution(const Space*)),
+//            this, SIGNAL(solution(const Space*)),
+//            Qt::BlockingQueuedConnection);
+//    connect(this, SIGNAL(solution(const Space*)),
+//            this, SLOT(inspectSolution(const Space*)));
+//    connect(&searcher, SIGNAL(solution(const Space*)),
+//            this, SLOT(inspectSolution(const Space*)),
+//            Qt::BlockingQueuedConnection);
 
     connect(&searcher, SIGNAL(moveToNode(VisualNode*,bool)),
             this, SLOT(setCurrentNode(VisualNode*,bool)),
@@ -81,8 +81,6 @@ TreeCanvas::TreeCanvas(QWidget* parent)
 
     connect(&scrollTimeLine, SIGNAL(frameChanged(int)),
             this, SLOT(scroll(int)));
-
-    connect(&searcher, SIGNAL(run), this, SLOT(readPartOfDB())); /// maxim
 
     scrollTimeLine.setCurveShape(QTimeLine::EaseInOutCurve);
 
