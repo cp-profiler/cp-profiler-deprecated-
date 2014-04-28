@@ -15,8 +15,8 @@ class DbEntry {
 private:
 
 public:
-    DbEntry(int _p, int _alt, int _kids) :
-        node_id(-1), parent_db_id(_p), alt(_alt), numberOfKids(_kids) {
+    DbEntry(int _p, int _alt, int _kids, int _status) :
+        node_id(-1), parent_db_id(_p), alt(_alt), numberOfKids(_kids), status(_status) {
     }
 
     DbEntry(): node_id(-1) {}
@@ -25,14 +25,15 @@ public:
     int parent_db_id; // parent id in database 
     int alt; // which child by order
     int numberOfKids;
+    int status;
 
 };
 
 class Data : public QObject {
 Q_OBJECT
 private:
-    
-    static const int PORTION = 4;
+
+    static const int PORTION = 16;
     int counter;
     int lastRead;
 
@@ -51,9 +52,7 @@ private:
     void readDB(int db_id);
     // calls "select count(*) from Nodes;" and specifies counter;
     void countNodesInDB(void);
-    int specifyNId(Node::NodeAllocator &na, int db_id);
 
-    
     /// can I get rid of 'static' here?
     static int handleNodeCallback(void*, int argc, char **argv, char **azColName);
     static int handleCountCallback(void*, int argc, char **argv, char **azColName);

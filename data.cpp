@@ -29,11 +29,6 @@ Data::Data(TreeCanvas* tc, NodeAllocator* na) : _tc(tc), _na(na) {
 }
 
 
-int Data::specifyNId(NodeAllocator &na, int db_id) {
-
-}
-
-
 void Data::readNext(void) {
     if (totalElements > 0 && nextToRead > totalElements) {
         _tc->timer->stop();
@@ -63,6 +58,7 @@ bool Data::readInstance(NodeAllocator *na) {
     int parent_nid;
     int alt;
     int nalt;
+    int status;
 
     if (lastRead +1 >= counter)
         return false;
@@ -81,17 +77,35 @@ bool Data::readInstance(NodeAllocator *na) {
         parent_db_id = db_array[lastRead]->parent_db_id;
         alt = db_array[lastRead]->alt;
         nalt = db_array[lastRead]->numberOfKids;
+        status = db_array[lastRead]->status;
         parent_nid = db_array[parent_db_id]->node_id;
         node = (*na)[parent_nid]->getChild(*na, alt);
         db_array[lastRead]->node_id = node->getIndex(*na);
         node->setNumberOfChildren(nalt, *na);
         if (nalt > 0) {
-           node->setStatus(BRANCH); 
            node->setHasSolvedChildren(true);
         } else {
-            node->setStatus(SOLVED);
             (*na)[parent_nid]->closeChild(*na, false, true);
         }
+
+        switch (status) {
+            case FAILED: // 1
+                // node->purge(na);
+                node->setHasOpenChildren(false);
+                node->setHasSolvedChildren(false);
+                node->setHasFailedChildren(true);
+            break;
+            case SOLVED: // 0
+                node->setHasFailedChildren(false);
+                node->setHasSolvedChildren(true);
+                node->setHasOpenChildren(false);
+            break;
+            case BRANCH: // 2
+                node->setHasOpenChildren(true);
+            break;
+        }
+
+        node->setStatus(NodeStatus(status));
             
 
         node->dirtyUp(*na);
@@ -104,7 +118,7 @@ bool Data::readInstance(NodeAllocator *na) {
 
 void Data::connectToDB(void) {
     int rc;
-    rc = sqlite3_open("/Users/maxim/Dropbox/dev/StandaloneGist/InitialGist/StandaloneGist/data.db", &db);   
+    rc = sqlite3_open("/Users/maxim/Dropbox/dev/StandaloneGist/InitialGist/StandaloneGist/data2.db", &db);   
 
     if (rc) {
         qDebug() << "Can't connect to DB: " << sqlite3_errmsg(db);
@@ -112,15 +126,16 @@ void Data::connectToDB(void) {
 }
 
 int Data::handleNodeCallback(void*, int argc, char **argv, char **azColName) {
-    int id, parent, alt, kids;
-    int col_n = 7;
+    int id, parent, alt, kids, status;
+    int col_n = 8;
     for (int i = 0; i < argc; i += col_n) {
         Data::self->counter++;
-        id = argv[i] ? atoi(argv[i]) : -2;
+        id = argv[i+1] ? atoi(argv[i+1]) : -2;
         parent = argv[i+3] ? atoi(argv[i+3]) : -2;
         alt = argv[i+4] ? atoi(argv[i+4]) : -2;
         kids = argv[i+5] ? atoi(argv[i+5]) : -2;
-        Data::self->db_array.push_back(new DbEntry(parent, alt, kids));
+        status = argv[i+6] ? atoi(argv[i+6]) : -2;
+        Data::self->db_array.push_back(new DbEntry(parent, alt, kids, status));
 
 
         // put readInstance here?
@@ -141,7 +156,6 @@ int Data::handleCheckCallback(void*, int argc, char **argv, char **azColName) {
             Data::self->countNodesInDB();
             Data::self->checkTimer->stop();
         }
-            
     }
     return 0;
 }
