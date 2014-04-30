@@ -25,7 +25,9 @@ Data::Data(TreeCanvas* tc, NodeAllocator* na) : _tc(tc), _na(na) {
 
     checkTimer  = new QTimer(tc);
     connect(checkTimer, SIGNAL(timeout()), this, SLOT(checkIfDbComplete()));
-    checkTimer->start(500);
+
+    checkTimer->start(1000);
+
 }
 
 
@@ -107,7 +109,10 @@ bool Data::readInstance(NodeAllocator *na) {
                 node->setStatus(BRANCH);
                 _tc->stats.choices++;
             break;
+
         }
+
+        node->setStatus(NodeStatus(status));
             
         static_cast<VisualNode*>(node)->changedStatus(*na);
         node->dirtyUp(*na);
