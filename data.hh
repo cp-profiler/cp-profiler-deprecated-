@@ -31,9 +31,13 @@ public:
 
 class Data : public QObject {
 Q_OBJECT
+public:
+    static const int READING_PERIOD = 1000;
+
 private:
 
-    static const int PORTION = 1000;
+    static const int PORTION = 50000;
+
     int counter;
     int lastRead;
 
@@ -64,6 +68,7 @@ private Q_SLOTS:
     void checkIfDbComplete(void);
     
 public:
+
     Data(TreeCanvas* tc, NodeAllocator* na);
     static Data* self;
 

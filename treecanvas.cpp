@@ -346,7 +346,7 @@ public:
 void
 SearcherThread::run(void) {
  
-    t->timer->start(300);
+    t->timer->start(Data::READING_PERIOD);
 
 }
 
