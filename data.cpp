@@ -32,14 +32,15 @@ Data::Data(TreeCanvas* tc, NodeAllocator* na) : _tc(tc), _na(na) {
 
 
 void Data::readNext(void) {
-    if (totalElements > 0 && nextToRead > totalElements) {
+    if (totalElements > 0 && nextToRead >= totalElements) {
         _tc->timer->stop();
         return;
     }
         
     // need to stop the timer
     readDB(nextToRead);
-    nextToRead += PORTION;
+    qDebug() << counter;
+    nextToRead = counter;
 }
 
 void Data::startReading(void) {
@@ -112,7 +113,7 @@ bool Data::readInstance(NodeAllocator *na) {
 
         }
 
-        node->setStatus(NodeStatus(status));
+        // node->setStatus(NodeStatus(status));
             
         static_cast<VisualNode*>(node)->changedStatus(*na);
         node->dirtyUp(*na);
@@ -144,7 +145,6 @@ int Data::handleNodeCallback(void*, int argc, char **argv, char **azColName) {
         kids = argv[i+5] ? atoi(argv[i+5]) : -2;
         status = argv[i+6] ? atoi(argv[i+6]) : -2;
         Data::self->db_array.push_back(new DbEntry(parent, alt, kids, status));
-
 
         // put readInstance here?
         Data::self->readInstance(Data::self->_na);
