@@ -84,11 +84,6 @@ bool Data::readInstance(NodeAllocator *na) {
         node = parent->getChild(*na, alt);
         db_array[lastRead]->node_id = node->getIndex(*na);
         node->setNumberOfChildren(nalt, *na);
-        // if (nalt > 0) {
-        //    node->setHasSolvedChildren(true);
-        // } else {
-        //     (*na)[parent_nid]->closeChild(*na, false, true);
-        // }
 
         switch (status) {
             case FAILED: // 1
@@ -116,6 +111,7 @@ bool Data::readInstance(NodeAllocator *na) {
             
         static_cast<VisualNode*>(node)->changedStatus(*na);
         node->dirtyUp(*na);
+        _tc->statusChanged(false);
 
     }
 
