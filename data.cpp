@@ -53,7 +53,7 @@ bool Data::readInstance(NodeAllocator *na) {
         (*na)[0]->setNumberOfChildren(db_array[0]->numberOfKids, *na);
         (*na)[0]->setStatus(BRANCH);
         (*na)[0]->setHasSolvedChildren(true);
-        db_array[lastRead]->node_id = 0;        
+        db_array[lastRead]->node_id = 0;
     }
     else {
         lastRead++;
@@ -117,10 +117,15 @@ int Data::handleNodeCallback(Message* data) {
     alt = data->alt;
     kids = data->kids;
     status = data->status;
-    Data::self->db_array.push_back(new DbEntry(parent, alt, kids, status));
 
-    // qDebug() << "Sending: " << data->sid << " " << data->parent << " "
-    //   << data->alt << " " << data->kids << " " << data->status;
+
+    /// should probably combine this with the one in readInstance(...)
+    if (Data::self->lastRead == -1) {
+        Data::self->firstIndex = id;
+    }
+
+    Data::self->db_array.push_back(new DbEntry(parent - Data::self->firstIndex, alt, kids, status));
+
     Data::self->readInstance(Data::self->_na);
 
     return 0;

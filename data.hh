@@ -63,6 +63,7 @@ private:
 
     int counter;
     int lastRead;
+    int firstIndex; // for db_array
 
     int nextToRead = 0;
     int totalElements = -1;
