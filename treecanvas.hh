@@ -7,6 +7,7 @@
 // #include <QTimer>
 #endif
 
+#include <zmq.hpp>
 #include "visualnode.hh"
 
 /// \brief Parameters for the tree layout
@@ -35,9 +36,6 @@ private:
 public:
   void search(VisualNode* n, bool all, TreeCanvas* ti);
 
-public Q_SLOTS:
-  /// experimental
-  void readPartOfDB(void);
 
 Q_SIGNALS:
   void update(int w, int h, int scale0);

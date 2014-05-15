@@ -90,7 +90,7 @@ public:
 /// \brief %Node class that supports visual layout
 class VisualNode : public SpaceNode {
 
-    friend Data;
+    friend class Data;
 
 protected:
   /// Flags for VisualNodes

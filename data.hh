@@ -29,6 +29,29 @@ public:
 
 };
 
+enum MsgType {
+  NODE_DATA = 1,
+  DONE_SENDING = 2
+};
+
+struct Message {
+  MsgType type;
+  int sid;
+  int parent;
+  int alt;
+  int kids;
+  int status;
+
+  void specifyNode(int _sid, int _parent, int _alt, int _kids, int _status) {
+    type = NODE_DATA;
+    sid = _sid;
+    parent = _parent;
+    alt = _alt;
+    kids = _kids;
+    status = _status;
+  }
+
+};
 class Data : public QObject {
 Q_OBJECT
 public:
@@ -45,38 +68,26 @@ private:
     int totalElements = -1;
 
     sqlite3 *db;
-    QTimer* checkTimer;
     TreeCanvas* _tc;
     NodeAllocator* _na;
     std::vector<DbEntry*> db_array;
     std::tr1::unordered_map<int, int> nid_to_db_id;
 
     void show_db(void);
-    void connectToDB(void);
-    void readDB(int db_id);
-    // calls "select count(*) from Nodes;" and specifies counter;
-    void countNodesInDB(void);
 
-    /// can I get rid of 'static' here?
-    static int handleNodeCallback(void*, int argc, char **argv, char **azColName);
-    static int handleCountCallback(void*, int argc, char **argv, char **azColName);
-    static int handleCheckCallback(void*, int argc, char **argv, char **azColName);
     
     ~Data(void);
 
-private Q_SLOTS:
-    void checkIfDbComplete(void);
+public Q_SLOTS:
+    void startReading(void);
     
 public:
 
     Data(TreeCanvas* tc, NodeAllocator* na);
     static Data* self;
 
-    void startReading(void);
-
-    void readNext(void);
-
     bool readInstance(NodeAllocator *na);
+    static int handleNodeCallback(Message* data);
     
 };
 

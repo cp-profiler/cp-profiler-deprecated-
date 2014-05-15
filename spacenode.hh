@@ -47,7 +47,7 @@ class SpaceNode;
 class SpaceNode : public Node {
 
 //    friend TreeCanvas;
-    friend Data;
+    friend class Data;
 protected:
   /// Reference to node in database
 //  int db_id;

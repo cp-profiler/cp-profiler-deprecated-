@@ -4,6 +4,8 @@
 #include <sstream>
 
 #include <ctime>
+#include <zmq.hpp>
+
 
 #include "visualnode.hh"
 #include "data.hh"
@@ -21,31 +23,8 @@ Data::Data(TreeCanvas* tc, NodeAllocator* na) : _tc(tc), _na(na) {
 
     lastRead = -1;
 
-    connectToDB();
-
-    checkTimer  = new QTimer(tc);
-    connect(checkTimer, SIGNAL(timeout()), this, SLOT(checkIfDbComplete()));
-
-    checkTimer->start(1000);
-
 }
 
-
-void Data::readNext(void) {
-    if (totalElements > 0 && nextToRead >= totalElements) {
-        _tc->timer->stop();
-        return;
-    }
-        
-    // need to stop the timer
-    readDB(nextToRead);
-    qDebug() << counter;
-    nextToRead = counter;
-}
-
-void Data::startReading(void) {
-    qDebug() << "in startReading";
-}
 
 void Data::show_db(void) {
     for (vector<DbEntry*>::iterator it = db_array.begin(); it != db_array.end(); it++) {
@@ -125,84 +104,28 @@ bool Data::readInstance(NodeAllocator *na) {
 
 }
 
-void Data::connectToDB(void) {
-    int rc;
-    rc = sqlite3_open("/Users/maxim/Dropbox/dev/StandaloneGist/data2.db", &db);
+void Data::startReading(void) {
+    qDebug() << "in startReading...\n";
 
-    if (rc) {
-        qDebug() << "Can't connect to DB: " << sqlite3_errmsg(db);
-    }
 }
 
-int Data::handleNodeCallback(void*, int argc, char **argv, char **azColName) {
+int Data::handleNodeCallback(Message* data) {
     int id, parent, alt, kids, status;
-    int col_n = 8;
-    for (int i = 0; i < argc; i += col_n) {
-        Data::self->counter++;
-        id = argv[i+1] ? atoi(argv[i+1]) : -2;
-        parent = argv[i+3] ? atoi(argv[i+3]) : -2;
-        alt = argv[i+4] ? atoi(argv[i+4]) : -2;
-        kids = argv[i+5] ? atoi(argv[i+5]) : -2;
-        status = argv[i+6] ? atoi(argv[i+6]) : -2;
-        Data::self->db_array.push_back(new DbEntry(parent, alt, kids, status));
+    Data::self->counter++;
+    id = data->sid;
+    parent = data->parent;
+    alt = data->alt;
+    kids = data->kids;
+    status = data->status;
+    Data::self->db_array.push_back(new DbEntry(parent, alt, kids, status));
 
-        // put readInstance here?
-        Data::self->readInstance(Data::self->_na);
-    }
-    
+    // qDebug() << "Sending: " << data->sid << " " << data->parent << " "
+    //   << data->alt << " " << data->kids << " " << data->status;
+    Data::self->readInstance(Data::self->_na);
+
     return 0;
 }
 
-int Data::handleCountCallback(void*, int argc, char **argv, char **azColName) {
-    Data::self->totalElements = atoi(argv[0]);
-    return 0;
-}
-
-int Data::handleCheckCallback(void*, int argc, char **argv, char **azColName) {
-    if (strcmp(argv[0], "isComplete") == 0) {
-        if (atoi(argv[1]) == 1) {
-            Data::self->countNodesInDB();
-            Data::self->checkTimer->stop();
-        }
-    }
-    return 0;
-}
-
-void Data::readDB(int db_id) {
-    int rc;
-    char *zErrMsg = 0;
-    string query = "SELECT * FROM Nodes WHERE Id>" + SSTR(db_id) + " AND Id<=" + SSTR(db_id + Data::PORTION);
-    query += ";";
-    qDebug() << "command: " << query.c_str();
-    rc = sqlite3_exec(db, query.c_str(), handleNodeCallback, 0, &zErrMsg);
-    if (rc != SQLITE_OK ) {
-        qDebug() << "SQL error: " << zErrMsg;
-    } else 
-        qDebug() << "query sent " << zErrMsg;
-}
-
-void Data::countNodesInDB(void) {
-    int rc;
-    char *zErrMsg = 0;
-    if (totalElements > 0) return;
-    string query = "SELECT COUNT(*) FROM Nodes;";
-    qDebug() << "command: " << query.c_str();
-    rc = sqlite3_exec(db, query.c_str(), handleCountCallback, 0, &zErrMsg);
-    if (rc != SQLITE_OK ) {
-        qDebug() << "SQL error: " << zErrMsg;
-    }
-}
-
-void Data::checkIfDbComplete(void) {
-    int rc;
-    char *zErrMsg = 0;
-    string query = "SELECT * from Flags;";
-    qDebug() << "command: " << query.c_str();
-    rc = sqlite3_exec(db, query.c_str(), handleCheckCallback, 0, &zErrMsg);
-    if (rc != SQLITE_OK ) {
-        qDebug() << "SQL error: " << zErrMsg;
-    }
-}
 
 Data::~Data(void) {
     sqlite3_close(db);

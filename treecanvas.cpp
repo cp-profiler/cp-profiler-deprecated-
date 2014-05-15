@@ -33,14 +33,8 @@ TreeCanvas::TreeCanvas(QWidget* parent)
     na = new Node::NodeAllocator(false);
     timer = new QTimer(this);
     int rootIdx = na->allocateRoot(); // read root from db
-    // qDebug() << this;
 
-    // // assert(rootIdx == 0); (void) rootIdx;
     root = (*na)[0];
-    // root->layout(*na);
-    // root->setMarked(true);
-    // currentNode = root;
-    // pathHead = root;
     scale = LayoutConfig::defScale / 100.0;
 
 //    root->dirtyUp(*na);
@@ -58,7 +52,6 @@ TreeCanvas::TreeCanvas(QWidget* parent)
 
     setAutoFillBackground(true);
 
-    connect(timer, SIGNAL(timeout()), &searcher, SLOT(readPartOfDB()));
     connect(&searcher, SIGNAL(update(int,int,int)), this,
             SLOT(layoutDone(int,int,int)));
 
@@ -261,8 +254,6 @@ TreeCanvas::statusChanged(bool finished) {
 
 void
 SearcherThread::search(VisualNode* n, bool all, TreeCanvas* ti) {
-    qDebug() << ti->root << "<- root in search";
-    qDebug() << ti;
     node = n;
     
     depth = -1;
@@ -346,7 +337,41 @@ public:
 void
 SearcherThread::run(void) {
  
-    t->timer->start(Data::READING_PERIOD);
+    // QTimer::singleShot(Data::READING_PERIOD, Data::self, SLOT(startReading()));
+
+    zmq::context_t context(1);
+    zmq::socket_t socket (context, ZMQ_PULL);
+    socket.bind("tcp://*:5555");
+    int nodeCount = 0;
+    while (true) {
+        zmq::message_t request;
+
+        socket.recv (&request);
+        Message *tr = reinterpret_cast<Message*>(request.data());
+
+        switch (tr->type) {
+            case NODE_DATA:
+                Data::handleNodeCallback(tr);
+                nodeCount++;
+            break;
+            case DONE_SENDING:
+                qDebug() << "Done receiving.\n";
+                updateCanvas();
+            break;
+        }
+
+        if (t->refresh > 0 && nodeCount >= t->refresh) {
+          node->dirtyUp(*t->na);
+          updateCanvas();
+          emit statusChanged(false);
+          nodeCount = 0;
+          if (t->refreshPause > 0)
+            msleep(t->refreshPause);
+        }
+       // qDebug() << "Received: " << tr->sid << " " << tr->parent << " "
+       //     << tr->alt << " " << tr->kids << " " << tr->status;
+
+    }
 
 }
 
@@ -727,17 +752,11 @@ TreeCanvas::reset(void) {
     emit statusChanged(currentNode, stats, true);
 
     data = new Data(this, na);
-    data->startReading();
 
     searchAll();
     update();
 }
 
-void
-SearcherThread::readPartOfDB(void) {
-    Data::self->readNext();
-    updateCanvas();
-}
 
 void
 TreeCanvas::bookmarkNode(void) {

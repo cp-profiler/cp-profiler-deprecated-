@@ -8,8 +8,10 @@ QT       += core gui
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets printsupport
 
+
 TARGET = StandAloneGist
 TEMPLATE = app
+
 
 
 SOURCES += main.cpp\
@@ -26,6 +28,8 @@ SOURCES += main.cpp\
     node.cpp \
     data.cpp \
     sqlite/sqlite3.c
+
+
 
 HEADERS  += mainwindow.h \
     qtgist.hh \
@@ -53,3 +57,16 @@ HEADERS  += mainwindow.h \
     sqlite/sqlite3.h
 
 FORMS    +=
+
+win32:CONFIG(release, debug|release): LIBS += -L$$PWD/../../../../../usr/local/lib/release/ -lzmq
+else:win32:CONFIG(debug, debug|release): LIBS += -L$$PWD/../../../../../usr/local/lib/debug/ -lzmq
+else:unix: LIBS += -L$$PWD/../../../../../usr/local/lib/ -lzmq
+
+INCLUDEPATH += $$PWD/../../../../../usr/local/include
+DEPENDPATH += $$PWD/../../../../../usr/local/include
+
+win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$PWD/../../../../../usr/local/lib/release/libzmq.a
+else:win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$PWD/../../../../../usr/local/lib/debug/libzmq.a
+else:win32:!win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$PWD/../../../../../usr/local/lib/release/zmq.lib
+else:win32:!win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$PWD/../../../../../usr/local/lib/debug/zmq.lib
+else:unix: PRE_TARGETDEPS += $$PWD/../../../../../usr/local/lib/libzmq.a
