@@ -16,13 +16,13 @@ private:
 
 public:
     DbEntry(int _p, int _alt, int _kids, int _status) :
-        node_id(-1), parent_db_id(_p), alt(_alt), numberOfKids(_kids), status(_status) {
+        node_id(-1), parent_id(_p), alt(_alt), numberOfKids(_kids), status(_status) {
     }
 
     DbEntry(): node_id(-1) {}
 
     int node_id; // id as it is in gist
-    int parent_db_id; // parent id in database 
+    int parent_id; // parent id in database 
     int alt; // which child by order
     int numberOfKids;
     int status;
@@ -88,6 +88,7 @@ public:
     static Data* self;
 
     bool readInstance(NodeAllocator *na);
+    void pushInstance(unsigned int sid, DbEntry* entry);
     static int handleNodeCallback(Message* data);
     
 };

@@ -336,8 +336,6 @@ public:
 
 void
 SearcherThread::run(void) {
- 
-    // QTimer::singleShot(Data::READING_PERIOD, Data::self, SLOT(startReading()));
 
     zmq::context_t context(1);
     zmq::socket_t socket (context, ZMQ_PULL);
