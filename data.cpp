@@ -22,7 +22,6 @@ Data::Data(TreeCanvas* tc, NodeAllocator* na) : _tc(tc), _na(na) {
     counter = 0;
 
     lastRead = -1;
-
 }
 
 
@@ -134,7 +133,6 @@ int Data::handleNodeCallback(Message* data) {
     alt = data->alt;
     kids = data->kids;
     status = data->status;
-
 
     /// should probably combine this with the one in readInstance(...)
     if (Data::self->lastRead == -1) {
