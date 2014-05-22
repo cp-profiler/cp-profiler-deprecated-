@@ -68,20 +68,16 @@ bool Data::readInstance(NodeAllocator *na) {
         db_array[lastRead]->node_id = node->getIndex(*na);
 
         // qDebug() << "(*na)[" << db_array[lastRead]->node_id << "]: " << parent_gist_id;
-        if (parent_gist_id == 0 && alt == 2) {
-            qDebug() << "adding to root: alt = " << alt;
-            qDebug() << "db_array[" << lastRead << "]: alt = " << db_array[lastRead]->alt;
-        }
              
-
-
         // qDebug() << "lastRead: " << lastRead; 
         // qDebug() << "parent gist id: " << parent_gist_id;
         // qDebug() << "parent id: " << pid;
+        // qDebug() << "nid_to_db_id[" << pid << "]: " << nid_to_db_id[pid];
+        // qDebug() << "db_array[" << nid_to_db_id[pid] << "]: " << db_array[nid_to_db_id[pid]]->node_id;
+
+
 
         node->setNumberOfChildren(nalt, *na);
-
-
 
         switch (status) {
             case FAILED: // 1
@@ -134,13 +130,10 @@ int Data::handleNodeCallback(Message* data) {
     kids = data->kids;
     status = data->status;
 
-    /// should probably combine this with the one in readInstance(...)
-    if (Data::self->lastRead == -1) {
-        Data::self->firstIndex = id;
-        // qDebug() << "setting firstIndex to: " << id;
-    }
+    std::cout << "Received node: " << id << " " << parent << " "
+                    << alt << " " << kids << " " << status << " wid: "
+                    << (int)data->thread << std::endl;
 
-    // Data::self->
     Data::self->pushInstance(id - Data::self->firstIndex,
         new DbEntry(parent - Data::self->firstIndex, alt, kids, status));
     Data::self->counter++;
@@ -151,7 +144,7 @@ int Data::handleNodeCallback(Message* data) {
 }
 
 void Data::pushInstance(unsigned int sid, DbEntry* entry) {
-    qDebug() << "nid_to_db_id[" << sid << "] = " << counter;
+    // qDebug() << "nid_to_db_id[" << sid << "] = " << counter;
     nid_to_db_id[sid] = counter;
     // qDebug() << "status: " << entry->status;
     

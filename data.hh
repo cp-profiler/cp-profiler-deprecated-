@@ -26,6 +26,7 @@ public:
     int alt; // which child by order
     int numberOfKids;
     int status;
+    char thread;
 
 };
 
@@ -41,17 +42,20 @@ struct Message {
   int alt;
   int kids;
   int status;
+  char thread;
 
-  void specifyNode(int _sid, int _parent, int _alt, int _kids, int _status) {
+  void specifyNode(int _sid, int _parent, int _alt, int _kids, int _status, char _thread) {
     type = NODE_DATA;
     sid = _sid;
     parent = _parent;
     alt = _alt;
     kids = _kids;
     status = _status;
+    thread = _thread;
   }
 
 };
+
 class Data : public QObject {
 Q_OBJECT
 public:
