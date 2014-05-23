@@ -18,23 +18,22 @@ const QColor DrawingCursor::lightGreen(11, 118, 70, 120);
 /// Blue color for expanded choice nodes
 const QColor DrawingCursor::lightBlue(0, 92, 161, 120);
 
-const double nodeWidth = 20.0;
-const double halfNodeWidth = nodeWidth / 2.0;
-const double quarterNodeWidth = halfNodeWidth / 2.0;
-const double failedWidth = 14.0;
-const double halfFailedWidth = failedWidth / 2.0;
-const double quarterFailedWidthF = failedWidth / 4.0;
-const double shadowOffset = 3.0;
-const double hiddenDepth =
-        static_cast<double>(Layout::dist_y) + failedWidth;
+const double NODE_WIDTH = 20.0;
+const double HALF_NODE_WIDTH = NODE_WIDTH / 2.0;
+const double QUARTER_NODE_WIDTH = HALF_NODE_WIDTH / 2.0;
+const double FAILED_WIDTH = 14.0;
+const double HALF_FAILED_WIDTH = FAILED_WIDTH / 2.0;
+const double QUARTER_FAILED_WIDTH = FAILED_WIDTH / 4.0;
+const double SHADOW_OFFSET = 3.0;
+const double HIDDEN_DEPTH =
+    static_cast<double>(Layout::dist_y) + FAILED_WIDTH;
 
-DrawingCursor::DrawingCursor(VisualNode* root,
-                             const VisualNode::NodeAllocator& na,
-                             QPainter& painter0,
-                             const QRect& clippingRect0, bool showCopies)
-    : NodeCursor<VisualNode>(root,na), painter(painter0),
-      clippingRect(clippingRect0),
-      x(0.0), y(0.0), copies(showCopies) {
+DrawingCursor::DrawingCursor(
+    VisualNode* root, const VisualNode::NodeAllocator& na,
+    QPainter& painter0, const QRect& clippingRect0, bool showCopies)
+    : NodeCursor<VisualNode>(root,na), painter(painter0), 
+      clippingRect(clippingRect0), x(0.0), y(0.0), copies(showCopies) 
+{
     QPen pen = painter.pen();
     pen.setWidth(1);
     painter.setPen(pen);
@@ -44,17 +43,17 @@ void
 DrawingCursor::processCurrentNode(void) {
     VisualNode* n = node();
     double parentX = x - static_cast<double>(n->getOffset());
-    double parentY = y - static_cast<double>(Layout::dist_y) + nodeWidth;
-    if (!n->isRoot() &&
-            (n->getParent(na)->getStatus() == STOP ||
-             n->getParent(na)->getStatus() == UNSTOP) )
-        parentY -= (nodeWidth-failedWidth)/2;
+    double parentY = y - static_cast<double>(Layout::dist_y) + NODE_WIDTH;
+    if ( !n->isRoot() &&
+         (n->getParent(na)->getStatus() == STOP ||
+          n->getParent(na)->getStatus() == UNSTOP) )
+        parentY -= (NODE_WIDTH - FAILED_WIDTH) / 2;
 
     double myx = x;
     double myy = y;
 
     if (n->getStatus() == STOP || n->getStatus() == UNSTOP)
-        myy += (nodeWidth-failedWidth)/2;
+        myy += (NODE_WIDTH - FAILED_WIDTH) / 2;
 
     if (n != startNode()) {
         if (n->isOnPath())
@@ -74,82 +73,44 @@ DrawingCursor::processCurrentNode(void) {
         int n_alt = n->getParent(na)->getNumberOfChildren();
         int tw = fm.width(label);
         int lx;
-        if (alt==0 && n_alt > 1) {
-            lx = myx-tw-4;
-        } else if (alt==n_alt-1 && n_alt > 1) {
-            lx = myx+4;
+        if (alt == 0 && n_alt > 1) {
+            lx = myx - tw - 4;
+        } else if (alt == n_alt - 1 && n_alt > 1) {
+            lx = myx + 4;
         } else {
-            lx = myx-tw/2;
+            lx = myx - tw / 2;
         }
-        painter.drawText(QPointF(lx,myy-2),label);
+        painter.drawText(QPointF(lx, myy - 2), label);
     }
+
+    /// < SHAPE CODE GOES HERE >
 
     // draw shadow
     if (n->isMarked()) {
         painter.setBrush(Qt::gray);
         painter.setPen(Qt::NoPen);
         if (n->isHidden()) {
-            QPointF points[3] = {QPointF(myx+shadowOffset,myy+shadowOffset),
-                                 QPointF(myx+nodeWidth+shadowOffset,
-                                 myy+hiddenDepth+shadowOffset),
-                                 QPointF(myx-nodeWidth+shadowOffset,
-                                 myy+hiddenDepth+shadowOffset),
-                                };
-            painter.drawConvexPolygon(points, 3);
-
+            drawTriangle(myx, myy, true);
         } else {
             switch (n->getStatus()) {
             case SOLVED:
-            {
-                QPointF points[4] = {QPointF(myx+shadowOffset,myy+shadowOffset),
-                                     QPointF(myx+halfNodeWidth+shadowOffset,
-                                     myy+halfNodeWidth+shadowOffset),
-                                     QPointF(myx+shadowOffset,
-                                     myy+nodeWidth+shadowOffset),
-                                     QPointF(myx-halfNodeWidth+shadowOffset,
-                                     myy+halfNodeWidth+shadowOffset)
-                                    };
-                painter.drawConvexPolygon(points, 4);
-            }
+                drawDiamond(myx, myy, true);
                 break;
             case FAILED:
-                painter.drawRect(myx-halfFailedWidth+shadowOffset,
-                                 myy+shadowOffset, failedWidth, failedWidth);
+                painter.drawRect(myx - HALF_FAILED_WIDTH + SHADOW_OFFSET,
+                    myy + SHADOW_OFFSET, FAILED_WIDTH, FAILED_WIDTH);
                 break;
             case UNSTOP:
             case STOP:
-            {
-                QPointF points[8] = {QPointF(myx+shadowOffset-quarterFailedWidthF,
-                                     myy+shadowOffset),
-                                     QPointF(myx+shadowOffset+quarterFailedWidthF,
-                                     myy+shadowOffset),
-                                     QPointF(myx+shadowOffset+halfFailedWidth,
-                                     myy+shadowOffset
-                                     +quarterFailedWidthF),
-                                     QPointF(myx+shadowOffset+halfFailedWidth,
-                                     myy+shadowOffset+halfFailedWidth+
-                                     quarterFailedWidthF),
-                                     QPointF(myx+shadowOffset+quarterFailedWidthF,
-                                     myy+shadowOffset+failedWidth),
-                                     QPointF(myx+shadowOffset-quarterFailedWidthF,
-                                     myy+shadowOffset+failedWidth),
-                                     QPointF(myx+shadowOffset-halfFailedWidth,
-                                     myy+shadowOffset+halfFailedWidth+
-                                     quarterFailedWidthF),
-                                     QPointF(myx+shadowOffset-halfFailedWidth,
-                                     myy+shadowOffset
-                                     +quarterFailedWidthF),
-                                    };
-                painter.drawConvexPolygon(points, 8);
-            }
+                drawOctagon(myx, myy, false);
                 break;
             case BRANCH:
-                painter.drawEllipse(myx-halfNodeWidth+shadowOffset,
-                                    myy+shadowOffset, nodeWidth, nodeWidth);
+                painter.drawEllipse(myx - HALF_NODE_WIDTH + SHADOW_OFFSET,
+                    myy + SHADOW_OFFSET, NODE_WIDTH, NODE_WIDTH);
                 break;
             case UNDETERMINED:
-                painter.drawEllipse(myx-halfNodeWidth+shadowOffset,
-                                    myy+shadowOffset, nodeWidth, nodeWidth);
+                painter.drawEllipse(myx - HALF_NODE_WIDTH+SHADOW_OFFSET,
+                              myy + SHADOW_OFFSET, NODE_WIDTH, NODE_WIDTH);
                 break;
             }
         }
@@ -158,8 +119,8 @@ DrawingCursor::processCurrentNode(void) {
     painter.setPen(Qt::SolidLine);
     if (n->isHidden()) {
         if (n->hasOpenChildren()) {
-            QLinearGradient gradient(myx-nodeWidth,myy,
-                                     myx+nodeWidth*1.3,myy+hiddenDepth*1.3);
+            QLinearGradient gradient(myx - NODE_WIDTH, myy,
+                myx + NODE_WIDTH * 1.3, myy + HIDDEN_DEPTH * 1.3);
             if (n->hasSolvedChildren()) {
                 gradient.setColorAt(0, white);
                 gradient.setColorAt(1, green);
@@ -168,7 +129,7 @@ DrawingCursor::processCurrentNode(void) {
                 gradient.setColorAt(1, red);
             } else {
                 gradient.setColorAt(0, white);
-                gradient.setColorAt(1, QColor(0,0,0));
+                gradient.setColorAt(1, QColor(0, 0, 0));
             }
             painter.setBrush(gradient);
         } else {
@@ -178,65 +139,36 @@ DrawingCursor::processCurrentNode(void) {
                 painter.setBrush(QBrush(red));
         }
 
-        QPointF points[3] = {QPointF(myx,myy),
-                             QPointF(myx+nodeWidth,myy+hiddenDepth),
-                             QPointF(myx-nodeWidth,myy+hiddenDepth),
-                            };
-        painter.drawConvexPolygon(points, 3);
+        drawTriangle(myx, myy, false);
     } else {
         switch (n->getStatus()) {
         case SOLVED:
-        {
-//            if (n->isCurrentBest(curBest)) {
-//                painter.setBrush(QBrush(orange));
-//            } else {
+            // if (n->isCurrentBest(curBest)) {
+                // painter.setBrush(QBrush(orange));
+            // } else {
                 painter.setBrush(QBrush(green));
-//            }
-            QPointF points[4] = {QPointF(myx,myy),
-                                 QPointF(myx+halfNodeWidth,myy+halfNodeWidth),
-                                 QPointF(myx,myy+nodeWidth),
-                                 QPointF(myx-halfNodeWidth,myy+halfNodeWidth)
-                                };
-            painter.drawConvexPolygon(points, 4);
-        }
+            // }
+            drawDiamond(myx, myy, false);
             break;
         case FAILED:
             painter.setBrush(QBrush(red));
-            painter.drawRect(myx-halfFailedWidth, myy, failedWidth, failedWidth);
+            painter.drawRect(myx - HALF_FAILED_WIDTH, myy, FAILED_WIDTH, FAILED_WIDTH);
             break;
         case UNSTOP:
         case STOP:
         {
-            painter.setBrush(n->getStatus() == STOP ?
-                                 QBrush(red) : QBrush(green));
-            QPointF points[8] = {QPointF(myx-quarterFailedWidthF,myy),
-                                 QPointF(myx+quarterFailedWidthF,myy),
-                                 QPointF(myx+halfFailedWidth,
-                                 myy+quarterFailedWidthF),
-                                 QPointF(myx+halfFailedWidth,
-                                 myy+halfFailedWidth+
-                                 quarterFailedWidthF),
-                                 QPointF(myx+quarterFailedWidthF,
-                                 myy+failedWidth),
-                                 QPointF(myx-quarterFailedWidthF,
-                                 myy+failedWidth),
-                                 QPointF(myx-halfFailedWidth,
-                                 myy+halfFailedWidth+
-                                 quarterFailedWidthF),
-                                 QPointF(myx-halfFailedWidth,
-                                 myy+quarterFailedWidthF),
-                                };
-            painter.drawConvexPolygon(points, 8);
+            painter.setBrush(n->getStatus() == STOP ? QBrush(red) : QBrush(green));
+            drawOctagon(myx, myy, false);
         }
             break;
         case BRANCH:
             painter.setBrush(n->childrenLayoutIsDone() ? QBrush(blue) :
                                                          QBrush(white));
-            painter.drawEllipse(myx-halfNodeWidth, myy, nodeWidth, nodeWidth);
+            painter.drawEllipse(myx - HALF_NODE_WIDTH, myy, NODE_WIDTH, NODE_WIDTH);
             break;
         case UNDETERMINED:
             painter.setBrush(Qt::white);
-            painter.drawEllipse(myx-halfNodeWidth, myy, nodeWidth, nodeWidth);
+            painter.drawEllipse(myx - HALF_NODE_WIDTH, myy, NODE_WIDTH, NODE_WIDTH);
             break;
         }
     }
@@ -257,3 +189,76 @@ DrawingCursor::processCurrentNode(void) {
     }
 
 }
+
+inline void
+DrawingCursor::drawTriangle(int myx, int myy, bool shadow){
+    int shadowOffset = shadow? SHADOW_OFFSET : 0;
+    QPointF points[3] = { QPointF(myx + shadowOffset, myy + shadowOffset),
+        QPointF(myx + NODE_WIDTH + shadowOffset, myy + HIDDEN_DEPTH + shadowOffset),
+        QPointF(myx - NODE_WIDTH + shadowOffset, myy + HIDDEN_DEPTH + shadowOffset)
+    };
+
+    painter.drawConvexPolygon(points, 3);
+}
+
+inline void
+DrawingCursor::drawDiamond(int myx, int myy, bool shadow){
+    int shadowOffset = shadow? SHADOW_OFFSET : 0;
+    QPointF points[4] = { QPointF(myx + shadowOffset, myy + shadowOffset),
+        QPointF(myx + HALF_NODE_WIDTH + shadowOffset, myy + HALF_NODE_WIDTH + shadowOffset),
+        QPointF(myx + shadowOffset, myy + NODE_WIDTH + shadowOffset),
+        QPointF(myx - HALF_NODE_WIDTH + shadowOffset, myy + HALF_NODE_WIDTH + shadowOffset)
+    };
+
+painter.drawConvexPolygon(points, 4);
+}
+
+inline void
+DrawingCursor::drawOctagon(int myx, int myy, bool shadow){
+    int so = shadow? SHADOW_OFFSET : 0;
+
+    QPointF points[8] = {
+        QPointF(myx - QUARTER_FAILED_WIDTH + so, myy  + so), 
+        QPointF(myx + QUARTER_FAILED_WIDTH  + so, myy  + so),
+        QPointF(myx + HALF_FAILED_WIDTH  + so, myy + QUARTER_FAILED_WIDTH + so),
+        QPointF(myx + HALF_FAILED_WIDTH + so, myy + HALF_FAILED_WIDTH + QUARTER_FAILED_WIDTH + so),
+        QPointF(myx + QUARTER_FAILED_WIDTH + so, myy + FAILED_WIDTH + so),
+        QPointF(myx - QUARTER_FAILED_WIDTH + so, myy + FAILED_WIDTH + so),
+        QPointF(myx - HALF_FAILED_WIDTH + so, myy + HALF_FAILED_WIDTH + QUARTER_FAILED_WIDTH + so),
+        QPointF(myx - HALF_FAILED_WIDTH + so, myy + QUARTER_FAILED_WIDTH + so)
+    };
+
+    painter.drawConvexPolygon(points, 8);
+}
+
+inline void 
+DrawingCursor::drawShape(int myx, int myy, VisualNode* node){
+    painter.setPen(Qt::NoPen);
+    painter.setBrush(QColor(255, 255, 0, 60));
+
+    Shape* shape = node->getShape();
+    int depth = shape->depth();
+    QPointF *points = new QPointF[depth * 2];
+
+    int l_x = myx + (*shape)[0].l;
+    int r_x = myx + (*shape)[0].r;
+    int y = myy + NODE_WIDTH / 2;
+
+    points[0] = QPointF(l_x, myy);
+    points[depth * 2 - 1] = QPointF(r_x, myy);
+
+    for (int i = 1; i <  depth; i++){
+        y += static_cast<double>(Layout::dist_y);
+        l_x += (*shape)[i].l;
+        r_x += (*shape)[i].r;
+        points[i] = QPointF(l_x, y);
+        points[depth * 2 - i - 1] = QPointF(r_x, y);  
+    }    
+
+    painter.drawConvexPolygon(points, shape->depth() * 2);
+    
+    delete[] points;
+
+    // delete[] shape;
+}
+

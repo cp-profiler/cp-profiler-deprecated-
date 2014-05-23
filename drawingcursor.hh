@@ -19,6 +19,11 @@ private:
 
     /// Test if current node is clipped
     bool isClipped(void);
+
+    void drawTriangle(int myx, int myy, bool shadow);
+    void drawDiamond(int myx, int myy, bool shadow);
+    void drawOctagon(int myx, int myy, bool shadow);
+    void drawShape(int myx, int myy, VisualNode* node);
 public:
     /// The color for failed nodes
     static const QColor red;
