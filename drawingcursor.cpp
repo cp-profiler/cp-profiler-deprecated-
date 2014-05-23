@@ -42,11 +42,10 @@ DrawingCursor::DrawingCursor(
 void
 DrawingCursor::processCurrentNode(void) {
     VisualNode* n = node();
+    VisualNode* parent = n->getParent(na);
     double parentX = x - static_cast<double>(n->getOffset());
     double parentY = y - static_cast<double>(Layout::dist_y) + NODE_WIDTH;
-    if ( !n->isRoot() &&
-         (n->getParent(na)->getStatus() == STOP ||
-          n->getParent(na)->getStatus() == UNSTOP) )
+    if ( !n->isRoot() && (parent->getStatus() == STOP || parent->getStatus() == UNSTOP) )
         parentY -= (NODE_WIDTH - FAILED_WIDTH) / 2;
 
     double myx = x;
@@ -70,7 +69,7 @@ DrawingCursor::processCurrentNode(void) {
         QFontMetrics fm = painter.fontMetrics();
         QString label = na.getLabel(n);
         int alt = n->getAlternative(na);
-        int n_alt = n->getParent(na)->getNumberOfChildren();
+        int n_alt = parent->getNumberOfChildren();
         int tw = fm.width(label);
         int lx;
         if (alt == 0 && n_alt > 1) {
@@ -84,6 +83,25 @@ DrawingCursor::processCurrentNode(void) {
     }
 
     /// < SHAPE CODE GOES HERE >
+    if (!parent || parent->_tid != n->_tid) {
+        switch (n->_tid) {
+            case 0:
+                painter.setBrush(QColor(255, 255, 150, 255));
+            break;
+            case 1:
+                painter.setBrush(QColor(150, 255, 255, 255));
+            break;
+            case 2:
+                painter.setBrush(QColor(255, 150, 255, 255));
+            break;
+            case 3:
+                painter.setBrush(QColor(150, 255, 150, 255));
+            break;
+            default:
+                painter.setBrush(QColor(200, 200, 200, 255));
+        }
+        drawShape(myx, myy, n);
+    }
 
     // draw shadow
     if (n->isMarked()) {
@@ -234,7 +252,6 @@ DrawingCursor::drawOctagon(int myx, int myy, bool shadow){
 inline void 
 DrawingCursor::drawShape(int myx, int myy, VisualNode* node){
     painter.setPen(Qt::NoPen);
-    painter.setBrush(QColor(255, 255, 0, 60));
 
     Shape* shape = node->getShape();
     int depth = shape->depth();

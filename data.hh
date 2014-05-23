@@ -15,8 +15,9 @@ class DbEntry {
 private:
 
 public:
-    DbEntry(int _p, int _alt, int _kids, int _status) :
-        node_id(-1), parent_id(_p), alt(_alt), numberOfKids(_kids), status(_status) {
+    DbEntry(int _p, int _alt, int _kids, char _tid, int _status) :
+        node_id(-1), parent_id(_p), alt(_alt), numberOfKids(_kids),
+        thread(_tid), status(_status) {
     }
 
     DbEntry(): node_id(-1) {}

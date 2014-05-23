@@ -52,6 +52,7 @@ bool Data::readInstance(NodeAllocator *na) {
         (*na)[0]->setNumberOfChildren(db_array[0]->numberOfKids, *na);
         (*na)[0]->setStatus(BRANCH);
         (*na)[0]->setHasSolvedChildren(true);
+        (*na)[0]->_tid = 0;
         db_array[lastRead]->node_id = 0;
     }
     else {
@@ -76,7 +77,7 @@ bool Data::readInstance(NodeAllocator *na) {
         // qDebug() << "db_array[" << nid_to_db_id[pid] << "]: " << db_array[nid_to_db_id[pid]]->node_id;
 
 
-
+        node->_tid = db_array[lastRead]->thread;
         node->setNumberOfChildren(nalt, *na);
 
         switch (status) {
@@ -123,19 +124,21 @@ void Data::startReading(void) {
 
 int Data::handleNodeCallback(Message* data) {
     int id, parent, alt, kids, status;
-    
+    char thread;
+
     id = data->sid;
     parent = data->parent;
     alt = data->alt;
     kids = data->kids;
     status = data->status;
+    thread = data->thread;
 
     std::cout << "Received node: " << id << " " << parent << " "
                     << alt << " " << kids << " " << status << " wid: "
                     << (int)data->thread << std::endl;
 
     Data::self->pushInstance(id - Data::self->firstIndex,
-        new DbEntry(parent - Data::self->firstIndex, alt, kids, status));
+        new DbEntry(parent - Data::self->firstIndex, alt, kids, thread, status));
     Data::self->counter++;
 
     Data::self->readInstance(Data::self->_na);

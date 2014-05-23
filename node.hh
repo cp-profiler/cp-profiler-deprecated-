@@ -69,6 +69,7 @@ public:
   void clearLabel(T* n);
   /// Get label of node \a n
   QString getLabel(T* n) const;
+
 };
 
 /// \brief Base class for nodes of the search tree
@@ -133,6 +134,10 @@ public:
 
   /// Return the number of children
   unsigned int getNumberOfChildren(void) const;
+
+  /// for multithreaded search (drawing)
+  /// thread id
+  char _tid; 
 
 };
 
