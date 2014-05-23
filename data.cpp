@@ -1,5 +1,5 @@
 #include <iostream>
-#include <qdebug>
+#include <qdebug.h>
 #include <string>
 #include <sstream>
 
@@ -164,7 +164,7 @@ void Data::pushInstance(unsigned int sid, DbEntry* entry) {
 
 
 Data::~Data(void) {
-    sqlite3_close(db);
+    //sqlite3_close(db);
 
     for (vector<DbEntry*>::iterator it = db_array.begin(); it != db_array.end(); it++) {
         delete (*it);
