@@ -12,9 +12,6 @@
 
 using namespace std;
 
-#define SSTR( x ) dynamic_cast< std::ostringstream & >( \
-                ( std::ostringstream() << std::dec << x ) ).str()
-
 Data* Data::self = 0;
 
 Data::Data(TreeCanvas* tc, NodeAllocator* na) : _tc(tc), _na(na) {
@@ -26,17 +23,18 @@ Data::Data(TreeCanvas* tc, NodeAllocator* na) : _tc(tc), _na(na) {
 
 
 void Data::show_db(void) {
-    for (vector<DbEntry*>::iterator it = db_array.begin(); it != db_array.end(); it++) {
-            qDebug() << "nid: " << (*it)->node_id << " p: " << (*it)->parent_id <<
+    for (vector<DbEntry*>::iterator it = nodes_arr.begin(); it != nodes_arr.end(); it++) {
+            qDebug() << "sid: " << (*it)->gid << " p: " << (*it)->parent_sid <<
             " alt: " << (*it)->alt << " kids: " << (*it)->numberOfKids;
     }
 }
 
 /// return false if there is nothing to read
 bool Data::readInstance(NodeAllocator *na) {
-    int nid;
+    int sid; /// solver Id
+    int gid; /// gist Id
     int pid;
-    int parent_gist_id;
+    int parent_gid; /// gist Id of parent
     int alt;
     int nalt;
     int status;
@@ -49,35 +47,37 @@ bool Data::readInstance(NodeAllocator *na) {
 
     if (lastRead == -1) {
         lastRead++;
-        (*na)[0]->setNumberOfChildren(db_array[0]->numberOfKids, *na);
+        (*na)[0]->setNumberOfChildren(nodes_arr[0]->numberOfKids, *na);
         (*na)[0]->setStatus(BRANCH);
         (*na)[0]->setHasSolvedChildren(true);
         (*na)[0]->_tid = 0;
-        db_array[lastRead]->node_id = 0;
+        nodes_arr[lastRead]->gid = 0;
     }
     else {
 
         lastRead++;
 
-        pid = db_array[lastRead]->parent_id;
-        alt = db_array[lastRead]->alt;
-        nalt = db_array[lastRead]->numberOfKids;
-        status = db_array[lastRead]->status;
-        parent_gist_id = db_array[nid_to_db_id[pid]]->node_id;
-        parent = (*na)[parent_gist_id];
+        pid = nodes_arr[lastRead]->parent_sid;
+        alt = nodes_arr[lastRead]->alt;
+        nalt = nodes_arr[lastRead]->numberOfKids;
+        status = nodes_arr[lastRead]->status;
+        parent_gid = nodes_arr[sid2aid[pid]]->gid;
+        parent = (*na)[parent_gid];
         node = parent->getChild(*na, alt);
-        db_array[lastRead]->node_id = node->getIndex(*na);
+        gid = node->getIndex(*na);
+        nodes_arr[lastRead]->gid = gid;
+        gid2aid[gid] = lastRead;
 
-        // qDebug() << "(*na)[" << db_array[lastRead]->node_id << "]: " << parent_gist_id;
+        // qDebug() << "(*na)[" << nodes_arr[lastRead]->gid << "]: " << parent_gid;
              
         // qDebug() << "lastRead: " << lastRead; 
-        // qDebug() << "parent gist id: " << parent_gist_id;
+        // qDebug() << "parent gist id: " << parent_gid;
         // qDebug() << "parent id: " << pid;
-        // qDebug() << "nid_to_db_id[" << pid << "]: " << nid_to_db_id[pid];
-        // qDebug() << "db_array[" << nid_to_db_id[pid] << "]: " << db_array[nid_to_db_id[pid]]->node_id;
+        // qDebug() << "sid2aid[" << pid << "]: " << sid2aid[pid];
+        // qDebug() << "nodes_arr[" << sid2aid[pid] << "]: " << nodes_arr[sid2aid[pid]]->gid;
 
 
-        node->_tid = db_array[lastRead]->thread;
+        node->_tid = nodes_arr[lastRead]->thread;
         node->setNumberOfChildren(nalt, *na);
 
         switch (status) {
@@ -125,9 +125,9 @@ void Data::startReading(void) {
 int Data::handleNodeCallback(Message* data) {
     int id, parent, alt, kids, status;
     char thread;
-
+    
     id = data->sid;
-    parent = data->parent;
+    parent = data->parent_sid;
     alt = data->alt;
     kids = data->kids;
     status = data->status;
@@ -138,7 +138,7 @@ int Data::handleNodeCallback(Message* data) {
                     << (int)data->thread << std::endl;
 
     Data::self->pushInstance(id - Data::self->firstIndex,
-        new DbEntry(parent - Data::self->firstIndex, alt, kids, thread, status));
+        new DbEntry(parent - Data::self->firstIndex, alt, kids, thread, data->label, status));
     Data::self->counter++;
 
     Data::self->readInstance(Data::self->_na);
@@ -147,8 +147,8 @@ int Data::handleNodeCallback(Message* data) {
 }
 
 void Data::pushInstance(unsigned int sid, DbEntry* entry) {
-    // qDebug() << "nid_to_db_id[" << sid << "] = " << counter;
-    nid_to_db_id[sid] = counter;
+    // qDebug() << "sid2aid[" << sid << "] = " << counter;
+    sid2aid[sid] = counter;
     // qDebug() << "status: " << entry->status;
     
     // if (entry->alt > 1)
@@ -157,16 +157,20 @@ void Data::pushInstance(unsigned int sid, DbEntry* entry) {
     //     qDebug() << "alt = 0, ok";
     // else if (entry->alt == 1)
     //     qDebug() << "alt = 1, ok";
-    // qDebug() << "nid_to_db_id[" << sid << "]: " << counter; 
+    // qDebug() << "sid2aid[" << sid << "]: " << counter; 
 
-    db_array.push_back(entry);
+    nodes_arr.push_back(entry);
+}
+
+char* Data::getLabelByGid(unsigned int gid) {
+    return nodes_arr[ gid2aid[gid] ]->label;
 }
 
 
 Data::~Data(void) {
     //sqlite3_close(db);
 
-    for (vector<DbEntry*>::iterator it = db_array.begin(); it != db_array.end(); it++) {
+    for (vector<DbEntry*>::iterator it = nodes_arr.begin(); it != nodes_arr.end(); it++) {
         delete (*it);
     }
 }

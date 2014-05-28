@@ -231,8 +231,8 @@ BranchLabelCursor::processCurrentNode(void) {
         if (!na.hasLabel(n)) {
             VisualNode* p = n->getParent(_na);
             if (p) {
-                std::string l =
-                        n->getBranchLabel(_na,p,alternative());
+                int gid = n->getIndex(_na);
+                std::string l = Data::self->getLabelByGid(gid);
                 _na.setLabel(n,QString(l.c_str()));
 //                if (n->getNumberOfChildren() < 1 &&
 //                        alternative() == p->getNumberOfChildren()-1)

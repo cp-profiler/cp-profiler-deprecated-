@@ -6,56 +6,56 @@
 #include <sqlite3.h>
 #include <QTimer>
 
+#include <iostream>
+
 #include "treecanvas.hh"
 #include "node.hh"
 
 typedef NodeAllocatorBase<VisualNode> NodeAllocator;
-
-class DbEntry {
-private:
-
-public:
-    DbEntry(int _p, int _alt, int _kids, char _tid, int _status) :
-        node_id(-1), parent_id(_p), alt(_alt), numberOfKids(_kids),
-        thread(_tid), status(_status) {
-    }
-
-    DbEntry(): node_id(-1) {}
-
-    int node_id; // id as it is in gist
-    int parent_id; // parent id in database 
-    int alt; // which child by order
-    int numberOfKids;
-    int status;
-    char thread;
-
-};
 
 enum MsgType {
   NODE_DATA = 1,
   DONE_SENDING = 2
 };
 
-struct Message {
-  MsgType type;
-  int sid;
-  int parent;
-  int alt;
-  int kids;
-  int status;
-  char thread;
 
-  void specifyNode(int _sid, int _parent, int _alt, int _kids, int _status, char _thread) {
-    type = NODE_DATA;
-    sid = _sid;
-    parent = _parent;
-    alt = _alt;
-    kids = _kids;
-    status = _status;
-    thread = _thread;
-  }
+struct Message {
+    static const int LABEL_SIZE = 16;
+
+    MsgType type;
+    int sid;
+    int parent_sid;
+    int alt;
+    int kids;
+    int status;
+    char thread;
+    char label[16];
+};
+
+class DbEntry {
+private:
+
+public:
+    DbEntry(int _p, int _alt, int _kids, char _tid, char* _label, int _status) :
+        gid(-1), parent_sid(_p), alt(_alt), numberOfKids(_kids),
+        thread(_tid), status(_status) {
+          
+          memcpy(label, _label, Message::LABEL_SIZE);
+          std::cout << label << std::endl;
+    }
+
+    DbEntry(): gid(-1) {}
+
+    int gid; // gist Id
+    int parent_sid; // parent id in database 
+    int alt; // which child by order
+    int numberOfKids;
+    int status;
+    char label[Message::LABEL_SIZE];
+    char thread;
 
 };
+
 
 class Data : public QObject {
 Q_OBJECT
@@ -68,7 +68,7 @@ private:
 
     int counter;
     int lastRead;
-    int firstIndex; // for db_array
+    int firstIndex; // for nodes_arr
 
     int nextToRead = 0;
     int totalElements = -1;
@@ -76,8 +76,13 @@ private:
     sqlite3 *db;
     TreeCanvas* _tc;
     NodeAllocator* _na;
-    std::vector<DbEntry*> db_array;
-    std::tr1::unordered_map<int, int> nid_to_db_id;
+    std::vector<DbEntry*> nodes_arr;
+
+    /// mapping from solver Id to array Id (nodes_arr)
+    std::tr1::unordered_map<int, int> sid2aid;
+
+    /// mapping from gist Id to array Id (nodes_arr)
+    std::tr1::unordered_map<int, int> gid2aid;
 
     void show_db(void);
 
@@ -94,6 +99,7 @@ public:
 
     bool readInstance(NodeAllocator *na);
     void pushInstance(unsigned int sid, DbEntry* entry);
+    char* getLabelByGid(unsigned int gid);
     static int handleNodeCallback(Message* data);
     
 };

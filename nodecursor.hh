@@ -2,6 +2,7 @@
 #define GECODE_GIST_NODECURSOR_HH
 
 #include "visualnode.hh"
+#include "data.hh"
 
 /// \brief A cursor that can be run over a tree
 template<class Node>
