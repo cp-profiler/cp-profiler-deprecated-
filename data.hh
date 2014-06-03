@@ -15,7 +15,8 @@ typedef NodeAllocatorBase<VisualNode> NodeAllocator;
 
 enum MsgType {
   NODE_DATA = 1,
-  DONE_SENDING = 2
+  DONE_SENDING = 2,
+  START_SENDING = 3
 };
 
 
@@ -86,15 +87,14 @@ private:
 
     void show_db(void);
 
-    
-    ~Data(void);
-
 public Q_SLOTS:
     void startReading(void);
     
 public:
 
     Data(TreeCanvas* tc, NodeAllocator* na);
+    ~Data(void);
+
     static Data* self;
 
     bool readInstance(NodeAllocator *na);

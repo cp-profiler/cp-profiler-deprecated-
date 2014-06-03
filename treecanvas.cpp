@@ -5,6 +5,7 @@
 
 #include <stack>
 #include <fstream>
+#include <exception>
 
 #include "treecanvas.hh"
 
@@ -339,7 +340,13 @@ SearcherThread::run(void) {
 
     zmq::context_t context(1);
     zmq::socket_t socket (context, ZMQ_PULL);
-    socket.bind("tcp://*:5555");
+    try {
+        socket.bind("tcp://*:5555");
+    } catch (std::exception& e) {
+        std::cerr << "error connecting to socket";
+    }
+    
+        
     int nodeCount = 0;
     while (true) {
         zmq::message_t request;
@@ -352,8 +359,13 @@ SearcherThread::run(void) {
                 Data::handleNodeCallback(tr);
                 nodeCount++;
             break;
+            case START_SENDING:
+                qDebug() << "Reseting Gist...";
+               t->reset();
+               nodeCount = 0;
+            break;
             case DONE_SENDING:
-                qDebug() << "Done receiving.\n";
+                qDebug() << "Done receiving";
                 updateCanvas();
             break;
         }
@@ -749,6 +761,8 @@ TreeCanvas::reset(void) {
 
     emit statusChanged(currentNode, stats, true);
 
+    if (data)
+        delete data;
     data = new Data(this, na);
 
     searchAll();
