@@ -36,6 +36,7 @@ TreeCanvas::TreeCanvas(QWidget* parent)
     int rootIdx = na->allocateRoot(); // read root from db
 
     root = (*na)[0];
+    data = NULL;
     scale = LayoutConfig::defScale / 100.0;
 
 //    root->dirtyUp(*na);

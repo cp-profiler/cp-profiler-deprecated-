@@ -89,6 +89,14 @@ bool Data::readInstance(NodeAllocator *na) {
                 parent->closeChild(*na, true, false);
                 _tc->stats.failures++;
             break;
+            case SKIPPED: // 6
+                node->setHasOpenChildren(false);
+                node->setHasSolvedChildren(false);
+                node->setHasFailedChildren(true);
+                node->setStatus(SKIPPED);
+                parent->closeChild(*na, true, false);
+                _tc->stats.failures++;
+            break;
             case SOLVED: // 0
                 node->setHasFailedChildren(false);
                 node->setHasSolvedChildren(true);

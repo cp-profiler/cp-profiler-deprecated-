@@ -128,7 +128,11 @@ DrawingCursor::processCurrentNode(void) {
                 break;
             case UNDETERMINED:
                 painter.drawEllipse(myx - HALF_NODE_WIDTH+SHADOW_OFFSET,
-                              myy + SHADOW_OFFSET, NODE_WIDTH, NODE_WIDTH);
+                    myy + SHADOW_OFFSET, NODE_WIDTH, NODE_WIDTH);
+                break;
+            case SKIPPED:
+                painter.drawRect(myx - HALF_FAILED_WIDTH + SHADOW_OFFSET,
+                    myy + SHADOW_OFFSET, FAILED_WIDTH, FAILED_WIDTH);
                 break;
             }
         }
@@ -187,6 +191,10 @@ DrawingCursor::processCurrentNode(void) {
         case UNDETERMINED:
             painter.setBrush(Qt::white);
             painter.drawEllipse(myx - HALF_NODE_WIDTH, myy, NODE_WIDTH, NODE_WIDTH);
+            break;
+        case SKIPPED:
+            painter.setBrush(Qt::gray);
+            painter.drawRect(myx - HALF_FAILED_WIDTH, myy, FAILED_WIDTH, FAILED_WIDTH);
             break;
         }
     }
