@@ -29,6 +29,7 @@ struct Message {
     int alt;
     int kids;
     int status;
+    int restart_id;
     char thread;
     char label[16];
 };
@@ -42,7 +43,7 @@ public:
         thread(_tid), status(_status) {
           
           memcpy(label, _label, Message::LABEL_SIZE);
-          std::cout << label << std::endl;
+          // std::cout << label << std::endl;
     }
 
     DbEntry(): gid(-1) {}
@@ -97,7 +98,7 @@ public:
 
     static Data* self;
 
-    bool readInstance(NodeAllocator *na);
+    bool readInstance(void);
     void pushInstance(unsigned int sid, DbEntry* entry);
     char* getLabelByGid(unsigned int gid);
     static int handleNodeCallback(Message* data);

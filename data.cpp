@@ -30,7 +30,7 @@ void Data::show_db(void) {
 }
 
 /// return false if there is nothing to read
-bool Data::readInstance(NodeAllocator *na) {
+bool Data::readInstance(void) {
     int sid; /// solver Id
     int gid; /// gist Id
     int pid;
@@ -47,10 +47,10 @@ bool Data::readInstance(NodeAllocator *na) {
 
     if (lastRead == -1) {
         lastRead++;
-        (*na)[0]->setNumberOfChildren(nodes_arr[0]->numberOfKids, *na);
-        (*na)[0]->setStatus(BRANCH);
-        (*na)[0]->setHasSolvedChildren(true);
-        (*na)[0]->_tid = 0;
+        (*_na)[0]->setNumberOfChildren(nodes_arr[0]->numberOfKids, *_na);
+        (*_na)[0]->setStatus(BRANCH);
+        (*_na)[0]->setHasSolvedChildren(true);
+        (*_na)[0]->_tid = 0;
         nodes_arr[lastRead]->gid = 0;
     }
     else {
@@ -62,23 +62,15 @@ bool Data::readInstance(NodeAllocator *na) {
         nalt = nodes_arr[lastRead]->numberOfKids;
         status = nodes_arr[lastRead]->status;
         parent_gid = nodes_arr[sid2aid[pid]]->gid;
-        parent = (*na)[parent_gid];
-        node = parent->getChild(*na, alt);
-        gid = node->getIndex(*na);
+        parent = (*_na)[parent_gid];
+        node = parent->getChild(*_na, alt);
+        gid = node->getIndex(*_na);
         nodes_arr[lastRead]->gid = gid;
         gid2aid[gid] = lastRead;
 
-        // qDebug() << "(*na)[" << nodes_arr[lastRead]->gid << "]: " << parent_gid;
-             
-        // qDebug() << "lastRead: " << lastRead; 
-        // qDebug() << "parent gist id: " << parent_gid;
-        // qDebug() << "parent id: " << pid;
-        // qDebug() << "sid2aid[" << pid << "]: " << sid2aid[pid];
-        // qDebug() << "nodes_arr[" << sid2aid[pid] << "]: " << nodes_arr[sid2aid[pid]]->gid;
-
 
         node->_tid = nodes_arr[lastRead]->thread;
-        node->setNumberOfChildren(nalt, *na);
+        node->setNumberOfChildren(nalt, *_na);
 
         switch (status) {
             case FAILED: // 1
@@ -86,7 +78,7 @@ bool Data::readInstance(NodeAllocator *na) {
                 node->setHasSolvedChildren(false);
                 node->setHasFailedChildren(true);
                 node->setStatus(FAILED);
-                parent->closeChild(*na, true, false);
+                parent->closeChild(*_na, true, false);
                 _tc->stats.failures++;
             break;
             case SKIPPED: // 6
@@ -94,7 +86,7 @@ bool Data::readInstance(NodeAllocator *na) {
                 node->setHasSolvedChildren(false);
                 node->setHasFailedChildren(true);
                 node->setStatus(SKIPPED);
-                parent->closeChild(*na, true, false);
+                parent->closeChild(*_na, true, false);
                 _tc->stats.failures++;
             break;
             case SOLVED: // 0
@@ -102,7 +94,7 @@ bool Data::readInstance(NodeAllocator *na) {
                 node->setHasSolvedChildren(true);
                 node->setHasOpenChildren(false);
                 node->setStatus(SOLVED);
-                parent->closeChild(*na, false, true);
+                parent->closeChild(*_na, false, true);
                 _tc->stats.solutions++;
             break;
             case BRANCH: // 2
@@ -114,10 +106,10 @@ bool Data::readInstance(NodeAllocator *na) {
         }
 
         // node->setStatus(NodeStatus(status));
+        // statusChanged(false); // what does this do?
             
-        static_cast<VisualNode*>(node)->changedStatus(*na);
-        node->dirtyUp(*na);
-        _tc->statusChanged(false);
+        static_cast<VisualNode*>(node)->changedStatus(*_na);
+        node->dirtyUp(*_na);
 
     }
 
@@ -141,15 +133,17 @@ int Data::handleNodeCallback(Message* data) {
     status = data->status;
     thread = data->thread;
 
-    std::cout << "Received node: " << id << " " << parent << " "
-                    << alt << " " << kids << " " << status << " wid: "
-                    << (int)data->thread << std::endl;
+    // std::cout << "Received node: " << id << " " << parent << " "
+    //                 << alt << " " << kids << " " << status << " wid: "
+    //                 << (int)data->thread << std::endl;
 
     Data::self->pushInstance(id - Data::self->firstIndex,
         new DbEntry(parent - Data::self->firstIndex, alt, kids, thread, data->label, status));
+
+
     Data::self->counter++;
 
-    Data::self->readInstance(Data::self->_na);
+    Data::self->readInstance();
 
     return 0;
 }

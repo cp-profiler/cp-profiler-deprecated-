@@ -6,6 +6,7 @@
 #include <stack>
 #include <fstream>
 #include <exception>
+#include <ctime>
 
 #include "treecanvas.hh"
 
@@ -339,6 +340,8 @@ public:
 void
 SearcherThread::run(void) {
 
+
+
     zmq::context_t context(1);
     zmq::socket_t socket (context, ZMQ_PULL);
     try {
@@ -355,29 +358,36 @@ SearcherThread::run(void) {
         socket.recv (&request);
         Message *tr = reinterpret_cast<Message*>(request.data());
 
+        clock_t begin;
+        clock_t end;
+
         switch (tr->type) {
             case NODE_DATA:
                 Data::handleNodeCallback(tr);
                 nodeCount++;
             break;
             case START_SENDING:
+                begin = clock();
                 qDebug() << "Reseting Gist...";
-               t->reset();
-               nodeCount = 0;
+                t->reset();
+                nodeCount = 0;
             break;
             case DONE_SENDING:
                 qDebug() << "Done receiving";
                 updateCanvas();
+                end = clock();
+                double elapsed_secs = double(end - begin) / CLOCKS_PER_SEC;
+                qDebug() << "Time elapsed: " << elapsed_secs << " seconds";
             break;
         }
 
         if (t->refresh > 0 && nodeCount >= t->refresh) {
-          node->dirtyUp(*t->na);
-          updateCanvas();
-          emit statusChanged(false);
-          nodeCount = 0;
-          if (t->refreshPause > 0)
-            msleep(t->refreshPause);
+            node->dirtyUp(*t->na);
+            updateCanvas();
+            emit statusChanged(false);
+            nodeCount = 0;
+            if (t->refreshPause > 0)
+              msleep(t->refreshPause);
         }
        // qDebug() << "Received: " << tr->sid << " " << tr->parent << " "
        //     << tr->alt << " " << tr->kids << " " << tr->status;
