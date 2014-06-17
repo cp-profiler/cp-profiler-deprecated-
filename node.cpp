@@ -49,9 +49,11 @@ Node::addChild(NodeAllocator &na) {
                 reinterpret_cast<void*>(na.allocate(getIndex(na)) << 2);
         noOfChildren = 1;
         setTag(TWO_CHILDREN);
+        assert(getNumberOfChildren()==1);
         return getFirstChild();
     case 1:
         noOfChildren = -na.allocate(getIndex(na));
+        assert(getNumberOfChildren()==2);
         return -noOfChildren;
     case 2:
     {
@@ -62,15 +64,20 @@ Node::addChild(NodeAllocator &na) {
         noOfChildren = 3;
         childrenOrFirstChild = static_cast<void*>(children);
         setTag(MORE_CHILDREN);
+        assert(getNumberOfChildren()==3);
         return children[2];
     }
     default:
     {
         noOfChildren++;
         int* oldchildren = static_cast<int*>(getPtr());
-        int* newchildren = heap.realloc<int>(oldchildren,noOfChildren);
+        int* newchildren = heap.realloc<int>(oldchildren,noOfChildren-1,noOfChildren);
+        for (int i=0; i<noOfChildren-1; i++)
+            assert(oldchildren[i]==newchildren[i]);
         newchildren[noOfChildren-1] = na.allocate(getIndex(na));
         childrenOrFirstChild = static_cast<void*>(newchildren);
+        setTag(MORE_CHILDREN);
+        assert(getNumberOfChildren()==noOfChildren);
         return newchildren[noOfChildren-1];
     }
     }
