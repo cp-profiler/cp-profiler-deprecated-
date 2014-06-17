@@ -132,6 +132,9 @@ public:
   /// Set the number of children to \a n and initialize children
   void setNumberOfChildren(unsigned int n, NodeAllocator& na);
 
+  /// Add uninitialised child and return it
+  int addChild(NodeAllocator& na);
+
   /// Return the number of children
   unsigned int getNumberOfChildren(void) const;
 

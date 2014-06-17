@@ -40,3 +40,38 @@ Node::setNumberOfChildren(unsigned int n, NodeAllocator& na) {
     }
     }
 }
+
+int
+Node::addChild(NodeAllocator &na) {
+    switch (getNumberOfChildren()) {
+    case 0:
+        childrenOrFirstChild =
+                reinterpret_cast<void*>(na.allocate(getIndex(na)) << 2);
+        noOfChildren = 1;
+        setTag(TWO_CHILDREN);
+        return getFirstChild();
+    case 1:
+        noOfChildren = -na.allocate(getIndex(na));
+        return -noOfChildren;
+    case 2:
+    {
+        int* children = heap.alloc<int>(3);
+        children[0] = getFirstChild();
+        children[1] = -noOfChildren;
+        children[2] = na.allocate(getIndex(na));
+        noOfChildren = 3;
+        childrenOrFirstChild = static_cast<void*>(children);
+        setTag(MORE_CHILDREN);
+        return children[2];
+    }
+    default:
+    {
+        noOfChildren++;
+        int* oldchildren = static_cast<int*>(getPtr());
+        int* newchildren = heap.realloc<int>(oldchildren,noOfChildren);
+        newchildren[noOfChildren-1] = na.allocate(getIndex(na));
+        childrenOrFirstChild = static_cast<void*>(newchildren);
+        return newchildren[noOfChildren-1];
+    }
+    }
+}
