@@ -19,6 +19,24 @@ enum MsgType {
   START_SENDING = 3
 };
 
+class BigId {
+
+private:
+    unsigned long long _id;
+public:
+    BigId(unsigned long long id) : _id(id) {
+
+    };
+
+    void operator=(unsigned long long id) {
+        _id = id;
+    }
+
+    unsigned long long value(void) {
+        return _id;
+    }
+};
+
 
 struct Message {
     static const int LABEL_SIZE = 16;
@@ -38,7 +56,7 @@ class DbEntry {
 private:
 
 public:
-    DbEntry(int _p, int _alt, int _kids, char _tid, char* _label, int _status) :
+    DbEntry(unsigned long long _p, int _alt, int _kids, char _tid, char* _label, int _status) :
         gid(-1), parent_sid(_p), alt(_alt), numberOfKids(_kids),
         thread(_tid), status(_status) {
           
@@ -49,7 +67,7 @@ public:
     DbEntry(): gid(-1) {}
 
     int gid; // gist Id
-    int parent_sid; // parent id in database 
+    unsigned long long parent_sid; // parent id in database 
     int alt; // which child by order
     int numberOfKids;
     int status;
@@ -68,9 +86,13 @@ private:
 
     static const int PORTION = 50000;
 
-    int counter;
     int lastRead;
-    int firstIndex; // for nodes_arr
+    int firstIndex = 0; // for nodes_arr
+    int restarts_offset = 0; // index of the last node from previous restart
+    int lastArrived = 0;
+
+    /// isRestarts true if we want a dummy node (needed for showing restarts)
+    bool _isRestarts;
 
     int nextToRead = 0;
     int totalElements = -1;
@@ -80,11 +102,15 @@ private:
     NodeAllocator* _na;
     std::vector<DbEntry*> nodes_arr;
 
+    /// **** for restarts ****
+    std::vector<int> restarts_offsets;
+
+
     /// mapping from solver Id to array Id (nodes_arr)
-    std::tr1::unordered_map<int, int> sid2aid;
+    std::tr1::unordered_map<unsigned long long, int> sid2aid;
 
     /// mapping from gist Id to array Id (nodes_arr)
-    std::tr1::unordered_map<int, int> gid2aid;
+    std::tr1::unordered_map<unsigned long long, int> gid2aid;
 
     void show_db(void);
 
@@ -93,13 +119,14 @@ public Q_SLOTS:
     
 public:
 
-    Data(TreeCanvas* tc, NodeAllocator* na);
+    Data(TreeCanvas* tc, NodeAllocator* na, bool isRestarts);
     ~Data(void);
 
     static Data* self;
 
-    bool readInstance(void);
-    void pushInstance(unsigned int sid, DbEntry* entry);
+    bool readInstance(bool isRoot);
+    void pushInstance(unsigned long long sid, DbEntry* entry);
+    
     char* getLabelByGid(unsigned int gid);
     static int handleNodeCallback(Message* data);
     

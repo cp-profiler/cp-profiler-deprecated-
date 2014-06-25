@@ -130,8 +130,8 @@ public Q_SLOTS:
   /// Stop current search
   void stopSearch(void);
 
-  /// Reset
-  void reset(void);
+  /// Reset, isRestarts true if we want a dummy node (needed for showing restarts)
+  void reset(bool isRestarts = false);
 
   /// Move selection to the parent of the selected node
   void navUp(void);

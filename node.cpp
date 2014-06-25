@@ -72,11 +72,13 @@ Node::addChild(NodeAllocator &na) {
         noOfChildren++;
         int* oldchildren = static_cast<int*>(getPtr());
         int* newchildren = heap.realloc<int>(oldchildren,noOfChildren-1,noOfChildren);
-        for (int i=0; i<noOfChildren-1; i++)
-            assert(oldchildren[i]==newchildren[i]);
+        // for (int i=0; i<noOfChildren-1; i++)
+        //     assert(oldchildren[i]==newchildren[i]);
         newchildren[noOfChildren-1] = na.allocate(getIndex(na));
         childrenOrFirstChild = static_cast<void*>(newchildren);
         setTag(MORE_CHILDREN);
+        qDebug() << "noOfChildren: " << noOfChildren;
+        qDebug() << "getNumberOfChildren(): " << getNumberOfChildren();
         assert(getNumberOfChildren()==noOfChildren);
         return newchildren[noOfChildren-1];
     }

@@ -340,8 +340,6 @@ public:
 void
 SearcherThread::run(void) {
 
-
-
     zmq::context_t context(1);
     zmq::socket_t socket (context, ZMQ_PULL);
     try {
@@ -368,9 +366,15 @@ SearcherThread::run(void) {
             break;
             case START_SENDING:
                 begin = clock();
-                qDebug() << "Reseting Gist...";
-                t->reset();
-                nodeCount = 0;
+                nodeCount = 0;  // for update counter
+ 
+                if (tr->restart_id == -1) {
+                    t->reset(false); // no restarts
+                } else if (tr->restart_id == 0){
+                    t->reset(true);
+                } else {
+                    qDebug() << ">>> new restart";
+                }
             break;
             case DONE_SENDING:
                 qDebug() << "Done receiving";
@@ -751,7 +755,7 @@ TreeCanvas::stopSearch(void) {
 }
 
 void
-TreeCanvas::reset(void) {
+TreeCanvas::reset(bool isRestarts) {
     QMutexLocker locker(&mutex);
 
     delete na;
@@ -772,9 +776,10 @@ TreeCanvas::reset(void) {
 
     emit statusChanged(currentNode, stats, true);
 
-    if (data)
-        delete data;
-    data = new Data(this, na);
+    if (data) delete data;
+
+    data = new Data(this, na, isRestarts);
+    
 
     searchAll();
     update();

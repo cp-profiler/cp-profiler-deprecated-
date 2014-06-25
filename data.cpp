@@ -14,50 +14,68 @@ using namespace std;
 
 Data* Data::self = 0;
 
-Data::Data(TreeCanvas* tc, NodeAllocator* na) : _tc(tc), _na(na) {
+Data::Data(TreeCanvas* tc, NodeAllocator* na, bool isRestarts)
+ : _tc(tc), _na(na), _isRestarts(isRestarts) {
     Data::self = this;
-    counter = 0;
 
     lastRead = -1;
 }
 
 
 void Data::show_db(void) {
+    qDebug() << "***** SHOW_DB: *****";
     for (vector<DbEntry*>::iterator it = nodes_arr.begin(); it != nodes_arr.end(); it++) {
             qDebug() << "sid: " << (*it)->gid << " p: " << (*it)->parent_sid <<
             " alt: " << (*it)->alt << " kids: " << (*it)->numberOfKids;
     }
+    qDebug() << "***** _________________________ *****";
 }
 
 /// return false if there is nothing to read
-bool Data::readInstance(void) {
+bool Data::readInstance(bool isRoot) {
     int sid; /// solver Id
     int gid; /// gist Id
-    int pid;
+    unsigned long long pid;
     int parent_gid; /// gist Id of parent
     int alt;
     int nalt;
     int status;
 
-    if (lastRead +1 >= counter)
+    if (lastRead +1 >= nodes_arr.size())
         return false;
 
     VisualNode* node;
     VisualNode* parent;
 
-    if (lastRead == -1) {
+    if (isRoot) { 
         lastRead++;
-        (*_na)[0]->setNumberOfChildren(nodes_arr[0]->numberOfKids, *_na);
-        (*_na)[0]->setStatus(BRANCH);
-        (*_na)[0]->setHasSolvedChildren(true);
-        (*_na)[0]->_tid = 0;
-        nodes_arr[lastRead]->gid = 0;
+        if (_isRestarts) {
+            int restart_root = (*_na)[0]->addChild(*_na); // create a node for a new root
+            qDebug() << "restart_root_id: " << restart_root;
+            VisualNode* new_root = (*_na)[restart_root];
+            new_root->setNumberOfChildren(nodes_arr[lastRead]->numberOfKids, *_na);
+            new_root->setStatus(BRANCH);
+            new_root->setHasSolvedChildren(true);
+            new_root->_tid = nodes_arr[lastRead]->thread;
+            nodes_arr[lastRead]->gid = restart_root;
+
+        } else {
+            (*_na)[0]->setNumberOfChildren(nodes_arr[0]->numberOfKids, *_na);
+            (*_na)[0]->setStatus(BRANCH);
+            (*_na)[0]->setHasSolvedChildren(true);
+            (*_na)[0]->_tid = 0; /// thread id
+            nodes_arr[lastRead]->gid = 0;
+        }  
     }
     else {
 
         lastRead++;
 
         pid = nodes_arr[lastRead]->parent_sid;
+        // show_db();
+        qDebug() << "last read: " << lastRead;
+        qDebug() << "parent_sid: " << pid;
+
         alt = nodes_arr[lastRead]->alt;
         nalt = nodes_arr[lastRead]->numberOfKids;
         status = nodes_arr[lastRead]->status;
@@ -122,44 +140,51 @@ void Data::startReading(void) {
 
 }
 
-int Data::handleNodeCallback(Message* data) {
-    int id, parent, alt, kids, status;
+int Data::handleNodeCallback(Message* msg) {
+    int id, pid, alt, kids, status, restart_id;
     char thread;
+
+    bool isRoot = false;
+
+    Data& data = *Data::self;
     
-    id = data->sid;
-    parent = data->parent_sid;
-    alt = data->alt;
-    kids = data->kids;
-    status = data->status;
-    thread = data->thread;
+    id = msg->sid;
+    pid = msg->parent_sid;
+    alt = msg->alt;
+    kids = msg->kids;
+    status = msg->status;
+    thread = msg->thread;
+    restart_id = msg->restart_id;
 
-    // std::cout << "Received node: " << id << " " << parent << " "
-    //                 << alt << " " << kids << " " << status << " wid: "
-    //                 << (int)data->thread << std::endl;
+    qDebug() << "Received node: \t" << id << " " << pid << " "
+                    << alt << " " << kids << " " << status << " wid: "
+                    << (int)thread << " restart: " << restart_id;    
 
-    Data::self->pushInstance(id - Data::self->firstIndex,
-        new DbEntry(parent - Data::self->firstIndex, alt, kids, thread, data->label, status));
+    if (pid == -1) {
+        pid = 0; /// check if still needed
+        isRoot = true;
+    }
 
+    BigId real_id = id | ((long long)restart_id << 32);
+    BigId real_pid = pid | ((long long)restart_id << 32);
 
-    Data::self->counter++;
+    Data::self->pushInstance(real_id.value() - data.firstIndex,
+        new DbEntry(real_pid.value() - data.firstIndex, alt, kids, thread, msg->label, status));
 
-    Data::self->readInstance();
+    // qDebug() << "Pushed node: \t" << real_id.value() - data.firstIndex << " "
+    //     << real_pid.value() - data.firstIndex << " " << alt << " " << kids << " "
+    //     << status << " wid: " << (int)msg->thread;
+
+    if (pid != -1) data.lastArrived = id;
+
+    data.readInstance(isRoot);
 
     return 0;
 }
 
-void Data::pushInstance(unsigned int sid, DbEntry* entry) {
-    // qDebug() << "sid2aid[" << sid << "] = " << counter;
-    sid2aid[sid] = counter;
-    // qDebug() << "status: " << entry->status;
-    
-    // if (entry->alt > 1)
-    //     qDebug() << "alt = 2, really?";
-    // if (entry->alt == 0)
-    //     qDebug() << "alt = 0, ok";
-    // else if (entry->alt == 1)
-    //     qDebug() << "alt = 1, ok";
-    // qDebug() << "sid2aid[" << sid << "]: " << counter; 
+void Data::pushInstance(unsigned long long sid, DbEntry* entry) {
+
+    sid2aid[sid] = nodes_arr.size();
 
     nodes_arr.push_back(entry);
 }
