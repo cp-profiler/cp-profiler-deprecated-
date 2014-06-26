@@ -165,11 +165,11 @@ int Data::handleNodeCallback(Message* msg) {
         isRoot = true;
     }
 
-    BigId real_id = id | ((long long)restart_id << 32);
-    BigId real_pid = pid | ((long long)restart_id << 32);
+    unsigned long long real_id = id | ((long long)restart_id << 32);
+    unsigned long long real_pid = pid | ((long long)restart_id << 32);
 
-    Data::self->pushInstance(real_id.value() - data.firstIndex,
-        new DbEntry(real_pid.value() - data.firstIndex, alt, kids, thread, msg->label, status));
+    Data::self->pushInstance(real_id - data.firstIndex,
+        new DbEntry(real_pid - data.firstIndex, alt, kids, thread, msg->label, status));
 
     // qDebug() << "Pushed node: \t" << real_id.value() - data.firstIndex << " "
     //     << real_pid.value() - data.firstIndex << " " << alt << " " << kids << " "

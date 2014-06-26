@@ -19,25 +19,6 @@ enum MsgType {
   START_SENDING = 3
 };
 
-class BigId {
-
-private:
-    unsigned long long _id;
-public:
-    BigId(unsigned long long id) : _id(id) {
-
-    };
-
-    void operator=(unsigned long long id) {
-        _id = id;
-    }
-
-    unsigned long long value(void) {
-        return _id;
-    }
-};
-
-
 struct Message {
     static const int LABEL_SIZE = 16;
 
