@@ -34,7 +34,8 @@ TreeCanvas::TreeCanvas(QWidget* parent)
     
     na = new Node::NodeAllocator(false);
     timer = new QTimer(this);
-    int rootIdx = na->allocateRoot(); // read root from db
+
+    na->allocateRoot(); // read root from db
 
     root = (*na)[0];
     data = NULL;
@@ -356,7 +357,7 @@ SearcherThread::run(void) {
         socket.recv (&request);
         Message *tr = reinterpret_cast<Message*>(request.data());
 
-        clock_t begin;
+        clock_t begin = 0;
         clock_t end;
 
         switch (tr->type) {
@@ -584,7 +585,8 @@ TreeCanvas::inspectCurrentNode(bool fix, int inspectorNo) {
     int failedInspector = -1;
     bool needCentering = false;
 
-    unsigned int kids = currentNode->getNumberOfChildNodes(*na);
+    unsigned int kids = 0;
+//    unsigned int kids = currentNode->getNumberOfChildNodes(*na);
     int depth = -1;
     for (VisualNode* p = currentNode; p != NULL; p=p->getParent(*na))
         depth++;
@@ -780,7 +782,6 @@ TreeCanvas::reset(bool isRestarts) {
 
     data = new Data(this, na, isRestarts);
     
-
     searchAll();
     update();
 }

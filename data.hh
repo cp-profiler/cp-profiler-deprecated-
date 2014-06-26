@@ -2,7 +2,7 @@
 #define DATA_HH
 
 #include <vector>
-#include <tr1/unordered_map>
+#include <unordered_map>
 #include <sqlite3.h>
 #include <QTimer>
 
@@ -39,7 +39,7 @@ private:
 public:
     DbEntry(unsigned long long _p, int _alt, int _kids, char _tid, char* _label, int _status) :
         gid(-1), parent_sid(_p), alt(_alt), numberOfKids(_kids),
-        thread(_tid), status(_status) {
+        status(_status), thread(_tid) {
           
           memcpy(label, _label, Message::LABEL_SIZE);
           // std::cout << label << std::endl;
@@ -67,7 +67,7 @@ private:
 
     static const int PORTION = 50000;
 
-    int lastRead;
+    unsigned long lastRead;
     int firstIndex = 0; // for nodes_arr
     int restarts_offset = 0; // index of the last node from previous restart
     int lastArrived = 0;
@@ -88,10 +88,10 @@ private:
 
 
     /// mapping from solver Id to array Id (nodes_arr)
-    std::tr1::unordered_map<unsigned long long, int> sid2aid;
+    std::unordered_map<unsigned long long, int> sid2aid;
 
     /// mapping from gist Id to array Id (nodes_arr)
-    std::tr1::unordered_map<unsigned long long, int> gid2aid;
+    std::unordered_map<unsigned long long, int> gid2aid;
 
     void show_db(void);
 

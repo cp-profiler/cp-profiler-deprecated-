@@ -66,11 +66,6 @@
 
 
   int
-  SpaceNode::getNumberOfChildNodes(NodeAllocator& na) {
-
-  }
-
-  int
   SpaceNode::getNoOfOpenChildren(const NodeAllocator& na) {
     if (!hasOpenChildren())
       return 0;

@@ -20,7 +20,6 @@ const QColor DrawingCursor::lightBlue(0, 92, 161, 120);
 
 const double NODE_WIDTH = 20.0;
 const double HALF_NODE_WIDTH = NODE_WIDTH / 2.0;
-const double QUARTER_NODE_WIDTH = HALF_NODE_WIDTH / 2.0;
 const double FAILED_WIDTH = 14.0;
 const double HALF_FAILED_WIDTH = FAILED_WIDTH / 2.0;
 const double QUARTER_FAILED_WIDTH = FAILED_WIDTH / 4.0;

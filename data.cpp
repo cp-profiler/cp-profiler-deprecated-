@@ -33,7 +33,6 @@ void Data::show_db(void) {
 
 /// return false if there is nothing to read
 bool Data::readInstance(bool isRoot) {
-    int sid; /// solver Id
     int gid; /// gist Id
     unsigned long long pid;
     int parent_gid; /// gist Id of parent

@@ -110,7 +110,7 @@ public:
     * Otherwise, the status is SS_BRANCH, and as many new children will
     * be created as the branch has alternatives, and the number returned.
     */
-  int getNumberOfChildNodes(NodeAllocator& na);
+
 
   /// Return current status of the node
   NodeStatus getStatus(void) const;
