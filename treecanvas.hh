@@ -9,6 +9,7 @@
 
 #include <zmq.hpp>
 #include "visualnode.hh"
+#include "treebuilder.hh"
 
 /// \brief Parameters for the tree layout
 namespace LayoutConfig {
@@ -23,6 +24,7 @@ namespace LayoutConfig {
 }
 
 class TreeCanvas;
+class TreeBuilder;
 
 /// \brief A thread that concurrently explores the tree
 class SearcherThread : public QThread {
@@ -44,6 +46,8 @@ Q_SIGNALS:
   void solution(void);
   void searchFinished(void);
   void moveToNode(VisualNode* n,bool);
+  void startWork(void);
+
 protected:
   void run(void);
 };
@@ -54,7 +58,8 @@ class TreeCanvas : public QWidget {
 
   friend class SearcherThread;
   friend class Gist;
-  friend class Data;
+  friend class TreeBuilder;
+  // friend class Data;
 
 public:
   /// Constructor
@@ -64,7 +69,10 @@ public:
 
   // data from the db
   QTimer* timer;
+
+
   Data* data;
+  TreeBuilder* treeBuilder;
 
 //  /// Add inspector \a i
 //  void addDoubleClickInspector(Inspector* i);
@@ -189,7 +197,7 @@ public Q_SLOTS:
   bool finish(void);
 
 Q_SIGNALS:
-  /// The scale factor has changed
+
   void scaleChanged(int);
   /// The auto-zoom state was changed
   void autoZoomChanged(bool);

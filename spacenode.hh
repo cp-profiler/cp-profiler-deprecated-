@@ -47,8 +47,7 @@ class SpaceNode;
 /// \brief A node of a search tree of %Gecode spaces
 class SpaceNode : public Node {
 
-//    friend TreeCanvas;
-    friend class Data;
+    friend class TreeBuilder;
 protected:
   /// Reference to node in database
 //  int db_id;

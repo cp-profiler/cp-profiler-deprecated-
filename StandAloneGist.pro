@@ -27,7 +27,8 @@ SOURCES += main.cpp\
     spacenode.cpp \
     node.cpp \
     data.cpp \
-    sqlite/sqlite3.c
+    sqlite/sqlite3.c \
+    treebuilder.cpp
 
 
 
@@ -54,7 +55,8 @@ HEADERS  += mainwindow.h \
     nodevisitor.hpp \
     zoomToFitIcon.hpp \
     data.hh \
-    sqlite/sqlite3.h
+    sqlite/sqlite3.h \
+    treebuilder.hh
 
 FORMS    +=
 
