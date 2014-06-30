@@ -33,6 +33,7 @@ TreeCanvas::TreeCanvas(QWidget* parent)
 
     
     na = new Node::NodeAllocator(false);
+    treeBuilder = new TreeBuilder(this);
     timer = new QTimer(this);
 
     na->allocateRoot(); // read root from db
@@ -41,20 +42,9 @@ TreeCanvas::TreeCanvas(QWidget* parent)
     data = NULL;
     scale = LayoutConfig::defScale / 100.0;
 
-//    root->dirtyUp(*na);
-
-
-   // root->getChild(*na, 0)->setNumberOfChildren(2, *na);
-   // root->setNumberOfChildren(1, *na);
-   // VisualNode* newNode = root->getChild(*na, 0);
-   // newNode->setNumberOfChildren(0, *na);
-
-//    newNode->setStatus(BRANCH);
-//    newNode->setHasOpenChildren(true);
-
-
-
     setAutoFillBackground(true);
+
+    connect(&searcher, SIGNAL(startWork(void)), treeBuilder, SLOT(startBuilding(void)));
 
     connect(&searcher, SIGNAL(update(int,int,int)), this,
             SLOT(layoutDone(int,int,int)));
@@ -269,6 +259,11 @@ SearcherThread::search(VisualNode* n, bool all, TreeCanvas* ti) {
     start();
 }
 
+//void
+//SearcherThread::startWork(void) {
+    
+//}
+
 void
 SearcherThread::updateCanvas(void) {
     t->layoutMutex.lock();
@@ -367,12 +362,17 @@ SearcherThread::run(void) {
             break;
             case START_SENDING:
                 begin = clock();
+                /// start building the tree
+
+
                 nodeCount = 0;  // for update counter
  
                 if (tr->restart_id == -1) {
                     t->reset(false); // no restarts
+                    emit startWork();
                 } else if (tr->restart_id == 0){
                     t->reset(true);
+                    emit startWork();
                 } else {
                     qDebug() << ">>> new restart";
                 }
@@ -780,7 +780,10 @@ TreeCanvas::reset(bool isRestarts) {
 
     if (data) delete data;
 
+    qDebug() << "create Data in reset";
+
     data = new Data(this, na, isRestarts);
+    treeBuilder->reset(data, na);
     
     searchAll();
     update();

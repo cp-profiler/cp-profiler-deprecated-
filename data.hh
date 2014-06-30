@@ -8,6 +8,7 @@
 
 #include <iostream>
 
+#include "treebuilder.hh"
 #include "treecanvas.hh"
 #include "node.hh"
 
@@ -60,6 +61,9 @@ public:
 
 class Data : public QObject {
 Q_OBJECT
+
+friend class TreeBuilder;
+
 public:
     static const int READING_PERIOD = 1000;
 
@@ -67,13 +71,10 @@ private:
 
     static const int PORTION = 50000;
 
-    unsigned long lastRead;
+    long long lastRead;
     int firstIndex = 0; // for nodes_arr
     int restarts_offset = 0; // index of the last node from previous restart
     int lastArrived = 0;
-
-    /// isRestarts true if we want a dummy node (needed for showing restarts)
-    bool _isRestarts;
 
     int nextToRead = 0;
     int totalElements = -1;
@@ -83,8 +84,13 @@ private:
     NodeAllocator* _na;
     std::vector<DbEntry*> nodes_arr;
 
+
+
     /// **** for restarts ****
     std::vector<int> restarts_offsets;
+
+    /// isRestarts true if we want a dummy node (needed for showing restarts)
+    bool _isRestarts;
 
 
     /// mapping from solver Id to array Id (nodes_arr)
@@ -105,7 +111,7 @@ public:
 
     static Data* self;
 
-    bool readInstance(bool isRoot);
+    bool readInstance();
     void pushInstance(unsigned long long sid, DbEntry* entry);
     
     char* getLabelByGid(unsigned int gid);

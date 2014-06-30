@@ -1,4 +1,6 @@
 .qmake.stash
+*.o
+moc_*.cpp
 StandAloneGist.pro.user
 gist.sublime-project
 gist.sublime-workspace
