@@ -350,7 +350,7 @@ Gist::Gist(QWidget* parent) : QWidget(parent) {
             autoZoomButton, SLOT(setChecked(bool)));
 
     {
-        unsigned int i = 0;
+//        unsigned int i = 0;
 //        while (opt.inspect.solution(i)) {
 //            addSolutionInspector(opt.inspect.solution(i++));
 //        }

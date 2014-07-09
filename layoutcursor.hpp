@@ -19,7 +19,7 @@ LayoutCursor::processCurrentNode(void) {
         } else if (false && currentNode->getNumberOfChildren() < 1) {
             currentNode->setShape(Shape::leaf);
         } else {
-            currentNode->computeShape(na,startNode());
+            currentNode->computeShape(na);
         }
         currentNode->setDirty(false);
     }

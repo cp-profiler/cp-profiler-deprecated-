@@ -92,6 +92,8 @@ private:
     /// isRestarts true if we want a dummy node (needed for showing restarts)
     bool _isRestarts;
 
+    bool _isDone;
+
 
     /// mapping from solver Id to array Id (nodes_arr)
     std::unordered_map<unsigned long long, int> sid2aid;
@@ -113,6 +115,12 @@ public:
 
     bool readInstance();
     void pushInstance(unsigned long long sid, DbEntry* entry);
+
+    // whether received DONE_SENDING message
+    bool isDone(void);
+
+    // sets _isDone to true when received DONE_SENDING
+    void setDone(void);
     
     char* getLabelByGid(unsigned int gid);
     static int handleNodeCallback(Message* data);

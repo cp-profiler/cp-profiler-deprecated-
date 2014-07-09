@@ -69,7 +69,7 @@ PreferencesDialog::PreferencesDialog(QWidget *parent)
     page1->setLayout(layout);
     tabs->addTab(page1, "Drawing");
 
-    QLabel* cdlabel = new QLabel(tr("Commit distance:"));
+//    QLabel* cdlabel = new QLabel(tr("Commit distance:"));
     layout = new QVBoxLayout();
     QWidget* page2 = new QWidget;
     page2->setLayout(layout);

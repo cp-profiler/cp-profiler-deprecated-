@@ -29,9 +29,9 @@ const double HIDDEN_DEPTH =
 
 DrawingCursor::DrawingCursor(
     VisualNode* root, const VisualNode::NodeAllocator& na,
-    QPainter& painter0, const QRect& clippingRect0, bool showCopies)
+    QPainter& painter0, const QRect& clippingRect0)
     : NodeCursor<VisualNode>(root,na), painter(painter0), 
-      clippingRect(clippingRect0), x(0.0), y(0.0), copies(showCopies) 
+      clippingRect(clippingRect0), x(0.0), y(0.0)
 {
     QPen pen = painter.pen();
     pen.setWidth(1);
@@ -197,16 +197,6 @@ DrawingCursor::processCurrentNode(void) {
             break;
         }
     }
-
-//    if (copies && (n->hasCopy() && !n->hasWorkingSpace())) {
-//        painter.setBrush(Qt::darkRed);
-//        painter.drawEllipse(myx, myy, 10.0, 10.0);
-//    }
-
-//    if (copies && n->hasWorkingSpace()) {
-//        painter.setBrush(Qt::darkYellow);
-//        painter.drawEllipse(myx, myy + 10.0, 10.0, 10.0);
-//    }
 
     if (n->isBookmarked()) {
         painter.setBrush(Qt::black);

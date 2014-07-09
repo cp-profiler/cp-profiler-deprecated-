@@ -244,8 +244,8 @@ VisualNode::toolTip(NodeAllocator&) {
 }
 
 std::string
-VisualNode::getBranchLabel(NodeAllocator& na,
-                           VisualNode* p, int alt) {
+VisualNode::getBranchLabel(NodeAllocator&,
+                           VisualNode*, int) {
 //    std::ostringstream oss;
 //    p->acquireSpace(na,curBest,c_d,a_d);
 //    p->getWorkingSpace()->print(*c,alt,oss);
@@ -359,7 +359,7 @@ VisualNode::setShape(Shape* s) {
 }
 
 void
-VisualNode::computeShape(const NodeAllocator& na, VisualNode* root) {
+VisualNode::computeShape(const NodeAllocator& na) {
     int numberOfShapes = getNumberOfChildren();
     Extent extent;
     if (na.hasLabel(this)) {

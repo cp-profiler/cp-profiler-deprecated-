@@ -173,7 +173,7 @@ public:
   /// Set the shape of this node
   void setShape(Shape* s);
   /// Compute the shape according to the shapes of the children
-  void computeShape(const NodeAllocator& na, VisualNode* root);
+  void computeShape(const NodeAllocator& na);
   /// Return the bounding box
   BoundingBox getBoundingBox(void);
   /// Signal that the status has changed

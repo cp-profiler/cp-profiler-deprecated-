@@ -45,6 +45,7 @@ TreeCanvas::TreeCanvas(QWidget* parent)
     setAutoFillBackground(true);
 
     connect(&searcher, SIGNAL(startWork(void)), treeBuilder, SLOT(startBuilding(void)));
+    connect(treeBuilder, SIGNAL(doneBuilding(void)), &searcher, SLOT(updateCanvas(void)));
 
     connect(&searcher, SIGNAL(update(int,int,int)), this,
             SLOT(layoutDone(int,int,int)));
@@ -190,6 +191,7 @@ TreeCanvas::scaleTree(int scale0, int zoomx, int zoomy) {
 
 void
 TreeCanvas::update(void) {
+    qDebug() << "in TreeCanvas update";
     QMutexLocker locker(&mutex);
     layoutMutex.lock();
     if (root != NULL) {
@@ -266,6 +268,7 @@ SearcherThread::search(VisualNode* n, bool all, TreeCanvas* ti) {
 
 void
 SearcherThread::updateCanvas(void) {
+
     t->layoutMutex.lock();
     if (t->root == NULL)
         return;
@@ -380,6 +383,7 @@ SearcherThread::run(void) {
             case DONE_SENDING:
                 qDebug() << "Done receiving";
                 updateCanvas();
+                Data::self->setDone();
                 end = clock();
                 double elapsed_secs = double(end - begin) / CLOCKS_PER_SEC;
                 qDebug() << "Time elapsed: " << elapsed_secs << " seconds";
@@ -573,7 +577,7 @@ TreeCanvas::scroll(int i) {
 
 /// check what should be uncommented out.
 void
-TreeCanvas::inspectCurrentNode(bool fix, int inspectorNo) {
+TreeCanvas::inspectCurrentNode(bool, int) {
     QMutexLocker locker(&mutex);
 
     if (currentNode->isHidden()) {
@@ -585,8 +589,7 @@ TreeCanvas::inspectCurrentNode(bool fix, int inspectorNo) {
     int failedInspector = -1;
     bool needCentering = false;
 
-    unsigned int kids = 0;
-//    unsigned int kids = currentNode->getNumberOfChildNodes(*na);
+    unsigned int kids = currentNode->getNumberOfChildren();
     int depth = -1;
     for (VisualNode* p = currentNode; p != NULL; p=p->getParent(*na))
         depth++;
@@ -635,11 +638,13 @@ TreeCanvas::inspectCurrentNode(bool fix, int inspectorNo) {
    //         // }
             }
             break;
-   //     case FAILED:
-   //     case STOP:
-   //     case UNSTOP:
-   //     case BRANCH:
-   //     case SOLVED:
+            case FAILED:
+            case STOP:
+            case UNSTOP:
+            case BRANCH:
+            case SOLVED:
+            case SKIPPED:
+            break;
    //     {
    //         // SizeCursor sc(currentNode);
    //         // PreorderNodeVisitor<SizeCursor> pnv(sc);
@@ -722,9 +727,10 @@ TreeCanvas::inspectCurrentNode(bool fix, int inspectorNo) {
    }
 
    currentNode->dirtyUp(*na);
+   qDebug() << "dirty up: " << currentNode->getIndex(*na);
    update();
-   if (needCentering)
-       centerCurrentNode();
+   // if (needCentering)
+   //     centerCurrentNode();
 }
 
 void
@@ -896,6 +902,7 @@ TreeCanvas::navDown(void) {
         }
         case SOLVED:
         case FAILED:
+        case SKIPPED:
         case UNDETERMINED:
             break;
         }
@@ -988,7 +995,7 @@ TreeCanvas::exportNodePDF(VisualNode* n) {
 
         painter.translate(printxtrans, Layout::dist_y / 2);
         QRect clip(0,0,0,0);
-        DrawingCursor dc(n, *na, painter, clip, false);
+        DrawingCursor dc(n, *na, painter, clip);
         currentNode->setMarked(false);
         PreorderNodeVisitor<DrawingCursor>(dc).run();
         currentNode->setMarked(true);
@@ -1039,7 +1046,7 @@ TreeCanvas::print(void) {
         painter.scale(printScale,printScale);
         painter.translate(xtrans, 0);
         QRect clip(0,0,0,0);
-        DrawingCursor dc(root, *na, painter, clip, false);
+        DrawingCursor dc(root, *na, painter, clip);
         PreorderNodeVisitor<DrawingCursor>(dc).run();
     }
 }
@@ -1143,7 +1150,7 @@ TreeCanvas::paintEvent(QPaintEvent* event) {
                static_cast<int>(origClip.y()/scale+yoff),
                static_cast<int>(origClip.width()/scale),
                static_cast<int>(origClip.height()/scale));
-    DrawingCursor dc(root, *na, painter, clip, false);
+    DrawingCursor dc(root, *na, painter, clip);
     PreorderNodeVisitor<DrawingCursor>(dc).run();
 
     // int nodesLayouted = 1;
