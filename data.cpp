@@ -39,6 +39,14 @@ bool Data::readInstance() {
 
 }
 
+bool Data::isDone(void) {
+    return _isDone;
+}
+
+void Data::setDone(void) {
+    _isDone = true;
+}
+
 void Data::startReading(void) {
     qDebug() << "in startReading...\n";
 
@@ -93,7 +101,11 @@ void Data::pushInstance(unsigned long long sid, DbEntry* entry) {
 
     sid2aid[sid] = nodes_arr.size();
 
+    /// is sid == nodes_arr.size? no, because there are also '-1' nodes (backjumped) that dont get counted
+
     nodes_arr.push_back(entry);
+
+
 }
 
 char* Data::getLabelByGid(unsigned int gid) {

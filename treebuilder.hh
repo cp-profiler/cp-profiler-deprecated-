@@ -17,14 +17,17 @@ private:
 	NodeAllocator* _na;
 	TreeCanvas* _tc;
 
-	long long lastRead;
+	unsigned long long lastRead;
 
 public:
     TreeBuilder(TreeCanvas* tc, QObject *parent = 0);
     void reset(Data* data, NodeAllocator *na);
 
+Q_SIGNALS:
+	void doneBuilding(void);
+
 public Q_SLOTS:
-    void startBuilding();
+    void startBuilding(void);
 
 protected:
     void run();

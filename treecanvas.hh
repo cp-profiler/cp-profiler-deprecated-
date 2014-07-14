@@ -34,10 +34,12 @@ private:
   int depth;
   bool a;
   TreeCanvas* t;
-  void updateCanvas(void);
+  
 public:
   void search(VisualNode* n, bool all, TreeCanvas* ti);
 
+public Q_SLOTS:
+  void updateCanvas(void);
 
 Q_SIGNALS:
   void update(int w, int h, int scale0);

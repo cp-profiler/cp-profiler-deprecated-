@@ -62,7 +62,7 @@ FORMS    +=
 
 win32:CONFIG(release, debug|release): LIBS += -L$$PWD/../../../../../usr/local/lib/release/ -lzmq
 else:win32:CONFIG(debug, debug|release): LIBS += -L$$PWD/../../../../../usr/local/lib/debug/ -lzmq
-else:unix: LIBS += -L$$PWD/../../../../../usr/local/lib/ -lzmq
+else:unix: LIBS += -L$$PWD/../../../../../usr/local/lib/ -lzmq -ldl
 
 INCLUDEPATH += $$PWD/../../../../../usr/local/include
 DEPENDPATH += $$PWD/../../../../../usr/local/include
