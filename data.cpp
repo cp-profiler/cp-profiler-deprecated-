@@ -31,14 +31,6 @@ void Data::show_db(void) {
     qDebug() << "***** _________________________ *****";
 }
 
-/// return false if there is nothing to read
-bool Data::readInstance() {
-    
-
-    return true;
-
-}
-
 bool Data::isDone(void) {
     return _isDone;
 }
@@ -69,43 +61,32 @@ int Data::handleNodeCallback(Message* msg) {
 
     // qDebug() << "Received node: \t" << id << " " << pid << " "
     //                 << alt << " " << kids << " " << status << " wid: "
-    //                 << (int)thread << " restart: " << restart_id;    
+    //                 << (int)thread << " restart: " << restart_id;
 
+    /// just so we don't have ugly numbers when not using restarts   
     if (restart_id == -1)
-        restart_id = 0;
+        restart_id = 0; 
 
-    if (pid != -1) {
+    /// this way thread id and node id are stored in one variable
+    if (pid != -1)
         real_pid = (pid | ((long long)restart_id << 32)) - data.firstIndex;
-    } else 
-    {
+    else 
         real_pid = ~0u;
-    }
 
     real_id = (id | ((long long)restart_id << 32)) - data.firstIndex;
 
     Data::self->pushInstance(real_id,
         new DbEntry(real_pid, alt, kids, thread, msg->label, status));
 
-    // qDebug() << "Pushed node: \t" << real_id.value() - data.firstIndex << " "
-    //     << real_pid.value() - data.firstIndex << " " << alt << " " << kids << " "
-    //     << status << " wid: " << (int)msg->thread;
-
     if (pid != -1) data.lastArrived = id;
-
-    data.readInstance();
 
     return 0;
 }
 
 void Data::pushInstance(unsigned long long sid, DbEntry* entry) {
-
-    sid2aid[sid] = nodes_arr.size();
-
     /// is sid == nodes_arr.size? no, because there are also '-1' nodes (backjumped) that dont get counted
-
     nodes_arr.push_back(entry);
-
-
+    sid2aid[sid] = nodes_arr.size() - 1;
 }
 
 char* Data::getLabelByGid(unsigned int gid) {

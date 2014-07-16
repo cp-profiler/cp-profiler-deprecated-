@@ -367,13 +367,11 @@ SearcherThread::run(void) {
                 begin = clock();
                 /// start building the tree
 
-
-                nodeCount = 0;  // for update counter
- 
                 if (tr->restart_id == -1) {
                     t->reset(false); // no restarts
                     emit startWork();
                 } else if (tr->restart_id == 0){
+
                     t->reset(true);
                     emit startWork();
                 } else {
@@ -398,8 +396,6 @@ SearcherThread::run(void) {
             if (t->refreshPause > 0)
               msleep(t->refreshPause);
         }
-       // qDebug() << "Received: " << tr->sid << " " << tr->parent << " "
-       //     << tr->alt << " " << tr->kids << " " << tr->status;
 
     }
 

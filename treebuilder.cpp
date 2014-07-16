@@ -56,8 +56,6 @@ void TreeBuilder::run(void) {
         // qDebug() << "isRoot: " << isRoot;
         // qDebug() << "parent_sid: " << nodes_arr[lastRead]->parent_sid;
 
-
-
         if (isRoot) {       
             if (_isRestarts) {
                 int restart_root = (*_na)[0]->addChild(*_na); // create a node for a new root
@@ -76,7 +74,6 @@ void TreeBuilder::run(void) {
                 (*_na)[0]->_tid = 0; /// thread id
                 nodes_arr[lastRead]->gid = 0;
             }  
-            lastRead++;
         }
         else { /// not a root
 
@@ -130,13 +127,16 @@ void TreeBuilder::run(void) {
                 break;
 
             }
+
+            /// do I need a mutex here?
                 
             static_cast<VisualNode*>(node)->changedStatus(*_na);
             node->dirtyUp(*_na);
             qDebug() << "dirty up: " << node->getIndex(*_na);
 
-            lastRead++;
         }
+
+        lastRead++;
 
     }
 
