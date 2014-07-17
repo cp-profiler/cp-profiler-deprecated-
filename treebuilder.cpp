@@ -1,8 +1,8 @@
 #include "treebuilder.hh"
 
-TreeBuilder::TreeBuilder(TreeCanvas* tc, QObject *parent) 
-    : QThread(parent), _tc(tc) {
-    	// lastRead = -1;
+TreeBuilder::TreeBuilder(TreeCanvas* tc, QMutex* mutex, QObject *parent) 
+    : QThread(parent), _tc(tc), _mutex(mutex) {
+
         qDebug() << "new Tree Builder";
 }
 
@@ -46,15 +46,14 @@ void TreeBuilder::run(void) {
             else {
                 qDebug() << "continue...";
                 continue;
-
             }
-                
         }
 
         bool isRoot = (nodes_arr[lastRead]->parent_sid == ~0u) ? true : false;
 
         // qDebug() << "isRoot: " << isRoot;
         // qDebug() << "parent_sid: " << nodes_arr[lastRead]->parent_sid;
+        _mutex->lock();
 
         if (isRoot) {       
             if (_isRestarts) {
@@ -90,7 +89,7 @@ void TreeBuilder::run(void) {
             nodes_arr[lastRead]->gid = gid;
             gid2aid[gid] = lastRead;
 
-            qDebug() << "[" << lastRead - 1  << parent_gid << "]";
+            qDebug() << "[" << lastRead << parent_gid << "] ( pid: " << pid << " )";
 
             node->_tid = nodes_arr[lastRead]->thread;
             node->setNumberOfChildren(nalt, *_na);
@@ -132,9 +131,10 @@ void TreeBuilder::run(void) {
                 
             static_cast<VisualNode*>(node)->changedStatus(*_na);
             node->dirtyUp(*_na);
-            qDebug() << "dirty up: " << node->getIndex(*_na);
 
         }
+
+        _mutex->unlock();
 
         lastRead++;
 

@@ -16,11 +16,12 @@ private:
 	Data* _data;
 	NodeAllocator* _na;
 	TreeCanvas* _tc;
+	QMutex* _mutex;
 
 	unsigned long long lastRead;
 
 public:
-    TreeBuilder(TreeCanvas* tc, QObject *parent = 0);
+    TreeBuilder(TreeCanvas* tc, QMutex* mutex, QObject *parent = 0);
     void reset(Data* data, NodeAllocator *na);
 
 Q_SIGNALS:

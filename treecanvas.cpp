@@ -33,7 +33,7 @@ TreeCanvas::TreeCanvas(QWidget* parent)
 
     
     na = new Node::NodeAllocator(false);
-    treeBuilder = new TreeBuilder(this);
+    treeBuilder = new TreeBuilder(this, &layoutMutex);
     timer = new QTimer(this);
 
     na->allocateRoot(); // read root from db
