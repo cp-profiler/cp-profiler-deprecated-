@@ -354,17 +354,13 @@ SearcherThread::run(void) {
 
         socket.recv (&request);
         Message *tr = reinterpret_cast<Message*>(request.data());
-
-        clock_t begin = 0;
-        clock_t end;
-
+        
         switch (tr->type) {
             case NODE_DATA:
                 Data::handleNodeCallback(tr);
                 nodeCount++;
             break;
             case START_SENDING:
-                begin = clock();
                 /// start building the tree
 
                 if (tr->restart_id == -1) {
@@ -382,9 +378,6 @@ SearcherThread::run(void) {
                 qDebug() << "Done receiving";
                 updateCanvas();
                 Data::self->setDone();
-                end = clock();
-                double elapsed_secs = double(end - begin) / CLOCKS_PER_SEC;
-                qDebug() << "Time elapsed: " << elapsed_secs << " seconds";
             break;
         }
 

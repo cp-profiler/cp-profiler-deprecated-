@@ -18,6 +18,8 @@ Data* Data::self = 0;
 Data::Data(TreeCanvas* tc, NodeAllocator* na, bool isRestarts)
  : _tc(tc), _na(na), _isRestarts(isRestarts) {
     Data::self = this;
+    counter = 0;
+    _isDone = false;
     qDebug() << "new Data";
 }
 
@@ -36,6 +38,8 @@ bool Data::isDone(void) {
 }
 
 void Data::setDone(void) {
+    QMutexLocker locker(&dataMutex);
+    qDebug() << "set _isDone = true";
     _isDone = true;
 }
 
@@ -45,11 +49,13 @@ void Data::startReading(void) {
 }
 
 int Data::handleNodeCallback(Message* msg) {
+
     int id, pid, alt, kids, status, restart_id;
     char thread;
     unsigned long long real_id, real_pid;
 
     Data& data = *Data::self;
+    
     
     id = msg->sid;
     pid = msg->parent_sid;
@@ -59,9 +65,9 @@ int Data::handleNodeCallback(Message* msg) {
     thread = msg->thread;
     restart_id = msg->restart_id;
 
-    // qDebug() << "Received node: \t" << id << " " << pid << " "
-    //                 << alt << " " << kids << " " << status << " wid: "
-    //                 << (int)thread << " restart: " << restart_id;
+    qDebug() << "Received node: \t" << id << " " << pid << " "
+                    << alt << " " << kids << " " << status << " wid: "
+                    << (int)thread << " restart: " << restart_id;
 
     /// just so we don't have ugly numbers when not using restarts   
     if (restart_id == -1)
@@ -75,8 +81,18 @@ int Data::handleNodeCallback(Message* msg) {
 
     real_id = (id | ((long long)restart_id << 32)) - data.firstIndex;
 
+    Data::self->counter++;
+
+
+    // data.dataMutex.lock();
+    // qDebug() << "mutex lock in handleNodeCallback";
+
     Data::self->pushInstance(real_id,
         new DbEntry(real_pid, alt, kids, thread, msg->label, status));
+
+    
+    // data.dataMutex.unlock();
+    // qDebug() << "mutex unlock in handleNodeCallback";
 
     if (pid != -1) data.lastArrived = id;
 
@@ -84,13 +100,22 @@ int Data::handleNodeCallback(Message* msg) {
 }
 
 void Data::pushInstance(unsigned long long sid, DbEntry* entry) {
+    QMutexLocker locker(&dataMutex);
+    // qDebug() << "mutex lock in pushInstance";
     /// is sid == nodes_arr.size? no, because there are also '-1' nodes (backjumped) that dont get counted
     nodes_arr.push_back(entry);
     sid2aid[sid] = nodes_arr.size() - 1;
+
+    // sid2aid[sid] = counter - 1;
+    // qDebug() << "mutex unlock in pushInstance";
 }
 
 char* Data::getLabelByGid(unsigned int gid) {
+    QMutexLocker locker(&dataMutex);
+    // qDebug() << "mutex lock in getLabel";
+    // qDebug() << "mutex unlock in getLabel";
     return nodes_arr[ gid2aid[gid] ]->label;
+
 }
 
 

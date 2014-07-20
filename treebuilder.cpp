@@ -19,8 +19,11 @@ void TreeBuilder::reset(Data* data, NodeAllocator* na) {
 }
 
 void TreeBuilder::run(void) {
-
-	qDebug() << "in run method";
+    
+    clock_t begin, end;
+    
+    begin = clock();
+	// qDebug() << "in run method";
 
 	std::vector<DbEntry*> &nodes_arr = _data->nodes_arr;
 	std::unordered_map<unsigned long long, int> &sid2aid = _data->sid2aid;
@@ -40,20 +43,34 @@ void TreeBuilder::run(void) {
         int nalt;
         int status;
 
+//        qDebug() << "lastRead: " << lastRead << "nodes_arr.size(): " << nodes_arr.size();
+        // qDebug() << "mutex lock in run";
+        _data->dataMutex.lock();
+
         if (lastRead >= nodes_arr.size()) {
-            if (Data::self->isDone())
+            if (Data::self->isDone()) {
+                qDebug() << "stop because done";
+                _data->dataMutex.unlock();
+                // qDebug() << "mutex unlock in run";
                 break;
-            else {
-                qDebug() << "continue...";
+            } else {
+                // qDebug() << "continue...";
+
+                
+                _data->dataMutex.unlock();
+                // qDebug() << "mutex unlock in run";
+//                usleep(1000000);
                 continue;
             }
         }
+
 
         bool isRoot = (nodes_arr[lastRead]->parent_sid == ~0u) ? true : false;
 
         // qDebug() << "isRoot: " << isRoot;
         // qDebug() << "parent_sid: " << nodes_arr[lastRead]->parent_sid;
         _mutex->lock();
+
 
         if (isRoot) {       
             if (_isRestarts) {
@@ -83,13 +100,15 @@ void TreeBuilder::run(void) {
             nalt = nodes_arr[lastRead]->numberOfKids;
             status = nodes_arr[lastRead]->status;
             parent_gid = nodes_arr[sid2aid[pid]]->gid;
+
             parent = (*_na)[parent_gid];
             node = parent->getChild(*_na, alt);
             gid = node->getIndex(*_na);						// Gist ID
             nodes_arr[lastRead]->gid = gid;
+
             gid2aid[gid] = lastRead;
 
-            qDebug() << "[" << lastRead << parent_gid << "] ( pid: " << pid << " )";
+            // qDebug() << "[" << lastRead << parent_gid << "] pid: " << pid << ", sid2aid:" << sid2aid[pid] << ", nodes_arr[sid2aid[pid]]->gid:" << nodes_arr[sid2aid[pid]]->gid;
 
             node->_tid = nodes_arr[lastRead]->thread;
             node->setNumberOfChildren(nalt, *_na);
@@ -126,8 +145,6 @@ void TreeBuilder::run(void) {
                 break;
 
             }
-
-            /// do I need a mutex here?
                 
             static_cast<VisualNode*>(node)->changedStatus(*_na);
             node->dirtyUp(*_na);
@@ -135,6 +152,8 @@ void TreeBuilder::run(void) {
         }
 
         _mutex->unlock();
+        // qDebug() << "mutext unlock in run";
+        _data->dataMutex.unlock();
 
         lastRead++;
 
@@ -144,5 +163,8 @@ void TreeBuilder::run(void) {
     node->dirtyUp(*_na);
     emit doneBuilding();
     qDebug() << "Done building";
+    end = clock();
+    double elapsed_secs = double(end - begin) / CLOCKS_PER_SEC;
+    qDebug() << "Time elapsed: " << elapsed_secs << " seconds";
 
 }

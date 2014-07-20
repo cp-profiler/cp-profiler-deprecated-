@@ -5,6 +5,7 @@
 #include <unordered_map>
 #include <sqlite3.h>
 #include <QTimer>
+#include <QMutex>
 
 #include <iostream>
 
@@ -65,6 +66,10 @@ Q_OBJECT
 friend class TreeBuilder;
 
 public:
+
+    int counter;
+    QMutex dataMutex;
+
     static const int READING_PERIOD = 1000;
 
 private:
@@ -83,6 +88,7 @@ private:
     TreeCanvas* _tc;
     NodeAllocator* _na;
     std::vector<DbEntry*> nodes_arr;
+
 
 
 
