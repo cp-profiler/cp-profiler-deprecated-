@@ -23,7 +23,7 @@ void TreeBuilder::run(void) {
     clock_t begin, end;
     
     begin = clock();
-	// qDebug() << "in run method";
+	qDebug() << "in run method";
 
 	std::vector<DbEntry*> &nodes_arr = _data->nodes_arr;
 	std::unordered_map<unsigned long long, int> &sid2aid = _data->sid2aid;

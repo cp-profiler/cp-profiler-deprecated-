@@ -354,7 +354,7 @@ SearcherThread::run(void) {
 
         socket.recv (&request);
         Message *tr = reinterpret_cast<Message*>(request.data());
-        
+
         switch (tr->type) {
             case NODE_DATA:
                 Data::handleNodeCallback(tr);
@@ -363,7 +363,7 @@ SearcherThread::run(void) {
             case START_SENDING:
                 /// start building the tree
 
-                if (tr->restart_id == -1) {
+                if (tr->restart_id == -1 || tr->restart_id == 1) {
                     t->reset(false); // no restarts
                     emit startWork();
                 } else if (tr->restart_id == 0){

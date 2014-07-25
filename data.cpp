@@ -65,9 +65,9 @@ int Data::handleNodeCallback(Message* msg) {
     thread = msg->thread;
     restart_id = msg->restart_id;
 
-    qDebug() << "Received node: \t" << id << " " << pid << " "
-                    << alt << " " << kids << " " << status << " wid: "
-                    << (int)thread << " restart: " << restart_id;
+    // qDebug() << "Received node: \t" << id << " " << pid << " "
+    //                 << alt << " " << kids << " " << status << " wid: "
+    //                 << (int)thread << " restart: " << restart_id;
 
     /// just so we don't have ugly numbers when not using restarts   
     if (restart_id == -1)
@@ -83,16 +83,8 @@ int Data::handleNodeCallback(Message* msg) {
 
     Data::self->counter++;
 
-
-    // data.dataMutex.lock();
-    // qDebug() << "mutex lock in handleNodeCallback";
-
     Data::self->pushInstance(real_id,
         new DbEntry(real_pid, alt, kids, thread, msg->label, status));
-
-    
-    // data.dataMutex.unlock();
-    // qDebug() << "mutex unlock in handleNodeCallback";
 
     if (pid != -1) data.lastArrived = id;
 
