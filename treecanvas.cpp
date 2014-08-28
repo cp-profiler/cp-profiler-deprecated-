@@ -353,12 +353,13 @@ SearcherThread::run(void) {
         zmq::message_t request;
 
         socket.recv (&request);
+
         Message *tr = reinterpret_cast<Message*>(request.data());
 
         switch (tr->type) {
             case NODE_DATA:
                 Data::handleNodeCallback(tr);
-                nodeCount++;
+                ++nodeCount;
             break;
             case START_SENDING:
                 /// start building the tree

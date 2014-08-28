@@ -34,6 +34,9 @@ void TreeBuilder::run(void) {
     VisualNode* node;
     VisualNode* parent;
 
+    QMutex &dataMutex = _data->dataMutex;
+    Statistics &stats = _tc->stats;
+
     while(true) {
 
         int gid; /// gist Id
@@ -43,74 +46,65 @@ void TreeBuilder::run(void) {
         int nalt;
         int status;
 
-//        qDebug() << "lastRead: " << lastRead << "nodes_arr.size(): " << nodes_arr.size();
-        // qDebug() << "mutex lock in run";
-        _data->dataMutex.lock();
+        dataMutex.lock();
 
         if (lastRead >= nodes_arr.size()) {
             if (Data::self->isDone()) {
                 qDebug() << "stop because done";
-                _data->dataMutex.unlock();
-                // qDebug() << "mutex unlock in run";
+                dataMutex.unlock();
                 break;
             } else {
-                // qDebug() << "continue...";
-
-                
-                _data->dataMutex.unlock();
-                // qDebug() << "mutex unlock in run";
-//                usleep(1000000);
+                dataMutex.unlock();
                 continue;
             }
         }
 
+        DbEntry& dbEntry = *nodes_arr[lastRead];
 
-        bool isRoot = (nodes_arr[lastRead]->parent_sid == ~0u) ? true : false;
 
-        // qDebug() << "isRoot: " << isRoot;
-        // qDebug() << "parent_sid: " << nodes_arr[lastRead]->parent_sid;
+        bool isRoot = (dbEntry.parent_sid == ~0u) ? true : false;
+
         _mutex->lock();
-
 
         if (isRoot) {       
             if (_isRestarts) {
                 int restart_root = (*_na)[0]->addChild(*_na); // create a node for a new root
                 qDebug() << "restart_root_id: " << restart_root;
                 VisualNode* new_root = (*_na)[restart_root];
-                new_root->setNumberOfChildren(nodes_arr[lastRead]->numberOfKids, *_na);
+                new_root->setNumberOfChildren(dbEntry.numberOfKids, *_na);
                 new_root->setStatus(BRANCH);
                 new_root->setHasSolvedChildren(true);
-                new_root->_tid = nodes_arr[lastRead]->thread;
-                nodes_arr[lastRead]->gid = restart_root;
+                new_root->_tid = dbEntry.thread;
+                dbEntry.gid = restart_root;
 
             } else {
                 (*_na)[0]->setNumberOfChildren(nodes_arr[0]->numberOfKids, *_na);
                 (*_na)[0]->setStatus(BRANCH);
                 (*_na)[0]->setHasSolvedChildren(true);
                 (*_na)[0]->_tid = 0; /// thread id
-                nodes_arr[lastRead]->gid = 0;
+                dbEntry.gid = 0;
             }  
         }
         else { /// not a root
 
-            pid = nodes_arr[lastRead]->parent_sid;
+            pid = dbEntry.parent_sid;
             // show_db();
 
-            alt = nodes_arr[lastRead]->alt;
-            nalt = nodes_arr[lastRead]->numberOfKids;
-            status = nodes_arr[lastRead]->status;
+            alt = dbEntry.alt;
+            nalt = dbEntry.numberOfKids;
+            status = dbEntry.status;
             parent_gid = nodes_arr[sid2aid[pid]]->gid;
 
             parent = (*_na)[parent_gid];
             node = parent->getChild(*_na, alt);
             gid = node->getIndex(*_na);						// Gist ID
-            nodes_arr[lastRead]->gid = gid;
+            dbEntry.gid = gid;
 
             gid2aid[gid] = lastRead;
 
             // qDebug() << "[" << lastRead << parent_gid << "] pid: " << pid << ", sid2aid:" << sid2aid[pid] << ", nodes_arr[sid2aid[pid]]->gid:" << nodes_arr[sid2aid[pid]]->gid;
 
-            node->_tid = nodes_arr[lastRead]->thread;
+            node->_tid = dbEntry.thread;
             node->setNumberOfChildren(nalt, *_na);
 
             switch (status) {
@@ -120,7 +114,7 @@ void TreeBuilder::run(void) {
                     node->setHasFailedChildren(true);
                     node->setStatus(FAILED);
                     parent->closeChild(*_na, true, false);
-                    _tc->stats.failures++;
+                    stats.failures++;
                 break;
                 case SKIPPED: // 6
                     node->setHasOpenChildren(false);
@@ -128,7 +122,7 @@ void TreeBuilder::run(void) {
                     node->setHasFailedChildren(true);
                     node->setStatus(SKIPPED);
                     parent->closeChild(*_na, true, false);
-                    _tc->stats.failures++;
+                    stats.failures++;
                 break;
                 case SOLVED: // 0
                     node->setHasFailedChildren(false);
@@ -136,12 +130,12 @@ void TreeBuilder::run(void) {
                     node->setHasOpenChildren(false);
                     node->setStatus(SOLVED);
                     parent->closeChild(*_na, false, true);
-                    _tc->stats.solutions++;
+                    stats.solutions++;
                 break;
                 case BRANCH: // 2
                     node->setHasOpenChildren(true);
                     node->setStatus(BRANCH);
-                    _tc->stats.choices++;
+                    stats.choices++;
                 break;
 
             }
@@ -153,7 +147,7 @@ void TreeBuilder::run(void) {
 
         _mutex->unlock();
         // qDebug() << "mutext unlock in run";
-        _data->dataMutex.unlock();
+        dataMutex.unlock();
 
         lastRead++;
 
