@@ -15,6 +15,8 @@ private:
     /// The current coordinates
     double x, y;
 
+    bool _showHidden;
+
     /// Test if current node is clipped
     bool isClipped(void);
 
@@ -45,7 +47,8 @@ public:
     DrawingCursor(VisualNode* root,
                   const VisualNode::NodeAllocator& na,
                   QPainter& painter0,
-                  const QRect& clippingRect0);
+                  const QRect& clippingRect0,
+                  bool showHidden = false);
 
     ///\name Cursor interface
     //@{

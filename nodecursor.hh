@@ -153,6 +153,62 @@ public:
     
 };
 
+
+class AnalyzeCursor : public NodeCursor<VisualNode> {
+protected:
+  QHash<VisualNode*,int> nSols;
+public:
+  //Constructor
+  AnalyzeCursor(VisualNode* root, const VisualNode::NodeAllocator& na, TreeCanvas* tc);
+  //Add node to the map
+  void processCurrentNode(void);
+private:
+  TreeCanvas* _tc;
+};
+
+class HighlightCursor : public NodeCursor<VisualNode> {
+public:
+  // Constructor
+  HighlightCursor(VisualNode* startNode, const VisualNode::NodeAllocator& na);
+  // Hightlight all the nodes below
+  void processCurrentNode(void);
+
+};
+
+class UnhighlightCursor : public NodeCursor<VisualNode> {
+public:
+  // Constructor
+  UnhighlightCursor(VisualNode* root, const VisualNode::NodeAllocator& na);
+  // Unhightlight all the nodes below
+  void processCurrentNode(void);
+
+};
+
+class CountSolvedCursor : public NodeCursor<VisualNode> {
+public:
+  // Constructor
+  CountSolvedCursor(VisualNode* startNode, const VisualNode::NodeAllocator& na, int &count);
+  // Count solved leaves and store the nubmer in count variable
+  void processCurrentNode(void);
+private:
+  int &_count;
+
+};
+
+/// Hide subtrees that are not highlighted
+class HideNotHighlightedCursor : public NodeCursor<VisualNode> {
+protected:
+  QHash<VisualNode*,bool> onHighlightPath;
+public:
+  /// Constructor
+  HideNotHighlightedCursor(VisualNode* startNode, const VisualNode::NodeAllocator& na);
+  /// Process node
+  void processCurrentNode(void);
+  /// Test if cursor may move to the first child node
+  bool mayMoveDownwards(void);
+};
+
+
 /// \brief A cursor that labels branches
 class BranchLabelCursor : public NodeCursor<VisualNode> {
 private:

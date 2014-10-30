@@ -9,6 +9,14 @@
 Shape* Shape::leaf;
 Shape* Shape::hidden;
 
+/// I don't remember adding this
+Shape* Shape::copy(const Shape* s) {
+  Shape* ret = Shape::allocate(s->depth());
+  for (unsigned int i=s->depth(); i--;)
+    (*ret)[i] = (*s)[i];
+  return ret;
+}
+
 /// Allocate shapes statically
 class ShapeAllocator {
 public:
@@ -433,6 +441,7 @@ VisualNode::computeShape(const NodeAllocator& na) {
         // Here we chose the result of merging right
         Shape* rShape = getChild(na,numberOfShapes-1)->getShape();
         int rdepth = rShape->depth();
+        assert(rdepth<=mergedShape->depth()-1);
         for (int i=rdepth; i--;)
             (*mergedShape)[i+1] = (*rShape)[i];
         Extent* currentShapeR = &(*mergedShape)[1];

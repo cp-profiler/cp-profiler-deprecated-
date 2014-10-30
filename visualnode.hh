@@ -63,8 +63,10 @@ private:
 public:
   /// Construct shape of depth \a d
   static Shape* allocate(int d);
-  // Destruct
+  /// Destruct
   static void deallocate(Shape*);
+  /// Copy \a s
+  static Shape* copy(const Shape* s);
 
   /// Static shape for leaf nodes
   static Shape* leaf;
@@ -100,7 +102,10 @@ protected:
     HIDDEN,
     MARKED,
     ONPATH,
-    BOOKMARKED
+    HIGHLIGHTED,
+    BOOKMARKED /// TODO: is bookmarked now 33?
+    
+
   };
 
   /// Relative offset from the parent node
@@ -146,6 +151,10 @@ public:
   bool isBookmarked(void);
   /// Set bookmark of this node
   void setBookmarked(bool m);
+  /// Return whether node is highlighted
+  bool isHighlighted(void);
+  /// Highlight the node for similar shapes visualization
+  void setHighlighted(bool m);
   /// Set all nodes from the node to the root to be on the path
   void pathUp(const NodeAllocator& na);
   /// Set all nodes from the node to the root not to be on the path

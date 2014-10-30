@@ -32,12 +32,12 @@ SpaceNode::setHasSolvedChildren(bool b) {
 inline void
 SpaceNode::setStatus(NodeStatus s) {
   nstatus &= ~( STATUSMASK );
-  nstatus |= s << 20;
+  nstatus |= s << 19;
 }
 
 inline NodeStatus
 SpaceNode::getStatus(void) const {
-  return static_cast<NodeStatus>((nstatus & STATUSMASK) >> 20);
+  return static_cast<NodeStatus>((nstatus & STATUSMASK) >> 19);
 }
 
 inline

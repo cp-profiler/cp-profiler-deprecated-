@@ -7,6 +7,7 @@
 // #include <QTimer>
 #endif
 
+#include <set>
 #include <zmq.hpp>
 #include "visualnode.hh"
 #include "treebuilder.hh"
@@ -24,7 +25,123 @@ namespace LayoutConfig {
 }
 
 class TreeCanvas;
+class SimilarShapesWindow;
 class TreeBuilder;
+
+/// *********************
+/// SIMILAR SUBTREES
+/// *********************
+class ShapeCanvas : public QWidget {
+  Q_OBJECT
+public:
+  ShapeCanvas(QWidget* parent = 0, TreeCanvas* tc = 0);
+  VisualNode* _targetNode; // why _?
+
+private:
+  TreeCanvas* _tc;
+
+  int xtrans;
+
+  // width and height of the shape
+  int width, height;
+
+protected:
+  /// Paint the shape
+  void paintEvent(QPaintEvent* event);
+protected Q_SLOTS:
+  void scroll(void);
+};
+
+class ShapeI {
+public:
+  int sol;
+  VisualNode* node;
+  Shape* s;
+  ShapeI(int sol0, VisualNode* node0)
+    : sol(sol0), node(node0), s(Shape::copy(node->getShape())) {}
+  ~ShapeI(void) { Shape::deallocate(s); }
+  ShapeI(const ShapeI& sh) : sol(sh.sol), node(sh.node), s(Shape::copy(sh.s)) {}
+  ShapeI& operator =(const ShapeI& sh) {
+    if (this!=&sh) {
+      Shape::deallocate(s);
+      s = Shape::copy(sh.s);
+      sol = sh.sol;
+      node = sh.node;
+    }
+    return *this;
+  }
+};
+
+class Filters {
+public:
+  Filters(TreeCanvas* tc);
+  void setMinDepth(int);
+  void setMinCount(int);
+  bool apply(const ShapeI& s);
+private:
+  int _minDepth;
+  int _minCount;
+  TreeCanvas* _tc;
+};
+
+class ShapeRect : public QGraphicsRectItem {
+public:
+  ShapeRect(qreal, qreal, qreal, qreal, VisualNode*, SimilarShapesWindow*, QGraphicsItem*);
+  VisualNode* getNode(void);
+  // add to the scene
+  void draw(QGraphicsScene* scene);
+  QGraphicsRectItem selectionArea;
+protected:
+  void mousePressEvent (QGraphicsSceneMouseEvent*);
+private:
+  VisualNode* _node;
+  ShapeCanvas* _shapeCanvas;
+  SimilarShapesWindow* _ssWindow;
+};
+
+class SimilarShapesWindow : public QDialog {
+  Q_OBJECT
+public:
+  SimilarShapesWindow(QWidget* parent = 0, TreeCanvas* tc = 0);
+  ~SimilarShapesWindow(void);
+  void drawHistogram(void);
+
+  TreeCanvas* tc;
+  ShapeCanvas* shapeCanvas;
+
+public Q_SLOTS:
+  void depthFilterChanged(int val);
+  void countFilterChanged(int val);
+private:
+  void applyLayouts(void);
+
+  QSplitter splitter;
+
+  QVBoxLayout globalLayout;
+  QHBoxLayout filtersLayout;
+  QHBoxLayout depthFilterLayout;
+  QHBoxLayout countFilterLayout;
+
+  QGraphicsScene histScene;
+  QGraphicsView view;
+  QAbstractScrollArea scrollArea;
+
+  Filters filters;
+
+  QSpinBox depthFilterSB;
+  QSpinBox countFilterSB;
+};
+
+/// less operator needed for the map
+struct CompareShapes {
+private:
+  TreeCanvas& _tc;
+public:
+  CompareShapes(TreeCanvas& tc);
+  bool operator()(const ShapeI& s1, const ShapeI& s2) const;
+};
+
+
 
 /// \brief A thread that concurrently explores the tree
 class SearcherThread : public QThread {
@@ -61,6 +178,7 @@ class TreeCanvas : public QWidget {
   friend class SearcherThread;
   friend class Gist;
   friend class TreeBuilder;
+  friend class ShapeCanvas;
   // friend class Data;
 
 public:
@@ -71,10 +189,10 @@ public:
 
   // data from the db
   QTimer* timer;
-
-
   Data* data;
   TreeBuilder* treeBuilder;
+
+  
 
 //  /// Add inspector \a i
 //  void addDoubleClickInspector(Inspector* i);
@@ -92,6 +210,10 @@ public:
 //  void addComparator(Comparator* c);
 //  /// Set active comparator
 //  void activateComparator(int i, bool active);
+
+  int getNoOfSolvedLeaves(VisualNode& n);  // TODO: duplicate?
+  /// Return number of solved children in the node
+  int getNoOfSolvedLeaves(VisualNode* node);
   
 
 public Q_SLOTS: 
@@ -136,6 +258,15 @@ public Q_SLOTS:
   void labelBranches(void);
   /// Label all branches on path to root node
   void labelPath(void);
+
+  /// Analyze similar subtrees of current node
+  void analyzeSimilarSubtrees(void);
+
+  /// calls when clicking right mouse button on a shape
+  void highlightShape(VisualNode* node);
+
+  /// Loop through all nodes and add them to the multimap
+  void addNodesToMap(void);
 
   /// Stop current search
   void stopSearch(void);
@@ -318,6 +449,15 @@ protected:
 
   /// Timer invoked for smooth zooming and scrolling
   virtual void timerEvent(QTimerEvent* e);
+
+  /// Similar shapes dialog
+  SimilarShapesWindow shapesWindow;
+  // Node that represents the shape currently selected
+  VisualNode* shapeHighlighted;
+public:
+  std::multiset<int> tempset;
+  /// Map of nodes for analyzing
+  std::multiset<ShapeI, CompareShapes> shapesMap;
 
 public Q_SLOTS:
   /// Update display

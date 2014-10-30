@@ -158,6 +158,16 @@ VisualNode::setBookmarked(bool m) {
 }
 
 inline bool
+VisualNode::isHighlighted(void) {
+  return getFlag(HIGHLIGHTED);
+}
+
+inline void
+VisualNode::setHighlighted(bool m) {
+  setFlag(HIGHLIGHTED, m);
+}
+
+inline bool
 VisualNode::isOnPath(void) {
   return getFlag(ONPATH);
 }
