@@ -85,6 +85,8 @@ public:
   QAction* labelBranches;
   /// Label branches on path to root
   QAction* labelPath;
+  /// Analyze similar subtrees
+  QAction* analyzeSimilarSubtrees;
   /// Zoom tree to fit window
   QAction* zoomToFit;
   /// Center on current node
