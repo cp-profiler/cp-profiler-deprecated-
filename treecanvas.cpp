@@ -101,6 +101,70 @@ TreeCanvas::~TreeCanvas(void) {
     delete na;
 }
 
+void
+SearcherThread::run(void) {
+
+    zmq::context_t context(1);
+    zmq::socket_t socket (context, ZMQ_PULL);
+    try {
+        socket.bind("tcp://*:5555");
+    } catch (std::exception& e) {
+        std::cerr << "error connecting to socket";
+    }
+    
+        
+    int nodeCount = 0;
+    while (true) {
+        zmq::message_t request;
+
+        socket.recv (&request);
+
+        Message *msg = reinterpret_cast<Message*>(request.data());
+
+        switch (msg->type) {
+            case NODE_DATA:
+                Data::handleNodeCallback(msg);
+                ++nodeCount;
+            break;
+            case START_SENDING:
+                /// start building the tree
+
+                // if (msg->restart_id == -1 || msg->restart_id == 1) { // why 1?
+                if (msg->restart_id == -1) {
+                    t->reset(false); // no restarts
+                    emit startWork();
+                    qDebug() << ">>> no restarts";
+                } else if (msg->restart_id == 0){
+
+                    t->reset(true);
+                    emit startWork();
+                    qDebug() << ">>> new restart";
+                } else {
+                    qDebug() << ">>> restart and continue";
+                }
+            break;
+            case DONE_SENDING:
+                qDebug() << "Done receiving";
+                updateCanvas();
+                if (!Data::self->isRestarts())
+                    Data::self->setDone();
+
+            break;
+        }
+
+        if (t->refresh > 0 && nodeCount >= t->refresh) {
+            node->dirtyUp(*t->na);
+            updateCanvas();
+            emit statusChanged(false);
+            nodeCount = 0;
+            if (t->refreshPause > 0)
+              msleep(t->refreshPause);
+        }
+
+    }
+
+}
+
 //void
 //TreeCanvas::addDoubleClickInspector(Inspector* i) {
 //    doubleClickInspectors.append(QPair<Inspector*,bool>(i,false));
@@ -191,7 +255,6 @@ TreeCanvas::scaleTree(int scale0, int zoomx, int zoomy) {
 
 void
 TreeCanvas::update(void) {
-    qDebug() << "in TreeCanvas update";
     QMutexLocker locker(&mutex);
     layoutMutex.lock();
     if (root != NULL) {
@@ -335,65 +398,6 @@ public:
     SearchItem(VisualNode* n0, int noOfChildren0)
         : n(n0), i(-1), noOfChildren(noOfChildren0) {}
 };
-
-void
-SearcherThread::run(void) {
-
-    zmq::context_t context(1);
-    zmq::socket_t socket (context, ZMQ_PULL);
-    try {
-        socket.bind("tcp://*:5555");
-    } catch (std::exception& e) {
-        std::cerr << "error connecting to socket";
-    }
-    
-        
-    int nodeCount = 0;
-    while (true) {
-        zmq::message_t request;
-
-        socket.recv (&request);
-
-        Message *tr = reinterpret_cast<Message*>(request.data());
-
-        switch (tr->type) {
-            case NODE_DATA:
-                Data::handleNodeCallback(tr);
-                ++nodeCount;
-            break;
-            case START_SENDING:
-                /// start building the tree
-
-                if (tr->restart_id == -1 || tr->restart_id == 1) {
-                    t->reset(false); // no restarts
-                    emit startWork();
-                } else if (tr->restart_id == 0){
-
-                    t->reset(true);
-                    emit startWork();
-                } else {
-                    qDebug() << ">>> new restart";
-                }
-            break;
-            case DONE_SENDING:
-                qDebug() << "Done receiving";
-                updateCanvas();
-                Data::self->setDone();
-            break;
-        }
-
-        if (t->refresh > 0 && nodeCount >= t->refresh) {
-            node->dirtyUp(*t->na);
-            updateCanvas();
-            emit statusChanged(false);
-            nodeCount = 0;
-            if (t->refreshPause > 0)
-              msleep(t->refreshPause);
-        }
-
-    }
-
-}
 
     void
 TreeCanvas::searchAll(void) {

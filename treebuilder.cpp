@@ -21,9 +21,11 @@ void TreeBuilder::reset(Data* data, NodeAllocator* na) {
 void TreeBuilder::run(void) {
     
     clock_t begin, end;
+
+    bool showlocks = false;
     
     begin = clock();
-	qDebug() << "in run method";
+	qDebug() << "### in run method ###";
 
 	std::vector<DbEntry*> &nodes_arr = _data->nodes_arr;
 	std::unordered_map<unsigned long long, int> &sid2aid = _data->sid2aid;
@@ -37,6 +39,8 @@ void TreeBuilder::run(void) {
     QMutex &dataMutex = _data->dataMutex;
     Statistics &stats = _tc->stats;
 
+
+
     while(true) {
 
         int gid; /// gist Id
@@ -46,14 +50,20 @@ void TreeBuilder::run(void) {
         int nalt;
         int status;
 
-        dataMutex.lock();
+        if (showlocks) qDebug() << "lock mutex 51";
+        while (!dataMutex.tryLock()) { 
+            // qDebug() << "Can't lock, trying again";
+        };
+
 
         if (lastRead >= nodes_arr.size()) {
             if (Data::self->isDone()) {
                 qDebug() << "stop because done";
                 dataMutex.unlock();
+                if (showlocks) qDebug() << "unlock mutex 58";
                 break;
             } else {
+                if (showlocks) qDebug() << "unlock  mutex 61";
                 dataMutex.unlock();
                 continue;
             }
@@ -64,9 +74,12 @@ void TreeBuilder::run(void) {
 
         bool isRoot = (dbEntry.parent_sid == ~0u) ? true : false;
 
+//        qDebug() << "gid: " << dbEntry.gid << "parent_sid: " << dbEntry.parent_sid << dbEntry.alt << dbEntry.alt;
+
+        if (showlocks) qDebug() << "lock mutex 72";
         _mutex->lock();
 
-        if (isRoot) {       
+        if (isRoot) {
             if (_isRestarts) {
                 int restart_root = (*_na)[0]->addChild(*_na); // create a node for a new root
                 qDebug() << "restart_root_id: " << restart_root;
@@ -94,6 +107,8 @@ void TreeBuilder::run(void) {
             nalt = dbEntry.numberOfKids;
             status = dbEntry.status;
             parent_gid = nodes_arr[sid2aid[pid]]->gid;
+
+            assert(parent_gid >= 0);
 
             parent = (*_na)[parent_gid];
             node = parent->getChild(*_na, alt);
@@ -147,6 +162,8 @@ void TreeBuilder::run(void) {
 
         _mutex->unlock();
         // qDebug() << "mutext unlock in run";
+
+        if (showlocks) qDebug() << "unlock mutex 157";
         dataMutex.unlock();
 
         lastRead++;

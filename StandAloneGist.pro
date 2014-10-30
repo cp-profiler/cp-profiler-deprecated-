@@ -8,8 +8,6 @@ QT       += core gui
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets printsupport
 
-QMAKE_MAC_SDK = macosx10.9
-
 
 TARGET = StandAloneGist
 TEMPLATE = app
@@ -64,10 +62,10 @@ FORMS    +=
 
 win32:CONFIG(release, debug|release): LIBS += -L$$PWD/../../../../../../../usr/local/lib/release/ -lzmq
 else:win32:CONFIG(debug, debug|release): LIBS += -L$$PWD/../../../../../../../usr/local/lib/debug/ -lzmq
-else:unix: LIBS += -L$$PWD/../../../../../usr/local/lib/ -lzmq -ldl
+else:unix: LIBS += -L$$PWD/../../../../../../usr/local/lib/ -lzmq -ldl
 
-INCLUDEPATH += $$PWD/../../../../../../../usr/local/include
-DEPENDPATH += $$PWD/../../../../../../../usr/local/include
+INCLUDEPATH += $$PWD/../../../../../../../../usr/local/include
+DEPENDPATH += $$PWD/../../../../../../../../usr/local/include
 
 win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$PWD/../../../../../../../usr/local/lib/release/libzmq.a
 else:win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$PWD/../../../../../../../usr/local/lib/debug/libzmq.a

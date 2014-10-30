@@ -124,6 +124,8 @@ public:
     // whether received DONE_SENDING message
     bool isDone(void);
 
+    bool isRestarts(void);
+
     // sets _isDone to true when received DONE_SENDING
     void setDone(void);
     
