@@ -220,6 +220,104 @@ StatCursor::moveUpwards(void) {
 }
 
 inline
+AnalyzeCursor::AnalyzeCursor(VisualNode* root, 
+  const VisualNode::NodeAllocator& na, TreeCanvas* tc)
+: NodeCursor<VisualNode>(root, na), _tc(tc) {}
+
+inline void
+AnalyzeCursor::processCurrentNode(void) {
+  VisualNode* n = node();
+  int nSol;
+  switch (n->getStatus()) {
+  case SOLVED: nSol = 1; break;
+  case FAILED: nSol = 0; break;
+  case UNDETERMINED: nSol = 0; break;
+  case BRANCH:
+    nSol = 0;
+    for (int i=n->getNumberOfChildren(); i--;) {
+      nSol += nSols.value(n->getChild(na,i));
+    }
+    break;
+  }
+  nSols[n] = nSol;
+  if (n->getNumberOfChildren() > 0)
+    _tc->shapesMap.insert(ShapeI(nSol,n));
+}
+
+inline
+HighlightCursor::HighlightCursor(VisualNode* startNode, 
+  const VisualNode::NodeAllocator& na)
+: NodeCursor<VisualNode>(startNode, na) {}
+
+inline void
+HighlightCursor::processCurrentNode(void) {
+  VisualNode* n = node();
+  n->setHighlighted(true);
+}
+
+inline
+UnhighlightCursor::UnhighlightCursor(VisualNode* root, 
+  const VisualNode::NodeAllocator& na)
+: NodeCursor<VisualNode>(root, na) {}
+
+inline void
+UnhighlightCursor::processCurrentNode(void) {
+  VisualNode* n = node();
+  n->setHighlighted(false);
+}
+
+inline
+CountSolvedCursor::CountSolvedCursor(VisualNode* startNode, 
+  const VisualNode::NodeAllocator& na, int &count)
+: NodeCursor<VisualNode>(startNode, na), _count(count){
+  _count = 0;
+}
+
+inline void
+CountSolvedCursor::processCurrentNode(void) {
+  VisualNode* n = node();
+  if (n->getStatus() == SOLVED){
+    _count++;
+  }
+  // n->setHighlighted(false);
+  // if leaf and solved count
+}
+
+inline
+HideNotHighlightedCursor::HideNotHighlightedCursor(VisualNode* startNode,
+  const VisualNode::NodeAllocator& na)
+  : NodeCursor<VisualNode>(startNode,na) {}
+  
+inline void
+HideNotHighlightedCursor::processCurrentNode(void) {
+  VisualNode* n = node();
+  bool onHP = n->isHighlighted();
+  if (!onHP) {
+    for (int i=n->getNumberOfChildren(); i--;) {
+      if (onHighlightPath.contains(n->getChild(na,i))) {
+        onHP = true;
+        break;
+      }
+    }
+  }
+  if (onHP) {
+    onHighlightPath[n] = true;
+  } else {
+    n->setHidden(true);
+    n->setChildrenLayoutDone(false);
+    n->dirtyUp(na);
+  }
+}
+
+inline bool
+HideNotHighlightedCursor::mayMoveDownwards(void) {
+  return NodeCursor<VisualNode>::mayMoveDownwards() &&
+    (!node()->isHighlighted()) &&
+    (!node()->isHidden());
+}
+
+
+inline
 BranchLabelCursor::BranchLabelCursor(VisualNode* root, bool clear,
                                      VisualNode::NodeAllocator& na)
     : NodeCursor<VisualNode>(root,na), _na(na), _clear(clear) {}

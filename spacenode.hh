@@ -15,10 +15,10 @@ enum NodeStatus {
   SKIPPED       ///< Skipped by backjumping (basically failed)
 };
 
-static const unsigned int FIRSTBIT = 24; //< First free bit in status word
-static const unsigned int STATUSMASK = 7<<20; //< Mask for accessing status
-static const unsigned int MAXDISTANCE = (1<<20)-1; //< Maximum representable distance
-static const unsigned int DISTANCEMASK = (1<<20)-1; //< Mask for accessing distance
+static const unsigned int FIRSTBIT = 23; //< First free bit in status word
+static const unsigned int STATUSMASK = 7<<19; //< Mask for accessing status
+static const unsigned int MAXDISTANCE = (1<<19)-1; //< Maximum representable distance
+static const unsigned int DISTANCEMASK = (1<<19)-1; //< Mask for accessing distance
 
 class TreeCanvas;
 class Data;

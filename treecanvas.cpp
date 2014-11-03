@@ -28,12 +28,14 @@ TreeCanvas::TreeCanvas(QWidget* parent)
     , zoomTimeLine(500)
     , scrollTimeLine(1000), targetX(0), sourceX(0), targetY(0), sourceY(0)
     , targetW(0), targetH(0), targetScale(0)
-    , layoutDoneTimerId(0) {
+    , layoutDoneTimerId(0)
+    , shapesWindow(parent,  this)
+    , shapesMap(CompareShapes(*this)) { // TODO: why *?
     QMutexLocker locker(&mutex);
 
     
     na = new Node::NodeAllocator(false);
-    treeBuilder = new TreeBuilder(this);
+    treeBuilder = new TreeBuilder(this, &layoutMutex);
     timer = new QTimer(this);
     timer->start(2000);
 
@@ -103,6 +105,309 @@ TreeCanvas::~TreeCanvas(void) {
     }
     delete na;
 }
+
+
+
+void
+SearcherThread::run(void) {
+
+    zmq::context_t context(1);
+    zmq::socket_t socket (context, ZMQ_PULL);
+    try {
+        socket.bind("tcp://*:5555");
+    } catch (std::exception& e) {
+        std::cerr << "error connecting to socket";
+    }
+    
+        
+    int nodeCount = 0;
+    while (true) {
+        zmq::message_t request;
+
+        socket.recv (&request);
+
+        Message *msg = reinterpret_cast<Message*>(request.data());
+
+        switch (msg->type) {
+            case NODE_DATA:
+                Data::handleNodeCallback(msg);
+                ++nodeCount;
+            break;
+            case START_SENDING:
+                /// start building the tree
+
+                // if (msg->restart_id == -1 || msg->restart_id == 1) { // why 1?
+                if (msg->restart_id == -1) {
+                    t->reset(false); // no restarts
+                    emit startWork();
+                    qDebug() << ">>> no restarts";
+                } else if (msg->restart_id == 0){
+
+                    t->reset(true);
+                    emit startWork();
+                    qDebug() << ">>> new restart";
+                } else {
+                    qDebug() << ">>> restart and continue";
+                }
+            break;
+            case DONE_SENDING:
+                qDebug() << "Done receiving";
+                updateCanvas();
+                if (!Data::self->isRestarts())
+                    Data::self->setDone();
+
+            break;
+        }
+
+        if (t->refresh > 0 && nodeCount >= t->refresh) {
+            node->dirtyUp(*t->na);
+            updateCanvas();
+            emit statusChanged(false);
+            nodeCount = 0;
+            if (t->refreshPause > 0)
+              msleep(t->refreshPause);
+        }
+
+    }
+
+}
+
+///***********************
+/// SIMILAR SUBTREES
+///***********************
+ShapeRect::ShapeRect(qreal x, qreal y, qreal width,
+ qreal height, VisualNode* node, SimilarShapesWindow* ssw,
+ QGraphicsItem * parent = 0)
+ :QGraphicsRectItem(x, y, 800, height, parent),
+ selectionArea(x, y + 1, width, height - 2),
+ _node(node), _shapeCanvas(ssw->shapeCanvas), _ssWindow(ssw)
+ {
+  setBrush(Qt::white);
+  QPen whitepen(Qt::white);
+  setPen(whitepen);
+  setFlag(QGraphicsItem::ItemIsSelectable);
+  selectionArea.setBrush(Qt::red);
+  selectionArea.setPen(whitepen);
+}
+
+void 
+ShapeRect::draw(QGraphicsScene* scene){
+  scene->addItem(this);
+  scene->addItem(&selectionArea);
+}
+
+VisualNode* 
+ShapeRect::getNode(void){
+  return _node;
+}
+
+void
+ShapeRect::mousePressEvent (QGraphicsSceneMouseEvent* event) {
+  // if (event->button() == Qt::LeftButton) {
+  //   _shapeCanvas->_targetNode = _node;
+  // } else {
+  _shapeCanvas->_targetNode = _node;
+  _ssWindow->tc->highlightShape(_node);
+  // }
+  _shapeCanvas->QWidget::update();
+}
+
+
+
+SimilarShapesWindow::SimilarShapesWindow(QWidget* parent, TreeCanvas* tc) 
+ : QDialog(parent), tc(tc), histScene(this), view(this),
+  scrollArea(this), filters(tc)
+{
+  view.setScene(&histScene);
+
+    applyLayouts();
+
+  scrollArea.setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
+  scrollArea.setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
+  scrollArea.setAutoFillBackground(true);
+
+  // for splitter to be centered
+  QList<int> list = QList<int>() << 1 << 1;
+  splitter.setSizes(list);
+
+  depthFilterSB.setMinimum(1);
+  countFilterSB.setMinimum(1);
+
+  QObject::connect(&depthFilterSB, SIGNAL(valueChanged(int)),
+    this, SLOT(depthFilterChanged(int)));
+  QObject::connect(&countFilterSB, SIGNAL(valueChanged(int)),
+    this, SLOT(countFilterChanged(int)));
+
+  shapeCanvas = new ShapeCanvas(&scrollArea, tc);
+  shapeCanvas->show();
+}
+
+SimilarShapesWindow::~SimilarShapesWindow(void){
+  delete shapeCanvas;
+}
+
+void
+SimilarShapesWindow::applyLayouts(void){
+  setLayout(&globalLayout);
+  splitter.addWidget(&view);
+  splitter.addWidget(&scrollArea);
+  view.setAlignment(Qt::AlignLeft | Qt::AlignTop);
+
+  globalLayout.addLayout(&filtersLayout);
+
+  filtersLayout.addLayout(&depthFilterLayout);
+  filtersLayout.addLayout(&countFilterLayout);
+  filtersLayout.addStretch();
+  globalLayout.addWidget(&splitter);
+    
+  // depthFilterLayout.addWidget(&depthFilterLabel);
+  depthFilterLayout.addWidget(new QLabel("min depth"));
+  depthFilterLayout.addWidget(&depthFilterSB);
+  countFilterLayout.addWidget(new QLabel("min occurrence"));
+  countFilterLayout.addWidget(&countFilterSB);
+}
+
+void 
+SimilarShapesWindow::drawHistogram(void) {
+  QPen blackPen(Qt::black);
+  ShapeRect * rect;
+
+  histScene.clear();
+
+  blackPen.setWidth(1);
+
+  QGraphicsTextItem * text;
+
+  int y = 0, x = 0;
+
+  for(std::multiset<ShapeI>::iterator it = tc->shapesMap.begin(),
+   end = tc->shapesMap.end(); it != end; it = tc->shapesMap.upper_bound(*it))
+  {
+
+    if (!filters.apply(*it)){
+      continue;
+    }
+        
+   // qDebug() << "shape: " << it->first << "node: " << it;
+
+   // text = new QGraphicsTextItem;
+   // text->setPos(-30, y - 5);
+   // text->setPlainText(QString::number((it->node)->getShape()->depth()));
+   // 
+   // histScene.addItem(text);
+
+    int nShapes = tc->shapesMap.count(*it);
+    x = 5 * nShapes;
+
+    rect = new ShapeRect(0, y, x, 20, it->node, this);
+    rect->draw(&histScene);
+
+    // text = new QGraphicsTextItem;
+    // text->setPos(x + 10, y - 5);
+    // text->setPlainText(QString::number(nShapes));
+    // 
+    // histScene.addItem(text);
+    y += 25;
+
+  }
+
+}
+
+void
+SimilarShapesWindow::depthFilterChanged(int val){
+  filters.setMinDepth(val);
+  drawHistogram();
+}
+
+void
+SimilarShapesWindow::countFilterChanged(int val){
+  filters.setMinCount(val);
+  drawHistogram();
+}
+
+Filters::Filters(TreeCanvas* tc)
+ : _minDepth(1), _minCount(1), _tc(tc) {}
+
+bool
+Filters::apply(const ShapeI& si){
+  if (si.s->depth() < _minDepth) return false;
+  if (_tc->shapesMap.count(si) < _minCount) return false;
+  return true;
+}
+
+void
+Filters::setMinDepth(int val){
+  _minDepth = val;
+}
+
+void
+Filters::setMinCount(int val){
+  _minCount = val;
+}
+
+ShapeCanvas::ShapeCanvas(QWidget* parent, TreeCanvas* tc) 
+: QWidget(parent), _targetNode(NULL), _tc(tc) {
+}
+
+void
+ShapeCanvas::paintEvent(QPaintEvent* event) {
+  QPainter painter(this);
+  painter.setRenderHint(QPainter::Antialiasing);
+    
+  std::multiset<ShapeI>::iterator it;
+  it = _tc->shapesMap.begin();
+  if (_targetNode == NULL) {
+    _targetNode = it->node;
+  }
+   
+  QAbstractScrollArea* sa =
+   static_cast<QAbstractScrollArea*>(parentWidget());
+    
+  float scale = 1;
+  int view_w = sa->viewport()->width();
+  int view_h = sa->viewport()->height();
+    
+  int xoff = sa->horizontalScrollBar()->value()/scale;
+  int yoff = sa->verticalScrollBar()->value()/scale;
+   
+  BoundingBox bb = _targetNode->getBoundingBox();
+  
+  int w = static_cast<int>((bb.right - bb.left + Layout::extent) * scale);
+  int h = static_cast<int>(2 * Layout::extent +
+      _targetNode->getShape()->depth() * Layout::dist_y * scale);
+  
+  // center the shape if small
+  if (w < view_w) xoff -= (view_w - w)/2;
+   
+  setFixedSize(view_w, view_h) ;
+    
+  xtrans = -bb.left+(Layout::extent / 2);
+    
+  sa->horizontalScrollBar()->setRange(0, w - view_w);
+  sa->verticalScrollBar()->setRange(0, h - view_h);
+  sa->horizontalScrollBar()->setPageStep(view_w);
+  sa->verticalScrollBar()->setPageStep(view_h);
+    
+  QRect origClip = event->rect();
+  painter.translate(0, 30);
+  // painter.scale(scale,scale);
+  painter.translate(xtrans-xoff, -yoff);
+  QRect clip(static_cast<int>(origClip.x()/scale-xtrans+xoff),
+             static_cast<int>(origClip.y()/scale+yoff),
+             static_cast<int>(origClip.width()/scale),
+             static_cast<int>(origClip.height()/scale));
+   
+  DrawingCursor dc(_targetNode, *_tc->na, painter, clip, false);
+  PreorderNodeVisitor<DrawingCursor>(dc).run();
+}
+
+void
+ShapeCanvas::scroll(void) {
+  QWidget::update();
+}
+
+///***********************
+
 
 //void
 //TreeCanvas::addDoubleClickInspector(Inspector* i) {
@@ -194,7 +499,6 @@ TreeCanvas::scaleTree(int scale0, int zoomx, int zoomy) {
 
 void
 TreeCanvas::update(void) {
-    qDebug() << "in TreeCanvas update";
     QMutexLocker locker(&mutex);
     layoutMutex.lock();
     if (root != NULL) {
@@ -251,6 +555,97 @@ TreeCanvas::statusChanged(bool finished) {
     emit statusChanged(currentNode, stats, finished);
 }
 
+int
+TreeCanvas::getNoOfSolvedLeaves(VisualNode& n) {
+  int count = 0;
+
+  CountSolvedCursor csc(&n, na, count);
+  PreorderNodeVisitor<CountSolvedCursor>(csc).run();
+
+  return count;
+}
+
+CompareShapes::CompareShapes(TreeCanvas& tc) : _tc(tc) {}
+
+bool
+CompareShapes::operator()(const ShapeI& n1, const ShapeI& n2) const {
+  if (n1.sol > n2.sol) return false;
+  if (n1.sol < n2.sol) return true;
+
+  Shape* s1 = n1.s;
+  Shape* s2 = n2.s;
+
+  if (s1->depth() < s2->depth()) return true;
+  if (s1->depth() > s2->depth()) return false;
+
+  for (int i = 0; i < s1->depth(); i++) {
+    if ((*s1)[i].l < (*s2)[i].l) return false;
+    if ((*s1)[i].l > (*s2)[i].l) return true;
+    if ((*s1)[i].r < (*s2)[i].r) return true;
+    if ((*s1)[i].r > (*s2)[i].r) return false;
+  }
+  return false;
+}
+
+void
+TreeCanvas::analyzeSimilarSubtrees(void) {
+  addNodesToMap();
+  shapesWindow.drawHistogram();
+  shapesWindow.show();  
+}
+
+void
+TreeCanvas::addNodesToMap(void) {
+  QMutexLocker locker_1(&mutex);
+  QMutexLocker locker_2(&layoutMutex);
+  shapesMap.clear();
+
+  root->unhideAll(*na);
+  root->layout(*na);
+  AnalyzeCursor ac(root, *na, this);
+  PostorderNodeVisitor<AnalyzeCursor>(ac).run();
+}
+
+void 
+TreeCanvas::highlightShape(VisualNode* node) {
+  QMutexLocker locker_1(&mutex);
+  QMutexLocker locker_2(&layoutMutex);
+  root->unhideAll(*na);
+  root->layout(*na);
+  UnhighlightCursor uhc(root, *na);
+  PreorderNodeVisitor<UnhighlightCursor>(uhc).run();
+
+  // highlight shape if it is not already hightlighted
+  if (node != shapeHighlighted){
+
+    shapeHighlighted = node;
+
+    ShapeI toFind(getNoOfSolvedLeaves(node),node);
+
+    // get all nodes with similar shape
+    std::pair <std::multiset<ShapeI>::iterator,
+    std::multiset<ShapeI>::iterator> range;
+    range = shapesMap.equal_range(toFind);
+
+    for (std::multiset<ShapeI>::iterator it = range.first; it!=range.second; ++it){
+      VisualNode* targetNode = it->node;
+
+      targetNode->setHighlighted(true);
+
+      //HighlightCursor hc(targetNode, *na);
+      //PreorderNodeVisitor<HighlightCursor>(hc).run();
+    }
+      
+    HideNotHighlightedCursor hnhc(root,*na);
+    PostorderNodeVisitor<HideNotHighlightedCursor>(hnhc).run();
+      
+  } else {
+    shapeHighlighted = NULL;
+  }
+    
+  update();
+}
+
 void
 SearcherThread::search(VisualNode* n, bool all, TreeCanvas* ti) {
     node = n;
@@ -271,8 +666,6 @@ SearcherThread::search(VisualNode* n, bool all, TreeCanvas* ti) {
 
 void
 SearcherThread::updateCanvas(void) {
-
-    qDebug() << "in updateCanvas";
 
     t->layoutMutex.lock();
     if (t->root == NULL)
@@ -340,76 +733,6 @@ public:
     SearchItem(VisualNode* n0, int noOfChildren0)
         : n(n0), i(-1), noOfChildren(noOfChildren0) {}
 };
-
-void
-SearcherThread::run(void) {
-
-    zmq::context_t context(1);
-    zmq::socket_t socket (context, ZMQ_PULL);
-    try {
-        socket.bind("tcp://*:5555");
-    } catch (std::exception& e) {
-        std::cerr << "error connecting to socket";
-    }
-    
-        
-    int nodeCount = 0;
-    while (true) {
-        zmq::message_t request;
-
-        socket.recv (&request);
-        Message *tr = reinterpret_cast<Message*>(request.data());
-
-        clock_t begin = 0;
-        clock_t end;
-
-        usleep(100000);
-
-        switch (tr->type) {
-            case NODE_DATA:
-                Data::handleNodeCallback(tr);
-                nodeCount++;
-            break;
-            case START_SENDING:
-                begin = clock();
-                /// start building the tree
-
-                nodeCount = 0;  // for update counter
- 
-                if (tr->restart_id == -1) {
-                    t->reset(false); // no restarts
-                    emit startWork();
-                } else if (tr->restart_id == 0){
-                    t->reset(true);
-                    emit startWork();
-                } else {
-                    qDebug() << ">>> new restart";
-                }
-            break;
-            case DONE_SENDING:
-                qDebug() << "Done receiving";
-                updateCanvas();
-                Data::self->setDone();
-                end = clock();
-                double elapsed_secs = double(end - begin) / CLOCKS_PER_SEC;
-                qDebug() << "Time elapsed: " << elapsed_secs << " seconds";
-            break;
-        }
-
-        if (t->refresh > 0 && nodeCount >= t->refresh) {
-            node->dirtyUp(*t->na);
-            updateCanvas();
-            emit statusChanged(false);
-            nodeCount = 0;
-            if (t->refreshPause > 0)
-              msleep(t->refreshPause);
-        }
-       // qDebug() << "Received: " << tr->sid << " " << tr->parent << " "
-       //     << tr->alt << " " << tr->kids << " " << tr->status;
-
-    }
-
-}
 
     void
 TreeCanvas::searchAll(void) {
@@ -737,6 +1060,20 @@ TreeCanvas::inspectCurrentNode(bool, int) {
    // if (needCentering)
    //     centerCurrentNode();
 }
+
+  int 
+TreeCanvas::getNoOfSolvedLeaves(VisualNode* node) {
+  int count;
+
+  if (!node->hasSolvedChildren())
+    return 0;
+  return 1;
+  CountSolvedCursor csc(node, *na, count);
+  PreorderNodeVisitor<CountSolvedCursor>(csc).run();
+
+  return count;
+}
+
 
 void
 TreeCanvas::inspectBeforeFP(void) {

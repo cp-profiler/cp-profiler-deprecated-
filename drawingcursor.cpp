@@ -20,18 +20,22 @@ const QColor DrawingCursor::lightBlue(0, 92, 161, 120);
 
 const double NODE_WIDTH = 20.0;
 const double HALF_NODE_WIDTH = NODE_WIDTH / 2.0;
+const double QUARTER_NODE_WIDTH = HALF_NODE_WIDTH / 2.0;
 const double FAILED_WIDTH = 14.0;
 const double HALF_FAILED_WIDTH = FAILED_WIDTH / 2.0;
 const double QUARTER_FAILED_WIDTH = FAILED_WIDTH / 4.0;
 const double SHADOW_OFFSET = 3.0;
 const double HIDDEN_DEPTH =
-    static_cast<double>(Layout::dist_y) + FAILED_WIDTH;
+  static_cast<double>(Layout::dist_y) + FAILED_WIDTH;
 
-DrawingCursor::DrawingCursor(
-    VisualNode* root, const VisualNode::NodeAllocator& na,
-    QPainter& painter0, const QRect& clippingRect0)
+DrawingCursor::DrawingCursor(VisualNode* root,
+                             const VisualNode::NodeAllocator& na,
+                             QPainter& painter0,
+                             const QRect& clippingRect0,
+                             bool showHidden)
     : NodeCursor<VisualNode>(root,na), painter(painter0), 
-      clippingRect(clippingRect0), x(0.0), y(0.0)
+      clippingRect(clippingRect0), x(0.0), y(0.0),
+      _showHidden(showHidden)
 {
     QPen pen = painter.pen();
     pen.setWidth(1);
@@ -81,7 +85,7 @@ DrawingCursor::processCurrentNode(void) {
         painter.drawText(QPointF(lx, myy - 2), label);
     }
 
-    /// < SHAPE CODE GOES HERE >
+    /// < SHAPE CODE GOES HERE > (for parallel stuff)
     if (!parent || parent->_tid != n->_tid) {
         switch (n->_tid) {
             case 0:
@@ -100,6 +104,12 @@ DrawingCursor::processCurrentNode(void) {
                 painter.setBrush(QColor(200, 200, 200, 255));
         }
         drawShape(myx, myy, n);
+    }
+
+    // draw the shape if the node is highlighted
+    painter.setBrush(QColor(160, 160, 160, 125));
+    if (n->isHighlighted()) {
+      drawShape(myx, myy, n);
     }
 
     // draw shadow
@@ -138,7 +148,7 @@ DrawingCursor::processCurrentNode(void) {
     }
 
     painter.setPen(Qt::SolidLine);
-    if (n->isHidden()) {
+    if (n->isHidden() && ~_showHidden) {
         if (n->hasOpenChildren()) {
             QLinearGradient gradient(myx - NODE_WIDTH, myy,
                 myx + NODE_WIDTH * 1.3, myy + HIDDEN_DEPTH * 1.3);

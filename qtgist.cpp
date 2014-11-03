@@ -128,6 +128,11 @@ Gist::Gist(QWidget* parent) : QWidget(parent) {
     connect(labelPath, SIGNAL(triggered()),
             canvas, SLOT(labelPath()));
 
+    analyzeSimilarSubtrees = new QAction("Analyze similar subtrees", this);
+    analyzeSimilarSubtrees->setShortcut(QKeySequence("Shift+s"));
+    connect(analyzeSimilarSubtrees, SIGNAL(triggered()),
+            canvas, SLOT(analyzeSimilarSubtrees()));
+
     toggleStop = new QAction("Stop/unstop", this);
     toggleStop->setShortcut(QKeySequence("X"));
     connect(toggleStop, SIGNAL(triggered()), canvas, SLOT(toggleStop()));
@@ -227,6 +232,7 @@ Gist::Gist(QWidget* parent) : QWidget(parent) {
     addAction(unhideAll);
     addAction(labelBranches);
     addAction(labelPath);
+    addAction(analyzeSimilarSubtrees);
     addAction(toggleStop);
     addAction(unstopAll);
     addAction(zoomToFit);
@@ -327,6 +333,7 @@ Gist::Gist(QWidget* parent) : QWidget(parent) {
     contextMenu->addAction(unhideAll);
     contextMenu->addAction(labelBranches);
     contextMenu->addAction(labelPath);
+    contextMenu->addAction(analyzeSimilarSubtrees);
 
     contextMenu->addAction(toggleStop);
     contextMenu->addAction(unstopAll);
@@ -546,6 +553,7 @@ Gist::on_canvas_statusChanged(VisualNode* n, const Statistics& stats,
         unhideAll->setEnabled(false);
         labelBranches->setEnabled(false);
         labelPath->setEnabled(false);
+        analyzeSimilarSubtrees->setEnabled(false);
 
         toggleStop->setEnabled(false);
         unstopAll->setEnabled(false);
@@ -590,6 +598,7 @@ Gist::on_canvas_statusChanged(VisualNode* n, const Statistics& stats,
         showNodeStats->setEnabled(true);
         inspect->setEnabled(true);
         labelPath->setEnabled(true);
+        analyzeSimilarSubtrees->setEnabled(true);
         if (n->getStatus() == UNDETERMINED) {
             inspectGroup->setEnabled(false);
             inspectBeforeFP->setEnabled(false);
