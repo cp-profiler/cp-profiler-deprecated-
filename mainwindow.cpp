@@ -109,6 +109,7 @@ GistMainWindow::GistMainWindow(void) : aboutGist(this) {
   searchMenu->addAction(c->stop);
   searchMenu->addSeparator();
   searchMenu->addAction(c->reset);
+  searchMenu->addAction(c->cmpTrees);
 
   QMenu* toolsMenu = menuBar->addMenu(tr("&Tools"));
   doubleClickInspectorsMenu = new QMenu("Double click Inspectors");

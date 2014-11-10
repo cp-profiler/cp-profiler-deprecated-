@@ -274,6 +274,9 @@ public Q_SLOTS:
   /// Reset, isRestarts true if we want a dummy node (needed for showing restarts)
   void reset(bool isRestarts = false);
 
+  /// Do not redraw, but compare with the next tree
+  void compareTrees(void);
+
   /// Move selection to the parent of the selected node
   void navUp(void);
   /// Move selection to the first child of the selected node

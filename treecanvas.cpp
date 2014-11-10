@@ -114,7 +114,7 @@ SearcherThread::run(void) {
     zmq::context_t context(1);
     zmq::socket_t socket (context, ZMQ_PULL);
     try {
-        socket.bind("tcp://*:5555");
+        socket.bind("tcp://*:6565");
     } catch (std::exception& e) {
         std::cerr << "error connecting to socket";
     }
@@ -1135,6 +1135,11 @@ TreeCanvas::reset(bool isRestarts) {
     
     searchAll();
     update();
+}
+
+void
+TreeCanvas::compareTrees(void) {
+  qDebug() << "comparing Trees";
 }
 
 

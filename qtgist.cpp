@@ -63,6 +63,11 @@ Gist::Gist(QWidget* parent) : QWidget(parent) {
     connect(reset, SIGNAL(triggered()), canvas,
             SLOT(reset()));
 
+    cmpTrees = new QAction("Compare", this);
+    /// TODO: set a shortcut
+    connect(cmpTrees, SIGNAL(triggered()), canvas,
+            SLOT(compareTrees()));
+
     navUp = new QAction("Up", this);
     navUp->setShortcut(QKeySequence("Up"));
     connect(navUp, SIGNAL(triggered()), canvas,
@@ -217,6 +222,7 @@ Gist::Gist(QWidget* parent) : QWidget(parent) {
     addAction(compareNodeBeforeFP);
     addAction(stop);
     addAction(reset);
+    addAction(cmpTrees);
     addAction(navUp);
     addAction(navDown);
     addAction(navLeft);
@@ -538,6 +544,7 @@ Gist::on_canvas_statusChanged(VisualNode* n, const Statistics& stats,
         showNodeStats->setEnabled(false);
         stop->setEnabled(true);
         reset->setEnabled(false);
+        cmpTrees->setEnabled(false);
         navUp->setEnabled(false);
         navDown->setEnabled(false);
         navLeft->setEnabled(false);
@@ -570,6 +577,7 @@ Gist::on_canvas_statusChanged(VisualNode* n, const Statistics& stats,
     } else {
         stop->setEnabled(false);
         reset->setEnabled(true);
+        cmpTrees->setEnabled(true);
 
         if ( (n->isOpen() || n->hasOpenChildren()) && (!n->isHidden()) ) {
             searchNext->setEnabled(true);

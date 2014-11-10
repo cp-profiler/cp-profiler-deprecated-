@@ -97,6 +97,8 @@ public:
   QAction* exportWholeTreePDF;
   /// Print tree
   QAction* print;
+  /// Don't redraw, but compare with the following tree
+  QAction* cmpTrees;
 
   /// Bookmark current node
   QAction* bookmarkNode;
@@ -114,6 +116,7 @@ public:
   QAction* toggleStop;
   /// Bookmark current node
   QAction* unstopAll;
+
 
   /// Group of all actions for solution inspectors
   QActionGroup* solutionInspectorGroup;
