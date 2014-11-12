@@ -103,9 +103,7 @@ protected:
     MARKED,
     ONPATH,
     HIGHLIGHTED,
-    BOOKMARKED /// TODO: is bookmarked now 33?
-    
-
+    BOOKMARKED
   };
 
   /// Relative offset from the parent node

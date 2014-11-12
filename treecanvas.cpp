@@ -9,6 +9,7 @@
 #include <ctime>
 
 #include "treecanvas.hh"
+#include "treebuilder.hh"
 
 #include "data.hh"
 
@@ -31,24 +32,24 @@ TreeCanvas::TreeCanvas(QWidget* parent)
     , layoutDoneTimerId(0)
     , shapesWindow(parent,  this)
     , shapesMap(CompareShapes(*this)) { // TODO: why *?
+      
     QMutexLocker locker(&mutex);
 
-    
+
+    _builder = new TreeBuilder(this, &mutex);
     na = new Node::NodeAllocator(false);
-    treeBuilder = new TreeBuilder(this, &layoutMutex);
+
+    _data = NULL; /// but is it really needed? TODO
+
     timer = new QTimer(this);
     timer->start(2000);
 
     na->allocateRoot(); // read root from db
 
     root = (*na)[0];
-    data = NULL;
     scale = LayoutConfig::defScale / 100.0;
 
     setAutoFillBackground(true);
-
-    connect(&searcher, SIGNAL(startWork(void)), treeBuilder, SLOT(startBuilding(void)));
-    connect(treeBuilder, SIGNAL(doneBuilding(void)), &searcher, SLOT(updateCanvas(void)));
 
     connect(timer, SIGNAL(timeout(void)), &searcher, SLOT(updateCanvas(void)));
 
@@ -111,64 +112,64 @@ TreeCanvas::~TreeCanvas(void) {
 void
 SearcherThread::run(void) {
 
-    zmq::context_t context(1);
-    zmq::socket_t socket (context, ZMQ_PULL);
-    try {
-        socket.bind("tcp://*:6565");
-    } catch (std::exception& e) {
-        std::cerr << "error connecting to socket";
-    }
+    // zmq::context_t context(1);
+    // zmq::socket_t socket (context, ZMQ_PULL);
+    // try {
+    //     socket.bind("tcp://*:6565");
+    // } catch (std::exception& e) {
+    //     std::cerr << "error connecting to socket";
+    // }
     
         
-    int nodeCount = 0;
-    while (true) {
-        zmq::message_t request;
+    // int nodeCount = 0;
+    // while (true) {
+    //     zmq::message_t request;
 
-        socket.recv (&request);
+    //     socket.recv (&request);
 
-        Message *msg = reinterpret_cast<Message*>(request.data());
+    //     Message *msg = reinterpret_cast<Message*>(request.data());
 
-        switch (msg->type) {
-            case NODE_DATA:
-                Data::handleNodeCallback(msg);
-                ++nodeCount;
-            break;
-            case START_SENDING:
-                /// start building the tree
+    //     switch (msg->type) {
+    //         case NODE_DATA:
+    //             Data::handleNodeCallback(msg);
+    //             ++nodeCount;
+    //         break;
+    //         case START_SENDING:
+    //             /// start building the tree
 
-                // if (msg->restart_id == -1 || msg->restart_id == 1) { // why 1?
-                if (msg->restart_id == -1) {
-                    t->reset(false); // no restarts
-                    emit startWork();
-                    qDebug() << ">>> no restarts";
-                } else if (msg->restart_id == 0){
+    //             // if (msg->restart_id == -1 || msg->restart_id == 1) { // why 1?
+    //             if (msg->restart_id == -1) {
+    //                 t->reset(false); // no restarts
+    //                 emit startWork();
+    //                 qDebug() << ">>> no restarts";
+    //             } else if (msg->restart_id == 0){
 
-                    t->reset(true);
-                    emit startWork();
-                    qDebug() << ">>> new restart";
-                } else {
-                    qDebug() << ">>> restart and continue";
-                }
-            break;
-            case DONE_SENDING:
-                qDebug() << "Done receiving";
-                updateCanvas();
-                if (!Data::self->isRestarts())
-                    Data::self->setDone();
+    //                 t->reset(true);
+    //                 emit startWork();
+    //                 qDebug() << ">>> new restart";
+    //             } else {
+    //                 qDebug() << ">>> restart and continue";
+    //             }
+    //         break;
+    //         case DONE_SENDING:
+    //             qDebug() << "Done receiving";
+    //             updateCanvas();
+    //             if (!Data::self->isRestarts())
+    //                 Data::self->setDone();
 
-            break;
-        }
+    //         break;
+    //     }
 
-        if (t->refresh > 0 && nodeCount >= t->refresh) {
-            node->dirtyUp(*t->na);
-            updateCanvas();
-            emit statusChanged(false);
-            nodeCount = 0;
-            if (t->refreshPause > 0)
-              msleep(t->refreshPause);
-        }
+    //     if (t->refresh > 0 && nodeCount >= t->refresh) {
+    //         node->dirtyUp(*t->na);
+    //         updateCanvas();
+    //         emit statusChanged(false);
+    //         nodeCount = 0;
+    //         if (t->refreshPause > 0)
+    //           msleep(t->refreshPause);
+    //     }
 
-    }
+    // }
 
 }
 
@@ -648,15 +649,16 @@ TreeCanvas::highlightShape(VisualNode* node) {
 
 void
 SearcherThread::search(VisualNode* n, bool all, TreeCanvas* ti) {
-    node = n;
+    // node = n;
     
-    depth = -1;
-    for (VisualNode* p = n; p != NULL; p = p->getParent(*ti->na))
-        depth++;
+    // depth = -1;
+    // for (VisualNode* p = n; p != NULL; p = p->getParent(*ti->na))
+    //     depth++;
     
-    a = all;
-    t = ti;
-    start();
+    // a = all;
+    // t = ti;
+    // start();
+    qDebug() << "in the bottom of SearcherThread::search";
 }
 
 //void
@@ -667,57 +669,57 @@ SearcherThread::search(VisualNode* n, bool all, TreeCanvas* ti) {
 void
 SearcherThread::updateCanvas(void) {
 
-    t->layoutMutex.lock();
-    if (t->root == NULL)
-        return;
+    // t->layoutMutex.lock();
+    // if (t->root == NULL)
+    //     return;
 
-    if (t->autoHideFailed) {
-        t->root->hideFailed(*t->na,true);
-    }
-    for (VisualNode* n = t->currentNode; n != NULL; n=n->getParent(*t->na)) {
-        if (n->isHidden()) {
-            t->currentNode->setMarked(false);
-            t->currentNode = n;
-            t->currentNode->setMarked(true);
-            break;
-        }
-    }
+    // if (t->autoHideFailed) {
+    //     t->root->hideFailed(*t->na,true);
+    // }
+    // for (VisualNode* n = t->currentNode; n != NULL; n=n->getParent(*t->na)) {
+    //     if (n->isHidden()) {
+    //         t->currentNode->setMarked(false);
+    //         t->currentNode = n;
+    //         t->currentNode->setMarked(true);
+    //         break;
+    //     }
+    // }
     
-    t->root->layout(*t->na);
-    BoundingBox bb = t->root->getBoundingBox();
+    // t->root->layout(*t->na);
+    // BoundingBox bb = t->root->getBoundingBox();
 
-    int w = static_cast<int>((bb.right-bb.left+Layout::extent)*t->scale);
-    int h = static_cast<int>(2*Layout::extent+
-                             t->root->getShape()->depth()
-                             *Layout::dist_y*t->scale);
-    t->xtrans = -bb.left+(Layout::extent / 2);
+    // int w = static_cast<int>((bb.right-bb.left+Layout::extent)*t->scale);
+    // int h = static_cast<int>(2*Layout::extent+
+    //                          t->root->getShape()->depth()
+    //                          *Layout::dist_y*t->scale);
+    // t->xtrans = -bb.left+(Layout::extent / 2);
 
-    int scale0 = static_cast<int>(t->scale*100);
-    if (t->autoZoom) {
-        QWidget* p = t->parentWidget();
-        if (p) {
-            double newXScale =
-                    static_cast<double>(p->width()) / (bb.right - bb.left +
-                                                       Layout::extent);
-            double newYScale =
-                    static_cast<double>(p->height()) /
-                    (t->root->getShape()->depth() * Layout::dist_y + 2*Layout::extent);
+    // int scale0 = static_cast<int>(t->scale*100);
+    // if (t->autoZoom) {
+    //     QWidget* p = t->parentWidget();
+    //     if (p) {
+    //         double newXScale =
+    //                 static_cast<double>(p->width()) / (bb.right - bb.left +
+    //                                                    Layout::extent);
+    //         double newYScale =
+    //                 static_cast<double>(p->height()) /
+    //                 (t->root->getShape()->depth() * Layout::dist_y + 2*Layout::extent);
 
-            scale0 = static_cast<int>(std::min(newXScale, newYScale)*100);
-            if (scale0<LayoutConfig::minScale)
-                scale0 = LayoutConfig::minScale;
-            if (scale0>LayoutConfig::maxAutoZoomScale)
-                scale0 = LayoutConfig::maxAutoZoomScale;
-            double scale = (static_cast<double>(scale0)) / 100.0;
+    //         scale0 = static_cast<int>(std::min(newXScale, newYScale)*100);
+    //         if (scale0<LayoutConfig::minScale)
+    //             scale0 = LayoutConfig::minScale;
+    //         if (scale0>LayoutConfig::maxAutoZoomScale)
+    //             scale0 = LayoutConfig::maxAutoZoomScale;
+    //         double scale = (static_cast<double>(scale0)) / 100.0;
 
-            w = static_cast<int>((bb.right-bb.left+Layout::extent)*scale);
-            h = static_cast<int>(2*Layout::extent+
-                                 t->root->getShape()->depth()*Layout::dist_y*scale);
-        }
-    }
+    //         w = static_cast<int>((bb.right-bb.left+Layout::extent)*scale);
+    //         h = static_cast<int>(2*Layout::extent+
+    //                              t->root->getShape()->depth()*Layout::dist_y*scale);
+    //     }
+    // }
 
-    t->layoutMutex.unlock();
-    emit update(w,h,scale0);
+    // t->layoutMutex.unlock();
+    // emit update(w,h,scale0);
 }
 
 /// A stack item for depth first search
@@ -1126,14 +1128,13 @@ TreeCanvas::reset(bool isRestarts) {
 
     emit statusChanged(currentNode, stats, true);
 
-    if (data) delete data;
+    if (_data) delete _data;
 
     qDebug() << "create Data in reset";
 
-    data = new Data(this, na, isRestarts);
-    treeBuilder->reset(data, na);
-    
-    searchAll();
+    _data = new Data(this, na, isRestarts);
+    _builder->reset(_data, na);
+
     update();
 }
 

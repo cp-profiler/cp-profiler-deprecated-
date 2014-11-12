@@ -2,7 +2,9 @@
 #define GIST_HH
 
 #include "treecanvas.hh"
+// #include "treebuilder.hh"
 #include "nodestats.hh"
+#include "recieverthread.hh"
 
 /**
  * \brief %Gecode Interactive %Search Tool
@@ -15,9 +17,30 @@
  */
 class Gist : public QWidget {
   Q_OBJECT
+
+  /// **************** MY STUFF ********************
 private:
+
+  /// Checks for new nodes
+  RecieverThread reciever;
+  
+
   /// The canvas implementation
   TreeCanvas* canvas;
+
+  /// Checks data and builds the tree in a parallel thread
+  // TreeBuilder* treeBuilder; /// TODO: dont forget to delete the object
+
+  /// Second canvas in case of comparing
+  TreeCanvas* canvasTwo;
+
+public:
+  /// Reset treeCanvas ( reset TreeBuilder, reset Canvas itself)
+  /// This should be called instead of TreeCanvas::reset
+  // void resetCanvas(TreeCanvas* canvas, TreeBuilder* builder, bool isRestarts);
+
+  /// ***********************************************
+private:
   /// The time slider
   QSlider* timeBar;
   /// Context menu
@@ -179,6 +202,7 @@ public:
 
   /// Handle resize event
   void resizeEvent(QResizeEvent*);
+
 
 Q_SIGNALS:
   /// Signals that the tree has changed

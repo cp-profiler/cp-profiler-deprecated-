@@ -175,11 +175,26 @@ protected:
 class TreeCanvas : public QWidget {
   Q_OBJECT
 
-  friend class SearcherThread;
+  friend class SearcherThread; // TODO : remove when RecieverThread is done
+  friend class RecieverThread;
   friend class Gist;
   friend class TreeBuilder;
   friend class ShapeCanvas;
   // friend class Data;
+
+
+private:
+  // Pointer to Data Object
+  Data* _data;
+
+  TreeBuilder* _builder;
+
+  QTimer* timer;
+
+public Q_SLOTS:
+
+  /// Reset, isRestarts true if we want a dummy node (needed for showing restarts)
+  void reset(bool isRestarts = false);
 
 public:
   /// Constructor
@@ -187,10 +202,6 @@ public:
   /// Destructor
   ~TreeCanvas(void);
 
-  // data from the db
-  QTimer* timer;
-  Data* data;
-  TreeBuilder* treeBuilder;
 
   
 
@@ -270,9 +281,6 @@ public Q_SLOTS:
 
   /// Stop current search
   void stopSearch(void);
-
-  /// Reset, isRestarts true if we want a dummy node (needed for showing restarts)
-  void reset(bool isRestarts = false);
 
   /// Do not redraw, but compare with the next tree
   void compareTrees(void);

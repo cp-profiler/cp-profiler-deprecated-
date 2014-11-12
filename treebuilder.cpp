@@ -1,8 +1,8 @@
 #include "treebuilder.hh"
 
 TreeBuilder::TreeBuilder(TreeCanvas* tc, QMutex* mutex, QObject *parent) 
-    : QThread(parent), _tc(tc), _mutex(mutex) {
-
+    : QThread(parent), _tc(tc) {
+        _mutex = &(_tc->layoutMutex);
         qDebug() << "new Tree Builder";
 }
 
