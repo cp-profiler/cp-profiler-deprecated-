@@ -1,11 +1,16 @@
 #include "recieverthread.hh"
 
+RecieverThread::RecieverThread(QWidget* parent): QThread(parent) {
+    prt_gist = static_cast<Gist*>(parent);
+}
+
 void
 // RecieverThread::recieve(VisualNode* n, TreeCanvas* tc) {
 RecieverThread::recieve(TreeCanvas* tc) {
 //  QMutexLocker locker(&mutex);
   /// skipped smth here
  // _node = n;
+  
   t = tc;
   
   start();
@@ -43,6 +48,12 @@ RecieverThread::run(void) {
 
                 // if (msg->restart_id == -1 || msg->restart_id == 1) { // why 1?
                 if (msg->restart_id == -1) {
+
+                    if (prt_gist->cmpTrees->isChecked()) {
+                        qDebug() << "Need to create new window first!";
+                        break;
+                    } 
+
                     t->reset(false); // no restarts
                     emit startWork();
                     qDebug() << ">>> no restarts";

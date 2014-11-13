@@ -22,7 +22,7 @@ class Gist : public QWidget {
 private:
 
   /// Checks for new nodes
-  RecieverThread reciever;
+  RecieverThread* reciever;
   
   /// The canvas implementation
   TreeCanvas* canvas;

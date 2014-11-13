@@ -3,6 +3,7 @@
 
 #include <QThread>
 
+#include "qtgist.hh"
 #include "treecanvas.hh"
 
 class Gist;
@@ -12,9 +13,14 @@ class RecieverThread : public QThread {
 
   friend Gist;
 
+public:
+
+  RecieverThread(QWidget* parent = 0);
+
+
 private:
   TreeCanvas* t;
-  VisualNode* _node; /// TODO: delete if not used
+  Gist* prt_gist;
 
 public Q_SLOTS:
   void updateCanvas(void);

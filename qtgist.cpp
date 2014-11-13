@@ -16,14 +16,14 @@ Gist::Gist(QWidget* parent) : QWidget(parent) {
     myPalette.setColor(QPalette::Window, Qt::white);
     scrollArea->setPalette(myPalette);
 
+    reciever = new RecieverThread(this);
 
-
-    canvas = new TreeCanvas(&reciever, scrollArea->viewport());
+    canvas = new TreeCanvas(reciever, scrollArea->viewport());
     canvas->setPalette(myPalette);
     canvas->setObjectName("canvas");
     
-    connect(&reciever, SIGNAL(startWork(void)), canvas->_builder, SLOT(startBuilding(void)));
-    connect(canvas->_builder, SIGNAL(doneBuilding(void)), &reciever, SLOT(updateCanvas(void)));
+    connect(reciever, SIGNAL(startWork(void)), canvas->_builder, SLOT(startBuilding(void)));
+    connect(canvas->_builder, SIGNAL(doneBuilding(void)), reciever, SLOT(updateCanvas(void)));
 
     connect(scrollArea->horizontalScrollBar(), SIGNAL(valueChanged(int)),
             canvas, SLOT(scroll(void)));
@@ -395,7 +395,7 @@ Gist::Gist(QWidget* parent) : QWidget(parent) {
 
     setLayout(layout);
 
-    reciever.recieve(canvas);
+    reciever->recieve(canvas);
     canvas->show();
 
     resize(500, 400);
@@ -559,7 +559,6 @@ Gist::on_canvas_statusChanged(VisualNode* n, const Statistics& stats,
         showNodeStats->setEnabled(false);
         stop->setEnabled(true);
         reset->setEnabled(false);
-        cmpTrees->setEnabled(false);
         navUp->setEnabled(false);
         navDown->setEnabled(false);
         navLeft->setEnabled(false);
