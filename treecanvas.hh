@@ -144,35 +144,6 @@ public:
 };
 
 
-
-/// \brief A thread that concurrently explores the tree
-class SearcherThread : public QThread {
-  Q_OBJECT
-private:
-  VisualNode* node;
-  int depth;
-  bool a;
-  TreeCanvas* t;
-  
-public:
-  void search(VisualNode* n, bool all, TreeCanvas* ti);
-
-public Q_SLOTS:
-  void updateCanvas(void);
-
-Q_SIGNALS:
-  void update(int w, int h, int scale0);
-  void statusChanged(bool);
-  void scaleChanged(int);
-  void solution(void);
-  void searchFinished(void);
-  void moveToNode(VisualNode* n,bool);
-  void startWork(void);
-
-protected:
-  void run(void);
-};
-
 /// \brief A canvas that displays the search tree
 class TreeCanvas : public QWidget {
   Q_OBJECT
@@ -235,10 +206,6 @@ public Q_SLOTS:
   /// Set scale factor to \a scale0
   void scaleTree(int scale0, int zoomx=-1, int zoomy=-1);
 
-  /// Explore complete subtree of selected node
-  void searchAll(void);
-  /// Find next solution below selected node
-  void searchOne(void);
   /// Toggle hidden state of selected node
   void toggleHidden(void);
   /// Hide failed subtrees of selected node
@@ -366,8 +333,6 @@ protected:
   QMutex mutex;
   /// Mutex for synchronizing layout and drawing
   QMutex layoutMutex;
-  /// Search engine thread
-  SearcherThread searcher;
   /// Flag signalling the search to stop
   bool stopSearchFlag;
   /// Flag signalling that Gist is ready to be closed

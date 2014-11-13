@@ -32,3 +32,20 @@ protected:
 };
 
 #endif
+
+
+
+/// ***************************************
+/// some of the stuff I got rid of for now:
+
+// private:
+// int depth
+// bool a
+
+// Q_SIGNALS:
+// void scaleChanged(int);     // seems like scale works even without int
+// void solution(void);        // got rid of since don't have Space
+// void searchFinished(void);  // dont have the function in TreeCanvas anymore
+// void moveToNode(VisualNode* n, bool); // 
+
+/// **************************************
