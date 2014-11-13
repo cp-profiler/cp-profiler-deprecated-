@@ -58,11 +58,11 @@ TreeCanvas::TreeCanvas(RecieverThread* reciever, QWidget* parent)
     /// this one isn't really needed
     // connect(timer, SIGNAL(timeout(void)), ptr_reciever, SLOT(updateCanvas(void)));
 
-    connect(&searcher, SIGNAL(update(int,int,int)), this,
+    connect(ptr_reciever, SIGNAL(update(int,int,int)), this,
             SLOT(layoutDone(int,int,int)));
 
     /// not needed anymore
-    connect(&searcher, SIGNAL(statusChanged(bool)), this,
+    connect(ptr_reciever, SIGNAL(statusChanged(bool)), this,
             SLOT(statusChanged(bool)));
 
 //    connect(&searcher, SIGNAL(solution(const Space*)),
