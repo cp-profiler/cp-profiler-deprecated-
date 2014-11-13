@@ -27,7 +27,6 @@ Q_SIGNALS:
 protected:
   void run(void);
   void recieve(TreeCanvas* tc);
-  // void recieve(VisualNode* n, TreeCanvas* tc);
 
 
 };

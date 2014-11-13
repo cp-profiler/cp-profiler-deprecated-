@@ -18,13 +18,12 @@ Gist::Gist(QWidget* parent) : QWidget(parent) {
 
 
 
-    canvas = new TreeCanvas(scrollArea->viewport());
+    canvas = new TreeCanvas(&reciever, scrollArea->viewport());
     canvas->setPalette(myPalette);
     canvas->setObjectName("canvas");
     
     connect(&reciever, SIGNAL(startWork(void)), canvas->_builder, SLOT(startBuilding(void)));
     connect(canvas->_builder, SIGNAL(doneBuilding(void)), &reciever, SLOT(updateCanvas(void)));
-
 
     connect(scrollArea->horizontalScrollBar(), SIGNAL(valueChanged(int)),
             canvas, SLOT(scroll(void)));

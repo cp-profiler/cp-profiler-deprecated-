@@ -11,6 +11,7 @@
 #include <zmq.hpp>
 #include "visualnode.hh"
 #include "treebuilder.hh"
+// #include "recieverthread.hh"
 
 /// \brief Parameters for the tree layout
 namespace LayoutConfig {
@@ -27,6 +28,7 @@ namespace LayoutConfig {
 class TreeCanvas;
 class SimilarShapesWindow;
 class TreeBuilder;
+class RecieverThread;
 
 /// *********************
 /// SIMILAR SUBTREES
@@ -189,6 +191,8 @@ private:
 
   TreeBuilder* _builder;
 
+  RecieverThread* ptr_reciever;
+
   QTimer* timer;
 
 public Q_SLOTS:
@@ -198,7 +202,7 @@ public Q_SLOTS:
 
 public:
   /// Constructor
-  TreeCanvas(QWidget* parent);
+  TreeCanvas(RecieverThread* reciever, QWidget* parent);
   /// Destructor
   ~TreeCanvas(void);
 

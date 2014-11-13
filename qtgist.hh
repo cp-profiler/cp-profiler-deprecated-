@@ -24,12 +24,8 @@ private:
   /// Checks for new nodes
   RecieverThread reciever;
   
-
   /// The canvas implementation
   TreeCanvas* canvas;
-
-  /// Checks data and builds the tree in a parallel thread
-  // TreeBuilder* treeBuilder; /// TODO: dont forget to delete the object
 
   /// Second canvas in case of comparing
   TreeCanvas* canvasTwo;

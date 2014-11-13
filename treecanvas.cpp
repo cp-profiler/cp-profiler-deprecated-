@@ -10,6 +10,7 @@
 
 #include "treecanvas.hh"
 #include "treebuilder.hh"
+#include "recieverthread.hh"
 
 #include "data.hh"
 
@@ -17,7 +18,7 @@
 #include "visualnode.hh"
 #include "drawingcursor.hh"
 
-TreeCanvas::TreeCanvas(QWidget* parent)
+TreeCanvas::TreeCanvas(RecieverThread* reciever, QWidget* parent)
     : QWidget(parent)
     , mutex(QMutex::Recursive)
     , layoutMutex(QMutex::Recursive)
@@ -35,14 +36,14 @@ TreeCanvas::TreeCanvas(QWidget* parent)
       
     QMutexLocker locker(&mutex);
 
-
+    ptr_reciever = reciever;
     _builder = new TreeBuilder(this, &mutex);
     na = new Node::NodeAllocator(false);
 
     _data = NULL; /// but is it really needed? TODO
 
     timer = new QTimer(this);
-    timer->start(2000);
+    
 
     na->allocateRoot(); // read root from db
 
@@ -51,12 +52,16 @@ TreeCanvas::TreeCanvas(QWidget* parent)
 
     setAutoFillBackground(true);
 
-    connect(timer, SIGNAL(timeout(void)), &searcher, SLOT(updateCanvas(void)));
+    /// stargBuilding connected in qtgist.cpp
+    /// doneBuilding as well
+
+    /// this one isn't really needed
+    // connect(timer, SIGNAL(timeout(void)), ptr_reciever, SLOT(updateCanvas(void)));
 
     connect(&searcher, SIGNAL(update(int,int,int)), this,
             SLOT(layoutDone(int,int,int)));
 
-    // not needed anymore
+    /// not needed anymore
     connect(&searcher, SIGNAL(statusChanged(bool)), this,
             SLOT(statusChanged(bool)));
 
@@ -96,7 +101,11 @@ TreeCanvas::TreeCanvas(QWidget* parent)
     zoomTimeLine.setCurveShape(QTimeLine::EaseInOutCurve);
 
     qRegisterMetaType<Statistics>("Statistics");
+
+
+
     update();
+    timer->start(2000);
 }
 
 TreeCanvas::~TreeCanvas(void) {

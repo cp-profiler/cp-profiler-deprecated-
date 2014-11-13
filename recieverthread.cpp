@@ -80,6 +80,7 @@ RecieverThread::run(void) {
 void
 RecieverThread::updateCanvas(void) {
   qDebug() << "in RecieverThread::updateCanvas\n";
+  // if (t == NULL) return; /// TODO: why do I need this all of a sudden?
   t->layoutMutex.lock();
 
     if (t->root == NULL) return;
