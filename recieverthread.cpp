@@ -59,7 +59,7 @@ RecieverThread::run(void) {
                         }
 
                         t = ptr_gist->canvasTwo;
-                        qDebug() << "Switched to another canvas"
+                        qDebug() << "Switched to another canvas";
                     } 
 
                     t->reset(false); // no restarts
