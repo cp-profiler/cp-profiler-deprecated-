@@ -67,6 +67,9 @@ friend class TreeBuilder;
 
 public:
 
+    /// id of the Data instance
+    int _id;
+    
     int counter;
     QMutex dataMutex;
 
@@ -75,6 +78,10 @@ public:
 private:
 
     static const int PORTION = 50000;
+
+    
+    /// counts instances of Data
+    static int instance_counter;
 
     long long lastRead;
     int firstIndex = 0; // for nodes_arr
@@ -116,7 +123,7 @@ public:
     Data(TreeCanvas* tc, NodeAllocator* na, bool isRestarts);
     ~Data(void);
 
-    static Data* self;
+    static Data* current;
 
     void pushInstance(unsigned long long sid, DbEntry* entry);
 
@@ -137,3 +144,4 @@ public:
 
 
 #endif // DATA_HH
+

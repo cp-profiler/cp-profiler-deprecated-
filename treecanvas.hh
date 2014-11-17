@@ -143,7 +143,6 @@ public:
   bool operator()(const ShapeI& s1, const ShapeI& s2) const;
 };
 
-
 /// \brief A canvas that displays the search tree
 class TreeCanvas : public QWidget {
   Q_OBJECT
@@ -155,9 +154,16 @@ class TreeCanvas : public QWidget {
   friend class ShapeCanvas;
   // friend class Data;
 
+public:
+/// each new consequent Canvas will get an id
+  int _id;
 
 private:
-  // Pointer to Data Object
+  
+  /// to generate ids
+  static int counter;
+
+  /// Pointer to Data Object
   Data* _data;
 
   TreeBuilder* _builder;

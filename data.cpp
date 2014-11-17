@@ -12,15 +12,17 @@
 
 using namespace std;
 
-Data* Data::self = 0;
+Data* Data::current = 0;
+int Data::instance_counter = 0;
 
 
 Data::Data(TreeCanvas* tc, NodeAllocator* na, bool isRestarts)
  : _tc(tc), _na(na), _isRestarts(isRestarts) {
-    Data::self = this;
+
+    _id = Data::instance_counter++;
     counter = 0;
     _isDone = false;
-    qDebug() << "new Data";
+    qDebug() << "+++ new Data created, id: " << tc->_id;
 }
 
 
@@ -43,7 +45,7 @@ bool Data::isRestarts(void) {
 
 void Data::setDone(void) {
     QMutexLocker locker(&dataMutex);
-    qDebug() << "set _isDone = true ---------------------";
+    qDebug() << ">>> set _isDone = true";
     _isDone = true;
 }
 
@@ -58,7 +60,7 @@ int Data::handleNodeCallback(Message* msg) {
     char thread;
     unsigned long long real_id, real_pid;
 
-    Data& data = *Data::self;
+    Data& data = *Data::current;
     
     
     id = msg->sid;
@@ -69,9 +71,9 @@ int Data::handleNodeCallback(Message* msg) {
     thread = msg->thread;
     restart_id = msg->restart_id;
 
-    // qDebug() << "Received node: \t" << id << " " << pid << " "
-    //                 << alt << " " << kids << " " << status << " wid: "
-    //                 << (int)thread << " restart: " << restart_id << msg->label;
+    qDebug() << "Received node: \t" << id << " " << pid << " "
+                    << alt << " " << kids << " " << status << " wid: "
+                    << (int)thread << " restart: " << restart_id << msg->label;
 
     /// just so we don't have ugly numbers when not using restarts   
     if (restart_id == -1)
@@ -85,9 +87,9 @@ int Data::handleNodeCallback(Message* msg) {
 
     real_id = (id | ((long long)restart_id << 32)) - data.firstIndex;
 
-    Data::self->counter++;
+    Data::current->counter++;
 
-    Data::self->pushInstance(real_id,
+    Data::current->pushInstance(real_id,
         new DbEntry(real_pid, alt, kids, thread, msg->label, status));
 
     if (pid != -1) data.lastArrived = id;

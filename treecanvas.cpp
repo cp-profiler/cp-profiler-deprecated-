@@ -18,6 +18,8 @@
 #include "visualnode.hh"
 #include "drawingcursor.hh"
 
+int TreeCanvas::counter = 0;
+
 TreeCanvas::TreeCanvas(RecieverThread* reciever, QWidget* parent)
     : QWidget(parent)
     , mutex(QMutex::Recursive)
@@ -33,6 +35,9 @@ TreeCanvas::TreeCanvas(RecieverThread* reciever, QWidget* parent)
     , layoutDoneTimerId(0)
     , shapesWindow(parent,  this)
     , shapesMap(CompareShapes(*this)) { // TODO: why *?
+
+    /// to distinguish between instances
+    _id = TreeCanvas::counter++;
       
     QMutexLocker locker(&mutex);
 
@@ -82,6 +87,8 @@ TreeCanvas::TreeCanvas(RecieverThread* reciever, QWidget* parent)
     zoomTimeLine.setCurveShape(QTimeLine::EaseInOutCurve);
 
     qRegisterMetaType<Statistics>("Statistics");
+
+    qDebug() << "+++ new TreeCanvas created, id: " << _id;
 
     update();
 }
@@ -964,9 +971,11 @@ TreeCanvas::reset(bool isRestarts) {
 
     if (_data) delete _data;
 
-    qDebug() << "create Data in reset";
-
     _data = new Data(this, na, isRestarts);
+
+    Data::current = _data;
+    qDebug() << "Data::current is set to: " << _data->_id;
+
     _builder->reset(_data, na);
 
     update();

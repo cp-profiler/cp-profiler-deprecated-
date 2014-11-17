@@ -50,10 +50,8 @@ RecieverThread::run(void) {
                 if (msg->restart_id == -1) {
 
                     if (ptr_gist->cmpTrees->isChecked()) {
-                        qDebug() << "Need to create new window first!";
-                        // create new canvas in a new window and switch to that 
-                        // ptr_gist->prepareNewCanvas();
-                        emit newCanvasNeeded();
+
+                        emit newCanvasNeeded(); // doesn't do anything yet
                         while (!ptr_gist->canvasTwo) {
 
                         }
@@ -77,8 +75,8 @@ RecieverThread::run(void) {
             case DONE_SENDING:
                 qDebug() << "Done receiving";
                 updateCanvas();
-                if (!Data::self->isRestarts())
-                    Data::self->setDone();
+                if (!Data::current->isRestarts())
+                    Data::current->setDone();
 
             break;
         }

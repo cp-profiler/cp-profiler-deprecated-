@@ -21,6 +21,14 @@ class Gist : public QWidget {
 
   friend RecieverThread;
 
+  /// **************** INTERFACE *******************
+
+  QAbstractScrollArea* scrollArea;
+  QToolButton* autoZoomButton;
+  QPalette* myPalette;
+  QGridLayout* layout;
+
+
   /// **************** MY STUFF ********************
 private:
 
@@ -33,6 +41,10 @@ private:
   /// Second canvas in case of comparing
   TreeCanvas* canvasTwo;
   QDialog* canvasDialog;
+
+  void initInterface(void);
+  void addActions(void);
+  void connectCanvas(TreeCanvas* tc, TreeCanvas* old_tc = 0);
 
 public:
   /// Reset treeCanvas ( reset TreeBuilder, reset Canvas itself)
@@ -206,6 +218,9 @@ public:
 
 
 Q_SIGNALS:
+
+  
+
   /// Signals that the tree has changed
   void statusChanged(const Statistics&, bool);
 
@@ -216,8 +231,11 @@ Q_SIGNALS:
   void searchFinished(void);
 
 private Q_SLOTS:
-  /// for when reciever needs a new one
-  void prepareNewCanvas(void);
+
+  /// Create new TreeCanvas if already have one
+  void createNewCanvas(void);
+  /// Create new TreeCanvas if already have one
+  void prepareNewCanvas(void); // TODO: get rid of this one
   /// Displays the context menu for a node
   void on_canvas_contextMenu(QContextMenuEvent*);
   /// Reacts on status changes

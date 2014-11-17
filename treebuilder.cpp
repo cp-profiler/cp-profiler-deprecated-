@@ -3,12 +3,10 @@
 TreeBuilder::TreeBuilder(TreeCanvas* tc, QMutex* mutex, QObject *parent) 
     : QThread(parent), _tc(tc) {
         _mutex = &(_tc->layoutMutex);
-        qDebug() << "new Tree Builder";
+        qDebug() << "new Tree Builder: " << tc->_id;
 }
 
 void TreeBuilder::startBuilding() {
-    qDebug() << "in startBuilding!";
-    
     start();
 }
 
@@ -26,7 +24,7 @@ void TreeBuilder::run(void) {
     bool showlocks = false;
     
     begin = clock();
-	qDebug() << "### in run method ###";
+	qDebug() << "### in run method of : " << _tc->_id << " ###";
 
 	std::vector<DbEntry*> &nodes_arr = _data->nodes_arr;
 	std::unordered_map<unsigned long long, int> &sid2aid = _data->sid2aid;
@@ -59,7 +57,7 @@ void TreeBuilder::run(void) {
 
 
         if (lastRead >= nodes_arr.size()) {
-            if (Data::self->isDone()) {
+            if (Data::current->isDone()) {
                 qDebug() << "stop because done";
                 dataMutex.unlock();
                 if (showlocks) qDebug() << "unlock mutex 58";
