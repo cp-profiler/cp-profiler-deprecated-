@@ -15,8 +15,11 @@
  *
  * \ingroup TaskGist
  */
+
 class Gist : public QWidget {
   Q_OBJECT
+
+  friend RecieverThread;
 
   /// **************** MY STUFF ********************
 private:
@@ -29,6 +32,7 @@ private:
 
   /// Second canvas in case of comparing
   TreeCanvas* canvasTwo;
+  QDialog* canvasDialog;
 
 public:
   /// Reset treeCanvas ( reset TreeBuilder, reset Canvas itself)
@@ -151,6 +155,7 @@ public:
   QActionGroup* inspectGroup;
   /// Group of all actions for direct inspector selection
   QActionGroup* inspectBeforeFPGroup;
+
 public:
   /// Constructor
 //  Gist(Space* root, bool bab, QWidget* parent, const Options& opt);
@@ -211,6 +216,8 @@ Q_SIGNALS:
   void searchFinished(void);
 
 private Q_SLOTS:
+  /// for when reciever needs a new one
+  void prepareNewCanvas(void);
   /// Displays the context menu for a node
   void on_canvas_contextMenu(QContextMenuEvent*);
   /// Reacts on status changes
@@ -244,5 +251,6 @@ protected:
 //  void addInspector(Inspector* i, QAction*& nas, QAction*& nad,
 //                    QAction*& nam);
 };
+
 
 #endif // GIST_HH

@@ -21,6 +21,7 @@ Gist::Gist(QWidget* parent) : QWidget(parent) {
     canvas = new TreeCanvas(reciever, scrollArea->viewport());
     canvas->setPalette(myPalette);
     canvas->setObjectName("canvas");
+
     
     connect(reciever, SIGNAL(startWork(void)), canvas->_builder, SLOT(startBuilding(void)));
     connect(canvas->_builder, SIGNAL(doneBuilding(void)), reciever, SLOT(updateCanvas(void)));
@@ -30,15 +31,13 @@ Gist::Gist(QWidget* parent) : QWidget(parent) {
     connect(scrollArea->verticalScrollBar(), SIGNAL(valueChanged(int)),
             canvas, SLOT(scroll(void)));
 
-    QVBoxLayout* sa_layout = new QVBoxLayout();
-    sa_layout->setContentsMargins(0,0,0,0);
-    sa_layout->addWidget(canvas);
-    scrollArea->viewport()->setLayout(sa_layout);
-
 //    connect(canvas, SIGNAL(solution(const Space*)),
 //            this, SIGNAL(solution(const Space*)));
 
     connect(canvas, SIGNAL(searchFinished(void)), this, SIGNAL(searchFinished(void)));
+
+    // create new TreeCanvas when reciever gets new data
+    connect(reciever, SIGNAL(newCanvasNeeded()), this, SLOT(createNewCanvas(void)));
 
     QPixmap myPic;
     myPic.loadFromData(zoomToFitIcon, sizeof(zoomToFitIcon));
@@ -400,6 +399,47 @@ Gist::Gist(QWidget* parent) : QWidget(parent) {
 
     resize(500, 400);
 
+    QVBoxLayout* sa_layout = new QVBoxLayout();
+    sa_layout->setContentsMargins(0,0,0,0);
+    sa_layout->addWidget(canvas);
+
+    scrollArea->viewport()->setLayout(sa_layout);
+
+///
+
+
+    
+    canvasDialog = new QDialog(this);
+
+    QGridLayout* layout2 = new QGridLayout(this);
+
+    canvasDialog->setLayout(layout2);
+
+    QVBoxLayout* nc_layout = new QVBoxLayout();
+
+
+    QAbstractScrollArea* scrollArea2 = new QAbstractScrollArea(canvasDialog);
+    canvasTwo = new TreeCanvas(reciever, scrollArea2->viewport());
+
+    layout2->addWidget(scrollArea2, 0, 0, -1, 1);
+    layout2->addWidget(canvasTwo->scaleBar, 1,1, Qt::AlignHCenter);
+    layout2->addWidget(autoZoomButton, 0,1, Qt::AlignHCenter);
+
+    scrollArea2->viewport()->setLayout(nc_layout);
+
+
+   
+    nc_layout->addWidget(canvasTwo);
+    
+     // newCanvasLayout->setContentsMargins(0,0,0,0);
+    // scrollArea2->setAutoFillBackground(true);
+    
+    // newCanvasLayout->addWidget(canvasTwo);
+    // // canvasTwo->resize(100, 100);
+    canvasDialog->show();
+
+
+
     // enables on_<sender>_<signal>() mechanism
     QMetaObject::connectSlotsByName(this);
 }
@@ -539,6 +579,15 @@ Gist::resizeEvent(QResizeEvent*) {
 //}
 
 Gist::~Gist(void) { delete canvas; }
+
+void
+Gist::prepareNewCanvas(void) {
+    // canvas->hide();
+//    canvasDialog.
+//    canvasDialog.show();
+    canvasTwo->show();
+
+}
 
 void
 Gist::on_canvas_contextMenu(QContextMenuEvent* event) {

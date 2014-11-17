@@ -1,7 +1,7 @@
 #include "recieverthread.hh"
 
 RecieverThread::RecieverThread(QWidget* parent): QThread(parent) {
-    prt_gist = static_cast<Gist*>(parent);
+    ptr_gist = static_cast<Gist*>(parent);
 }
 
 void
@@ -49,9 +49,17 @@ RecieverThread::run(void) {
                 // if (msg->restart_id == -1 || msg->restart_id == 1) { // why 1?
                 if (msg->restart_id == -1) {
 
-                    if (prt_gist->cmpTrees->isChecked()) {
+                    if (ptr_gist->cmpTrees->isChecked()) {
                         qDebug() << "Need to create new window first!";
-                        break;
+                        // create new canvas in a new window and switch to that 
+                        // ptr_gist->prepareNewCanvas();
+                        emit newCanvasNeeded();
+                        while (!ptr_gist->canvasTwo) {
+
+                        }
+
+                        t = ptr_gist->canvasTwo;
+                        qDebug() << "Switched to another canvas"
                     } 
 
                     t->reset(false); // no restarts

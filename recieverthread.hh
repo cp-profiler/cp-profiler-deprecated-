@@ -20,7 +20,7 @@ public:
 
 private:
   TreeCanvas* t;
-  Gist* prt_gist;
+  Gist* ptr_gist;
 
 public Q_SLOTS:
   void updateCanvas(void);
@@ -29,6 +29,7 @@ Q_SIGNALS:
   void update(int w, int h, int scale0);
   void startWork(void);
   void statusChanged(bool);
+  void newCanvasNeeded(void);
 
 protected:
   void run(void);
