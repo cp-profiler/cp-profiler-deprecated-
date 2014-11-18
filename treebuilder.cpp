@@ -3,10 +3,11 @@
 TreeBuilder::TreeBuilder(TreeCanvas* tc, QMutex* mutex, QObject *parent) 
     : QThread(parent), _tc(tc) {
         _mutex = &(_tc->layoutMutex);
-        qDebug() << "new Tree Builder: " << tc->_id;
+        qDebug() << "new Tree Builder: " << _tc->_id;
 }
 
 void TreeBuilder::startBuilding() {
+    qDebug() << ">>> startBuilding in Builder #" << _tc->_id;
     start();
 }
 

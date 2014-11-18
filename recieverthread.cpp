@@ -19,6 +19,11 @@ RecieverThread::recieve(TreeCanvas* tc) {
 }
 
 void
+RecieverThread::switchCanvas(TreeCanvas* tc) { // not needed actually
+    t = tc;
+}
+
+void
 RecieverThread::run(void) {
 
     zmq::context_t context(1);
@@ -57,6 +62,7 @@ RecieverThread::run(void) {
                         }
 
                         t = ptr_gist->canvasTwo;
+                        ptr_gist->connectCanvas(t, ptr_gist->canvas);
                         qDebug() << "Switched to another canvas";
                     } 
 

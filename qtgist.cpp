@@ -36,51 +36,6 @@ Gist::initInterface(void) {
     setLayout(layout);
 }
 
-void
-Gist::connectCanvas(TreeCanvas* tc, TreeCanvas* old_tc) {
-    if (old_tc) {
-        disconnect(reciever, SIGNAL(startWork(void)), old_tc->_builder, SLOT(startBuilding(void)));
-    }
-    
-    connect(reciever, SIGNAL(startWork(void)), tc->_builder, SLOT(startBuilding(void)));
-    connect(inspect, SIGNAL(triggered()), tc, SLOT(inspectCurrentNode()));
-    connect(inspectBeforeFP, SIGNAL(triggered()), tc, SLOT(inspectBeforeFP(void)));
-    connect(stop, SIGNAL(triggered()), tc, SLOT(stopSearch()));
-    connect(reset, SIGNAL(triggered()), tc, SLOT(reset()));
-    connect(cmpTrees, SIGNAL(triggered()), tc, SLOT(compareTrees()));
-    connect(navUp, SIGNAL(triggered()), tc, SLOT(navUp()));
-    connect(navDown, SIGNAL(triggered()), tc, SLOT(navDown()));
-    connect(navLeft, SIGNAL(triggered()), tc, SLOT(navLeft()));
-    connect(navRight, SIGNAL(triggered()), tc, SLOT(navRight()));
-    connect(navRoot, SIGNAL(triggered()), tc, SLOT(navRoot()));
-    connect(navNextSol, SIGNAL(triggered()), tc, SLOT(navNextSol()));
-    connect(navPrevSol, SIGNAL(triggered()), tc, SLOT(navPrevSol()));
-    connect(searchNext, SIGNAL(triggered()), tc, SLOT(searchOne()));
-    connect(searchAll, SIGNAL(triggered()), tc, SLOT(searchAll()));
-    connect(toggleHidden, SIGNAL(triggered()), tc, SLOT(toggleHidden()));
-    connect(hideFailed, SIGNAL(triggered()), tc, SLOT(hideFailed()));
-    connect(labelBranches, SIGNAL(triggered()), tc, SLOT(labelBranches()));
-    connect(unhideAll, SIGNAL(triggered()), tc, SLOT(unhideAll()));
-    connect(labelPath, SIGNAL(triggered()), tc, SLOT(labelPath()));
-    connect(analyzeSimilarSubtrees, SIGNAL(triggered()), tc, SLOT(analyzeSimilarSubtrees()));
-    connect(toggleStop, SIGNAL(triggered()), tc, SLOT(toggleStop()));
-    connect(unstopAll, SIGNAL(triggered()), tc, SLOT(unstopAll()));
-    connect(zoomToFit, SIGNAL(triggered()), tc, SLOT(zoomToFit()));
-    connect(center, SIGNAL(triggered()), tc, SLOT(centerCurrentNode()));
-    connect(exportWholeTreePDF, SIGNAL(triggered()), tc, SLOT(exportWholeTreePDF()));
-    connect(exportPDF, SIGNAL(triggered()), tc, SLOT(exportPDF()));
-    connect(print, SIGNAL(triggered()), tc, SLOT(print()));
-    connect(bookmarkNode, SIGNAL(triggered()), tc, SLOT(bookmarkNode()));
-    connect(compareNode, SIGNAL(triggered()), tc, SLOT(startCompareNodes()));
-    connect(compareNodeBeforeFP, SIGNAL(triggered()), tc, SLOT(startCompareNodesBeforeFP()));
-    connect(tc, SIGNAL(addedBookmark(const QString&)), this, SLOT(addBookmark(const QString&)));
-    connect(tc, SIGNAL(removedBookmark(int)), this, SLOT(removeBookmark(int)));
-    connect(setPath, SIGNAL(triggered()), tc, SLOT(setPath()));
-    connect(inspectPath, SIGNAL(triggered()), tc, SLOT(inspectPath()));
-    connect(autoZoomButton, SIGNAL(toggled(bool)), tc, SLOT(setAutoZoom(bool)));
-    connect(tc, SIGNAL(autoZoomChanged(bool)), autoZoomButton, SLOT(setChecked(bool)));
-}
-
 
 Gist::Gist(QWidget* parent) : QWidget(parent) {
 
@@ -140,6 +95,11 @@ Gist::Gist(QWidget* parent) : QWidget(parent) {
     QAbstractScrollArea* scrollArea2 = new QAbstractScrollArea(canvasDialog);
     canvasTwo = new TreeCanvas(reciever, scrollArea2->viewport());
 
+    connect(scrollArea2->horizontalScrollBar(), SIGNAL(valueChanged(int)),
+            canvasTwo, SLOT(scroll(void)));
+    connect(scrollArea2->verticalScrollBar(), SIGNAL(valueChanged(int)),
+            canvasTwo, SLOT(scroll(void)));
+
     layout2->addWidget(scrollArea2, 0, 0, -1, 1);
     layout2->addWidget(canvasTwo->scaleBar, 1,1, Qt::AlignHCenter);
     layout2->addWidget(autoZoomButton, 0,1, Qt::AlignHCenter);
@@ -149,6 +109,7 @@ Gist::Gist(QWidget* parent) : QWidget(parent) {
     nc_layout->addWidget(canvasTwo);
     
     canvasDialog->show();
+    canvasDialog->resize(500, 400);
 
     // enables on_<sender>_<signal>() mechanism
     QMetaObject::connectSlotsByName(this);
@@ -558,6 +519,8 @@ Gist::showStats(void) {
     // canvas->emitStatusChanged();
 }
 
+
+
 void
 Gist::addActions(void) {
     inspect = new QAction("Inspect", this);
@@ -816,4 +779,85 @@ Gist::addActions(void) {
     contextMenu->addMenu(doubleClickInspectorMenu);
     contextMenu->addMenu(solutionInspectorMenu);
     contextMenu->addMenu(moveInspectorMenu);
+}
+
+void
+Gist::connectCanvas(TreeCanvas* tc, TreeCanvas* old_tc) {
+    if (old_tc) {
+        disconnect(reciever, SIGNAL(startWork(void)), old_tc->_builder, SLOT(startBuilding(void)));
+        disconnect(inspect, SIGNAL(triggered()), old_tc, SLOT(inspectCurrentNode()));
+        disconnect(inspectBeforeFP, SIGNAL(triggered()), old_tc, SLOT(inspectBeforeFP(void)));
+        disconnect(stop, SIGNAL(triggered()), old_tc, SLOT(stopSearch()));
+        disconnect(reset, SIGNAL(triggered()), old_tc, SLOT(reset()));
+        disconnect(cmpTrees, SIGNAL(triggered()), old_tc, SLOT(compareTrees()));
+        disconnect(navUp, SIGNAL(triggered()), old_tc, SLOT(navUp()));
+        disconnect(navDown, SIGNAL(triggered()), old_tc, SLOT(navDown()));
+        disconnect(navLeft, SIGNAL(triggered()), old_tc, SLOT(navLeft()));
+        disconnect(navRight, SIGNAL(triggered()), old_tc, SLOT(navRight()));
+        disconnect(navRoot, SIGNAL(triggered()), old_tc, SLOT(navRoot()));
+        disconnect(navNextSol, SIGNAL(triggered()), old_tc, SLOT(navNextSol()));
+        disconnect(navPrevSol, SIGNAL(triggered()), old_tc, SLOT(navPrevSol()));
+        disconnect(searchNext, SIGNAL(triggered()), old_tc, SLOT(searchOne()));
+        disconnect(searchAll, SIGNAL(triggered()), old_tc, SLOT(searchAll()));
+        disconnect(toggleHidden, SIGNAL(triggered()), old_tc, SLOT(toggleHidden()));
+        disconnect(hideFailed, SIGNAL(triggered()), old_tc, SLOT(hideFailed()));
+        disconnect(labelBranches, SIGNAL(triggered()), old_tc, SLOT(labelBranches()));
+        disconnect(unhideAll, SIGNAL(triggered()), old_tc, SLOT(unhideAll()));
+        disconnect(labelPath, SIGNAL(triggered()), old_tc, SLOT(labelPath()));
+        disconnect(analyzeSimilarSubtrees, SIGNAL(triggered()), old_tc, SLOT(analyzeSimilarSubtrees()));
+        disconnect(toggleStop, SIGNAL(triggered()), old_tc, SLOT(toggleStop()));
+        disconnect(unstopAll, SIGNAL(triggered()), old_tc, SLOT(unstopAll()));
+        disconnect(zoomToFit, SIGNAL(triggered()), old_tc, SLOT(zoomToFit()));
+        disconnect(center, SIGNAL(triggered()), old_tc, SLOT(centerCurrentNode()));
+        disconnect(exportWholeTreePDF, SIGNAL(triggered()), old_tc, SLOT(exportWholeTreePDF()));
+        disconnect(exportPDF, SIGNAL(triggered()), old_tc, SLOT(exportPDF()));
+        disconnect(print, SIGNAL(triggered()), old_tc, SLOT(print()));
+        disconnect(bookmarkNode, SIGNAL(triggered()), old_tc, SLOT(bookmarkNode()));
+        disconnect(compareNode, SIGNAL(triggered()), old_tc, SLOT(startCompareNodes()));
+        disconnect(compareNodeBeforeFP, SIGNAL(triggered()), old_tc, SLOT(startCompareNodesBeforeFP()));
+        disconnect(old_tc, SIGNAL(addedBookmark(const QString&)), this, SLOT(addBookmark(const QString&)));
+        disconnect(old_tc, SIGNAL(removedBookmark(int)), this, SLOT(removeBookmark(int)));
+        disconnect(setPath, SIGNAL(triggered()), old_tc, SLOT(setPath()));
+        disconnect(inspectPath, SIGNAL(triggered()), old_tc, SLOT(inspectPath()));
+        disconnect(autoZoomButton, SIGNAL(toggled(bool)), old_tc, SLOT(setAutoZoom(bool)));
+        disconnect(old_tc, SIGNAL(autoZoomChanged(bool)), autoZoomButton, SLOT(setChecked(bool)));
+    }
+    
+    connect(reciever, SIGNAL(startWork(void)), tc->_builder, SLOT(startBuilding(void)));
+    connect(inspect, SIGNAL(triggered()), tc, SLOT(inspectCurrentNode()));
+    connect(inspectBeforeFP, SIGNAL(triggered()), tc, SLOT(inspectBeforeFP(void)));
+    connect(stop, SIGNAL(triggered()), tc, SLOT(stopSearch()));
+    connect(reset, SIGNAL(triggered()), tc, SLOT(reset()));
+    connect(cmpTrees, SIGNAL(triggered()), tc, SLOT(compareTrees()));
+    connect(navUp, SIGNAL(triggered()), tc, SLOT(navUp()));
+    connect(navDown, SIGNAL(triggered()), tc, SLOT(navDown()));
+    connect(navLeft, SIGNAL(triggered()), tc, SLOT(navLeft()));
+    connect(navRight, SIGNAL(triggered()), tc, SLOT(navRight()));
+    connect(navRoot, SIGNAL(triggered()), tc, SLOT(navRoot()));
+    connect(navNextSol, SIGNAL(triggered()), tc, SLOT(navNextSol()));
+    connect(navPrevSol, SIGNAL(triggered()), tc, SLOT(navPrevSol()));
+    connect(searchNext, SIGNAL(triggered()), tc, SLOT(searchOne()));
+    connect(searchAll, SIGNAL(triggered()), tc, SLOT(searchAll()));
+    connect(toggleHidden, SIGNAL(triggered()), tc, SLOT(toggleHidden()));
+    connect(hideFailed, SIGNAL(triggered()), tc, SLOT(hideFailed()));
+    connect(labelBranches, SIGNAL(triggered()), tc, SLOT(labelBranches()));
+    connect(unhideAll, SIGNAL(triggered()), tc, SLOT(unhideAll()));
+    connect(labelPath, SIGNAL(triggered()), tc, SLOT(labelPath()));
+    connect(analyzeSimilarSubtrees, SIGNAL(triggered()), tc, SLOT(analyzeSimilarSubtrees()));
+    connect(toggleStop, SIGNAL(triggered()), tc, SLOT(toggleStop()));
+    connect(unstopAll, SIGNAL(triggered()), tc, SLOT(unstopAll()));
+    connect(zoomToFit, SIGNAL(triggered()), tc, SLOT(zoomToFit()));
+    connect(center, SIGNAL(triggered()), tc, SLOT(centerCurrentNode()));
+    connect(exportWholeTreePDF, SIGNAL(triggered()), tc, SLOT(exportWholeTreePDF()));
+    connect(exportPDF, SIGNAL(triggered()), tc, SLOT(exportPDF()));
+    connect(print, SIGNAL(triggered()), tc, SLOT(print()));
+    connect(bookmarkNode, SIGNAL(triggered()), tc, SLOT(bookmarkNode()));
+    connect(compareNode, SIGNAL(triggered()), tc, SLOT(startCompareNodes()));
+    connect(compareNodeBeforeFP, SIGNAL(triggered()), tc, SLOT(startCompareNodesBeforeFP()));
+    connect(tc, SIGNAL(addedBookmark(const QString&)), this, SLOT(addBookmark(const QString&)));
+    connect(tc, SIGNAL(removedBookmark(int)), this, SLOT(removeBookmark(int)));
+    connect(setPath, SIGNAL(triggered()), tc, SLOT(setPath()));
+    connect(inspectPath, SIGNAL(triggered()), tc, SLOT(inspectPath()));
+    connect(autoZoomButton, SIGNAL(toggled(bool)), tc, SLOT(setAutoZoom(bool)));
+    connect(tc, SIGNAL(autoZoomChanged(bool)), autoZoomButton, SLOT(setChecked(bool)));
 }
