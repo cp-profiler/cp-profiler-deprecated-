@@ -11,6 +11,7 @@
 #include <zmq.hpp>
 #include "visualnode.hh"
 #include "treebuilder.hh"
+#include "zoomToFitIcon.hpp"
 // #include "recieverthread.hh"
 
 /// \brief Parameters for the tree layout
@@ -159,6 +160,10 @@ public:
   int _id;
 
 private:
+
+  /// ****** INTERFACE STUFF *********
+  QPixmap zoomPic;
+  QToolButton* autoZoomButton;
   
   /// to generate ids
   static int counter;
@@ -179,7 +184,7 @@ public Q_SLOTS:
 
 public:
   /// Constructor
-  TreeCanvas(RecieverThread* reciever, QWidget* parent);
+  TreeCanvas(QGridLayout* layout, RecieverThread* reciever, QWidget* parent);
   /// Destructor
   ~TreeCanvas(void);
 

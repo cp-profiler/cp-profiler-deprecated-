@@ -24,7 +24,6 @@ class Gist : public QWidget {
   /// **************** INTERFACE *******************
 
   QAbstractScrollArea* scrollArea;
-  QToolButton* autoZoomButton;
   QPalette* myPalette;
   QGridLayout* layout;
 
@@ -227,8 +226,6 @@ Q_SIGNALS:
   /// Signals that a solution has been found
   void solution(int);
 
-  /// Signals that %Gist is ready to be closed
-  void searchFinished(void);
 
 private Q_SLOTS:
 

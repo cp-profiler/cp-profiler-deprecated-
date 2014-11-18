@@ -56,7 +56,7 @@ RecieverThread::run(void) {
 
                     if (ptr_gist->cmpTrees->isChecked()) {
 
-                        emit newCanvasNeeded(); // doesn't do anything yet
+                        emit newCanvasNeeded(); // shows the 2nd canvas
                         while (!ptr_gist->canvasTwo) {
 
                         }

@@ -20,7 +20,7 @@
 
 int TreeCanvas::counter = 0;
 
-TreeCanvas::TreeCanvas(RecieverThread* reciever, QWidget* parent)
+TreeCanvas::TreeCanvas(QGridLayout* layout, RecieverThread* reciever, QWidget* parent)
     : QWidget(parent)
     , mutex(QMutex::Recursive)
     , layoutMutex(QMutex::Recursive)
@@ -61,6 +61,19 @@ TreeCanvas::TreeCanvas(RecieverThread* reciever, QWidget* parent)
 
     /// this one isn't really needed
     // connect(timer, SIGNAL(timeout(void)), ptr_reciever, SLOT(updateCanvas(void)));
+
+    zoomPic.loadFromData(zoomToFitIcon, sizeof(zoomToFitIcon));
+
+    autoZoomButton = new QToolButton();
+    autoZoomButton->setCheckable(true);
+    autoZoomButton->setIcon(zoomPic);
+
+    layout->addWidget(autoZoomButton, 0,1, Qt::AlignHCenter);
+
+    connect(autoZoomButton, SIGNAL(toggled(bool)), this, SLOT(setAutoZoom(bool)));
+
+
+    connect(this, SIGNAL(autoZoomChanged(bool)), autoZoomButton, SLOT(setChecked(bool)));
 
     connect(ptr_reciever, SIGNAL(update(int,int,int)), this,
             SLOT(layoutDone(int,int,int)));

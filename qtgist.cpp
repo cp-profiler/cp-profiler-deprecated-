@@ -1,12 +1,11 @@
 #include "qtgist.hh"
 
-#include "zoomToFitIcon.hpp"
 #include "nodevisitor.hh"
 #include "nodecursor.hh"
 
 void
 Gist::createNewCanvas(void) {
-    
+    canvasDialog->show();
 }
 
 void
@@ -24,18 +23,8 @@ Gist::initInterface(void) {
     myPalette->setColor(QPalette::Window, Qt::white);
     scrollArea->setPalette(*myPalette);
 
-    QPixmap zoomPic;
-    autoZoomButton = new QToolButton();
-    autoZoomButton->setCheckable(true);
-    autoZoomButton->setIcon(zoomPic);
-
-    zoomPic.loadFromData(zoomToFitIcon, sizeof(zoomToFitIcon));
-
-    
-
     setLayout(layout);
 }
-
 
 Gist::Gist(QWidget* parent) : QWidget(parent) {
 
@@ -44,14 +33,13 @@ Gist::Gist(QWidget* parent) : QWidget(parent) {
     
     reciever = new RecieverThread(this);
 
-    canvas = new TreeCanvas(reciever, scrollArea->viewport());
+    canvas = new TreeCanvas(layout, reciever, scrollArea->viewport());
     canvas->setPalette(*myPalette);
     canvas->setObjectName("canvas");
 
     layout->addWidget(scrollArea, 0,0,-1,1);
     layout->addWidget(canvas->scaleBar, 1,1, Qt::AlignHCenter);
-    layout->addWidget(autoZoomButton, 0,1, Qt::AlignHCenter);
-
+    
     connectCanvas(canvas);
 
     connect(canvas->_builder, SIGNAL(doneBuilding(void)), reciever, SLOT(updateCanvas(void)));
@@ -63,8 +51,6 @@ Gist::Gist(QWidget* parent) : QWidget(parent) {
 
 //    connect(canvas, SIGNAL(solution(const Space*)),
 //            this, SIGNAL(solution(const Space*)));
-
-    connect(canvas, SIGNAL(searchFinished(void)), this, SIGNAL(searchFinished(void)));
 
     // create new TreeCanvas when reciever gets new data
     connect(reciever, SIGNAL(newCanvasNeeded()), this, SLOT(createNewCanvas(void)));
@@ -93,7 +79,7 @@ Gist::Gist(QWidget* parent) : QWidget(parent) {
 
 
     QAbstractScrollArea* scrollArea2 = new QAbstractScrollArea(canvasDialog);
-    canvasTwo = new TreeCanvas(reciever, scrollArea2->viewport());
+    canvasTwo = new TreeCanvas(layout2, reciever, scrollArea2->viewport());
 
     connect(scrollArea2->horizontalScrollBar(), SIGNAL(valueChanged(int)),
             canvasTwo, SLOT(scroll(void)));
@@ -102,13 +88,12 @@ Gist::Gist(QWidget* parent) : QWidget(parent) {
 
     layout2->addWidget(scrollArea2, 0, 0, -1, 1);
     layout2->addWidget(canvasTwo->scaleBar, 1,1, Qt::AlignHCenter);
-    layout2->addWidget(autoZoomButton, 0,1, Qt::AlignHCenter);
 
     scrollArea2->viewport()->setLayout(nc_layout);
 
     nc_layout->addWidget(canvasTwo);
     
-    canvasDialog->show();
+    
     canvasDialog->resize(500, 400);
 
     // enables on_<sender>_<signal>() mechanism
@@ -819,8 +804,6 @@ Gist::connectCanvas(TreeCanvas* tc, TreeCanvas* old_tc) {
         disconnect(old_tc, SIGNAL(removedBookmark(int)), this, SLOT(removeBookmark(int)));
         disconnect(setPath, SIGNAL(triggered()), old_tc, SLOT(setPath()));
         disconnect(inspectPath, SIGNAL(triggered()), old_tc, SLOT(inspectPath()));
-        disconnect(autoZoomButton, SIGNAL(toggled(bool)), old_tc, SLOT(setAutoZoom(bool)));
-        disconnect(old_tc, SIGNAL(autoZoomChanged(bool)), autoZoomButton, SLOT(setChecked(bool)));
     }
     
     connect(reciever, SIGNAL(startWork(void)), tc->_builder, SLOT(startBuilding(void)));
@@ -858,6 +841,4 @@ Gist::connectCanvas(TreeCanvas* tc, TreeCanvas* old_tc) {
     connect(tc, SIGNAL(removedBookmark(int)), this, SLOT(removeBookmark(int)));
     connect(setPath, SIGNAL(triggered()), tc, SLOT(setPath()));
     connect(inspectPath, SIGNAL(triggered()), tc, SLOT(inspectPath()));
-    connect(autoZoomButton, SIGNAL(toggled(bool)), tc, SLOT(setAutoZoom(bool)));
-    connect(tc, SIGNAL(autoZoomChanged(bool)), autoZoomButton, SLOT(setChecked(bool)));
 }
