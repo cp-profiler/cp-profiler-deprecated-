@@ -75,6 +75,8 @@ public:
 
     static const int READING_PERIOD = 1000;
 
+    void show_db(void);
+
 private:
 
     static const int PORTION = 50000;
@@ -96,9 +98,6 @@ private:
     NodeAllocator* _na;
     std::vector<DbEntry*> nodes_arr;
 
-
-
-
     /// **** for restarts ****
     std::vector<int> restarts_offsets;
 
@@ -112,8 +111,6 @@ private:
 
     /// mapping from gist Id to array Id (nodes_arr)
     std::unordered_map<unsigned long long, int> gid2aid;
-
-    void show_db(void);
 
 public Q_SLOTS:
     void startReading(void);

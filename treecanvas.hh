@@ -148,17 +148,16 @@ public:
 class TreeCanvas : public QWidget {
   Q_OBJECT
 
-  friend class SearcherThread; // TODO : remove when RecieverThread is done
   friend class RecieverThread;
   friend class Gist;
   friend class TreeBuilder;
   friend class ShapeCanvas;
-  // friend class Data;
+  friend class TreeComparison;
 
 public:
 /// each new consequent Canvas will get an id
   int _id;
-  bool _isUsed;
+  bool _isUsed; /// TODO: make private
 
 private:
 
@@ -188,9 +187,6 @@ public:
   TreeCanvas(QGridLayout* layout, RecieverThread* reciever, QWidget* parent);
   /// Destructor
   ~TreeCanvas(void);
-
-
-  
 
 //  /// Add inspector \a i
 //  void addDoubleClickInspector(Inspector* i);

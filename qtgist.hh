@@ -3,6 +3,7 @@
 
 #include "treecanvas.hh"
 // #include "treebuilder.hh"
+#include "treecomparison.hh"
 #include "nodestats.hh"
 #include "recieverthread.hh"
 

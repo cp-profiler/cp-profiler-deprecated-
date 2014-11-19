@@ -7,6 +7,8 @@ void
 Gist::createNewCanvas(void) {
     QGridLayout* layout2 = new QGridLayout(this);
 
+    canvasDialog = new QDialog(this);
+
     canvasDialog->setLayout(layout2);
 
     QVBoxLayout* nc_layout = new QVBoxLayout();
@@ -36,7 +38,18 @@ Gist::createNewCanvas(void) {
 
 void 
 Gist::initiateComparison(void) {
-    qDebug() << "need to create new canvas here";
+
+    // if (!canvas || !canvasTwo) {
+    //     qDebug() << "!-!-! need 2 trees to compare!";
+    //     return;
+    // }
+
+    TreeComparison::compare(canvas, canvasTwo);
+
+    // cmpDialog = new QDialog(this);
+    // cmpDialog->resize(500, 400);
+    // cmpDialog->show();
+    // qDebug() << "need to create new canvas here";
 }
 
 void
@@ -101,7 +114,7 @@ Gist::Gist(QWidget* parent) : QWidget(parent) {
 
     scrollArea->viewport()->setLayout(sa_layout);
 
-    canvasDialog = new QDialog(this);
+    
 
 
     // enables on_<sender>_<signal>() mechanism
