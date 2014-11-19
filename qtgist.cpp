@@ -5,6 +5,31 @@
 
 void
 Gist::createNewCanvas(void) {
+    QGridLayout* layout2 = new QGridLayout(this);
+
+    canvasDialog->setLayout(layout2);
+
+    QVBoxLayout* nc_layout = new QVBoxLayout();
+
+    QAbstractScrollArea* scrollArea2 = new QAbstractScrollArea(canvasDialog);
+    canvasTwo = new TreeCanvas(layout2, reciever, scrollArea2->viewport());
+
+    connect(scrollArea2->horizontalScrollBar(), SIGNAL(valueChanged(int)),
+            canvasTwo, SLOT(scroll(void)));
+    connect(scrollArea2->verticalScrollBar(), SIGNAL(valueChanged(int)),
+            canvasTwo, SLOT(scroll(void)));
+
+    layout2->addWidget(scrollArea2, 0, 0, -1, 1);
+    layout2->addWidget(canvasTwo->scaleBar, 1,1, Qt::AlignHCenter);
+
+    scrollArea2->viewport()->setLayout(nc_layout);
+
+    nc_layout->addWidget(canvasTwo);
+    
+    connect(canvasTwo->_builder, SIGNAL(doneBuilding(void)), reciever, SLOT(updateCanvas(void)));
+    
+    canvasDialog->resize(500, 400);
+   
     canvasDialog->show();
 }
 
@@ -77,30 +102,6 @@ Gist::Gist(QWidget* parent) : QWidget(parent) {
 
     canvasDialog = new QDialog(this);
 
-    QGridLayout* layout2 = new QGridLayout(this);
-
-    canvasDialog->setLayout(layout2);
-
-    QVBoxLayout* nc_layout = new QVBoxLayout();
-
-
-    QAbstractScrollArea* scrollArea2 = new QAbstractScrollArea(canvasDialog);
-    canvasTwo = new TreeCanvas(layout2, reciever, scrollArea2->viewport());
-
-    connect(scrollArea2->horizontalScrollBar(), SIGNAL(valueChanged(int)),
-            canvasTwo, SLOT(scroll(void)));
-    connect(scrollArea2->verticalScrollBar(), SIGNAL(valueChanged(int)),
-            canvasTwo, SLOT(scroll(void)));
-
-    layout2->addWidget(scrollArea2, 0, 0, -1, 1);
-    layout2->addWidget(canvasTwo->scaleBar, 1,1, Qt::AlignHCenter);
-
-    scrollArea2->viewport()->setLayout(nc_layout);
-
-    nc_layout->addWidget(canvasTwo);
-    
-    
-    canvasDialog->resize(500, 400);
 
     // enables on_<sender>_<signal>() mechanism
     QMetaObject::connectSlotsByName(this);
