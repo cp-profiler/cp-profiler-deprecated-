@@ -131,8 +131,10 @@ public:
   QAction* exportWholeTreePDF;
   /// Print tree
   QAction* print;
-  /// Don't redraw, but compare with the following tree
-  QAction* cmpTrees;
+  /// Creates new canvas and runs comparison tool
+  QAction* initComparison;
+  /// Allow second canvas (when new data recieved)
+  QAction* sndCanvas;
 
   /// Bookmark current node
   QAction* bookmarkNode;
@@ -228,7 +230,8 @@ Q_SIGNALS:
 
 
 private Q_SLOTS:
-
+  /// Create new TreeCanvas based on comparison
+  void initiateComparison(void);
   /// Create new TreeCanvas if already have one
   void createNewCanvas(void);
   /// Create new TreeCanvas if already have one

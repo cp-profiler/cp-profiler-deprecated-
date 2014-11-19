@@ -8,6 +8,11 @@ Gist::createNewCanvas(void) {
     canvasDialog->show();
 }
 
+void 
+Gist::initiateComparison(void) {
+    qDebug() << "need to create new canvas here";
+}
+
 void
 Gist::initInterface(void) {
 
@@ -43,6 +48,7 @@ Gist::Gist(QWidget* parent) : QWidget(parent) {
     connectCanvas(canvas);
 
     connect(canvas->_builder, SIGNAL(doneBuilding(void)), reciever, SLOT(updateCanvas(void)));
+    connect(initComparison, SIGNAL(triggered()), this, SLOT(initiateComparison()));
 
     connect(scrollArea->horizontalScrollBar(), SIGNAL(valueChanged(int)),
             canvas, SLOT(scroll(void)));
@@ -280,6 +286,7 @@ Gist::on_canvas_statusChanged(VisualNode* n, const Statistics& stats,
         labelBranches->setEnabled(false);
         labelPath->setEnabled(false);
         analyzeSimilarSubtrees->setEnabled(false);
+        initComparison->setEnabled(false);
 
         toggleStop->setEnabled(false);
         unstopAll->setEnabled(false);
@@ -296,7 +303,7 @@ Gist::on_canvas_statusChanged(VisualNode* n, const Statistics& stats,
     } else {
         stop->setEnabled(false);
         reset->setEnabled(true);
-        cmpTrees->setEnabled(true);
+        sndCanvas->setEnabled(true);
 
         if ( (n->isOpen() || n->hasOpenChildren()) && (!n->isHidden()) ) {
             searchNext->setEnabled(true);
@@ -519,9 +526,12 @@ Gist::addActions(void) {
 
     reset = new QAction("Reset", this);
     reset->setShortcut(QKeySequence("Ctrl+R"));
-    
-    cmpTrees = new QAction("Compare", this);
-    cmpTrees->setCheckable(true);
+
+    initComparison = new QAction("Compare", this);
+    /// TODO: make unavailable when no data
+
+    sndCanvas = new QAction("Allow second canvas", this);
+    sndCanvas->setCheckable(true);
     /// TODO: set a shortcut
     
     navUp = new QAction("Up", this);
@@ -699,7 +709,8 @@ Gist::addActions(void) {
     addAction(compareNodeBeforeFP);
     addAction(stop);
     addAction(reset);
-    addAction(cmpTrees);
+    addAction(sndCanvas);
+    addAction(initComparison);
     addAction(navUp);
     addAction(navDown);
     addAction(navLeft);
@@ -774,7 +785,7 @@ Gist::connectCanvas(TreeCanvas* tc, TreeCanvas* old_tc) {
         disconnect(inspectBeforeFP, SIGNAL(triggered()), old_tc, SLOT(inspectBeforeFP(void)));
         disconnect(stop, SIGNAL(triggered()), old_tc, SLOT(stopSearch()));
         disconnect(reset, SIGNAL(triggered()), old_tc, SLOT(reset()));
-        disconnect(cmpTrees, SIGNAL(triggered()), old_tc, SLOT(compareTrees()));
+        disconnect(sndCanvas, SIGNAL(triggered()), old_tc, SLOT(compareTrees()));
         disconnect(navUp, SIGNAL(triggered()), old_tc, SLOT(navUp()));
         disconnect(navDown, SIGNAL(triggered()), old_tc, SLOT(navDown()));
         disconnect(navLeft, SIGNAL(triggered()), old_tc, SLOT(navLeft()));
@@ -811,7 +822,7 @@ Gist::connectCanvas(TreeCanvas* tc, TreeCanvas* old_tc) {
     connect(inspectBeforeFP, SIGNAL(triggered()), tc, SLOT(inspectBeforeFP(void)));
     connect(stop, SIGNAL(triggered()), tc, SLOT(stopSearch()));
     connect(reset, SIGNAL(triggered()), tc, SLOT(reset()));
-    connect(cmpTrees, SIGNAL(triggered()), tc, SLOT(compareTrees()));
+    connect(sndCanvas, SIGNAL(triggered()), tc, SLOT(compareTrees()));
     connect(navUp, SIGNAL(triggered()), tc, SLOT(navUp()));
     connect(navDown, SIGNAL(triggered()), tc, SLOT(navDown()));
     connect(navLeft, SIGNAL(triggered()), tc, SLOT(navLeft()));

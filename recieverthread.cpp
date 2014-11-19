@@ -54,7 +54,7 @@ RecieverThread::run(void) {
                 // if (msg->restart_id == -1 || msg->restart_id == 1) { // why 1?
                 if (msg->restart_id == -1) {
 
-                    if (ptr_gist->cmpTrees->isChecked()) {
+                    if (ptr_gist->sndCanvas->isChecked()) {
 
                         emit newCanvasNeeded(); // shows the 2nd canvas
                         while (!ptr_gist->canvasTwo) {
