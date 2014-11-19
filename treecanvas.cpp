@@ -965,6 +965,8 @@ void
 TreeCanvas::reset(bool isRestarts) {
     QMutexLocker locker(&mutex);
 
+    qDebug() << "tc #" << _id << "is resetting";
+
     delete na;
     na = new Node::NodeAllocator(false);
 
@@ -988,7 +990,7 @@ TreeCanvas::reset(bool isRestarts) {
     _data = new Data(this, na, isRestarts);
 
     Data::current = _data;
-    qDebug() << "Data::current is set to: " << _data->_id;
+    qDebug() << "Data::current is set to (tc_id): " << _data->_id;
 
     _builder->reset(_data, na);
 
@@ -1449,7 +1451,7 @@ TreeCanvas::finish(void) {
 
 void
 TreeCanvas::finalizeCanvas(void) {
-  qDebug() << "in finalize canvas";
+  qDebug() << "in finalize canvas: " << _id;
   _isUsed = true;
   ptr_reciever->updateCanvas();
 }

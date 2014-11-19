@@ -14,8 +14,6 @@ RecieverThread::recieve(TreeCanvas* tc) {
   t = tc;
   
   start();
-  qDebug() << "in the bottom of RecieverThread::recieve";
-
 }
 
 void

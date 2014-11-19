@@ -170,8 +170,6 @@ GistMainWindow::GistMainWindow(void) : aboutGist(this) {
   connect(c,SIGNAL(statusChanged(const Statistics&,bool)),
           this,SLOT(statusChanged(const Statistics&,bool)));
 
-  connect(c,SIGNAL(searchFinished(void)),this,SLOT(close(void)));
-
   preferences(true);
   show();
   c->reset->trigger();

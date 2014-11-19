@@ -796,8 +796,6 @@ Gist::connectCanvas(TreeCanvas* tc, TreeCanvas* old_tc) {
         disconnect(navRoot, SIGNAL(triggered()), old_tc, SLOT(navRoot()));
         disconnect(navNextSol, SIGNAL(triggered()), old_tc, SLOT(navNextSol()));
         disconnect(navPrevSol, SIGNAL(triggered()), old_tc, SLOT(navPrevSol()));
-        disconnect(searchNext, SIGNAL(triggered()), old_tc, SLOT(searchOne()));
-        disconnect(searchAll, SIGNAL(triggered()), old_tc, SLOT(searchAll()));
         disconnect(toggleHidden, SIGNAL(triggered()), old_tc, SLOT(toggleHidden()));
         disconnect(hideFailed, SIGNAL(triggered()), old_tc, SLOT(hideFailed()));
         disconnect(labelBranches, SIGNAL(triggered()), old_tc, SLOT(labelBranches()));
@@ -833,8 +831,6 @@ Gist::connectCanvas(TreeCanvas* tc, TreeCanvas* old_tc) {
     connect(navRoot, SIGNAL(triggered()), tc, SLOT(navRoot()));
     connect(navNextSol, SIGNAL(triggered()), tc, SLOT(navNextSol()));
     connect(navPrevSol, SIGNAL(triggered()), tc, SLOT(navPrevSol()));
-    connect(searchNext, SIGNAL(triggered()), tc, SLOT(searchOne()));
-    connect(searchAll, SIGNAL(triggered()), tc, SLOT(searchAll()));
     connect(toggleHidden, SIGNAL(triggered()), tc, SLOT(toggleHidden()));
     connect(hideFailed, SIGNAL(triggered()), tc, SLOT(hideFailed()));
     connect(labelBranches, SIGNAL(triggered()), tc, SLOT(labelBranches()));

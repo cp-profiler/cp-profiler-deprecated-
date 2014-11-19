@@ -19,10 +19,10 @@ int Data::instance_counter = 0;
 Data::Data(TreeCanvas* tc, NodeAllocator* na, bool isRestarts)
  : _tc(tc), _na(na), _isRestarts(isRestarts) {
 
-    _id = Data::instance_counter++;
+    _id = _tc->_id;
     counter = 0;
     _isDone = false;
-    qDebug() << "+++ new Data created, id: " << tc->_id;
+    qDebug() << "+++ new Data created, tc_id: " << _id;
 }
 
 
