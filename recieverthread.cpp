@@ -54,11 +54,11 @@ RecieverThread::run(void) {
                 // if (msg->restart_id == -1 || msg->restart_id == 1) { // why 1?
                 if (msg->restart_id == -1) {
                     ptr_gist->canvasTwo = NULL;
-                    if (ptr_gist->sndCanvas->isChecked()) {
+                    if (ptr_gist->sndCanvas->isChecked() && ptr_gist->canvas->_isUsed) {
 
                         emit newCanvasNeeded(); // shows the 2nd canvas
                         while (!ptr_gist->canvasTwo) {
-                            qDebug() << "no canvas yet";
+                            // qDebug() << "no canvas yet";
                         }
 
                         t = ptr_gist->canvasTwo;

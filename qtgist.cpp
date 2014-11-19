@@ -26,7 +26,8 @@ Gist::createNewCanvas(void) {
 
     nc_layout->addWidget(canvasTwo);
     
-    connect(canvasTwo->_builder, SIGNAL(doneBuilding(void)), reciever, SLOT(updateCanvas(void)));
+    // connect(canvasTwo->_builder, SIGNAL(doneBuilding(void)), reciever, SLOT(updateCanvas(void)));
+    connect(canvasTwo->_builder, SIGNAL(doneBuilding(void)), canvasTwo, SLOT(finalizeCanvas(void)));
     
     canvasDialog->resize(500, 400);
    
@@ -72,7 +73,7 @@ Gist::Gist(QWidget* parent) : QWidget(parent) {
     
     connectCanvas(canvas);
 
-    connect(canvas->_builder, SIGNAL(doneBuilding(void)), reciever, SLOT(updateCanvas(void)));
+    connect(canvas->_builder, SIGNAL(doneBuilding(void)), canvas, SLOT(finalizeCanvas(void)));
     connect(initComparison, SIGNAL(triggered()), this, SLOT(initiateComparison()));
 
     connect(scrollArea->horizontalScrollBar(), SIGNAL(valueChanged(int)),
@@ -533,6 +534,7 @@ Gist::addActions(void) {
 
     sndCanvas = new QAction("Allow second canvas", this);
     sndCanvas->setCheckable(true);
+    sndCanvas->setChecked(true);
     /// TODO: set a shortcut
     
     navUp = new QAction("Up", this);

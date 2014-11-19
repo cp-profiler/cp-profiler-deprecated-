@@ -34,7 +34,8 @@ TreeCanvas::TreeCanvas(QGridLayout* layout, RecieverThread* reciever, QWidget* p
     , targetW(0), targetH(0), targetScale(0)
     , layoutDoneTimerId(0)
     , shapesWindow(parent,  this)
-    , shapesMap(CompareShapes(*this)) { // TODO: why *?
+    , shapesMap(CompareShapes(*this))
+    , _isUsed(false) { // TODO: why *?
 
     /// to distinguish between instances
     _id = TreeCanvas::counter++;
@@ -991,6 +992,8 @@ TreeCanvas::reset(bool isRestarts) {
 
     _builder->reset(_data, na);
 
+    _isUsed = false;
+
     update();
 }
 
@@ -1442,6 +1445,13 @@ TreeCanvas::finish(void) {
 //    for (int i=0; i<comparators.size(); i++)
 //        comparators[i].first->finalize();
     return !ptr_reciever->isRunning();
+}
+
+void
+TreeCanvas::finalizeCanvas(void) {
+  qDebug() << "in finalize canvas";
+  _isUsed = true;
+  ptr_reciever->updateCanvas();
 }
 
 void

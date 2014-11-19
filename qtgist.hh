@@ -41,6 +41,9 @@ private:
   TreeCanvas* canvasTwo;
   QDialog* canvasDialog;
 
+  /// Dialog for a merged tree (comparison)
+  QDialog* cmpDialog;
+
   void initInterface(void);
   void addActions(void);
   void connectCanvas(TreeCanvas* tc, TreeCanvas* old_tc = 0);

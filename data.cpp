@@ -71,9 +71,9 @@ int Data::handleNodeCallback(Message* msg) {
     thread = msg->thread;
     restart_id = msg->restart_id;
 
-    qDebug() << "Received node: \t" << id << " " << pid << " "
-                    << alt << " " << kids << " " << status << " wid: "
-                    << (int)thread << " restart: " << restart_id << msg->label;
+    // qDebug() << "Received node: \t" << id << " " << pid << " "
+    //                 << alt << " " << kids << " " << status << " wid: "
+    //                 << (int)thread << " restart: " << restart_id << msg->label;
 
     /// just so we don't have ugly numbers when not using restarts   
     if (restart_id == -1)

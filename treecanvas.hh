@@ -158,6 +158,7 @@ class TreeCanvas : public QWidget {
 public:
 /// each new consequent Canvas will get an id
   int _id;
+  bool _isUsed;
 
 private:
 
@@ -460,6 +461,8 @@ public Q_SLOTS:
   /// Set the selected node to \a n
   void setCurrentNode(VisualNode* n, bool finished=true, bool update=true);
 private Q_SLOTS:
+  /// Set isUsed to true and update
+  void finalizeCanvas(void);
   /// Search has finished
   void statusChanged(bool);
   /// Export PDF of the subtree of \a n
