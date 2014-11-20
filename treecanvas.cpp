@@ -53,7 +53,7 @@ TreeCanvas::TreeCanvas(QGridLayout* layout, RecieverThread* reciever, QWidget* p
     timer = new QTimer(this);
     timer->start(2000);
     
-    na->allocateRoot(); // read root from db
+    na->allocateRoot();
 
     root = (*na)[0];
     scale = LayoutConfig::defScale / 100.0;

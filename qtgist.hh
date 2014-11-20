@@ -40,8 +40,11 @@ private:
 
   /// Second canvas in case of comparing
   TreeCanvas* canvasTwo;
+
   QDialog* canvasDialog;
 
+  /// Merged tree (comparison)
+  TreeCanvas* cmpCanvas;
   /// Dialog for a merged tree (comparison)
   QDialog* cmpDialog;
 

@@ -5,26 +5,26 @@
 
 void
 Gist::createNewCanvas(void) {
-    QGridLayout* layout2 = new QGridLayout(this);
+    QGridLayout* layout = new QGridLayout(this);
 
     canvasDialog = new QDialog(this);
 
-    canvasDialog->setLayout(layout2);
+    canvasDialog->setLayout(layout);
 
     QVBoxLayout* nc_layout = new QVBoxLayout();
 
-    QAbstractScrollArea* scrollArea2 = new QAbstractScrollArea(canvasDialog);
-    canvasTwo = new TreeCanvas(layout2, reciever, scrollArea2->viewport());
+    QAbstractScrollArea* scrollArea = new QAbstractScrollArea(canvasDialog);
+    canvasTwo = new TreeCanvas(layout, reciever, scrollArea->viewport());
 
-    connect(scrollArea2->horizontalScrollBar(), SIGNAL(valueChanged(int)),
+    connect(scrollArea->horizontalScrollBar(), SIGNAL(valueChanged(int)),
             canvasTwo, SLOT(scroll(void)));
-    connect(scrollArea2->verticalScrollBar(), SIGNAL(valueChanged(int)),
+    connect(scrollArea->verticalScrollBar(), SIGNAL(valueChanged(int)),
             canvasTwo, SLOT(scroll(void)));
 
-    layout2->addWidget(scrollArea2, 0, 0, -1, 1);
-    layout2->addWidget(canvasTwo->scaleBar, 1,1, Qt::AlignHCenter);
+    layout->addWidget(scrollArea, 0, 0, -1, 1);
+    layout->addWidget(canvasTwo->scaleBar, 1,1, Qt::AlignHCenter);
 
-    scrollArea2->viewport()->setLayout(nc_layout);
+    scrollArea->viewport()->setLayout(nc_layout);
 
     nc_layout->addWidget(canvasTwo);
     
@@ -44,12 +44,44 @@ Gist::initiateComparison(void) {
     //     return;
     // }
 
-    TreeComparison::compare(canvas, canvasTwo);
+    /// Canvas related nonsense (incapsulate?)
+    QGridLayout* layout = new QGridLayout(this);
+    cmpDialog = new QDialog(this);
+    cmpDialog->setLayout(layout);
 
-    // cmpDialog = new QDialog(this);
-    // cmpDialog->resize(500, 400);
-    // cmpDialog->show();
-    // qDebug() << "need to create new canvas here";
+    QVBoxLayout* nc_layout = new QVBoxLayout();
+    QAbstractScrollArea* scrollArea = new QAbstractScrollArea(cmpDialog);
+
+    cmpCanvas = new TreeCanvas(layout, reciever, scrollArea->viewport());
+
+    connect(scrollArea->horizontalScrollBar(), SIGNAL(valueChanged(int)),
+            cmpCanvas, SLOT(scroll(void)));
+    connect(scrollArea->verticalScrollBar(), SIGNAL(valueChanged(int)),
+            cmpCanvas, SLOT(scroll(void)));
+
+    layout->addWidget(scrollArea, 0, 0, -1, 1);
+    layout->addWidget(cmpCanvas->scaleBar, 1,1, Qt::AlignHCenter);
+
+    scrollArea->viewport()->setLayout(nc_layout);
+
+    /// *** SANDBOX ***
+
+    // Node::NodeAllocator* na = cmpCanvas->na;
+
+    // (*na)[0]->setNumberOfChildren(10, *na);
+    // (*na)[0]->setStatus(BRANCH);
+    // (*na)[0]->dirtyUp(*na);
+    // cmpCanvas->finalizeCanvas();
+
+    /// ***************
+
+//    cmpCanvas
+
+    // TreeComparison::compare(canvas, canvasTwo, cmpCanvas);
+
+    cmpDialog->resize(500, 400);
+    cmpDialog->show();
+    
 }
 
 void
