@@ -1460,23 +1460,9 @@ void
 TreeCanvas::setCurrentNode(VisualNode* n, bool finished, bool update) {
     if (finished)
         mutex.lock();
-    if (update && n != NULL && n != currentNode &&
-            n->getStatus() != UNDETERMINED && !n->isHidden()) {
-//        Space* curSpace = NULL;
-//        for (int i=0; i<moveInspectors.size(); i++) {
-//            if (moveInspectors[i].second) {
-//                if (curSpace == NULL)
-//                    curSpace = n->getSpace(*na,curBest,c_d,a_d);
-//                try {
-//                    moveInspectors[i].first->inspect(*curSpace);
-//                } catch (Exception& e) {
-//                    qFatal("Exception in move inspector %d: %s.\n Stopping.",
-//                           i, e.what());
-//                }
-//            }
-//        }
-    }
+
     if (n != NULL) {
+        qDebug() << "setting current node";
         currentNode->setMarked(false);
         currentNode = n;
         currentNode->setMarked(true);

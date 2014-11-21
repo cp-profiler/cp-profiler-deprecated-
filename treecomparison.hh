@@ -20,7 +20,9 @@ private:
   /// Return true/false depending on whether n1 ~ n2
   static bool copmareNodes(VisualNode* n1, VisualNode* n2); /// TODO: make it inline?
 
-  static void copyTree(VisualNode*, NodeAllocator*, VisualNode*, NodeAllocator*);
+  /// 'which' is treated as a colour, usually 1 or 2 depending on which tree is a source
+  static void copyTree(VisualNode*, NodeAllocator*, 
+                       VisualNode*, NodeAllocator*, int which = 0);
 
 };
 

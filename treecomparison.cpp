@@ -25,7 +25,6 @@ TreeComparison::compare(TreeCanvas* t1, TreeCanvas* t2, TreeCanvas* new_tc) {
         VisualNode* node2 = stack2.pop();
         bool equal = TreeComparison::copmareNodes(node1, node2);
         if (equal) {
-            qDebug() << "equal";
             uint kids = node1->getNumberOfChildren();
             for (int i = 0; i < kids; ++i) {
                 stack1.push(node1->getChild(*na1, i));
@@ -42,6 +41,7 @@ TreeComparison::compare(TreeCanvas* t1, TreeCanvas* t2, TreeCanvas* new_tc) {
 
             next->setNumberOfChildren(kids, *na);
             next->setStatus(node1->getStatus());
+            next->_tid = 0;
 
             for (int i = 0; i < kids; ++i) {
                 stack.push(next->getChild(*na, i));
@@ -49,17 +49,17 @@ TreeComparison::compare(TreeCanvas* t1, TreeCanvas* t2, TreeCanvas* new_tc) {
 
         } else {
             /// not equal
-            qDebug() << "not equal";
 
             next = stack.pop();
             next->setNumberOfChildren(2, *na);
             next->setStatus(UNDETERMINED);
+            next->_tid = 0;
 
             stack.push(next->getChild(*na, 1));
             stack.push(next->getChild(*na, 0));
 
-            copyTree(stack.pop(), na, node1, na1);
-            copyTree(stack.pop(), na, node2, na2);
+            copyTree(stack.pop(), na, node1, na1, 1);
+            copyTree(stack.pop(), na, node2, na2, 2);
 
         }
 
@@ -70,7 +70,7 @@ TreeComparison::compare(TreeCanvas* t1, TreeCanvas* t2, TreeCanvas* new_tc) {
 
 void 
 TreeComparison::copyTree(VisualNode* target, NodeAllocator* na,
-                         VisualNode* root,   NodeAllocator* na_source) {
+                         VisualNode* root,   NodeAllocator* na_source, int which) {
     
     QStack<VisualNode*>* source_stack = new QStack<VisualNode*>();
     QStack<VisualNode*>* target_stack = new QStack<VisualNode*>();
@@ -81,6 +81,8 @@ TreeComparison::copyTree(VisualNode* target, NodeAllocator* na,
     while (source_stack->size() > 0) {
         VisualNode* n = source_stack->pop();
         VisualNode* next = target_stack->pop();
+
+        next->_tid = which; // treated as a colour
 
         uint kids = n->getNumberOfChildren();
         next->setNumberOfChildren(kids, *na);
@@ -103,7 +105,7 @@ TreeComparison::copmareNodes(VisualNode* n1, VisualNode* n2) {
     if (n1->getNumberOfChildren() != n2->getNumberOfChildren())
         return false;
 
-    // qDebug() << "status:" << n1->getStatus() << "vs" << n2->getStatus();
+    /// TODO: add labels as well
 
     if (n1->getStatus() != n2->getStatus()) 
         return false;
