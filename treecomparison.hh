@@ -14,8 +14,13 @@ public:
 private:
   static QStack<VisualNode*> stack1;
   static QStack<VisualNode*> stack2;
+
+  /// The stack used while building new_tc
+  static QStack<VisualNode*> stack;
   /// Return true/false depending on whether n1 ~ n2
   static bool copmareNodes(VisualNode* n1, VisualNode* n2); /// TODO: make it inline?
+
+  static void copyTree(VisualNode*, NodeAllocator*, VisualNode*, NodeAllocator*);
 
 };
 

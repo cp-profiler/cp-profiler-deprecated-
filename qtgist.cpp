@@ -64,20 +64,36 @@ Gist::initiateComparison(void) {
 
     scrollArea->viewport()->setLayout(nc_layout);
 
-    /// *** SANDBOX ***
+    nc_layout->addWidget(cmpCanvas);
+
+    TreeComparison::compare(canvas, canvasTwo, cmpCanvas);
+
+    /// SANDBOX
 
     // Node::NodeAllocator* na = cmpCanvas->na;
 
-    // (*na)[0]->setNumberOfChildren(10, *na);
-    // (*na)[0]->setStatus(BRANCH);
-    // (*na)[0]->dirtyUp(*na);
-    // cmpCanvas->finalizeCanvas();
+    // VisualNode* root = (*na)[0];
 
-    /// ***************
+    // root->setNumberOfChildren(2, *na);
+    // root->dirtyUp(*na);
 
-//    cmpCanvas
+    // VisualNode* n1 = root->getChild(*na, 0);
+    // VisualNode* n2 = root->getChild(*na, 1);
 
-    // TreeComparison::compare(canvas, canvasTwo, cmpCanvas);
+    // n1->setNumberOfChildren(0, *na);
+    // n2->setNumberOfChildren(2, *na);
+
+    // n1->setStatus(SOLVED);
+    // n2->setStatus(FAILED);
+
+    // n2->getChild(*na, 0)->setStatus(SOLVED);
+
+    // cmpCanvas->update();
+
+
+    /// *****************
+
+
 
     cmpDialog->resize(500, 400);
     cmpDialog->show();
