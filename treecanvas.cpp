@@ -56,6 +56,7 @@ TreeCanvas::TreeCanvas(QGridLayout* layout, RecieverThread* reciever, QWidget* p
     na->allocateRoot();
 
     root = (*na)[0];
+    currentNode = root;
     scale = LayoutConfig::defScale / 100.0;
 
     setAutoFillBackground(true);

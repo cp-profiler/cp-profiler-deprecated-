@@ -39,11 +39,6 @@ Gist::createNewCanvas(void) {
 void 
 Gist::initiateComparison(void) {
 
-    // if (!canvas || !canvasTwo) {
-    //     qDebug() << "!-!-! need 2 trees to compare!";
-    //     return;
-    // }
-
     /// Canvas related nonsense (incapsulate?)
     QGridLayout* layout = new QGridLayout(this);
     cmpDialog = new QDialog(this);
@@ -67,33 +62,6 @@ Gist::initiateComparison(void) {
     nc_layout->addWidget(cmpCanvas);
 
     TreeComparison::compare(canvas, canvasTwo, cmpCanvas);
-
-    /// SANDBOX
-
-    // Node::NodeAllocator* na = cmpCanvas->na;
-
-    // VisualNode* root = (*na)[0];
-
-    // root->setNumberOfChildren(2, *na);
-    // root->dirtyUp(*na);
-
-    // VisualNode* n1 = root->getChild(*na, 0);
-    // VisualNode* n2 = root->getChild(*na, 1);
-
-    // n1->setNumberOfChildren(0, *na);
-    // n2->setNumberOfChildren(2, *na);
-
-    // n1->setStatus(SOLVED);
-    // n2->setStatus(FAILED);
-
-    // n2->getChild(*na, 0)->setStatus(SOLVED);
-
-    // cmpCanvas->update();
-
-
-    /// *****************
-
-
 
     cmpDialog->resize(500, 400);
     cmpDialog->show();
