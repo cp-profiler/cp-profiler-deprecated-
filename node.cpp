@@ -76,7 +76,7 @@ Node::addChild(NodeAllocator &na) {
         newchildren[noOfChildren-1] = na.allocate(getIndex(na));
         childrenOrFirstChild = static_cast<void*>(newchildren);
         setTag(MORE_CHILDREN);
-        assert(getNumberOfChildren()==noOfChildren);
+        assert(static_cast<int>(getNumberOfChildren())==noOfChildren);
         return newchildren[noOfChildren-1];
     }
     }

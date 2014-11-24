@@ -26,7 +26,7 @@ TreeComparison::compare(TreeCanvas* t1, TreeCanvas* t2, TreeCanvas* new_tc) {
         bool equal = TreeComparison::copmareNodes(node1, node2);
         if (equal) {
             uint kids = node1->getNumberOfChildren();
-            for (int i = 0; i < kids; ++i) {
+            for (uint i = 0; i < kids; ++i) {
                 stack1.push(node1->getChild(*na1, i));
                 stack2.push(node2->getChild(*na2, i));
             }
@@ -43,7 +43,7 @@ TreeComparison::compare(TreeCanvas* t1, TreeCanvas* t2, TreeCanvas* new_tc) {
             next->setStatus(node1->getStatus());
             next->_tid = 0;
 
-            for (int i = 0; i < kids; ++i) {
+            for (uint i = 0; i < kids; ++i) {
                 stack.push(next->getChild(*na, i));
             }
 
@@ -90,7 +90,7 @@ TreeComparison::copyTree(VisualNode* target, NodeAllocator* na,
 
         next->dirtyUp(*na);
 
-        for (int i = 0; i < kids; ++i) {
+        for (uint i = 0; i < kids; ++i) {
             source_stack->push(n->getChild(*na_source, i));
             target_stack->push(next->getChild(*na, i));
         }

@@ -35,21 +35,22 @@ TreeCanvas::TreeCanvas(QGridLayout* layout, RecieverThread* reciever, QWidget* p
     , layoutDoneTimerId(0)
     , shapesWindow(parent,  this)
     , shapesMap(CompareShapes(*this))
-    , _isUsed(false) { // TODO: why *?
+{
+    QMutexLocker locker(&mutex);
 
     /// to distinguish between instances
     _id = TreeCanvas::counter++;
-      
-    QMutexLocker locker(&mutex);
+
+    _isUsed = false;
 
     ptr_reciever = reciever;
-    _builder = new TreeBuilder(this, &mutex);
+    _builder = new TreeBuilder(this);
     na = new Node::NodeAllocator(false);
 
     _data = NULL; /// but is it really needed? TODO
 
     // timer disabled for now
-    // what was it even used for?
+    // should be removed
     timer = new QTimer(this);
     timer->start(2000);
     
@@ -148,13 +149,9 @@ ShapeRect::getNode(void){
 }
 
 void
-ShapeRect::mousePressEvent (QGraphicsSceneMouseEvent* event) {
-  // if (event->button() == Qt::LeftButton) {
-  //   _shapeCanvas->_targetNode = _node;
-  // } else {
+ShapeRect::mousePressEvent (QGraphicsSceneMouseEvent* ) {
   _shapeCanvas->_targetNode = _node;
   _ssWindow->tc->highlightShape(_node);
-  // }
   _shapeCanvas->QWidget::update();
 }
 
@@ -222,8 +219,6 @@ SimilarShapesWindow::drawHistogram(void) {
 
   blackPen.setWidth(1);
 
-  QGraphicsTextItem * text;
-
   int y = 0, x = 0;
 
   for(std::multiset<ShapeI>::iterator it = tc->shapesMap.begin(),
@@ -260,13 +255,13 @@ SimilarShapesWindow::drawHistogram(void) {
 }
 
 void
-SimilarShapesWindow::depthFilterChanged(int val){
+SimilarShapesWindow::depthFilterChanged(uint val){
   filters.setMinDepth(val);
   drawHistogram();
 }
 
 void
-SimilarShapesWindow::countFilterChanged(int val){
+SimilarShapesWindow::countFilterChanged(uint val){
   filters.setMinCount(val);
   drawHistogram();
 }
@@ -276,18 +271,18 @@ Filters::Filters(TreeCanvas* tc)
 
 bool
 Filters::apply(const ShapeI& si){
-  if (si.s->depth() < _minDepth) return false;
+  if (si.s->depth() < static_cast<int>(_minDepth)) return false;
   if (_tc->shapesMap.count(si) < _minCount) return false;
   return true;
 }
 
 void
-Filters::setMinDepth(int val){
+Filters::setMinDepth(uint val){
   _minDepth = val;
 }
 
 void
-Filters::setMinCount(int val){
+Filters::setMinCount(uint val){
   _minCount = val;
 }
 
@@ -776,16 +771,16 @@ TreeCanvas::inspectCurrentNode(bool, int) {
 
     int failedInspectorType = -1;
     int failedInspector = -1;
-    bool needCentering = false;
+//    bool needCentering;
 
-    unsigned int kids = currentNode->getNumberOfChildren();
+//    uint kids = currentNode->getNumberOfChildren();
     int depth = -1;
     for (VisualNode* p = currentNode; p != NULL; p=p->getParent(*na))
         depth++;
-    if (kids > 0) {
-        needCentering = true;
-        depth++;
-    }
+//    if (kids > 0) {
+//        needCentering = true;
+//        depth++;
+//    }
     stats.maxDepth =
             std::max(stats.maxDepth, depth);
 
@@ -793,7 +788,7 @@ TreeCanvas::inspectCurrentNode(bool, int) {
         switch (currentNode->getStatus()) {
             case UNDETERMINED:
             {
-               // unsigned int kids = currentNode->getNumberOfChildNodes(*na);
+               // uint kids = currentNode->getNumberOfChildNodes(*na);
                // int depth = -1;
                // for (VisualNode* p = currentNode; p != NULL; p=p->getParent(*na))
                //     depth++;
@@ -1140,7 +1135,7 @@ TreeCanvas::navRight(void) {
     QMutexLocker locker(&mutex);
     VisualNode* p = currentNode->getParent(*na);
     if (p != NULL) {
-        unsigned int alt = currentNode->getAlternative(*na);
+        uint alt = currentNode->getAlternative(*na);
         if (alt + 1 < p->getNumberOfChildren()) {
             VisualNode* n = p->getChild(*na,alt+1);
             setCurrentNode(n);

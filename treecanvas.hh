@@ -78,12 +78,12 @@ public:
 class Filters {
 public:
   Filters(TreeCanvas* tc);
-  void setMinDepth(int);
-  void setMinCount(int);
+  void setMinDepth(unsigned int);
+  void setMinCount(unsigned int);
   bool apply(const ShapeI& s);
 private:
-  int _minDepth;
-  int _minCount;
+  unsigned int _minDepth;
+  unsigned int _minCount;
   TreeCanvas* _tc;
 };
 
@@ -113,8 +113,8 @@ public:
   ShapeCanvas* shapeCanvas;
 
 public Q_SLOTS:
-  void depthFilterChanged(int val);
-  void countFilterChanged(int val);
+  void depthFilterChanged(unsigned int val);
+  void countFilterChanged(unsigned int val);
 private:
   void applyLayouts(void);
 

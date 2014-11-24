@@ -108,7 +108,7 @@ void Data::pushInstance(unsigned long long sid, DbEntry* entry) {
     // qDebug() << "mutex unlock in pushInstance";
 }
 
-char* Data::getLabelByGid(unsigned int gid) {
+char* Data::getLabelByGid(uint gid) {
     QMutexLocker locker(&dataMutex);
     // qDebug() << "mutex lock in getLabel";
     // qDebug() << "mutex unlock in getLabel";
