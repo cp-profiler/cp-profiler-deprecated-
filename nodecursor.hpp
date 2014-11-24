@@ -229,15 +229,26 @@ AnalyzeCursor::processCurrentNode(void) {
   VisualNode* n = node();
   int nSol;
   switch (n->getStatus()) {
-  case SOLVED: nSol = 1; break;
-  case FAILED: nSol = 0; break;
-  case UNDETERMINED: nSol = 0; break;
-  case BRANCH:
-    nSol = 0;
-    for (int i=n->getNumberOfChildren(); i--;) {
-      nSol += nSols.value(n->getChild(na,i));
-    }
-    break;
+      case SOLVED:
+        nSol = 1;
+      break;
+      case FAILED:
+        nSol = 0;
+      break;
+      case SKIPPED:
+        nSol = 0;
+      case UNDETERMINED:
+        nSol = 0;
+      break;
+      case BRANCH:
+        nSol = 0;
+        for (int i=n->getNumberOfChildren(); i--;) {
+          nSol += nSols.value(n->getChild(na,i));
+        }
+      break;
+      case STOP:
+      case UNSTOP:
+      break;    /// To avoid compiler warnings
   }
   nSols[n] = nSol;
   if (n->getNumberOfChildren() > 0)

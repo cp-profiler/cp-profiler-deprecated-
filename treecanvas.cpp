@@ -57,6 +57,8 @@ TreeCanvas::TreeCanvas(QGridLayout* layout, RecieverThread* reciever, QWidget* p
 
     root = (*na)[0];
     currentNode = root;
+    root->setMarked(true);
+    
     scale = LayoutConfig::defScale / 100.0;
 
     setAutoFillBackground(true);
@@ -1463,7 +1465,6 @@ TreeCanvas::setCurrentNode(VisualNode* n, bool finished, bool update) {
         mutex.lock();
 
     if (n != NULL) {
-        qDebug() << "setting current node";
         currentNode->setMarked(false);
         currentNode = n;
         currentNode->setMarked(true);
