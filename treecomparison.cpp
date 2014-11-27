@@ -39,11 +39,16 @@ TreeComparison::compare(TreeCanvas* t1, TreeCanvas* t2, TreeCanvas* new_tc) {
                 next = stack.pop();
             }
 
+            /// new node is build
+            int index = node2->getIndex(*na2);
+            // new_tc->_data->getLabelByAid(0); // should crash
+            qDebug() << "label: " << t2->_data->getLabelByGid(index);
+            
             next->setNumberOfChildren(kids, *na);
             next->setStatus(node1->getStatus());
             next->_tid = 0;
 
-            for (uint i = 0; i < kids; ++i) {
+            for (unsigned int i = 0; i < kids; ++i) {
                 stack.push(next->getChild(*na, i));
             }
 

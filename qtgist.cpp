@@ -48,6 +48,7 @@ Gist::initiateComparison(void) {
     QAbstractScrollArea* scrollArea = new QAbstractScrollArea(cmpDialog);
 
     cmpCanvas = new TreeCanvas(layout, reciever, scrollArea->viewport());
+    
 
     connect(scrollArea->horizontalScrollBar(), SIGNAL(valueChanged(int)),
             cmpCanvas, SLOT(scroll(void)));

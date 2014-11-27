@@ -97,6 +97,7 @@ private:
     TreeCanvas* _tc;
     NodeAllocator* _na;
     std::vector<DbEntry*> nodes_arr;
+//    std::
 
     /// **** for restarts ****
     std::vector<int> restarts_offsets;
@@ -133,6 +134,13 @@ public:
     void setDone(void);
     
     char* getLabelByGid(unsigned int gid);
+
+    /// get label omitting gid2aid mapping (i.e. for merged tree)
+    char* getLabelByAid(unsigned int aid);
+
+    /// set label (i.e. for merged tree) 
+    void setLabel(unsigned int aid, char* label);
+
     static int handleNodeCallback(Message* data);
     
 };

@@ -47,7 +47,7 @@ TreeCanvas::TreeCanvas(QGridLayout* layout, RecieverThread* reciever, QWidget* p
     _builder = new TreeBuilder(this);
     na = new Node::NodeAllocator(false);
 
-    _data = NULL; /// but is it really needed? TODO
+    _data = new Data(this, na, false); // default data instance
 
     // timer disabled for now
     // should be removed
@@ -255,14 +255,14 @@ SimilarShapesWindow::drawHistogram(void) {
 }
 
 void
-SimilarShapesWindow::depthFilterChanged(uint val){
-  filters.setMinDepth(val);
+SimilarShapesWindow::depthFilterChanged(int val){
+  filters.setMinDepth(static_cast<unsigned int>(val));
   drawHistogram();
 }
 
 void
-SimilarShapesWindow::countFilterChanged(uint val){
-  filters.setMinCount(val);
+SimilarShapesWindow::countFilterChanged(int val){
+  filters.setMinCount(static_cast<unsigned int>(val));
   drawHistogram();
 }
 
@@ -965,7 +965,9 @@ TreeCanvas::reset(bool isRestarts) {
 
     qDebug() << "tc #" << _id << "is resetting";
 
-    delete na;
+    if (na) delete na;
+    if (_data) delete _data;
+
     na = new Node::NodeAllocator(false);
 
     int rootIdx = na->allocateRoot();
@@ -983,7 +985,7 @@ TreeCanvas::reset(bool isRestarts) {
 
     emit statusChanged(currentNode, stats, true);
 
-    if (_data) delete _data;
+    
 
     _data = new Data(this, na, isRestarts);
 

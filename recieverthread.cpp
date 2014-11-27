@@ -28,7 +28,7 @@ RecieverThread::run(void) {
     zmq::socket_t socket (context, ZMQ_PULL);
     try {
         socket.bind("tcp://*:6565");
-        qDebug() << "connected to 6565";
+        // qDebug() << "connected to 6565";
     } catch (std::exception& e) {
         std::cerr << "error connecting to socket\n";
     }
@@ -66,7 +66,6 @@ RecieverThread::run(void) {
 
                     t->reset(false); // no restarts
                     emit startWork();
-                    qDebug() << ">>> no restarts";
                 } else if (msg->restart_id == 0){
 
                     t->reset(true);
@@ -100,7 +99,7 @@ RecieverThread::run(void) {
 
 void
 RecieverThread::updateCanvas(void) {
-  qDebug() << "in RecieverThread::updateCanvas\n";
+
   // if (t == NULL) return; /// TODO: why do I need this all of a sudden?
   t->layoutMutex.lock();
 

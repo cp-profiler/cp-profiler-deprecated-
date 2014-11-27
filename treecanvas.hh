@@ -113,8 +113,8 @@ public:
   ShapeCanvas* shapeCanvas;
 
 public Q_SLOTS:
-  void depthFilterChanged(unsigned int val);
-  void countFilterChanged(unsigned int val);
+  void depthFilterChanged(int val);
+  void countFilterChanged(int val);
 private:
   void applyLayouts(void);
 

@@ -1,8 +1,6 @@
 #ifndef NODE_HPP
 #define NODE_HPP
 
-#include "data.hh"
-
 template<class T>
 void
 NodeAllocatorBase<T>::allocate(void) {

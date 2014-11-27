@@ -5,8 +5,6 @@
 #include <QHash>
 #include <QString>
 
-//#include "data.hh"
-
 class VisualNode;
 
 #include "heap.hpp"
@@ -115,6 +113,7 @@ public:
 
   /// Construct node with parent \a p
   Node(int p, bool failed = false);
+  
   int getChild(int n) const;
   /// Return the parent
   int getParent(void) const;

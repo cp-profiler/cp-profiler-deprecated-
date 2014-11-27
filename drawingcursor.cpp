@@ -87,6 +87,7 @@ DrawingCursor::processCurrentNode(void) {
 
     /// < SHAPE CODE GOES HERE > (for parallel stuff)
     if (!parent || parent->_tid != n->_tid) {
+
         switch (n->_tid) {
             case 0:
                 painter.setBrush(QColor(255, 255, 150, 255));

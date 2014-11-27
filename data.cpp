@@ -2,6 +2,7 @@
 #include <qdebug.h>
 #include <string>
 #include <sstream>
+#include <QString>
 
 #include <ctime>
 #include <zmq.hpp>
@@ -45,7 +46,6 @@ bool Data::isRestarts(void) {
 
 void Data::setDone(void) {
     QMutexLocker locker(&dataMutex);
-    qDebug() << ">>> set _isDone = true";
     _isDone = true;
 }
 
@@ -108,12 +108,21 @@ void Data::pushInstance(unsigned long long sid, DbEntry* entry) {
     // qDebug() << "mutex unlock in pushInstance";
 }
 
-char* Data::getLabelByGid(uint gid) {
+char* Data::getLabelByGid(unsigned int gid) {
     QMutexLocker locker(&dataMutex);
-    // qDebug() << "mutex lock in getLabel";
-    // qDebug() << "mutex unlock in getLabel";
-    return nodes_arr[ gid2aid[gid] ]->label;
 
+    return nodes_arr[ gid2aid[gid] ]->label;
+}
+
+char* Data::getLabelByAid(unsigned int aid) {
+    QMutexLocker locker(&dataMutex);
+
+    return nodes_arr[ aid ]->label;
+}
+
+void Data::setLabel(unsigned int aid, char* label) {
+    assert(nodes_arr[ aid ] == NULL);
+    qDebug() << aid;
 }
 
 
