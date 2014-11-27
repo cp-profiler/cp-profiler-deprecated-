@@ -20,6 +20,8 @@ const QColor DrawingCursor::lightBlue(0, 92, 161, 120);
 
 const double NODE_WIDTH = 20.0;
 const double HALF_NODE_WIDTH = NODE_WIDTH / 2.0;
+const double THIRD_NODE_WIDTH = NODE_WIDTH / 3.0;
+const double TWO_THIRDS_NODE_WIDTH = 2.0 * NODE_WIDTH / 3.0;
 const double QUARTER_NODE_WIDTH = HALF_NODE_WIDTH / 2.0;
 const double FAILED_WIDTH = 14.0;
 const double HALF_FAILED_WIDTH = FAILED_WIDTH / 2.0;
@@ -85,9 +87,7 @@ DrawingCursor::processCurrentNode(void) {
         painter.drawText(QPointF(lx, myy - 2), label);
     }
 
-    /// < SHAPE CODE GOES HERE > (for parallel stuff)
     if (!parent || parent->_tid != n->_tid) {
-
         switch (n->_tid) {
             case 0:
                 painter.setBrush(QColor(255, 255, 150, 255));
@@ -118,7 +118,10 @@ DrawingCursor::processCurrentNode(void) {
         painter.setBrush(Qt::gray);
         painter.setPen(Qt::NoPen);
         if (n->isHidden()) {
-            drawTriangle(myx, myy, true);
+            if (n->getStatus() == MERGING)
+                drawPentagon(myx, myy, true);
+            else
+                drawTriangle(myx, myy, true);
         } else {
             switch (n->getStatus()) {
             case SOLVED:
@@ -150,7 +153,12 @@ DrawingCursor::processCurrentNode(void) {
 
     painter.setPen(Qt::SolidLine);
     if (n->isHidden() && ~_showHidden) {
-        if (n->hasOpenChildren()) {
+
+        if (n->getStatus() == MERGING) {
+            painter.setBrush(orange);
+            drawPentagon(myx, myy, false);
+        } else {
+            if (n->hasOpenChildren()) {
             QLinearGradient gradient(myx - NODE_WIDTH, myy,
                 myx + NODE_WIDTH * 1.3, myy + HIDDEN_DEPTH * 1.3);
             if (n->hasSolvedChildren()) {
@@ -164,14 +172,16 @@ DrawingCursor::processCurrentNode(void) {
                 gradient.setColorAt(1, QColor(0, 0, 0));
             }
             painter.setBrush(gradient);
-        } else {
-            if (n->hasSolvedChildren())
-                painter.setBrush(QBrush(green));
-            else
-                painter.setBrush(QBrush(red));
-        }
+            } else {
+                if (n->hasSolvedChildren())
+                    painter.setBrush(QBrush(green));
+                else
+                    painter.setBrush(QBrush(red));
+            }
 
-        drawTriangle(myx, myy, false);
+            drawTriangle(myx, myy, false);            
+        }
+        
     } else {
         switch (n->getStatus()) {
         case SOLVED:
@@ -188,10 +198,8 @@ DrawingCursor::processCurrentNode(void) {
             break;
         case UNSTOP:
         case STOP:
-        {
             painter.setBrush(n->getStatus() == STOP ? QBrush(red) : QBrush(green));
             drawOctagon(myx, myy, false);
-        }
             break;
         case BRANCH:
             painter.setBrush(n->childrenLayoutIsDone() ? QBrush(blue) :
@@ -206,6 +214,10 @@ DrawingCursor::processCurrentNode(void) {
             painter.setBrush(Qt::gray);
             painter.drawRect(myx - HALF_FAILED_WIDTH, myy, FAILED_WIDTH, FAILED_WIDTH);
             break;
+        case MERGING:
+            painter.setBrush(orange);
+            drawPentagon(myx, myy, false);
+            break;
         }
     }
 
@@ -214,6 +226,19 @@ DrawingCursor::processCurrentNode(void) {
         painter.drawEllipse(myx-10-0, myy, 10.0, 10.0);
     }
 
+}
+
+inline void
+DrawingCursor::drawPentagon(int myx, int myy, bool shadow) {
+    int shadowOffset = shadow? SHADOW_OFFSET : 0;
+    QPointF points[5] = { QPointF(myx + shadowOffset, myy + shadowOffset),
+        QPointF(myx + HALF_NODE_WIDTH + shadowOffset, myy + THIRD_NODE_WIDTH + shadowOffset),
+        QPointF(myx + THIRD_NODE_WIDTH + shadowOffset, myy + NODE_WIDTH + shadowOffset),
+        QPointF(myx - THIRD_NODE_WIDTH + shadowOffset, myy + NODE_WIDTH + shadowOffset),
+        QPointF(myx - HALF_NODE_WIDTH + shadowOffset, myy + THIRD_NODE_WIDTH + shadowOffset)
+    };
+
+    painter.drawConvexPolygon(points, 5);
 }
 
 inline void

@@ -769,6 +769,12 @@ TreeCanvas::inspectCurrentNode(bool, int) {
         return;
     }
 
+    if (currentNode->getStatus() == MERGING) {
+        toggleHidden();
+        
+        return;
+    }
+
     int failedInspectorType = -1;
     int failedInspector = -1;
 //    bool needCentering;

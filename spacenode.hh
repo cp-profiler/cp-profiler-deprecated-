@@ -12,7 +12,8 @@ enum NodeStatus {
   UNDETERMINED, ///< Node that has not been explored yet
   STOP,         ///< Node representing stop point
   UNSTOP,       ///< Node representing ignored stop point
-  SKIPPED       ///< Skipped by backjumping (basically failed)
+  SKIPPED,       ///< Skipped by backjumping (basically failed)
+  MERGING
 };
 
 static const unsigned int FIRSTBIT = 23; //< First free bit in status word

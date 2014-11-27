@@ -20,6 +20,7 @@ private:
     /// Test if current node is clipped
     bool isClipped(void);
 
+    void drawPentagon(int myx, int myy, bool shadow);
     void drawTriangle(int myx, int myy, bool shadow);
     void drawDiamond(int myx, int myy, bool shadow);
     void drawOctagon(int myx, int myy, bool shadow);
