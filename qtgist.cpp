@@ -318,7 +318,7 @@ Gist::on_canvas_statusChanged(VisualNode* n, const Statistics& stats,
         labelBranches->setEnabled(false);
         labelPath->setEnabled(false);
         analyzeSimilarSubtrees->setEnabled(false);
-        initComparison->setEnabled(false);
+        // initComparison->setEnabled(false);
 
         toggleStop->setEnabled(false);
         unstopAll->setEnabled(false);
@@ -332,6 +332,7 @@ Gist::on_canvas_statusChanged(VisualNode* n, const Statistics& stats,
         inspectPath->setEnabled(false);
         bookmarkNode->setEnabled(false);
         bookmarksGroup->setEnabled(false);
+        sndCanvas->setEnabled(true);
     } else {
         stop->setEnabled(false);
         reset->setEnabled(true);
@@ -818,7 +819,7 @@ Gist::connectCanvas(TreeCanvas* tc, TreeCanvas* old_tc) {
         disconnect(inspectBeforeFP, SIGNAL(triggered()), old_tc, SLOT(inspectBeforeFP(void)));
         disconnect(stop, SIGNAL(triggered()), old_tc, SLOT(stopSearch()));
         disconnect(reset, SIGNAL(triggered()), old_tc, SLOT(reset()));
-        disconnect(sndCanvas, SIGNAL(triggered()), old_tc, SLOT(compareTrees()));
+        disconnect(sndCanvas, SIGNAL(triggered()), old_tc, SLOT(toggleSecondCanvas()));
         disconnect(navUp, SIGNAL(triggered()), old_tc, SLOT(navUp()));
         disconnect(navDown, SIGNAL(triggered()), old_tc, SLOT(navDown()));
         disconnect(navLeft, SIGNAL(triggered()), old_tc, SLOT(navLeft()));
@@ -853,7 +854,7 @@ Gist::connectCanvas(TreeCanvas* tc, TreeCanvas* old_tc) {
     connect(inspectBeforeFP, SIGNAL(triggered()), tc, SLOT(inspectBeforeFP(void)));
     connect(stop, SIGNAL(triggered()), tc, SLOT(stopSearch()));
     connect(reset, SIGNAL(triggered()), tc, SLOT(reset()));
-    connect(sndCanvas, SIGNAL(triggered()), tc, SLOT(compareTrees()));
+    connect(sndCanvas, SIGNAL(triggered()), tc, SLOT(toggleSecondCanvas()));
     connect(navUp, SIGNAL(triggered()), tc, SLOT(navUp()));
     connect(navDown, SIGNAL(triggered()), tc, SLOT(navDown()));
     connect(navLeft, SIGNAL(triggered()), tc, SLOT(navLeft()));

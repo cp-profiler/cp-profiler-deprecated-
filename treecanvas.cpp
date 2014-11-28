@@ -1006,7 +1006,7 @@ TreeCanvas::reset(bool isRestarts) {
 }
 
 void
-TreeCanvas::compareTrees(void) {
+TreeCanvas::toggleSecondCanvas(void) {
   qDebug() << "comparing Trees";
 }
 

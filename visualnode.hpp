@@ -179,7 +179,9 @@ VisualNode::setOnPath(bool b) {
 
 inline Shape*
 VisualNode::getShape(void) {
-  return (isHidden() && getStatus() != MERGING) ? Shape::hidden : shape;
+  if (isHidden())
+    return (getStatus() == MERGING) ? Shape::leaf : Shape::hidden;
+  return shape;
 }
 
 inline BoundingBox

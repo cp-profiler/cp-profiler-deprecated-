@@ -8,8 +8,8 @@
 
 Shape* Shape::leaf;
 Shape* Shape::hidden;
+// Shape* Shape::pentagon;
 
-/// I don't remember adding this
 Shape* Shape::copy(const Shape* s) {
   Shape* ret = Shape::allocate(s->depth());
   for (unsigned int i=s->depth(); i--;)
