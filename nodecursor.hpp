@@ -248,6 +248,7 @@ AnalyzeCursor::processCurrentNode(void) {
       break;
       case STOP:
       case UNSTOP:
+      case MERGING:
       break;    /// To avoid compiler warnings
   }
   nSols[n] = nSol;

@@ -147,6 +147,8 @@ DrawingCursor::processCurrentNode(void) {
                 painter.drawRect(myx - HALF_FAILED_WIDTH + SHADOW_OFFSET,
                     myy + SHADOW_OFFSET, FAILED_WIDTH, FAILED_WIDTH);
                 break;
+            case MERGING:
+                break; /// already handled, here to avoid warnings
             }
         }
     }

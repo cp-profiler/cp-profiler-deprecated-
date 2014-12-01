@@ -3,7 +3,6 @@
 
 #include <vector>
 #include <unordered_map>
-#include <sqlite3.h>
 #include <QTimer>
 #include <QMutex>
 
@@ -32,7 +31,7 @@ struct Message {
     int status;
     int restart_id;
     char thread;
-    char label[16];
+    char label[LABEL_SIZE];
 };
 
 class DbEntry {
@@ -44,12 +43,11 @@ public:
         status(_status), thread(_tid) {
           
           memcpy(label, _label, Message::LABEL_SIZE);
-          // std::cout << label << std::endl;
     }
 
     DbEntry(): gid(-1) {}
 
-    int gid; // gist Id
+    int gid; // gist id, set to -1 so we don't forget to assign the real value
     unsigned long long parent_sid; // parent id in database 
     int alt; // which child by order
     int numberOfKids;
@@ -65,39 +63,26 @@ Q_OBJECT
 
 friend class TreeBuilder;
 
-public:
-
-    /// id of the Data instance
-    int _id;
-    
-    int counter;
-    QMutex dataMutex;
-
-    static const int READING_PERIOD = 1000;
-
-    void show_db(void);
-
 private:
-
-    static const int PORTION = 50000;
-
-    
     /// counts instances of Data
     static int instance_counter;
 
-    long long lastRead;
-    int firstIndex = 0; // for nodes_arr
-    int restarts_offset = 0; // index of the last node from previous restart
-    int lastArrived = 0; // ???
+    const TreeCanvas* _tc; /// TreeCanvas instance it belongs to
+    const int _id; /// Id of the TreeCanvas instance it belongs to
+    const NodeAllocator* _na; /// Node allocator of _tc
 
-    int nextToRead = 0;
+    /// where most node data is stored, id as it comes from Broker
+    std::vector<DbEntry*> nodes_arr;
+
+public:
+
+    /// used to access Data instance from different threads (in parallel solover)
+    QMutex dataMutex;
+
+private:
+    
     int totalElements = -1;
 
-    sqlite3 *db;
-    TreeCanvas* _tc;
-    NodeAllocator* _na;
-    std::vector<DbEntry*> nodes_arr;
-//    std::
 
     /// **** for restarts ****
     std::vector<int> restarts_offsets;
@@ -141,7 +126,12 @@ public:
     /// set label (i.e. for merged tree) 
     void setLabel(unsigned int aid, char* label);
 
+    void show_db(void);
+
     static int handleNodeCallback(Message* data);
+
+/// ********* GETTERS **********
+    int id(void) { return _id; }
     
 };
 

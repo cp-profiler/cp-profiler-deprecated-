@@ -834,6 +834,7 @@ TreeCanvas::inspectCurrentNode(bool, int) {
             case BRANCH:
             case SOLVED:
             case SKIPPED:
+            case MERGING:
             break;
    //     {
    //         // SizeCursor sc(currentNode);
@@ -996,7 +997,7 @@ TreeCanvas::reset(bool isRestarts) {
     _data = new Data(this, na, isRestarts);
 
     Data::current = _data;
-    qDebug() << "Data::current is set to (tc_id): " << _data->_id;
+    qDebug() << "Data::current is set to (tc_id): " << _data->id();
 
     _builder->reset(_data, na);
 
@@ -1107,6 +1108,7 @@ TreeCanvas::navDown(void) {
         switch (currentNode->getStatus()) {
         case STOP:
         case UNSTOP:
+        case MERGING:
         case BRANCH:
         {
             int alt = std::max(0, currentNode->getPathAlternative(*na));

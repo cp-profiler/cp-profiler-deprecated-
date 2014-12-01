@@ -30,7 +30,6 @@ SOURCES += main.cpp\
     recieverthread.cpp \
     treebuilder.cpp \
     treecomparison.cpp \
-    sqlite/sqlite3.c
     
 
 
@@ -61,7 +60,6 @@ HEADERS  += mainwindow.h \
     recieverthread.hh \
     treebuilder.hh \
     treecomparison.hh \
-    sqlite/sqlite3.h
 
 FORMS    +=
 
