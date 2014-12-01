@@ -4,6 +4,12 @@ QStack<VisualNode*> TreeComparison::stack;
 QStack<VisualNode*> TreeComparison::stack1;
 QStack<VisualNode*> TreeComparison::stack2;
 
+NodeAllocator* TreeComparison::_na1;
+NodeAllocator* TreeComparison::_na2;
+
+Data* TreeComparison::_data1;
+Data* TreeComparison::_data2;
+
 void
 TreeComparison::compare(TreeCanvas* t1, TreeCanvas* t2, TreeCanvas* new_tc) {
     Node::NodeAllocator* na1 = t1->na;
@@ -19,6 +25,8 @@ TreeComparison::compare(TreeCanvas* t1, TreeCanvas* t2, TreeCanvas* new_tc) {
     bool rootBuilt = false;
 
     Node::NodeAllocator* na = new_tc->na;
+
+    TreeComparison::setSource(na1, na2, t1->_data, t2->_data);
 
     while (stack1.size() > 0) {
         VisualNode* node1 = stack1.pop();
@@ -111,9 +119,33 @@ TreeComparison::copmareNodes(VisualNode* n1, VisualNode* n2) {
     if (n1->getNumberOfChildren() != n2->getNumberOfChildren())
         return false;
 
-    /// TODO: add labels as well
-
     if (n1->getStatus() != n2->getStatus()) 
         return false;
+
+    int id1 = n1->getIndex(*_na1);
+    int id2 = n2->getIndex(*_na2);
+
+    // qDebug() << "label_1: " << _data1->getLabelByGid(id1);
+    // qDebug() << "label_2: " << _data2->getLabelByGid(id2);
+
+    if (
+        strcmp(
+            _data1->getLabelByGid(id1),
+            _data2->getLabelByGid(id2)
+        ) != 0
+    ) { 
+        // qDebug() << "failed on labels comparison";
+        return false;
+    }
+
     return true;
+}
+
+void
+TreeComparison::setSource(NodeAllocator* na1, NodeAllocator* na2,
+                          Data* data1, Data* data2) {
+    _na1 = na1;
+    _na2 = na2;
+    _data1 = data1;
+    _data2 = data2;
 }
