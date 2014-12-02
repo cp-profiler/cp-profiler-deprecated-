@@ -27,6 +27,7 @@ SOURCES += main.cpp\
     spacenode.cpp \
     node.cpp \
     data.cpp \
+    treedialog.cpp \
     recieverthread.cpp \
     treebuilder.cpp \
     treecomparison.cpp \
@@ -57,6 +58,7 @@ HEADERS  += mainwindow.h \
     nodevisitor.hpp \
     zoomToFitIcon.hpp \
     data.hh \
+    treedialog.hh \
     recieverthread.hh \
     treebuilder.hh \
     treecomparison.hh \
