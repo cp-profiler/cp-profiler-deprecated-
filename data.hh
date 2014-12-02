@@ -71,8 +71,20 @@ private:
     const int _id; /// Id of the TreeCanvas instance it belongs to
     const NodeAllocator* _na; /// Node allocator of _tc
 
-    /// where most node data is stored, id as it comes from Broker
+    /// True if we want a dummy node (needed for showing restarts)
+    const bool _isRestarts;
+
+    /// Where most node data is stored, id as it comes from Broker
     std::vector<DbEntry*> nodes_arr;
+
+    /// Mapping from solver Id to array Id (nodes_arr)
+    std::unordered_map<unsigned long long, int> sid2aid;
+
+    /// Mapping from gist Id to array Id (nodes_arr)
+    std::unordered_map<unsigned long long, int> gid2aid;
+
+    // Whether received DONE_SENDING message
+    bool _isDone;
 
 public:
 
@@ -80,58 +92,42 @@ public:
     QMutex dataMutex;
 
 private:
-    
-    int totalElements = -1;
 
-
-    /// **** for restarts ****
-    std::vector<int> restarts_offsets;
-
-    /// isRestarts true if we want a dummy node (needed for showing restarts)
-    bool _isRestarts;
-
-    bool _isDone;
-
-    /// mapping from solver Id to array Id (nodes_arr)
-    std::unordered_map<unsigned long long, int> sid2aid;
-
-    /// mapping from gist Id to array Id (nodes_arr)
-    std::unordered_map<unsigned long long, int> gid2aid;
-
-public Q_SLOTS:
-    void startReading(void);
+    /// Populate nodes_arr with the data coming from 
+    void pushInstance(unsigned long long sid, DbEntry* entry);
     
 public:
 
     Data(TreeCanvas* tc, NodeAllocator* na, bool isRestarts);
     ~Data(void);
 
-    static Data* current;
+    int handleNodeCallback(Message* data);
 
-    void pushInstance(unsigned long long sid, DbEntry* entry);
-
-    // whether received DONE_SENDING message
-    bool isDone(void);
-
-    bool isRestarts(void);
+    void show_db(void); /// TODO: write to a file
 
     // sets _isDone to true when received DONE_SENDING
     void setDone(void);
     
     char* getLabelByGid(unsigned int gid);
 
-    /// get label omitting gid2aid mapping (i.e. for merged tree)
+    /// get label omitting gid2aid mapping (i.e. for merged tree)   /// TODO: delete if not used
     char* getLabelByAid(unsigned int aid);
 
     /// set label (i.e. for merged tree) 
-    void setLabel(unsigned int aid, char* label);
-
-    void show_db(void);
-
-    static int handleNodeCallback(Message* data);
+    void setLabel(unsigned int aid, char* label);   /// TODO: delete if not used
 
 /// ********* GETTERS **********
+
     int id(void) { return _id; }
+
+    bool isDone(void) { return _isDone; }
+    bool isRestarts(void) { return _isRestarts; }
+
+
+/// ****************************
+
+    public Q_SLOTS:
+    void startReading(void);
     
 };
 

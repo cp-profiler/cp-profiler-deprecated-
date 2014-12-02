@@ -31,15 +31,13 @@ void TreeBuilder::run(void) {
 	std::unordered_map<unsigned long long, int> &sid2aid = _data->sid2aid;
 	std::unordered_map<unsigned long long, int> &gid2aid = _data->gid2aid;
 
-    bool _isRestarts = _data->_isRestarts;
+    bool _isRestarts = _data->isRestarts();
 
     VisualNode* node;
     VisualNode* parent;
 
     QMutex &dataMutex = _data->dataMutex;
     Statistics &stats = _tc->stats;
-
-
 
     while(true) {
 
@@ -58,7 +56,7 @@ void TreeBuilder::run(void) {
 
 
         if (lastRead >= nodes_arr.size()) {
-            if (Data::current->isDone()) {
+            if (_data->isDone()) {
                 qDebug() << "stop because done";
                 dataMutex.unlock();
                 if (showlocks) qDebug() << "unlock mutex 58";

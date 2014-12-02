@@ -188,6 +188,13 @@ public:
   /// Destructor
   ~TreeCanvas(void);
 
+  /// ***** GETTERS *****
+
+  Data* getData(void);
+
+  /// *******************
+
+
 //  /// Add inspector \a i
 //  void addDoubleClickInspector(Inspector* i);
 //  /// Set active inspector

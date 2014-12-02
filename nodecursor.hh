@@ -214,12 +214,14 @@ class BranchLabelCursor : public NodeCursor<VisualNode> {
 private:
     /// The node allocator
     VisualNode::NodeAllocator& _na;
+    /// Current TreeCanvas instance (extract labels from data) 
+    TreeCanvas& _tc;
     /// Whether to clear labels
     bool _clear;
 public:
     /// Constructor
     BranchLabelCursor(VisualNode* theNode, bool clear,
-                      VisualNode::NodeAllocator& na);
+                      VisualNode::NodeAllocator& na, TreeCanvas& tc);
     /// \name Cursor interface
     //@{
     void processCurrentNode(void);

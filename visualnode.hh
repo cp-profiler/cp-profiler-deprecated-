@@ -2,9 +2,11 @@
 #define VISUALNODE_HH
 
 #include "spacenode.hh"
+//#include "treecanvas.hh"
 #include <string>
 
 class Data;
+//class TreeCanvas;
 
 /// \brief %Layout parameters
 class Layout {
@@ -189,7 +191,7 @@ public:
   VisualNode* findNode(const NodeAllocator& na, int x, int y);
 
   /// Create or clear branch labels in subtree
-  void labelBranches(NodeAllocator& na);
+  void labelBranches(NodeAllocator& na, TreeCanvas& tc);
   /// Create or clear branch labels on path to root
   void labelPath(NodeAllocator& na);
   /// Return string that describes the branch

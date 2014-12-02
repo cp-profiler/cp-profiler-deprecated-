@@ -331,8 +331,8 @@ HideNotHighlightedCursor::mayMoveDownwards(void) {
 
 inline
 BranchLabelCursor::BranchLabelCursor(VisualNode* root, bool clear,
-                                     VisualNode::NodeAllocator& na)
-    : NodeCursor<VisualNode>(root,na), _na(na), _clear(clear) {}
+    VisualNode::NodeAllocator& na, TreeCanvas& tc)
+    : NodeCursor<VisualNode>(root,na), _na(na), _tc(tc), _clear(clear) {}
 
 inline void
 BranchLabelCursor::processCurrentNode(void) {
@@ -342,7 +342,7 @@ BranchLabelCursor::processCurrentNode(void) {
             VisualNode* p = n->getParent(_na);
             if (p) {
                 int gid = n->getIndex(_na);
-                std::string l = Data::current->getLabelByGid(gid);
+                std::string l = _tc.getData()->getLabelByGid(gid);
                 _na.setLabel(n,QString(l.c_str()));
 //                if (n->getNumberOfChildren() < 1 &&
 //                        alternative() == p->getNumberOfChildren()-1)

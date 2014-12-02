@@ -137,9 +137,9 @@ VisualNode::hideFailed(const NodeAllocator& na, bool onlyDirty) {
 }
 
 void
-VisualNode::labelBranches(NodeAllocator& na) {
+VisualNode::labelBranches(NodeAllocator& na, TreeCanvas& tc) {
     bool clear = na.hasLabel(this);
-    BranchLabelCursor c(this,clear,na);
+    BranchLabelCursor c(this, clear, na, tc);
     PreorderNodeVisitor<BranchLabelCursor>(c).run();
     dirtyUp(na);
 }

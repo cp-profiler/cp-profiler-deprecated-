@@ -11,14 +11,14 @@ RecieverThread::recieve(TreeCanvas* tc) {
   /// skipped smth here
  // _node = n;
   
-  t = tc;
+  _t = tc;
   
   start();
 }
 
 void
 RecieverThread::switchCanvas(TreeCanvas* tc) { // not needed actually
-    t = tc;
+    _t = tc;
 }
 
 void
@@ -43,7 +43,7 @@ RecieverThread::run(void) {
 
         switch (msg->type) {
             case NODE_DATA:
-                Data::handleNodeCallback(msg);
+                _t->_data->handleNodeCallback(msg);
                 ++nodeCount;
             break;
             case START_SENDING:
@@ -59,16 +59,16 @@ RecieverThread::run(void) {
                             // qDebug() << "no canvas yet";
                         }
 
-                        t = ptr_gist->canvasTwo;
-                        ptr_gist->connectCanvas(t, ptr_gist->canvas);
+                        _t = ptr_gist->canvasTwo;
+                        ptr_gist->connectCanvas(_t, ptr_gist->canvas);
                         qDebug() << "Switched to another canvas";
                     }
 
-                    t->reset(false); // no restarts
+                    _t->reset(false); // no restarts
                     emit startWork();
                 } else if (msg->restart_id == 0){
 
-                    t->reset(true);
+                    _t->reset(true);
                     emit startWork();
                     qDebug() << ">>> new restart";
                 } else {
@@ -78,19 +78,19 @@ RecieverThread::run(void) {
             case DONE_SENDING:
                 qDebug() << "Done receiving";
                 updateCanvas();
-                if (!Data::current->isRestarts())
-                    Data::current->setDone();
+                if (!_t->_data->isRestarts())
+                    _t->_data->setDone();
 
             break;
         }
 
-        if (t->refresh > 0 && nodeCount >= t->refresh) {
-            t->currentNode->dirtyUp(*t->na);
+        if (_t->refresh > 0 && nodeCount >= _t->refresh) {
+            _t->currentNode->dirtyUp(*_t->na);
             updateCanvas();
             emit statusChanged(false);
             nodeCount = 0;
-            if (t->refreshPause > 0)
-              msleep(t->refreshPause);
+            if (_t->refreshPause > 0)
+              msleep(_t->refreshPause);
         }
 
     }
@@ -101,45 +101,45 @@ void
 RecieverThread::updateCanvas(void) {
 
   // if (t == NULL) return; /// TODO: why do I need this all of a sudden?
-  t->layoutMutex.lock();
+  _t->layoutMutex.lock();
 
-    if (t->root == NULL) return;
+    if (_t->root == NULL) return;
 
     /// does this ever happen?
-    if (t->autoHideFailed) {
-        t->root->hideFailed(*t->na,true);
+    if (_t->autoHideFailed) {
+        _t->root->hideFailed(*_t->na,true);
     }
 
     /// mark as dirty?
-    for (VisualNode* n = t->currentNode; n != NULL; n=n->getParent(*t->na)) {
+    for (VisualNode* n = _t->currentNode; n != NULL; n=n->getParent(*_t->na)) {
         if (n->isHidden()) {
-            t->currentNode->setMarked(false);
-            t->currentNode = n;
-            t->currentNode->setMarked(true);
+            _t->currentNode->setMarked(false);
+            _t->currentNode = n;
+            _t->currentNode->setMarked(true);
             break;
         }
     }
     
 
-    t->root->layout(*t->na);
-    BoundingBox bb = t->root->getBoundingBox();
+    _t->root->layout(*_t->na);
+    BoundingBox bb = _t->root->getBoundingBox();
 
-    int w = static_cast<int>((bb.right-bb.left+Layout::extent)*t->scale);
+    int w = static_cast<int>((bb.right-bb.left+Layout::extent)*_t->scale);
     int h = static_cast<int>(2*Layout::extent+
-                             t->root->getShape()->depth()
-                             *Layout::dist_y*t->scale);
-    t->xtrans = -bb.left+(Layout::extent / 2);
+                             _t->root->getShape()->depth()
+                             *Layout::dist_y*_t->scale);
+    _t->xtrans = -bb.left+(Layout::extent / 2);
 
-    int scale0 = static_cast<int>(t->scale*100);
-    if (t->autoZoom) {
-        QWidget* p = t->parentWidget();
+    int scale0 = static_cast<int>(_t->scale*100);
+    if (_t->autoZoom) {
+        QWidget* p = _t->parentWidget();
         if (p) {
             double newXScale =
                     static_cast<double>(p->width()) / (bb.right - bb.left +
                                                        Layout::extent);
             double newYScale =
                     static_cast<double>(p->height()) /
-                    (t->root->getShape()->depth() * Layout::dist_y + 2*Layout::extent);
+                    (_t->root->getShape()->depth() * Layout::dist_y + 2*Layout::extent);
 
             scale0 = static_cast<int>(std::min(newXScale, newYScale)*100);
             if (scale0<LayoutConfig::minScale)
@@ -150,10 +150,10 @@ RecieverThread::updateCanvas(void) {
 
             w = static_cast<int>((bb.right-bb.left+Layout::extent)*scale);
             h = static_cast<int>(2*Layout::extent+
-                                 t->root->getShape()->depth()*Layout::dist_y*scale);
+                                 _t->root->getShape()->depth()*Layout::dist_y*scale);
         }
     }
 
-    t->layoutMutex.unlock();
+    _t->layoutMutex.unlock();
     emit update(w,h,scale0);
 }

@@ -394,6 +394,10 @@ ShapeCanvas::scroll(void) {
 //    comparators[i].second = active;
 //}
 
+Data* TreeCanvas::getData(void) {
+  return _data;
+}
+
 void
 TreeCanvas::scaleTree(int scale0, int zoomx, int zoomy) {
     QMutexLocker locker(&layoutMutex);
@@ -945,7 +949,7 @@ TreeCanvas::inspectBeforeFP(void) {
 void
 TreeCanvas::labelBranches(void) {
     QMutexLocker locker(&mutex);
-    currentNode->labelBranches(*na);
+    currentNode->labelBranches(*na, *this);
     update();
     centerCurrentNode();
     emit statusChanged(currentNode, stats, true);
@@ -992,12 +996,7 @@ TreeCanvas::reset(bool isRestarts) {
 
     emit statusChanged(currentNode, stats, true);
 
-    
-
     _data = new Data(this, na, isRestarts);
-
-    Data::current = _data;
-    qDebug() << "Data::current is set to (tc_id): " << _data->id();
 
     _builder->reset(_data, na);
 

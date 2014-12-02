@@ -20,7 +20,7 @@ public:
 
 
 private:
-  TreeCanvas* t;
+  TreeCanvas* _t;
   Gist* ptr_gist;
 
 public Q_SLOTS:

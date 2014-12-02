@@ -13,7 +13,6 @@
 
 using namespace std;
 
-Data* Data::current = 0;
 int Data::instance_counter = 0;
 
 
@@ -34,13 +33,6 @@ void Data::show_db(void) {
     qDebug() << "***** _________________________ *****";
 }
 
-bool Data::isDone(void) {
-    return _isDone;
-}
-
-bool Data::isRestarts(void) {
-    return _isRestarts;
-}
 
 void Data::setDone(void) {
     QMutexLocker locker(&dataMutex);
@@ -58,9 +50,6 @@ int Data::handleNodeCallback(Message* msg) {
     char thread;
     unsigned long long real_id, real_pid;
 
-    Data& data = *Data::current;
-    
-    
     id = msg->sid;
     pid = msg->parent_sid;
     alt = msg->alt;
@@ -85,7 +74,7 @@ int Data::handleNodeCallback(Message* msg) {
 
     real_id = (id | ((long long)restart_id << 32));
 
-    Data::current->pushInstance(real_id,
+    pushInstance(real_id,
         new DbEntry(real_pid, alt, kids, thread, msg->label, status));
 
     return 0;
