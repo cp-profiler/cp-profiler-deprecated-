@@ -29,6 +29,7 @@ namespace LayoutConfig {
 class TreeCanvas;
 class SimilarShapesWindow;
 class TreeBuilder;
+class TreeDialog;
 class RecieverThread;
 
 /// *********************
@@ -153,6 +154,7 @@ class TreeCanvas : public QWidget {
   friend class TreeBuilder;
   friend class ShapeCanvas;
   friend class TreeComparison;
+  friend class TreeDialog;
 
 public:
 /// each new consequent Canvas will get an id

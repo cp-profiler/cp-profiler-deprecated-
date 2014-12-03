@@ -6,6 +6,7 @@
 #include "treecomparison.hh"
 #include "nodestats.hh"
 #include "recieverthread.hh"
+#include "treedialog.hh"
 
 /**
  * \brief %Gecode Interactive %Search Tool
@@ -27,6 +28,10 @@ class Gist : public QWidget {
   QAbstractScrollArea* scrollArea;
   QPalette* myPalette;
   QGridLayout* layout;
+
+
+  /// this should replace most of current GIST!
+  TreeDialog* _td;
 
 
   /// **************** MY STUFF ********************

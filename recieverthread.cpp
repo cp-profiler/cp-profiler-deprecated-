@@ -41,12 +41,15 @@ RecieverThread::run(void) {
 
         Message *msg = reinterpret_cast<Message*>(request.data());
 
+        qDebug() << "ready to read a message";
+
         switch (msg->type) {
             case NODE_DATA:
                 _t->_data->handleNodeCallback(msg);
                 ++nodeCount;
             break;
             case START_SENDING:
+                qDebug() << "START RECIEVING";
                 /// start building the tree
 
                 // if (msg->restart_id == -1 || msg->restart_id == 1) { // why 1?
@@ -54,12 +57,9 @@ RecieverThread::run(void) {
                     ptr_gist->canvasTwo = NULL;
                     if (ptr_gist->sndCanvas->isChecked() && ptr_gist->canvas->_isUsed) {
 
-                        emit newCanvasNeeded(); // shows the 2nd canvas
-                        while (!ptr_gist->canvasTwo) {
-                            // qDebug() << "no canvas yet";
-                        }
+                        emit newCanvasNeeded();
 
-                        _t = ptr_gist->canvasTwo;
+                        _t = ptr_gist->_td->getCanvas();
                         ptr_gist->connectCanvas(_t, ptr_gist->canvas);
                         qDebug() << "Switched to another canvas";
                     }

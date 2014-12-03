@@ -2,17 +2,37 @@
 #define TREE_DIALOG_HH
 
 #include "treecanvas.hh"
+#include "recieverthread.hh"
 
-class TreeDialog : public QWidget {
+class Gist;
+
+class TreeDialog : public QDialog {
 // Q_OBJECT
 private:
 
   QGridLayout* layout;
+  QVBoxLayout* nc_layout;
+  QAbstractScrollArea* scrollArea;
+
+  Gist* prt_gist;
+
+  TreeCanvas* _tc;
+
+  /// A menu bar
+  QMenuBar* menuBar;
+
+  void buildMenu(void);
 
 public:
 
-  TreeDialog(QWidget* parent = 0);
+  TreeDialog(RecieverThread* reciever, Gist* gist);
 
+  ~TreeDialog();
+
+
+  /// **** GETTERS ****
+
+  TreeCanvas* getCanvas(void) { return _tc; }
 
 };
 
