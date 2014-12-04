@@ -53,6 +53,8 @@ TreeComparison::compare(TreeCanvas* t1, TreeCanvas* t2, TreeCanvas* new_tc) {
             next->setStatus(node1->getStatus());
             next->_tid = 0;
 
+            /// point to the source node
+
             unsigned int source_index = node2->getIndex(*na2);
             unsigned int target_index = next->getIndex(*na);
 
@@ -75,8 +77,8 @@ TreeComparison::compare(TreeCanvas* t1, TreeCanvas* t2, TreeCanvas* new_tc) {
             stack.push(next->getChild(*na, 1));
             stack.push(next->getChild(*na, 0));
 
-            copyTree(stack.pop(), na, node1, na1, 1);
-            copyTree(stack.pop(), na, node2, na2, 2);
+            copyTree(stack.pop(), new_tc, node1, t1, 1);
+            copyTree(stack.pop(), new_tc, node2, t2, 2);
 
         }
 
@@ -86,8 +88,11 @@ TreeComparison::compare(TreeCanvas* t1, TreeCanvas* t2, TreeCanvas* new_tc) {
 }
 
 void 
-TreeComparison::copyTree(VisualNode* target, NodeAllocator* na,
-                         VisualNode* root,   NodeAllocator* na_source, int which) {
+TreeComparison::copyTree(VisualNode* target, TreeCanvas* tc,
+                         VisualNode* root,   TreeCanvas* tc_source, int which) {
+
+    NodeAllocator* na = tc->na;
+    NodeAllocator* na_source = tc_source->na; 
     
     QStack<VisualNode*>* source_stack = new QStack<VisualNode*>();
     QStack<VisualNode*>* target_stack = new QStack<VisualNode*>();
@@ -104,6 +109,14 @@ TreeComparison::copyTree(VisualNode* target, NodeAllocator* na,
         uint kids = n->getNumberOfChildren();
         next->setNumberOfChildren(kids, *na);
         next->setStatus(n->getStatus());
+
+        /// point to the source node
+
+        unsigned int source_index = n->getIndex(*na_source);
+        unsigned int target_index = next->getIndex(*na);
+
+        DbEntry* entry = tc_source->_data->getEntry(source_index);
+        tc->_data->connectNodeToEntry(target_index, entry);
 
         next->dirtyUp(*na);
 
