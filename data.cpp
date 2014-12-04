@@ -96,7 +96,6 @@ void Data::connectNodeToEntry(unsigned int gid, DbEntry* entry) {
 }
 
 DbEntry* Data::getEntry(unsigned int gid) {
-    QMutexLocker locker(&dataMutex);
 
     return nodes_arr[ gid2aid[gid] ];
 }
@@ -104,7 +103,15 @@ DbEntry* Data::getEntry(unsigned int gid) {
 char* Data::getLabelByGid(unsigned int gid) {
     QMutexLocker locker(&dataMutex);
 
-    return nodes_arr[ gid2aid[gid] ]->label;
+    if (_tc->canvasType == TreeCanvas::REGULAR)
+        return nodes_arr[ gid2aid[gid] ]->label;
+    else {
+        DbEntry* entry = gid2entry[gid];
+        if (entry)
+            return entry->label;
+        return "";
+    }
+
 }
 
 char* Data::getLabelByAid(unsigned int aid) {

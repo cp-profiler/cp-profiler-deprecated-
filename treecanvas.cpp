@@ -20,8 +20,9 @@
 
 int TreeCanvas::counter = 0;
 
-TreeCanvas::TreeCanvas(QGridLayout* layout, RecieverThread* reciever, QWidget* parent)
+TreeCanvas::TreeCanvas(QGridLayout* layout, RecieverThread* reciever, CanvasType type, QWidget* parent)
     : QWidget(parent)
+    , canvasType(type)
     , mutex(QMutex::Recursive)
     , layoutMutex(QMutex::Recursive)
     , finishedFlag(false)

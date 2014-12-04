@@ -1,6 +1,6 @@
 #include "treedialog.hh"
 
-TreeDialog::TreeDialog(RecieverThread* reciever, Gist* gist) : QDialog(gist),
+TreeDialog::TreeDialog(RecieverThread* reciever, const TreeCanvas::CanvasType type, Gist* gist) : QDialog(gist),
   prt_gist(gist)
 {
 
@@ -11,7 +11,7 @@ TreeDialog::TreeDialog(RecieverThread* reciever, Gist* gist) : QDialog(gist),
   
   scrollArea = new QAbstractScrollArea(this);
 
-  _tc = new TreeCanvas(layout, reciever, scrollArea->viewport());
+  _tc = new TreeCanvas(layout, reciever, type, scrollArea->viewport());
 
   layout->addWidget(scrollArea, 0, 0, -1, 1);
   layout->addWidget(_tc->scaleBar, 1, 1, Qt::AlignHCenter);

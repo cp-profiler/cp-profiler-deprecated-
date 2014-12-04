@@ -149,6 +149,8 @@ public:
 class TreeCanvas : public QWidget {
   Q_OBJECT
 
+
+
   friend class RecieverThread;
   friend class Gist;
   friend class TreeBuilder;
@@ -157,9 +159,17 @@ class TreeCanvas : public QWidget {
   friend class TreeDialog;
 
 public:
+
+  enum CanvasType {
+    REGULAR,
+    MERGED
+  };
+
 /// each new consequent Canvas will get an id
   int _id;
   bool _isUsed; /// TODO: make private
+
+  const int canvasType;
 
 private:
 
@@ -186,7 +196,7 @@ public Q_SLOTS:
 
 public:
   /// Constructor
-  TreeCanvas(QGridLayout* layout, RecieverThread* reciever, QWidget* parent);
+  TreeCanvas(QGridLayout* layout, RecieverThread* reciever, CanvasType type, QWidget* parent);
   /// Destructor
   ~TreeCanvas(void);
 

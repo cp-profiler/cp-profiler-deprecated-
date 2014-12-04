@@ -8,14 +8,14 @@ Gist::createNewCanvas(void) {
 
     qDebug() << "!!! about to create a new canvas";
 
-    _td = new TreeDialog(reciever, this);
+    _td = new TreeDialog(reciever, TreeCanvas::REGULAR, this);
 
 }
 
 void 
 Gist::initiateComparison(void) {
 
-    TreeDialog* td = new TreeDialog(reciever, this);
+    TreeDialog* td = new TreeDialog(reciever, TreeCanvas::MERGED, this);
 
     TreeComparison::compare(canvas, _td->getCanvas(), td->getCanvas());
  
@@ -48,7 +48,7 @@ Gist::Gist(QWidget* parent) : QWidget(parent) {
     
     reciever = new RecieverThread(this);
 
-    canvas = new TreeCanvas(layout, reciever, scrollArea->viewport());
+    canvas = new TreeCanvas(layout, reciever, TreeCanvas::REGULAR, scrollArea->viewport());
     canvas->setPalette(*myPalette);
     canvas->setObjectName("canvas");
 

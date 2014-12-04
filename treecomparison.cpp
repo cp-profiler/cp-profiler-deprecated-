@@ -128,9 +128,6 @@ TreeComparison::copmareNodes(VisualNode* n1, VisualNode* n2) {
     int id1 = n1->getIndex(*_na1);
     int id2 = n2->getIndex(*_na2);
 
-    // qDebug() << "label_1: " << _data1->getLabelByGid(id1);
-    // qDebug() << "label_2: " << _data2->getLabelByGid(id2);
-
     if (
         strcmp(
             _data1->getLabelByGid(id1),
