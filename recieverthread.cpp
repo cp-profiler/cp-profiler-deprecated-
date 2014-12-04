@@ -57,10 +57,14 @@ RecieverThread::run(void) {
                     ptr_gist->canvasTwo = NULL;
                     if (ptr_gist->sndCanvas->isChecked() && ptr_gist->canvas->_isUsed) {
 
+                        qDebug() << "!!! request for a new canvas";
+
                         emit newCanvasNeeded();
 
+                        qDebug() << "!!! should have a new canvas";
+
                         _t = ptr_gist->_td->getCanvas();
-                        ptr_gist->connectCanvas(_t, ptr_gist->canvas);
+                       ptr_gist->connectCanvas(_t);
                         qDebug() << "Switched to another canvas";
                     }
 

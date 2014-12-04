@@ -39,6 +39,8 @@ private:
 
   /// Checks for new nodes
   RecieverThread* reciever;
+
+  TreeCanvas* current_tc;
   
   /// The canvas implementation
   TreeCanvas* canvas;
@@ -55,9 +57,12 @@ private:
 
   void initInterface(void);
   void addActions(void);
-  void connectCanvas(TreeCanvas* tc, TreeCanvas* old_tc = 0);
+
+  /// connect the signals as well as disconnect current_tc
+  void connectCanvas(TreeCanvas* tc);
 
 public:
+
   /// Reset treeCanvas ( reset TreeBuilder, reset Canvas itself)
   /// This should be called instead of TreeCanvas::reset
   // void resetCanvas(TreeCanvas* canvas, TreeBuilder* builder, bool isRestarts);
@@ -230,6 +235,9 @@ public:
   void resizeEvent(QResizeEvent*);
 
 
+  /// ***** GETTERS *****
+  TreeCanvas* getCanvas(void) { return canvas; }
+
 Q_SIGNALS:
 
   
@@ -276,6 +284,10 @@ private Q_SLOTS:
   void inspectWithAction(QAction* a);
   /// Inspect current node with inspector described by \a a
   void inspectBeforeFPWithAction(QAction* a);
+
+public Q_SLOTS:
+  void onFocusChanged(QWidget*, QWidget*);
+
 protected:
   /// Add inspector \a i0
 //  void addInspector(Inspector* i, QAction*& nas, QAction*& nad,

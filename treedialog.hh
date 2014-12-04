@@ -22,6 +22,7 @@ private:
   QMenuBar* menuBar;
 
   void buildMenu(void);
+  void connectSignals(void);
 
 public:
 

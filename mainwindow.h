@@ -76,6 +76,8 @@ protected Q_SLOTS:
 public:
   /// Constructor
   GistMainWindow(void);
+
+  Gist* getGist(void) { return c; }
 protected:
   /// Close Gist
   void closeEvent(QCloseEvent* event);

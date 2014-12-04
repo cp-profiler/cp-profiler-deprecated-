@@ -47,14 +47,17 @@ TreeComparison::compare(TreeCanvas* t1, TreeCanvas* t2, TreeCanvas* new_tc) {
                 next = stack.pop();
             }
 
-            /// new node is build
-            int index = node2->getIndex(*na2);
-            // new_tc->_data->getLabelByAid(0); // should crash
-            // qDebug() << "label: " << t2->_data->getLabelByGid(index);
+            /// new node is built
             
             next->setNumberOfChildren(kids, *na);
             next->setStatus(node1->getStatus());
             next->_tid = 0;
+
+            unsigned int source_index = node2->getIndex(*na2);
+            unsigned int target_index = next->getIndex(*na);
+
+            DbEntry* entry = t2->_data->getEntry(source_index);
+            new_tc->_data->connectNodeToEntry(target_index, entry);
 
             for (unsigned int i = 0; i < kids; ++i) {
                 stack.push(next->getChild(*na, i));

@@ -83,6 +83,10 @@ private:
     /// Mapping from gist Id to array Id (nodes_arr)
     std::unordered_map<unsigned long long, int> gid2aid;
 
+    /// Maps gist Id to dbEntry (possibly in the other Data instance);
+    /// i.e. needed for a merged tree to show labels etc.
+    std::unordered_map<unsigned int, DbEntry*> gid2entry;
+
     // Whether received DONE_SENDING message
     bool _isDone;
 
@@ -116,12 +120,16 @@ public:
     /// set label (i.e. for merged tree) 
     void setLabel(unsigned int aid, char* label);   /// TODO: delete if not used
 
+    void connectNodeToEntry(unsigned int gid, DbEntry* entry);
+
 /// ********* GETTERS **********
 
     int id(void) { return _id; }
 
     bool isDone(void) { return _isDone; }
     bool isRestarts(void) { return _isRestarts; }
+
+    DbEntry* getEntry(unsigned int gid);
 
 
 /// ****************************

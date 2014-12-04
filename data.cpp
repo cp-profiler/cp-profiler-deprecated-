@@ -91,6 +91,16 @@ void Data::pushInstance(unsigned long long sid, DbEntry* entry) {
 
 }
 
+void Data::connectNodeToEntry(unsigned int gid, DbEntry* entry) {
+    gid2entry[gid] = entry;
+}
+
+DbEntry* Data::getEntry(unsigned int gid) {
+    QMutexLocker locker(&dataMutex);
+
+    return nodes_arr[ gid2aid[gid] ];
+}
+
 char* Data::getLabelByGid(unsigned int gid) {
     QMutexLocker locker(&dataMutex);
 

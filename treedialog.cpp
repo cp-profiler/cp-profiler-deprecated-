@@ -13,13 +13,6 @@ TreeDialog::TreeDialog(RecieverThread* reciever, Gist* gist) : QDialog(gist),
 
   _tc = new TreeCanvas(layout, reciever, scrollArea->viewport());
 
-  connect(scrollArea->horizontalScrollBar(), SIGNAL(valueChanged(int)),
-            _tc, SLOT(scroll(void)));
-  connect(scrollArea->verticalScrollBar(), SIGNAL(valueChanged(int)),
-            _tc, SLOT(scroll(void)));
-
-  
-
   layout->addWidget(scrollArea, 0, 0, -1, 1);
   layout->addWidget(_tc->scaleBar, 1, 1, Qt::AlignHCenter);
 
@@ -28,6 +21,8 @@ TreeDialog::TreeDialog(RecieverThread* reciever, Gist* gist) : QDialog(gist),
   nc_layout->addWidget(_tc);
 
   buildMenu();
+
+  connectSignals();
 
   resize(500, 400);
   show();
@@ -49,5 +44,20 @@ TreeDialog::buildMenu(void) {
 
   QMenu* nodeMenu = menuBar->addMenu(tr("&Node"));
   nodeMenu->addAction(prt_gist->labelBranches);
+  nodeMenu->addAction(prt_gist->navUp);
+  nodeMenu->addAction(prt_gist->navDown);
+  nodeMenu->addAction(prt_gist->navLeft);
+  nodeMenu->addAction(prt_gist->navRight);
+  nodeMenu->addAction(prt_gist->navRoot);
+
+}
+
+void
+TreeDialog::connectSignals(void) {
+
+  connect(scrollArea->horizontalScrollBar(), SIGNAL(valueChanged(int)),
+            _tc, SLOT(scroll(void)));
+  connect(scrollArea->verticalScrollBar(), SIGNAL(valueChanged(int)),
+            _tc, SLOT(scroll(void)));
 
 }
