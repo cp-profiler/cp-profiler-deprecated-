@@ -10,6 +10,8 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets printsupport
 
 
 TARGET = StandAloneGist
+
+
 TEMPLATE = app
 
 CONFIG += c++11

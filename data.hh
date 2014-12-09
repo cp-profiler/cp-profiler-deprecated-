@@ -30,6 +30,7 @@ struct Message {
     int kids;
     int status;
     int restart_id;
+    unsigned long long time;
     char thread;
     char label[LABEL_SIZE];
 };
