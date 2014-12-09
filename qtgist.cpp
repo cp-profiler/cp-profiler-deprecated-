@@ -8,14 +8,14 @@ Gist::createNewCanvas(void) {
 
     qDebug() << "!!! about to create a new canvas";
 
-    _td = new TreeDialog(reciever, TreeCanvas::REGULAR, this);
+    _td = new TreeDialog(receiver, TreeCanvas::REGULAR, this);
 
 }
 
 void 
 Gist::initiateComparison(void) {
 
-    TreeDialog* td = new TreeDialog(reciever, TreeCanvas::MERGED, this);
+    TreeDialog* td = new TreeDialog(receiver, TreeCanvas::MERGED, this);
 
     TreeComparison::compare(canvas, _td->getCanvas(), td->getCanvas());
  
@@ -46,9 +46,9 @@ Gist::Gist(QWidget* parent) : QWidget(parent) {
 
     current_tc = NULL;
     
-    reciever = new RecieverThread(this);
+    receiver = new receiverThread(this);
 
-    canvas = new TreeCanvas(layout, reciever, TreeCanvas::REGULAR, scrollArea->viewport());
+    canvas = new TreeCanvas(layout, receiver, TreeCanvas::REGULAR, scrollArea->viewport());
     canvas->setPalette(*myPalette);
     canvas->setObjectName("canvas");
 
@@ -65,19 +65,19 @@ Gist::Gist(QWidget* parent) : QWidget(parent) {
     connect(scrollArea->verticalScrollBar(), SIGNAL(valueChanged(int)),
             canvas, SLOT(scroll(void)));
 
-    connect(reciever, SIGNAL(finished()), reciever, SLOT(deleteLater()));
+    connect(receiver, SIGNAL(finished()), receiver, SLOT(deleteLater()));
 
 //    connect(canvas, SIGNAL(solution(const Space*)),
 //            this, SIGNAL(solution(const Space*)));
 
-    // create new TreeCanvas when reciever gets new data
-    connect(reciever, SIGNAL(newCanvasNeeded()), this, SLOT(createNewCanvas(void)),
+    // create new TreeCanvas when receiver gets new data
+    connect(receiver, SIGNAL(newCanvasNeeded()), this, SLOT(createNewCanvas(void)),
         Qt::BlockingQueuedConnection);
 
 
     nodeStatInspector = new NodeStatInspector(this);
 
-    reciever->recieve(canvas);
+    receiver->recieve(canvas);
     canvas->show();
 
     resize(500, 400);
@@ -792,7 +792,7 @@ Gist::connectCanvas(TreeCanvas* tc) {
     if (current_tc == tc) return;
 
     if (current_tc && current_tc->_builder) {
-        disconnect(reciever, SIGNAL(startWork(void)), current_tc->_builder, SLOT(startBuilding(void)));
+        disconnect(receiver, SIGNAL(startWork(void)), current_tc->_builder, SLOT(startBuilding(void)));
         disconnect(inspect, SIGNAL(triggered()), current_tc, SLOT(inspectCurrentNode()));
         disconnect(inspectBeforeFP, SIGNAL(triggered()), current_tc, SLOT(inspectBeforeFP(void)));
         disconnect(stop, SIGNAL(triggered()), current_tc, SLOT(stopSearch()));
@@ -829,7 +829,7 @@ Gist::connectCanvas(TreeCanvas* tc) {
 
     current_tc = tc;
     
-    connect(reciever, SIGNAL(startWork(void)), tc->_builder, SLOT(startBuilding(void)));
+    connect(receiver, SIGNAL(startWork(void)), tc->_builder, SLOT(startBuilding(void)));
     connect(inspect, SIGNAL(triggered()), tc, SLOT(inspectCurrentNode()));
     connect(inspectBeforeFP, SIGNAL(triggered()), tc, SLOT(inspectBeforeFP(void)));
     connect(stop, SIGNAL(triggered()), tc, SLOT(stopSearch()));

@@ -12,7 +12,7 @@
 #include "visualnode.hh"
 #include "treebuilder.hh"
 #include "zoomToFitIcon.hpp"
-// #include "recieverthread.hh"
+// #include "receiverthread.hh"
 
 /// \brief Parameters for the tree layout
 namespace LayoutConfig {
@@ -30,7 +30,7 @@ class TreeCanvas;
 class SimilarShapesWindow;
 class TreeBuilder;
 class TreeDialog;
-class RecieverThread;
+class receiverThread;
 
 /// *********************
 /// SIMILAR SUBTREES
@@ -151,7 +151,7 @@ class TreeCanvas : public QWidget {
 
 
 
-  friend class RecieverThread;
+  friend class receiverThread;
   friend class Gist;
   friend class TreeBuilder;
   friend class ShapeCanvas;
@@ -185,7 +185,7 @@ private:
 
   TreeBuilder* _builder;
 
-  RecieverThread* ptr_reciever;
+  receiverThread* ptr_receiver;
 
   QTimer* timer;
 
@@ -196,7 +196,7 @@ public Q_SLOTS:
 
 public:
   /// Constructor
-  TreeCanvas(QGridLayout* layout, RecieverThread* reciever, CanvasType type, QWidget* parent);
+  TreeCanvas(QGridLayout* layout, receiverThread* receiver, CanvasType type, QWidget* parent);
   /// Destructor
   ~TreeCanvas(void);
 

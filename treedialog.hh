@@ -2,7 +2,7 @@
 #define TREE_DIALOG_HH
 
 #include "treecanvas.hh"
-#include "recieverthread.hh"
+#include "receiverthread.hh"
 
 class Gist;
 
@@ -26,7 +26,7 @@ private:
 
 public:
 
-  TreeDialog(RecieverThread* reciever, const TreeCanvas::CanvasType type, Gist* gist);
+  TreeDialog(receiverThread* receiver, const TreeCanvas::CanvasType type, Gist* gist);
 
   ~TreeDialog();
 

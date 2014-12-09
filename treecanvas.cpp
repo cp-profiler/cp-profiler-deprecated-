@@ -10,7 +10,7 @@
 
 #include "treecanvas.hh"
 #include "treebuilder.hh"
-#include "recieverthread.hh"
+#include "receiverthread.hh"
 
 #include "data.hh"
 
@@ -20,7 +20,7 @@
 
 int TreeCanvas::counter = 0;
 
-TreeCanvas::TreeCanvas(QGridLayout* layout, RecieverThread* reciever, CanvasType type, QWidget* parent)
+TreeCanvas::TreeCanvas(QGridLayout* layout, receiverThread* receiver, CanvasType type, QWidget* parent)
     : QWidget(parent)
     , canvasType(type)
     , mutex(QMutex::Recursive)
@@ -44,7 +44,7 @@ TreeCanvas::TreeCanvas(QGridLayout* layout, RecieverThread* reciever, CanvasType
 
     _isUsed = false;
 
-    ptr_reciever = reciever;
+    ptr_receiver = receiver;
     _builder = new TreeBuilder(this);
     na = new Node::NodeAllocator(false);
 
@@ -66,7 +66,7 @@ TreeCanvas::TreeCanvas(QGridLayout* layout, RecieverThread* reciever, CanvasType
     setAutoFillBackground(true);
 
     /// this one isn't really needed
-    // connect(timer, SIGNAL(timeout(void)), ptr_reciever, SLOT(updateCanvas(void)));
+    // connect(timer, SIGNAL(timeout(void)), ptr_receiver, SLOT(updateCanvas(void)));
 
     zoomPic.loadFromData(zoomToFitIcon, sizeof(zoomToFitIcon));
 
@@ -81,10 +81,10 @@ TreeCanvas::TreeCanvas(QGridLayout* layout, RecieverThread* reciever, CanvasType
 
     connect(this, SIGNAL(autoZoomChanged(bool)), autoZoomButton, SLOT(setChecked(bool)));
 
-    connect(ptr_reciever, SIGNAL(update(int,int,int)), this,
+    connect(ptr_receiver, SIGNAL(update(int,int,int)), this,
             SLOT(layoutDone(int,int,int)));
 
-    connect(ptr_reciever, SIGNAL(statusChanged(bool)), this,
+    connect(ptr_receiver, SIGNAL(statusChanged(bool)), this,
             SLOT(statusChanged(bool)));
 
     connect(&scrollTimeLine, SIGNAL(frameChanged(int)),
@@ -1454,14 +1454,14 @@ TreeCanvas::finish(void) {
 //        moveInspectors[i].first->finalize();
 //    for (int i=0; i<comparators.size(); i++)
 //        comparators[i].first->finalize();
-    return !ptr_reciever->isRunning();
+    return !ptr_receiver->isRunning();
 }
 
 void
 TreeCanvas::finalizeCanvas(void) {
   qDebug() << "in finalize canvas: " << _id;
   _isUsed = true;
-  ptr_reciever->updateCanvas();
+  ptr_receiver->updateCanvas();
 }
 
 void

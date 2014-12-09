@@ -30,7 +30,7 @@ SOURCES += main.cpp\
     node.cpp \
     data.cpp \
     treedialog.cpp \
-    recieverthread.cpp \
+    receiverthread.cpp \
     treebuilder.cpp \
     treecomparison.cpp \
     
@@ -61,7 +61,7 @@ HEADERS  += mainwindow.h \
     zoomToFitIcon.hpp \
     data.hh \
     treedialog.hh \
-    recieverthread.hh \
+    receiverthread.hh \
     treebuilder.hh \
     treecomparison.hh \
 

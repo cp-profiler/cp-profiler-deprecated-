@@ -1,5 +1,5 @@
-#ifndef RECIEVER_THREAD_HH
-#define RECIEVER_THREAD_HH
+#ifndef receiver_THREAD_HH
+#define receiver_THREAD_HH
 
 #include <QThread>
 
@@ -8,14 +8,14 @@
 
 class Gist;
 
-class RecieverThread : public QThread {
+class receiverThread : public QThread {
   Q_OBJECT
 
   friend Gist;
 
 public:
 
-  RecieverThread(QWidget* parent = 0);
+  receiverThread(QWidget* parent = 0);
   void switchCanvas(TreeCanvas* tc);
 
 

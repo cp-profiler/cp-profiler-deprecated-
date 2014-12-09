@@ -5,7 +5,7 @@
 // #include "treebuilder.hh"
 #include "treecomparison.hh"
 #include "nodestats.hh"
-#include "recieverthread.hh"
+#include "receiverthread.hh"
 #include "treedialog.hh"
 
 /**
@@ -21,7 +21,7 @@
 class Gist : public QWidget {
   Q_OBJECT
 
-  friend RecieverThread;
+  friend receiverThread;
 
   /// **************** INTERFACE *******************
 
@@ -38,7 +38,7 @@ class Gist : public QWidget {
 private:
 
   /// Checks for new nodes
-  RecieverThread* reciever;
+  receiverThread* receiver;
 
   TreeCanvas* current_tc;
   

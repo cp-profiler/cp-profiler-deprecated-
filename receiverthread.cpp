@@ -1,12 +1,12 @@
-#include "recieverthread.hh"
+#include "receiverthread.hh"
 
-RecieverThread::RecieverThread(QWidget* parent): QThread(parent) {
+receiverThread::receiverThread(QWidget* parent): QThread(parent) {
     ptr_gist = static_cast<Gist*>(parent);
 }
 
 void
-// RecieverThread::recieve(VisualNode* n, TreeCanvas* tc) {
-RecieverThread::recieve(TreeCanvas* tc) {
+// receiverThread::recieve(VisualNode* n, TreeCanvas* tc) {
+receiverThread::recieve(TreeCanvas* tc) {
 //  QMutexLocker locker(&mutex);
   /// skipped smth here
  // _node = n;
@@ -17,12 +17,12 @@ RecieverThread::recieve(TreeCanvas* tc) {
 }
 
 void
-RecieverThread::switchCanvas(TreeCanvas* tc) { // not needed actually
+receiverThread::switchCanvas(TreeCanvas* tc) { // not needed actually
     _t = tc;
 }
 
 void
-RecieverThread::run(void) {
+receiverThread::run(void) {
 
     zmq::context_t context(1);
     zmq::socket_t socket (context, ZMQ_PULL);
@@ -102,7 +102,7 @@ RecieverThread::run(void) {
 }
 
 void
-RecieverThread::updateCanvas(void) {
+receiverThread::updateCanvas(void) {
 
   // if (t == NULL) return; /// TODO: why do I need this all of a sudden?
   _t->layoutMutex.lock();
