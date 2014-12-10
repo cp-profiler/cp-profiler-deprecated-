@@ -1,5 +1,5 @@
-#ifndef MAINWINDOW_H
-#define MAINWINDOW_H
+#ifndef GISTMAINWINDOW_H
+#define GISTMAINWINDOW_H
 
 #include "qtgist.hh"
 

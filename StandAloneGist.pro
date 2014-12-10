@@ -17,7 +17,7 @@ TEMPLATE = app
 CONFIG += c++11
 
 SOURCES += main.cpp\
-        mainwindow.cpp \
+        gistmainwindow.cpp \
     heap.cpp \
     nodewidget.cpp \
     drawingcursor.cpp \
@@ -37,7 +37,7 @@ SOURCES += main.cpp\
 
 
 
-HEADERS  += mainwindow.h \
+HEADERS  += gistmainwindow.h \
     qtgist.hh \
     treecanvas.hh \
     visualnode.hh \

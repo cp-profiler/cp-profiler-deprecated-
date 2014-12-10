@@ -26,7 +26,7 @@ Data::Data(TreeCanvas* tc, NodeAllocator* na, bool isRestarts)
 
 void Data::show_db(void) {
     qDebug() << "***** SHOW_DB: *****";
-    for (auto it = nodes_arr.begin(); it != nodes_arr.end(); it++) {
+    for (auto it = nodes_arr.cbegin(); it != nodes_arr.end(); it++) {
             qDebug() << "sid: " << (*it)->gid << " p: " << (*it)->parent_sid <<
             " alt: " << (*it)->alt << " kids: " << (*it)->numberOfKids;
     }

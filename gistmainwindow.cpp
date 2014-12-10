@@ -1,4 +1,4 @@
-#include "mainwindow.h"
+#include "gistmainwindow.h"
 #include "preferences.hh"
 #include "nodewidget.hh"
 
