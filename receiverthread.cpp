@@ -28,7 +28,7 @@ receiverThread::run(void) {
     zmq::socket_t socket (context, ZMQ_PULL);
     try {
         socket.bind("tcp://*:6565");
-        // qDebug() << "connected to 6565";
+        qDebug() << "connected to 6565";
     } catch (std::exception& e) {
         std::cerr << "error connecting to socket\n";
     }
@@ -41,7 +41,7 @@ receiverThread::run(void) {
 
         Message *msg = reinterpret_cast<Message*>(request.data());
 
-        qDebug() << "ready to read a message";
+        // qDebug() << "ready to read a message";
 
         switch (msg->type) {
             case NODE_DATA:
@@ -49,7 +49,7 @@ receiverThread::run(void) {
                 ++nodeCount;
             break;
             case START_SENDING:
-                qDebug() << "START RECIEVING";
+                qDebug() << "START RECEIVING";
                 /// start building the tree
 
                 // if (msg->restart_id == -1 || msg->restart_id == 1) { // why 1?
@@ -57,11 +57,7 @@ receiverThread::run(void) {
                     ptr_gist->canvasTwo = NULL;
                     if (ptr_gist->sndCanvas->isChecked() && ptr_gist->canvas->_isUsed) {
 
-                        qDebug() << "!!! request for a new canvas";
-
                         emit newCanvasNeeded();
-
-                        qDebug() << "!!! should have a new canvas";
 
                         _t = ptr_gist->_td->getCanvas();
                        ptr_gist->connectCanvas(_t);
@@ -80,10 +76,10 @@ receiverThread::run(void) {
                 }
             break;
             case DONE_SENDING:
-                qDebug() << "Done receiving";
+                qDebug() << "DONE RECEIVING";
                 updateCanvas();
                 if (!_t->_data->isRestarts())
-                    _t->_data->setDone();
+                    emit doneWork();
 
             break;
         }

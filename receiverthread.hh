@@ -29,6 +29,7 @@ public Q_SLOTS:
 Q_SIGNALS:
   void update(int w, int h, int scale0);
   void startWork(void);
+  void doneWork(void);
   void statusChanged(bool);
   void newCanvasNeeded(void);
 

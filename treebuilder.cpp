@@ -7,8 +7,12 @@ TreeBuilder::TreeBuilder(TreeCanvas* tc, QObject *parent)
 }
 
 void TreeBuilder::startBuilding() {
-    qDebug() << ">>> startBuilding in Builder #" << _tc->_id;
+    // qDebug() << ">>> startBuilding in Builder #" << _tc->_id;
     start();
+}
+
+void TreeBuilder::finishBuilding() {
+    _data->setDone();
 }
 
 void TreeBuilder::reset(Data* data, NodeAllocator* na) {
@@ -54,10 +58,10 @@ void TreeBuilder::run(void) {
             // qDebug() << "Can't lock, trying again";
         };
 
-
+        // qDebug() << "lastRead:" << lastRead << "nodes_arr.size():" << nodes_arr.size();
         if (lastRead >= nodes_arr.size()) {
             if (_data->isDone()) {
-                qDebug() << "stop because done";
+                qDebug() << "stop because done, " << "tc_id: " << _tc->_id;
                 dataMutex.unlock();
                 if (showlocks) qDebug() << "unlock mutex 58";
                 break;
@@ -74,7 +78,7 @@ void TreeBuilder::run(void) {
         bool isRoot = (dbEntry.parent_sid == ~0u) ? true : false;
 
 
-//        qDebug() << "gid: " << dbEntry.gid << "parent_sid: " << dbEntry.parent_sid << dbEntry.alt << dbEntry.alt;
+       qDebug() << "gid: " << dbEntry.gid << "parent_sid: " << dbEntry.parent_sid << dbEntry.alt << dbEntry.alt;
 
         if (showlocks) qDebug() << "lock mutex 72";
         _mutex->lock();
@@ -174,7 +178,7 @@ void TreeBuilder::run(void) {
     // qDebug() << "lastRead: " << lastRead;
     node->dirtyUp(*_na);
     emit doneBuilding();
-    // qDebug() << "Done building";
+    qDebug() << "emitting Done building";
     end = clock();
     double elapsed_secs = double(end - begin) / CLOCKS_PER_SEC;
      qDebug() << "Time elapsed: " << elapsed_secs << " seconds";

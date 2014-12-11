@@ -81,6 +81,8 @@ TreeCanvas::TreeCanvas(QGridLayout* layout, receiverThread* receiver, CanvasType
 
     connect(this, SIGNAL(autoZoomChanged(bool)), autoZoomButton, SLOT(setChecked(bool)));
 
+    connect(_builder, SIGNAL(doneBuilding(void)), this, SLOT(finalizeCanvas(void)));
+
     connect(ptr_receiver, SIGNAL(update(int,int,int)), this,
             SLOT(layoutDone(int,int,int)));
 

@@ -57,7 +57,6 @@ Gist::Gist(QWidget* parent) : QWidget(parent) {
 
     connectCanvas(canvas);
 
-    connect(canvas->_builder, SIGNAL(doneBuilding(void)), canvas, SLOT(finalizeCanvas(void)));
     connect(initComparison, SIGNAL(triggered()), this, SLOT(initiateComparison()));
 
     connect(scrollArea->horizontalScrollBar(), SIGNAL(valueChanged(int)),
@@ -792,7 +791,8 @@ Gist::connectCanvas(TreeCanvas* tc) {
     if (current_tc == tc) return;
 
     if (current_tc && current_tc->_builder) {
-        disconnect(receiver, SIGNAL(startWork(void)), current_tc->_builder, SLOT(startBuilding(void)));
+        disconnect(receiver, SIGNAL(startWork(void)),
+                   current_tc->_builder, SLOT(startBuilding(void)));
         disconnect(inspect, SIGNAL(triggered()), current_tc, SLOT(inspectCurrentNode()));
         disconnect(inspectBeforeFP, SIGNAL(triggered()), current_tc, SLOT(inspectBeforeFP(void)));
         disconnect(stop, SIGNAL(triggered()), current_tc, SLOT(stopSearch()));
@@ -829,7 +829,10 @@ Gist::connectCanvas(TreeCanvas* tc) {
 
     current_tc = tc;
     
-    connect(receiver, SIGNAL(startWork(void)), tc->_builder, SLOT(startBuilding(void)));
+    connect(receiver, SIGNAL(startWork(void)),
+            tc->_builder, SLOT(startBuilding(void)));
+    connect(receiver, SIGNAL(doneWork(void)),
+            tc->_builder, SLOT(finishBuilding(void)));
     connect(inspect, SIGNAL(triggered()), tc, SLOT(inspectCurrentNode()));
     connect(inspectBeforeFP, SIGNAL(triggered()), tc, SLOT(inspectBeforeFP(void)));
     connect(stop, SIGNAL(triggered()), tc, SLOT(stopSearch()));
