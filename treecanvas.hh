@@ -30,7 +30,7 @@ class TreeCanvas;
 class SimilarShapesWindow;
 class TreeBuilder;
 class TreeDialog;
-class receiverThread;
+class ReceiverThread;
 
 /// *********************
 /// SIMILAR SUBTREES
@@ -151,7 +151,7 @@ class TreeCanvas : public QWidget {
 
 
 
-  friend class receiverThread;
+  friend class ReceiverThread;
   friend class Gist;
   friend class TreeBuilder;
   friend class ShapeCanvas;
@@ -185,7 +185,7 @@ private:
 
   TreeBuilder* _builder;
 
-  receiverThread* ptr_receiver;
+  ReceiverThread* ptr_receiver;
 
   QTimer* timer;
 
@@ -196,7 +196,7 @@ public Q_SLOTS:
 
 public:
   /// Constructor
-  TreeCanvas(QGridLayout* layout, receiverThread* receiver, CanvasType type, QWidget* parent);
+  TreeCanvas(QGridLayout* layout, ReceiverThread* receiver, CanvasType type, QWidget* parent);
   /// Destructor
   ~TreeCanvas(void);
 

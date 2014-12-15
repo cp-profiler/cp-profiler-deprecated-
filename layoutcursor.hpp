@@ -16,7 +16,7 @@ LayoutCursor::processCurrentNode(void) {
     if (currentNode->isDirty()) {
         if (currentNode->isHidden()) {
             // do nothing
-        } else if (false && currentNode->getNumberOfChildren() < 1) {
+        } else if (false && currentNode->getNumberOfChildren() < 1) { /// TODO: ask Guido
             currentNode->setShape(Shape::leaf);
         } else {
             currentNode->computeShape(na);

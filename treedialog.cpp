@@ -1,6 +1,6 @@
 #include "treedialog.hh"
 
-TreeDialog::TreeDialog(receiverThread* receiver, const TreeCanvas::CanvasType type, Gist* gist) : QDialog(gist),
+TreeDialog::TreeDialog(ReceiverThread* receiver, const TreeCanvas::CanvasType type, Gist* gist) : QDialog(gist),
   prt_gist(gist)
 {
 

@@ -46,7 +46,7 @@ Gist::Gist(QWidget* parent) : QWidget(parent) {
 
     current_tc = NULL;
     
-    receiver = new receiverThread(this);
+    receiver = new ReceiverThread(this);
 
     canvas = new TreeCanvas(layout, receiver, TreeCanvas::REGULAR, scrollArea->viewport());
     canvas->setPalette(*myPalette);
@@ -66,12 +66,12 @@ Gist::Gist(QWidget* parent) : QWidget(parent) {
 
     connect(receiver, SIGNAL(finished()), receiver, SLOT(deleteLater()));
 
-//    connect(canvas, SIGNAL(solution(const Space*)),
-//            this, SIGNAL(solution(const Space*)));
+   // connect(canvas, SIGNAL(solution(const Space*)),
+   //         this, SIGNAL(solution(const Space*)));
 
     // create new TreeCanvas when receiver gets new data
     connect(receiver, SIGNAL(newCanvasNeeded()), this, SLOT(createNewCanvas(void)),
-        Qt::BlockingQueuedConnection);
+       Qt::BlockingQueuedConnection);
 
 
     nodeStatInspector = new NodeStatInspector(this);
@@ -226,7 +226,15 @@ Gist::resizeEvent(QResizeEvent*) {
 //    selectComparator(ncs);
 //}
 
-Gist::~Gist(void) { delete canvas;}
+Gist::~Gist(void) {
+
+    qDebug() << "in Gist destructor";
+
+    // receiver->terminate();
+    // receiver->wait();
+
+    delete canvas;
+}
 
 void
 Gist::prepareNewCanvas(void) {

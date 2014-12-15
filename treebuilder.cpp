@@ -3,11 +3,9 @@
 TreeBuilder::TreeBuilder(TreeCanvas* tc, QObject *parent)
     : QThread(parent), _tc(tc) {
         _mutex = &(_tc->layoutMutex);
-        qDebug() << "+++ new Tree Builder, tc_id: " << _tc->_id;
 }
 
 void TreeBuilder::startBuilding() {
-    // qDebug() << ">>> startBuilding in Builder #" << _tc->_id;
     start();
 }
 
@@ -25,11 +23,9 @@ void TreeBuilder::reset(Data* data, NodeAllocator* na) {
 void TreeBuilder::run(void) {
     
     clock_t begin, end;
-
-    bool showlocks = false;
     
     begin = clock();
-	qDebug() << "### in run method of tc:" << _tc->_id;
+	// qDebug() << "### in run method of tc:" << _tc->_id;
 
 	std::vector<DbEntry*> &nodes_arr = _data->nodes_arr;
 	std::unordered_map<unsigned long long, int> &sid2aid = _data->sid2aid;
@@ -53,20 +49,20 @@ void TreeBuilder::run(void) {
         int status;
 
 
-        if (showlocks) qDebug() << "lock mutex 51";
         while (!dataMutex.tryLock()) { 
             // qDebug() << "Can't lock, trying again";
         };
 
         // qDebug() << "lastRead:" << lastRead << "nodes_arr.size():" << nodes_arr.size();
+
+        /// We can still be processing nodes when the DONE_SENDING message come
+        /// so only stop when the nodes_arr is completely read
         if (lastRead >= nodes_arr.size()) {
             if (_data->isDone()) {
                 qDebug() << "stop because done, " << "tc_id: " << _tc->_id;
                 dataMutex.unlock();
-                if (showlocks) qDebug() << "unlock mutex 58";
                 break;
             } else {
-                if (showlocks) qDebug() << "unlock  mutex 61";
                 dataMutex.unlock();
                 continue;
             }
@@ -74,13 +70,10 @@ void TreeBuilder::run(void) {
 
         DbEntry& dbEntry = *nodes_arr[lastRead];
 
-
         bool isRoot = (dbEntry.parent_sid == ~0u) ? true : false;
 
+       // qDebug() << "gid: " << dbEntry.gid << "parent_sid: " << dbEntry.parent_sid << dbEntry.alt << dbEntry.alt;
 
-       qDebug() << "gid: " << dbEntry.gid << "parent_sid: " << dbEntry.parent_sid << dbEntry.alt << dbEntry.alt;
-
-        if (showlocks) qDebug() << "lock mutex 72";
         _mutex->lock();
 
         if (isRoot) {
@@ -105,8 +98,6 @@ void TreeBuilder::run(void) {
         else { /// not a root
 
             pid = dbEntry.parent_sid;
-            // show_db();
-
             alt = dbEntry.alt;
             nalt = dbEntry.numberOfKids;
             status = dbEntry.status;
@@ -157,6 +148,9 @@ void TreeBuilder::run(void) {
                     node->setStatus(BRANCH);
                     stats.choices++;
                 break;
+                default:
+                    qDebug() << "need to handle this type of Node: " << status;
+                break;
 
             }
                 
@@ -166,19 +160,15 @@ void TreeBuilder::run(void) {
         }
 
         _mutex->unlock();
-        // qDebug() << "mutext unlock in run";
 
-        if (showlocks) qDebug() << "unlock mutex 157";
         dataMutex.unlock();
 
         lastRead++;
 
     }
 
-    // qDebug() << "lastRead: " << lastRead;
     node->dirtyUp(*_na);
     emit doneBuilding();
-    qDebug() << "emitting Done building";
     end = clock();
     double elapsed_secs = double(end - begin) / CLOCKS_PER_SEC;
      qDebug() << "Time elapsed: " << elapsed_secs << " seconds";

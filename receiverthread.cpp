@@ -1,28 +1,37 @@
 #include "receiverthread.hh"
 
-receiverThread::receiverThread(QWidget* parent): QThread(parent) {
+ReceiverThread::ReceiverThread(QWidget* parent): QThread(parent) {
     ptr_gist = static_cast<Gist*>(parent);
 }
 
 void
-// receiverThread::recieve(VisualNode* n, TreeCanvas* tc) {
-receiverThread::recieve(TreeCanvas* tc) {
+// ReceiverThread::recieve(VisualNode* n, TreeCanvas* tc) {
+ReceiverThread::recieve(TreeCanvas* tc) {
 //  QMutexLocker locker(&mutex);
   /// skipped smth here
  // _node = n;
   
   _t = tc;
+
+  _quit = false;
   
   start();
 }
 
 void
-receiverThread::switchCanvas(TreeCanvas* tc) { // not needed actually
+ReceiverThread::stopThread(void) {
+    qDebug() << "stoping thread";
+    _quit = true;
+}
+
+
+void
+ReceiverThread::switchCanvas(TreeCanvas* tc) { // not needed actually
     _t = tc;
 }
 
 void
-receiverThread::run(void) {
+ReceiverThread::run(void) {
 
     zmq::context_t context(1);
     zmq::socket_t socket (context, ZMQ_PULL);
@@ -34,14 +43,15 @@ receiverThread::run(void) {
     }
     
     int nodeCount = 0;
-    while (true) {
+
+    
+    while (!_quit) {
+
         zmq::message_t request;
 
-        socket.recv (&request);
+        socket.recv (&request, ZMQ_NOBLOCK);
 
         Message *msg = reinterpret_cast<Message*>(request.data());
-
-        // qDebug() << "ready to read a message";
 
         switch (msg->type) {
             case NODE_DATA:
@@ -60,7 +70,7 @@ receiverThread::run(void) {
                         emit newCanvasNeeded();
 
                         _t = ptr_gist->_td->getCanvas();
-                       ptr_gist->connectCanvas(_t);
+                        ptr_gist->connectCanvas(_t);
                         qDebug() << "Switched to another canvas";
                     }
 
@@ -76,7 +86,6 @@ receiverThread::run(void) {
                 }
             break;
             case DONE_SENDING:
-                qDebug() << "DONE RECEIVING";
                 updateCanvas();
                 if (!_t->_data->isRestarts())
                     emit doneWork();
@@ -95,22 +104,21 @@ receiverThread::run(void) {
 
     }
 
+    qDebug() << "quiting run";
+
 }
 
 void
-receiverThread::updateCanvas(void) {
+ReceiverThread::updateCanvas(void) {
 
-  // if (t == NULL) return; /// TODO: why do I need this all of a sudden?
   _t->layoutMutex.lock();
 
     if (_t->root == NULL) return;
 
-    /// does this ever happen?
     if (_t->autoHideFailed) {
-        _t->root->hideFailed(*_t->na,true);
+        _t->root->hideFailed(*_t->na, true);
     }
 
-    /// mark as dirty?
     for (VisualNode* n = _t->currentNode; n != NULL; n=n->getParent(*_t->na)) {
         if (n->isHidden()) {
             _t->currentNode->setMarked(false);

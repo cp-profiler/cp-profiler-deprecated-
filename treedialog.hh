@@ -26,7 +26,7 @@ private:
 
 public:
 
-  TreeDialog(receiverThread* receiver, const TreeCanvas::CanvasType type, Gist* gist);
+  TreeDialog(ReceiverThread* receiver, const TreeCanvas::CanvasType type, Gist* gist);
 
   ~TreeDialog();
 

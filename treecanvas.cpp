@@ -20,7 +20,7 @@
 
 int TreeCanvas::counter = 0;
 
-TreeCanvas::TreeCanvas(QGridLayout* layout, receiverThread* receiver, CanvasType type, QWidget* parent)
+TreeCanvas::TreeCanvas(QGridLayout* layout, ReceiverThread* receiver, CanvasType type, QWidget* parent)
     : QWidget(parent)
     , canvasType(type)
     , mutex(QMutex::Recursive)
@@ -108,8 +108,6 @@ TreeCanvas::TreeCanvas(QGridLayout* layout, receiverThread* receiver, CanvasType
     zoomTimeLine.setCurveShape(QTimeLine::EaseInOutCurve);
 
     qRegisterMetaType<Statistics>("Statistics");
-
-    qDebug() << "+++ new TreeCanvas created, id: " << _id;
 
     update();
 }
@@ -786,14 +784,14 @@ TreeCanvas::inspectCurrentNode(bool, int) {
     int failedInspector = -1;
 //    bool needCentering;
 
-//    uint kids = currentNode->getNumberOfChildren();
+   uint kids = currentNode->getNumberOfChildren();
     int depth = -1;
     for (VisualNode* p = currentNode; p != NULL; p=p->getParent(*na))
         depth++;
-//    if (kids > 0) {
-//        needCentering = true;
-//        depth++;
-//    }
+  if (kids > 0) {
+//      needCentering = true;
+      depth++;
+  }
     stats.maxDepth =
             std::max(stats.maxDepth, depth);
 
@@ -806,7 +804,7 @@ TreeCanvas::inspectCurrentNode(bool, int) {
                // for (VisualNode* p = currentNode; p != NULL; p=p->getParent(*na))
                //     depth++;
                // if (kids > 0) {
-               //     needCentering = true;
+               //     // needCentering = true;
                //     depth++;
                // }
                // stats.maxDepth =
@@ -1093,7 +1091,6 @@ TreeCanvas::emitStatusChanged(void) {
 void
 TreeCanvas::navUp(void) {
     QMutexLocker locker(&mutex);
-
     VisualNode* p = currentNode->getParent(*na);
 
     setCurrentNode(p);

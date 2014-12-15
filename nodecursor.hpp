@@ -80,6 +80,7 @@ NodeCursor<Node>::moveSidewards(void) {
 
 inline bool
 HideFailedCursor::mayMoveDownwards(void) {
+
     VisualNode* n = node();
     return (!onlyDirty || n->isDirty()) &&
             NodeCursor<VisualNode>::mayMoveDownwards() &&
@@ -95,6 +96,7 @@ HideFailedCursor::HideFailedCursor(VisualNode* root,
 
 inline void
 HideFailedCursor::processCurrentNode(void) {
+
     VisualNode* n = node();
     if (n->getStatus() == BRANCH &&
             !n->hasSolvedChildren() &&
@@ -196,6 +198,7 @@ StatCursor::StatCursor(VisualNode* root,
 
 inline void
 StatCursor::processCurrentNode(void) {
+    qDebug() << "doesnt go here";
     VisualNode* n = node();
     switch (n->getStatus()) {
     case SOLVED: solved++; break;

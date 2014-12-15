@@ -8,14 +8,14 @@
 
 class Gist;
 
-class receiverThread : public QThread {
+class ReceiverThread : public QThread {
   Q_OBJECT
 
   friend Gist;
 
 public:
 
-  receiverThread(QWidget* parent = 0);
+  ReceiverThread(QWidget* parent = 0);
   void switchCanvas(TreeCanvas* tc);
 
 
@@ -23,8 +23,11 @@ private:
   TreeCanvas* _t;
   Gist* ptr_gist;
 
+  volatile bool _quit;
+
 public Q_SLOTS:
   void updateCanvas(void);
+  void stopThread(void);
 
 Q_SIGNALS:
   void update(int w, int h, int scale0);

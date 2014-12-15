@@ -26,6 +26,8 @@ AboutGist::AboutGist(QWidget* parent) : QDialog(parent) {
   setAttribute(Qt::WA_DeleteOnClose, false);
 }
 
+
+
 GistMainWindow::GistMainWindow(void) : aboutGist(this) {
   c = new Gist(this);
   setCentralWidget(c);
@@ -170,6 +172,8 @@ GistMainWindow::GistMainWindow(void) : aboutGist(this) {
   connect(c,SIGNAL(statusChanged(const Statistics&,bool)),
           this,SLOT(statusChanged(const Statistics&,bool)));
 
+  connect(this, SIGNAL(stopReceiver()), c->getReceiver(), SLOT(stopThread()));
+
   preferences(true);
   show();
   c->reset->trigger();
@@ -177,9 +181,13 @@ GistMainWindow::GistMainWindow(void) : aboutGist(this) {
 
 void
 GistMainWindow::closeEvent(QCloseEvent* event) {
+
+  emit stopReceiver();
+  c->getReceiver()->wait();
+
   if (c->finish())
     event->accept();
-  else
+  else 
     event->ignore();
 }
 

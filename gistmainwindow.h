@@ -60,6 +60,11 @@ protected:
   /// About dialog
   AboutGist aboutGist;
 
+Q_SIGNALS:
+
+  /// stops the receiver thread
+  void stopReceiver(void);
+
 protected Q_SLOTS:
   /// The status has changed (e.g., new solutions have been found)
   void statusChanged(const Statistics& stats, bool finished);

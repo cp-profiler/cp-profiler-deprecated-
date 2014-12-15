@@ -21,7 +21,7 @@
 class Gist : public QWidget {
   Q_OBJECT
 
-  friend receiverThread;
+  friend ReceiverThread;
 
   /// **************** INTERFACE *******************
 
@@ -38,7 +38,7 @@ class Gist : public QWidget {
 private:
 
   /// Checks for new nodes
-  receiverThread* receiver;
+  ReceiverThread* receiver;
 
   TreeCanvas* current_tc;
   
@@ -237,10 +237,9 @@ public:
 
   /// ***** GETTERS *****
   TreeCanvas* getCanvas(void) { return canvas; }
+  ReceiverThread* getReceiver(void) { return receiver; }
 
 Q_SIGNALS:
-
-  
 
   /// Signals that the tree has changed
   void statusChanged(const Statistics&, bool);
