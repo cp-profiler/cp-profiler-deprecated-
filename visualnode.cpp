@@ -75,12 +75,12 @@ VisualNode::dispose(void) {
 void
 VisualNode::dirtyUp(const NodeAllocator& na) {
     VisualNode* cur = this;
-    while (!cur->isDirty()) {
+    do {
         cur->setDirty(true);
         if (!cur->isRoot()) {
             cur = cur->getParent(na);
         }
-    }
+    } while (!cur->isDirty()); /// TODO: confirm with Guido
 }
 
 void
