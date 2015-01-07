@@ -33,6 +33,7 @@ SOURCES += main.cpp\
     receiverthread.cpp \
     treebuilder.cpp \
     treecomparison.cpp \
+    debug.cpp \
     
 
 

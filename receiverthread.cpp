@@ -62,32 +62,43 @@ ReceiverThread::run(void) {
                 qDebug() << "START RECEIVING";
                 /// start building the tree
 
-                // if (msg->restart_id == -1 || msg->restart_id == 1) { // why 1?
-                if (msg->restart_id == -1) {
-                    ptr_gist->canvasTwo = NULL;
-                    if (ptr_gist->sndCanvas->isChecked() && ptr_gist->canvas->_isUsed) {
+                // if (msg->restart_id == -1 || msg->restart_id == 0) { // why 1?
 
+
+                if (msg->restart_id != -1 && msg->restart_id != 0) {
+                    qDebug() << ">>> restart and continue";
+                    break;
+                }
+
+                /// restart_id either -1 or 0 below this point:
+
+                /// Check if new canvas needs to be created
+                if (ptr_gist->sndCanvas->isChecked() && ptr_gist->canvas->_isUsed) {
                         emit newCanvasNeeded();
 
-                        _t = ptr_gist->_td->getCanvas();
-                        ptr_gist->connectCanvas(_t);
-                        qDebug() << "Switched to another canvas";
-                    }
+                    _t = ptr_gist->_td->getCanvas();
+                    ptr_gist->connectCanvas(_t);
+                    qDebug() << "Switched to another canvas";
+                }
+
+                if (msg->restart_id == -1) {
+                    ptr_gist->canvasTwo = NULL; /// TODO: do I still need this?
 
                     _t->reset(false); // no restarts
                     emit startWork();
-                } else if (msg->restart_id == 0){
+                } 
+                else if (msg->restart_id == 0){
 
                     _t->reset(true);
                     emit startWork();
                     qDebug() << ">>> new restart";
-                } else {
-                    qDebug() << ">>> restart and continue";
                 }
             break;
             case DONE_SENDING:
+                qDebug() << "recieved DONE SENDING";
                 updateCanvas();
-                if (!_t->_data->isRestarts())
+                /// needed for optirion CPX restarts
+                // if (!_t->_data->isRestarts()) 
                     emit doneWork();
 
             break;

@@ -1,4 +1,5 @@
 #include "treebuilder.hh"
+#include "debug.cpp"
 
 TreeBuilder::TreeBuilder(TreeCanvas* tc, QObject *parent)
     : QThread(parent), _tc(tc) {
@@ -72,7 +73,8 @@ void TreeBuilder::run(void) {
 
         bool isRoot = (dbEntry.parent_sid == ~0u) ? true : false;
 
-       // qDebug() << "gid: " << dbEntry.gid << "parent_sid: " << dbEntry.parent_sid << dbEntry.alt << dbEntry.alt;
+        // DebugHelper::printNodes(nodes_arr);
+        // DebugHelper::printMap(sid2aid);
 
         _mutex->lock();
 
@@ -93,7 +95,7 @@ void TreeBuilder::run(void) {
                 (*_na)[0]->setHasSolvedChildren(true);
                 (*_na)[0]->_tid = 0; /// thread id
                 dbEntry.gid = 0;
-            }  
+            }
         }
         else { /// not a root
 
