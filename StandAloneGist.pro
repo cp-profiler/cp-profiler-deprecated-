@@ -35,6 +35,7 @@ SOURCES += main.cpp\
     receiverthread.cpp \
     treebuilder.cpp \
     treecomparison.cpp \
+    pixelview.cpp \
     debug.cpp \
     
 
@@ -67,6 +68,7 @@ HEADERS  += gistmainwindow.h \
     receiverthread.hh \
     treebuilder.hh \
     treecomparison.hh \
+    pixelview.hh
 
 FORMS    +=
 

@@ -12,7 +12,6 @@
 #include "visualnode.hh"
 #include "treebuilder.hh"
 #include "zoomToFitIcon.hpp"
-// #include "receiverthread.hh"
 
 /// \brief Parameters for the tree layout
 namespace LayoutConfig {
@@ -157,6 +156,7 @@ class TreeCanvas : public QWidget {
   friend class ShapeCanvas;
   friend class TreeComparison;
   friend class TreeDialog;
+  friend class PixelTreeDialog;
 
 public:
 

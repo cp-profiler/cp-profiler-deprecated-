@@ -11,6 +11,7 @@
 #include "treecanvas.hh"
 #include "treebuilder.hh"
 #include "receiverthread.hh"
+#include "pixelview.hh"
 
 #include "data.hh"
 
@@ -512,7 +513,8 @@ TreeCanvas::getNoOfSolvedLeaves(VisualNode& n) {
 }
 
 void TreeCanvas::showPixelTree(void) {
-  qDebug("pixel Tree here!\n");
+  PixelTreeDialog* pixelTreeDialog = new PixelTreeDialog(this);
+  pixelTreeDialog->show();
 }
 
 CompareShapes::CompareShapes(TreeCanvas& tc) : _tc(tc) {}
