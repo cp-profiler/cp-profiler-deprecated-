@@ -15,6 +15,8 @@ TARGET = StandAloneGist
 TEMPLATE = app
 
 CONFIG += c++11
+#CONFIG += static
+#CONFIG += -std=c++0x
 
 SOURCES += main.cpp\
         gistmainwindow.cpp \

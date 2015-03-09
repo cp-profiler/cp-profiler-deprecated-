@@ -60,7 +60,7 @@ int Data::handleNodeCallback(Message* msg) {
 
     // qDebug() << "Received node: \t" << id << " " << pid << " "
     //                 << alt << " " << kids << " " << status << " wid: "
-    //                 << (int)thread << " restart: " << restart_id 
+    //                 << (int)thread << " restart: " << restart_id
     //                 << "time: " << msg->time
     //                 << "label: " << msg->label;
 

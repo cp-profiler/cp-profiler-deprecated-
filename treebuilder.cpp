@@ -71,6 +71,9 @@ void TreeBuilder::run(void) {
 
         DbEntry& dbEntry = *nodes_arr[lastRead];
 
+        // qDebug() << "node: " << dbEntry.parent_sid << " " << dbEntry.alt << " "
+        //          << dbEntry.numberOfKids << " " << dbEntry.status;
+
         bool isRoot = (dbEntry.parent_sid == ~0u) ? true : false;
 
         // DebugHelper::printNodes(nodes_arr);
@@ -115,7 +118,9 @@ void TreeBuilder::run(void) {
 
             gid2aid[gid] = lastRead;
 
-            // qDebug() << "[" << lastRead << parent_gid << "] pid: " << pid << ", sid2aid:" << sid2aid[pid] << ", nodes_arr[sid2aid[pid]]->gid:" << nodes_arr[sid2aid[pid]]->gid;
+
+
+            qDebug() << "[" << lastRead << parent_gid << "] pid: " << pid << ", sid2aid:" << sid2aid[pid] << ", nodes_arr[sid2aid[pid]]->gid:" << nodes_arr[sid2aid[pid]]->gid;
 
             node->_tid = dbEntry.thread;
             node->setNumberOfChildren(nalt, *_na);

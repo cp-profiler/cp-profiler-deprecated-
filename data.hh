@@ -21,7 +21,7 @@ enum MsgType {
 };
 
 struct Message {
-    static const int LABEL_SIZE = 16;
+    static const int LABEL_SIZE = 32;
 
     MsgType type;
     int sid;
