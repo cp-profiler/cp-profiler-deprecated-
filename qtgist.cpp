@@ -503,8 +503,8 @@ Gist::setMoveDuringSearch(bool b) {
 }
 void
 Gist::showStats(void) {
-    // nodeStatInspector->showStats();
-    // canvas->emitStatusChanged();
+    nodeStatInspector->showStats();
+    canvas->emitStatusChanged();
 }
 
 

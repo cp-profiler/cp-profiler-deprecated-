@@ -40,6 +40,9 @@ void TreeBuilder::run(void) {
     QMutex &dataMutex = _data->dataMutex;
     Statistics &stats = _tc->stats;
 
+    stats.undetermined = 1;
+
+
     while(true) {
 
         int gid; /// gist Id
@@ -49,6 +52,7 @@ void TreeBuilder::run(void) {
         int nalt;
         int status;
 
+        int depth;
 
         while (!dataMutex.tryLock()) { 
             // qDebug() << "Can't lock, trying again";
@@ -93,11 +97,15 @@ void TreeBuilder::run(void) {
                 dbEntry.gid = restart_root;
 
             } else {
-                (*_na)[0]->setNumberOfChildren(nodes_arr[0]->numberOfKids, *_na);
+                int kids = nodes_arr[0]->numberOfKids;
+                (*_na)[0]->setNumberOfChildren(kids, *_na);
                 (*_na)[0]->setStatus(BRANCH);
                 (*_na)[0]->setHasSolvedChildren(true);
                 (*_na)[0]->_tid = 0; /// thread id
                 dbEntry.gid = 0;
+                stats.choices++;
+                stats.undetermined += kids - 1;
+                
             }
         }
         else { /// not a root
@@ -120,10 +128,15 @@ void TreeBuilder::run(void) {
 
 
 
-            qDebug() << "[" << lastRead << parent_gid << "] pid: " << pid << ", sid2aid:" << sid2aid[pid] << ", nodes_arr[sid2aid[pid]]->gid:" << nodes_arr[sid2aid[pid]]->gid;
+//            qDebug() << "[" << lastRead << parent_gid << "] pid: " << pid << ", sid2aid:" << sid2aid[pid] << ", nodes_arr[sid2aid[pid]]->gid:" << nodes_arr[sid2aid[pid]]->gid;
 
             node->_tid = dbEntry.thread;
             node->setNumberOfChildren(nalt, *_na);
+
+            // stats.maxDepth =
+              // std::max(stats.maxDepth, depth);
+
+
 
             switch (status) {
                 case FAILED: // 1
@@ -133,6 +146,8 @@ void TreeBuilder::run(void) {
                     node->setStatus(FAILED);
                     parent->closeChild(*_na, true, false);
                     stats.failures++;
+                    stats.undetermined--;
+
                 break;
                 case SKIPPED: // 6
                     node->setHasOpenChildren(false);
@@ -141,6 +156,7 @@ void TreeBuilder::run(void) {
                     node->setStatus(SKIPPED);
                     parent->closeChild(*_na, true, false);
                     stats.failures++;
+                    stats.undetermined--;
                 break;
                 case SOLVED: // 0
                     node->setHasFailedChildren(false);
@@ -149,11 +165,13 @@ void TreeBuilder::run(void) {
                     node->setStatus(SOLVED);
                     parent->closeChild(*_na, false, true);
                     stats.solutions++;
+                    stats.undetermined--;
                 break;
                 case BRANCH: // 2
                     node->setHasOpenChildren(true);
                     node->setStatus(BRANCH);
                     stats.choices++;
+                    stats.undetermined += nalt - 1;
                 break;
                 default:
                     qDebug() << "need to handle this type of Node: " << status;
