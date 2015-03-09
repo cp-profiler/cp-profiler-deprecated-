@@ -530,6 +530,8 @@ Gist::addActions(void) {
     sndCanvas->setCheckable(true);
     sndCanvas->setChecked(true);
     /// TODO: set a shortcut
+
+    showPixelTree = new QAction("Pixel Tree View", this);
     
     navUp = new QAction("Up", this);
     navUp->setShortcut(QKeySequence("Up"));
@@ -573,7 +575,7 @@ Gist::addActions(void) {
     labelPath = new QAction("Label/clear path", this);
     labelPath->setShortcut(QKeySequence("Shift+L"));
 
-    analyzeSimilarSubtrees = new QAction("Analyze similar subtrees", this);
+    analyzeSimilarSubtrees = new QAction("Analyse similar subtrees", this);
     analyzeSimilarSubtrees->setShortcut(QKeySequence("Shift+s"));
     
     toggleStop = new QAction("Stop/unstop", this);
@@ -723,6 +725,7 @@ Gist::addActions(void) {
     addAction(unhideAll);
     addAction(labelBranches);
     addAction(labelPath);
+    addAction(showPixelTree);
     addAction(analyzeSimilarSubtrees);
     addAction(toggleStop);
     addAction(unstopAll);
@@ -858,6 +861,7 @@ Gist::connectCanvas(TreeCanvas* tc) {
     connect(labelBranches, SIGNAL(triggered()), tc, SLOT(labelBranches()));
     connect(unhideAll, SIGNAL(triggered()), tc, SLOT(unhideAll()));
     connect(labelPath, SIGNAL(triggered()), tc, SLOT(labelPath()));
+    connect(showPixelTree, SIGNAL(triggered()), tc, SLOT(showPixelTree()));
     connect(analyzeSimilarSubtrees, SIGNAL(triggered()), tc, SLOT(analyzeSimilarSubtrees()));
     connect(toggleStop, SIGNAL(triggered()), tc, SLOT(toggleStop()));
     connect(unstopAll, SIGNAL(triggered()), tc, SLOT(unstopAll()));

@@ -268,6 +268,9 @@ public Q_SLOTS:
   /// Label all branches on path to root node
   void labelPath(void);
 
+  /// Show Indented Pixel Tree View
+  void showPixelTree(void);
+
   /// Analyze similar subtrees of current node
   void analyzeSimilarSubtrees(void);
 

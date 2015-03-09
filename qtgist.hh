@@ -171,6 +171,9 @@ public:
   QAction* unstopAll;
 
 
+  /// Show Indented Pixel Tree View
+  QAction* showPixelTree;
+
   /// Group of all actions for solution inspectors
   QActionGroup* solutionInspectorGroup;
   /// Group of all actions for double click inspectors

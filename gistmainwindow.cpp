@@ -75,6 +75,19 @@ GistMainWindow::GistMainWindow(void) : aboutGist(this) {
   nodeMenu->addAction(c->setPath);
   nodeMenu->addAction(c->inspectPath);
   nodeMenu->addAction(c->showNodeStats);
+
+  /// ***** Tree Visualisaitons *****
+
+  QMenu* treeVisMenu = menuBar->addMenu(tr("Tree"));
+
+  treeVisMenu->addAction(c->showPixelTree);
+
+
+
+  /// *******************************
+
+
+
   bookmarksMenu = new QMenu("Bookmarks");
   bookmarksMenu->addAction(c->bookmarkNode);
   connect(bookmarksMenu, SIGNAL(aboutToShow()),

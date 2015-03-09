@@ -511,6 +511,10 @@ TreeCanvas::getNoOfSolvedLeaves(VisualNode& n) {
   return count;
 }
 
+void TreeCanvas::showPixelTree(void) {
+  qDebug("pixel Tree here!\n");
+}
+
 CompareShapes::CompareShapes(TreeCanvas& tc) : _tc(tc) {}
 
 bool
