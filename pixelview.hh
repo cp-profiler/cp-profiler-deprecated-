@@ -14,28 +14,23 @@ class PixelTreeDialog : public QDialog {
 
 private:
   QVBoxLayout layout;
-  QLabel qlabel;
-  QPixmap pixmap;
+  QHBoxLayout controlLayout;
+  
   QAbstractScrollArea scrollArea;
 
-  NodeAllocator* _na;
-
-  QImage* image;
-
-
-  int MARGIN = 30;
-  int DEPTH = 20;
-  int STEP = 5;
-
+  QPushButton scaleUp;
+  QPushButton scaleDown;
+  
   PixelTreeCanvas* canvas;
 
-public:
-  PixelTreeDialog(TreeCanvas* tc);
-  // ~PixelTreeDialog(void);
-protected:
 
-  void draw(void);
+public:
+
+  static const int MARGIN = 30;
+  static const int DEPTH = 50;
   
+
+  PixelTreeDialog(TreeCanvas* tc);
 };
 
 
@@ -45,16 +40,42 @@ protected:
 /// ******** PIXEL_TREE_CANVAS ********
 
 
-class PixelTreeCanvas : QWidget {
+class PixelTreeCanvas : public QWidget {
+  Q_OBJECT
 
 private:
+  TreeCanvas* _tc;
+  NodeAllocator* _na;
   QImage* _image;
+  QLabel qlabel;
+  QPixmap pixmap;
+
+  QAbstractScrollArea* _sa;
+  QScrollBar* _vScrollBar;
+
+  int _step = 1;
+
+  uint _nodeCount;
+
+
+  int call_stack_size = 0; // for debugging
+  int max_stack_size = 0;// for debugging
+
+  int x;
+
+private:
+  void draw(void);
+  void exploreNode(VisualNode* node, int depth);
 
 public:
-  PixelTreeCanvas(QWidget* parent, QImage* image);
+  PixelTreeCanvas(QWidget* parent, TreeCanvas* tc);
 
 protected:
   void paintEvent(QPaintEvent* event);
+
+public Q_SLOTS:
+  void scaleUp(void);
+  void scaleDown(void);
   
 
 };

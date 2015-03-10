@@ -3,76 +3,22 @@
 /// ******* PIXEL_TREE_DIALOG ********
 
 PixelTreeDialog::PixelTreeDialog(TreeCanvas* tc)
-  : QDialog(tc), _na(tc->na)
+  : QDialog(tc)
 {
 
-  uint numberOnNodes = tc->stats.solutions + tc->stats.failures
-                       + tc->stats.choices + tc->stats.undetermined;
-
-  int height = DEPTH * STEP;
-  int width = numberOnNodes * STEP;
-
-  this->resize(width + MARGIN, height + MARGIN);
+  this->resize(600, 400);
   setLayout(&layout);
   layout.addWidget(&scrollArea);
+  layout.addLayout(&controlLayout);
 
+  controlLayout.addWidget(&scaleDown);
+  controlLayout.addWidget(&scaleUp);
 
-  image = new QImage(width + MARGIN, height + MARGIN, QImage::Format_RGB888);
+  canvas = new PixelTreeCanvas(&scrollArea, tc);
 
-  canvas = new PixelTreeCanvas(&scrollArea, image);
+  connect(&scaleDown, SIGNAL(clicked()), canvas, SLOT(scaleDown()));
+  connect(&scaleUp, SIGNAL(clicked()), canvas, SLOT(scaleUp()));
 
-  qlabel.show();
-
-
-  draw();
-
-  pixmap.fromImage(*image);
-  qlabel.setPixmap(pixmap);
-
-}
-
-void
-PixelTreeDialog::draw(void) {
-
-  image->fill(qRgb(255, 255, 255));
-
-  QStack<VisualNode*> stack;
-  QStack<int> depth_stack;
-  VisualNode* root = (*_na)[0];
-
-  stack.push(root);
-  depth_stack.push(1);
-
-  int n = 1;
-  int depth;
-
-  while (stack.size() > 0) {
-    
-    qDebug() << "stack size: " << stack.size();
-
-    if (stack.size() > 1000)
-      break;
-
-    VisualNode* node = stack.pop();
-    depth = depth_stack.pop();
-
-    // draw current
-
-    for (uint i = 0; i < STEP; i++)
-      for (uint j = 0; j < STEP; j++)
-        image->setPixel(n + i, depth + j, qRgb(189, 149, 39));
-
-
-    n += STEP;
-
-    // if has children -> push all
-    uint kids = node->getNumberOfChildren();
-    for (uint i = 0; i < kids; ++i) {
-      stack.push(node->getChild(*_na, i));
-      depth_stack.push(depth + STEP);
-    }
-  }
-  
 }
 
 /// ***********************************
@@ -80,18 +26,120 @@ PixelTreeDialog::draw(void) {
 
 /// ******** PIXEL_TREE_CANVAS ********
 
-PixelTreeCanvas::PixelTreeCanvas(QWidget* parent, QImage* image)
-  : QWidget(parent), _image(image)
+PixelTreeCanvas::PixelTreeCanvas(QWidget* parent, TreeCanvas* tc)
+  : QWidget(parent), _tc(tc), _na(tc->na)
 {
 
-  this->resize(image->width(), image->height());
+  _sa = static_cast<QAbstractScrollArea*>(parentWidget());
+  _vScrollBar = _sa->verticalScrollBar();
+  _step;
+
+  _nodeCount = tc->stats.solutions + tc->stats.failures
+                       + tc->stats.choices + tc->stats.undetermined;
+
+  int height = PixelTreeDialog::DEPTH * _step;
+  int width = _nodeCount * _step;
+
+  _image = new QImage(width + PixelTreeDialog::MARGIN,
+                      height + PixelTreeDialog::MARGIN,
+                      QImage::Format_RGB888);
+
+  // connect(_vScrollBar, SIGNAL(valueChanged(int)), this, SLOT(draw(void)));
+  // this->resize(_image->width(), _image->height());
+
+
+
+  /// scrolling business
+  _sa->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
+  _sa->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
+  _sa->setAutoFillBackground(true);
+  
+  draw();
+
+
+  pixmap.fromImage(*_image);
+  qlabel.setPixmap(pixmap);
+  qlabel.show();
 
 }
 
 void
 PixelTreeCanvas::paintEvent(QPaintEvent* event) {
   QPainter painter(this);
-  painter.drawImage(0, 0, *_image);
+
+  _sa->horizontalScrollBar()->setRange(0, _image->width());
+  _sa->verticalScrollBar()->setRange(0, _image->height());
+  
+  int xoff = _sa->horizontalScrollBar()->value();
+  int yoff = _sa->verticalScrollBar()->value();
+
+  painter.drawImage(0, 0, *_image, xoff, yoff);
+
+
+}
+
+void
+PixelTreeCanvas::draw(void) {
+
+  x = 0;
+  delete _image;
+
+  int height = PixelTreeDialog::DEPTH * _step;
+  int width = _nodeCount * _step;
+
+  
+  
+
+  _image = new QImage(width + PixelTreeDialog::MARGIN,
+                      height + PixelTreeDialog::MARGIN,
+                      QImage::Format_RGB888);
+
+  this->resize(_image->width(), _image->height());
+
+  _image->fill(qRgb(255, 255, 255));
+
+  VisualNode* root = (*_na)[0];
+
+  exploreNode(root, 1);
+
+  qDebug() << "Max call stack size: " << max_stack_size;
+  
+}
+
+void
+PixelTreeCanvas::exploreNode(VisualNode* node, int depth) {
+  call_stack_size++;
+
+  if (max_stack_size < call_stack_size)
+    max_stack_size = call_stack_size;
+
+  // draw current
+  for (uint i = 0; i < _step; i++)
+    for (uint j = 0; j < _step; j++)
+      _image->setPixel(x + i, depth + j, qRgb(189, 149, 39));
+
+  x += _step;
+
+  // for children
+  uint kids = node->getNumberOfChildren();
+  for (uint i = 0; i < kids; ++i) {
+    exploreNode(node->getChild(*_na, i), depth + _step);
+  }
+
+  call_stack_size--;
+}
+
+void
+PixelTreeCanvas::scaleUp(void) {
+  _step++;
+  draw();
+}
+
+void
+PixelTreeCanvas::scaleDown(void) {
+  if (_step <= 1) return;
+  _step--;
+  draw();
 }
 
 

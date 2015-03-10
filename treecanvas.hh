@@ -156,6 +156,7 @@ class TreeCanvas : public QWidget {
   friend class ShapeCanvas;
   friend class TreeComparison;
   friend class TreeDialog;
+  friend class PixelTreeCanvas;
   friend class PixelTreeDialog;
 
 public:

@@ -165,7 +165,7 @@ SimilarShapesWindow::SimilarShapesWindow(QWidget* parent, TreeCanvas* tc)
 {
   view.setScene(&histScene);
 
-    applyLayouts();
+  applyLayouts();
 
   scrollArea.setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
   scrollArea.setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
