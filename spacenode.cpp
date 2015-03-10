@@ -74,3 +74,4 @@
       noOfOpenChildren += (getChild(na,i)->isOpen());
     return noOfOpenChildren;
   }
+

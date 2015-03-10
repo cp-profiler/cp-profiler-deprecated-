@@ -4,6 +4,11 @@
 #include "treecanvas.hh"
 #include <QImage>
 
+
+class PixelTreeCanvas;
+
+/// ******* PIXEL_TREE_DIALOG ********
+
 class PixelTreeDialog : public QDialog {
   Q_OBJECT
 
@@ -15,17 +20,47 @@ private:
 
   NodeAllocator* _na;
 
-  int STEP = 10;
-
-
   QImage* image;
+
+
+  int MARGIN = 30;
+  int DEPTH = 20;
+  int STEP = 5;
+
+  PixelTreeCanvas* canvas;
 
 public:
   PixelTreeDialog(TreeCanvas* tc);
   // ~PixelTreeDialog(void);
 protected:
-  void paintEvent(QPaintEvent* event);
+
   void draw(void);
+  
 };
+
+
+/// ***********************************
+
+
+/// ******** PIXEL_TREE_CANVAS ********
+
+
+class PixelTreeCanvas : QWidget {
+
+private:
+  QImage* _image;
+
+public:
+  PixelTreeCanvas(QWidget* parent, QImage* image);
+
+protected:
+  void paintEvent(QPaintEvent* event);
+  
+
+};
+
+
+/// ***********************************
+
 
 #endif

@@ -1,29 +1,34 @@
 #include "pixelview.hh"
 
+/// ******* PIXEL_TREE_DIALOG ********
+
 PixelTreeDialog::PixelTreeDialog(TreeCanvas* tc)
   : QDialog(tc), _na(tc->na)
 {
-  this->resize(800, 600);
+
+  uint numberOnNodes = tc->stats.solutions + tc->stats.failures
+                       + tc->stats.choices + tc->stats.undetermined;
+
+  int height = DEPTH * STEP;
+  int width = numberOnNodes * STEP;
+
+  this->resize(width + MARGIN, height + MARGIN);
   setLayout(&layout);
-//  layout.addWidget(&qlabel);
+  layout.addWidget(&scrollArea);
 
 
-  image = new QImage(1000, 1000, QImage::Format_RGB888);
+  image = new QImage(width + MARGIN, height + MARGIN, QImage::Format_RGB888);
+
+  canvas = new PixelTreeCanvas(&scrollArea, image);
 
   qlabel.show();
 
-  draw();
 
+  draw();
 
   pixmap.fromImage(*image);
   qlabel.setPixmap(pixmap);
 
-}
-
-void
-PixelTreeDialog::paintEvent(QPaintEvent* event) {
-  QPainter painter(this);
-  painter.drawImage(0, 0, *image);
 }
 
 void
@@ -42,7 +47,7 @@ PixelTreeDialog::draw(void) {
   int depth;
 
   while (stack.size() > 0) {
-
+    
     qDebug() << "stack size: " << stack.size();
 
     if (stack.size() > 1000)
@@ -67,7 +72,29 @@ PixelTreeDialog::draw(void) {
       depth_stack.push(depth + STEP);
     }
   }
-
-
   
 }
+
+/// ***********************************
+
+
+/// ******** PIXEL_TREE_CANVAS ********
+
+PixelTreeCanvas::PixelTreeCanvas(QWidget* parent, QImage* image)
+  : QWidget(parent), _image(image)
+{
+
+  this->resize(image->width(), image->height());
+
+}
+
+void
+PixelTreeCanvas::paintEvent(QPaintEvent* event) {
+  QPainter painter(this);
+  painter.drawImage(0, 0, *_image);
+}
+
+
+
+
+/// ***********************************
