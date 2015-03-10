@@ -37,7 +37,7 @@ PixelTreeCanvas::PixelTreeCanvas(QWidget* parent, TreeCanvas* tc)
   _nodeCount = tc->stats.solutions + tc->stats.failures
                        + tc->stats.choices + tc->stats.undetermined;
 
-  int height = PixelTreeDialog::DEPTH * _step;
+  int height = tc->stats.maxDepth * _step;
   int width = _nodeCount * _step;
 
   _image = new QImage(width + PixelTreeDialog::MARGIN,
@@ -67,8 +67,8 @@ void
 PixelTreeCanvas::paintEvent(QPaintEvent* event) {
   QPainter painter(this);
 
-  _sa->horizontalScrollBar()->setRange(0, _image->width());
-  _sa->verticalScrollBar()->setRange(0, _image->height());
+  _sa->horizontalScrollBar()->setRange(0, _image->width() - _sa->width());
+  _sa->verticalScrollBar()->setRange(0, _image->height()  - _sa->height());
   
   int xoff = _sa->horizontalScrollBar()->value();
   int yoff = _sa->verticalScrollBar()->value();
@@ -84,7 +84,7 @@ PixelTreeCanvas::draw(void) {
   x = 0;
   delete _image;
 
-  int height = PixelTreeDialog::DEPTH * _step;
+  int height = _tc->stats.maxDepth * _step;
   int width = _nodeCount * _step;
 
   
@@ -101,8 +101,6 @@ PixelTreeCanvas::draw(void) {
   VisualNode* root = (*_na)[0];
 
   exploreNode(root, 1);
-
-  qDebug() << "Max call stack size: " << max_stack_size;
   
 }
 

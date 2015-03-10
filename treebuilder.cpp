@@ -95,6 +95,7 @@ void TreeBuilder::run(void) {
                 new_root->setHasSolvedChildren(true);
                 new_root->_tid = dbEntry.thread;
                 dbEntry.gid = restart_root;
+                dbEntry.depth = 1;
 
             } else {
                 int kids = nodes_arr[0]->numberOfKids;
@@ -103,6 +104,7 @@ void TreeBuilder::run(void) {
                 (*_na)[0]->setHasSolvedChildren(true);
                 (*_na)[0]->_tid = 0; /// thread id
                 dbEntry.gid = 0;
+                dbEntry.depth = 1;
                 stats.choices++;
                 stats.undetermined += kids - 1;
                 
@@ -110,19 +112,21 @@ void TreeBuilder::run(void) {
         }
         else { /// not a root
 
-            pid = dbEntry.parent_sid;
-            alt = dbEntry.alt;
-            nalt = dbEntry.numberOfKids;
-            status = dbEntry.status;
-            parent_gid = nodes_arr[sid2aid[pid]]->gid;
+            pid         = dbEntry.parent_sid;
+            alt         = dbEntry.alt;
+            nalt        = dbEntry.numberOfKids;
+            status      = dbEntry.status;
+            parent_gid  = nodes_arr[sid2aid[pid]]->gid;
 
             assert(parent_gid >= 0);
 
-            parent = (*_na)[parent_gid];
-            node = parent->getChild(*_na, alt);
+            parent      = (*_na)[parent_gid];
+            node        = parent->getChild(*_na, alt);
 
-            gid = node->getIndex(*_na);						// Gist ID
-            dbEntry.gid = gid;
+            gid         = node->getIndex(*_na);	// Gist ID
+            
+            dbEntry.gid     = gid;
+            dbEntry.depth   = nodes_arr[sid2aid[pid]]->depth + 1;
 
             gid2aid[gid] = lastRead;
 
@@ -133,8 +137,8 @@ void TreeBuilder::run(void) {
             node->_tid = dbEntry.thread;
             node->setNumberOfChildren(nalt, *_na);
 
-            // stats.maxDepth =
-              // std::max(stats.maxDepth, depth);
+            stats.maxDepth =
+              std::max(stats.maxDepth, static_cast<int>(dbEntry.depth));
 
 
 

@@ -40,7 +40,7 @@ private:
 
 public:
     DbEntry(unsigned long long _p, int _alt, int _kids, char _tid, char* _label, int _status) :
-        gid(-1), parent_sid(_p), alt(_alt), numberOfKids(_kids),
+        gid(-1), depth(-1), parent_sid(_p), alt(_alt), numberOfKids(_kids),
         status(_status), thread(_tid) {
           
           memcpy(label, _label, Message::LABEL_SIZE);
@@ -55,6 +55,7 @@ public:
     int status;
     char label[Message::LABEL_SIZE];
     char thread;
+    char depth;
 
 };
 
