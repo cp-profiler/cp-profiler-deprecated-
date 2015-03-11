@@ -67,8 +67,8 @@ void
 PixelTreeCanvas::paintEvent(QPaintEvent* event) {
   QPainter painter(this);
 
-  _sa->horizontalScrollBar()->setRange(0, _image->width() - _sa->width());
-  _sa->verticalScrollBar()->setRange(0, _image->height()  - _sa->height());
+  _sa->horizontalScrollBar()->setRange(0, _image->width()/approx_size - _sa->width());
+  _sa->verticalScrollBar()->setRange(0, _image->height()/approx_size  - _sa->height());
   
   int xoff = _sa->horizontalScrollBar()->value();
   int yoff = _sa->verticalScrollBar()->value();
@@ -104,6 +104,45 @@ PixelTreeCanvas::draw(void) {
   
 }
 
+/// *** Old implementation (averaging the depth)
+
+// void
+// PixelTreeCanvas::exploreNode(VisualNode* node, int depth) {
+//   call_stack_size++;
+
+//   if (max_stack_size < call_stack_size)
+//     max_stack_size = call_stack_size;
+
+
+//   // handle approximaiton
+//   group_size++;
+//   group_depth += depth;
+
+//   if (group_size == approx_size) {
+
+
+//     int y = group_depth / approx_size;
+//     // draw current
+//     for (uint i = 0; i < _step; i++)
+//       for (uint j = 0; j < _step; j++)
+//         _image->setPixel(x + i, y + j, qRgb(189, 149, 39));
+
+//     x += _step;
+
+//     group_size = 0;
+//     group_depth = 0;
+//   }
+
+//   // for children
+//   uint kids = node->getNumberOfChildren();
+//   for (uint i = 0; i < kids; ++i) {
+//     exploreNode(node->getChild(*_na, i), depth + _step);
+//   }
+
+//   call_stack_size--;
+// }
+
+
 void
 PixelTreeCanvas::exploreNode(VisualNode* node, int depth) {
   call_stack_size++;
@@ -111,12 +150,27 @@ PixelTreeCanvas::exploreNode(VisualNode* node, int depth) {
   if (max_stack_size < call_stack_size)
     max_stack_size = call_stack_size;
 
+
+  int y = group_depth / approx_size;
   // draw current
   for (uint i = 0; i < _step; i++)
     for (uint j = 0; j < _step; j++)
       _image->setPixel(x + i, depth + j, qRgb(189, 149, 39));
 
-  x += _step;
+  // handle approximaiton
+  group_size++;
+
+
+
+  if (group_size == approx_size) {
+
+
+
+
+    x += _step;
+
+    group_size = 0;
+  }
 
   // for children
   uint kids = node->getNumberOfChildren();

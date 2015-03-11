@@ -54,8 +54,15 @@ private:
   QScrollBar* _vScrollBar;
 
   int _step = 1;
+  
+  int approx_size = 1000; // approximation
+  int group_size = 0;
+  int group_depth = 0;
+
 
   uint _nodeCount;
+
+
 
 
   int call_stack_size = 0; // for debugging
