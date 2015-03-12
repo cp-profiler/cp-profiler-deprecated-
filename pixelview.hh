@@ -20,6 +20,8 @@ private:
 
   QPushButton scaleUp;
   QPushButton scaleDown;
+
+  QSpinBox compressionSB;
   
   PixelTreeCanvas* canvas;
 
@@ -58,15 +60,11 @@ private:
 
   int _step = 1;
   
-  int approx_size = 1000; // approximation
-  int group_size = 0;
+  int approx_size = 1; // approximation
+  int group_size;
   int group_depth = 0;
 
-
   uint _nodeCount;
-
-
-
 
   int call_stack_size = 0; // for debugging
   int max_stack_size = 0;// for debugging
@@ -88,6 +86,7 @@ protected:
 public Q_SLOTS:
   void scaleUp(void);
   void scaleDown(void);
+  void compressionChanged(int value);
   
 
 };

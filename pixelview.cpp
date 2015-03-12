@@ -14,10 +14,25 @@ PixelTreeDialog::PixelTreeDialog(TreeCanvas* tc)
   controlLayout.addWidget(&scaleDown);
   controlLayout.addWidget(&scaleUp);
 
+  scaleUp.setText("+");
+  scaleDown.setText("-");
+
+  QLabel* compLabel = new QLabel("compression");
+  compLabel->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
+
+  controlLayout.addWidget(compLabel);
+
+  controlLayout.addWidget(&compressionSB);
+  compressionSB.setMinimum(1);
+  compressionSB.setMaximum(10000);
+
   canvas = new PixelTreeCanvas(&scrollArea, tc);
 
   connect(&scaleDown, SIGNAL(clicked()), canvas, SLOT(scaleDown()));
   connect(&scaleUp, SIGNAL(clicked()), canvas, SLOT(scaleUp()));
+
+  QObject::connect(&compressionSB, SIGNAL(valueChanged(int)),
+    canvas, SLOT(compressionChanged(int)));
 
   setAttribute(Qt::WA_QuitOnClose, true);
   setAttribute(Qt::WA_DeleteOnClose, true);
@@ -84,8 +99,10 @@ PixelTreeCanvas::paintEvent(QPaintEvent* event) {
   int xoff = _sa->horizontalScrollBar()->value();
   int yoff = _sa->verticalScrollBar()->value();
 
-  painter.drawImage(0, 0, *_image, xoff, yoff);
+  // painter.eraseRect(event->rect());
 
+  painter.drawImage(0, 0, *_image, xoff, yoff);
+  
 
 }
 
@@ -98,20 +115,21 @@ PixelTreeCanvas::draw(void) {
   int height = _tc->stats.maxDepth * _step;
   int width = _nodeCount * _step;
 
-  
-  
-
   _image = new QImage(width + PixelTreeDialog::MARGIN,
                       height + PixelTreeDialog::MARGIN,
                       QImage::Format_RGB888);
 
-  this->resize(_image->width(), _image->height());
-
   _image->fill(qRgb(255, 255, 255));
+
+  this->resize(_image->width(), _image->height());
 
   VisualNode* root = (*_na)[0];
 
+  group_size = 0;
+
   exploreNode(root, 1);
+
+  repaint();
   
 }
 
@@ -161,25 +179,28 @@ PixelTreeCanvas::exploreNode(VisualNode* node, int depth) {
   if (max_stack_size < call_stack_size)
     max_stack_size = call_stack_size;
 
+    // draw vertical line if a solution
+  if (node->getStatus() == SOLVED) {
+    for (uint j = 0; j < height(); j++)
+      if (_image->pixel(x + 10, j) == qRgb(255, 255, 255))
+        for (uint i = 0; i < _step; i++)
+          _image->setPixel(x + i + 10, j, qRgb(0, 255, 0));
+  }
 
-  int y = group_depth / approx_size;
+  
+
   // draw current
   for (uint i = 0; i < _step; i++)
     for (uint j = 0; j < _step; j++)
-      _image->setPixel(x + i, depth + j, qRgb(189, 149, 39));
+      _image->setPixel(x + i + 10, depth + j, qRgb(189, 149, 39));
 
   // handle approximaiton
   group_size++;
 
 
-
+  /// move to the right 
   if (group_size == approx_size) {
-
-
-
-
     x += _step;
-
     group_size = 0;
   }
 
@@ -202,6 +223,13 @@ void
 PixelTreeCanvas::scaleDown(void) {
   if (_step <= 1) return;
   _step--;
+  draw();
+}
+
+void
+PixelTreeCanvas::compressionChanged(int value) {
+  qDebug() << "compression is set to: " << value;
+  approx_size = value;
   draw();
 }
 
