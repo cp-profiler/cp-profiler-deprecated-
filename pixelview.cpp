@@ -19,6 +19,17 @@ PixelTreeDialog::PixelTreeDialog(TreeCanvas* tc)
   connect(&scaleDown, SIGNAL(clicked()), canvas, SLOT(scaleDown()));
   connect(&scaleUp, SIGNAL(clicked()), canvas, SLOT(scaleUp()));
 
+  setAttribute(Qt::WA_QuitOnClose, true);
+  setAttribute(Qt::WA_DeleteOnClose, true);
+
+}
+
+PixelTreeDialog::~PixelTreeDialog(void) {
+  delete canvas;
+}
+
+PixelTreeCanvas::~PixelTreeCanvas(void) {
+  delete _image;
 }
 
 /// ***********************************

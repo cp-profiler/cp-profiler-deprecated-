@@ -23,6 +23,8 @@ private:
   
   PixelTreeCanvas* canvas;
 
+  
+
 
 public:
 
@@ -31,6 +33,7 @@ public:
   
 
   PixelTreeDialog(TreeCanvas* tc);
+  ~PixelTreeDialog(void);
 };
 
 
@@ -73,9 +76,11 @@ private:
 private:
   void draw(void);
   void exploreNode(VisualNode* node, int depth);
+  
 
 public:
   PixelTreeCanvas(QWidget* parent, TreeCanvas* tc);
+  ~PixelTreeCanvas(void);
 
 protected:
   void paintEvent(QPaintEvent* event);
