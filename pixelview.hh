@@ -60,6 +60,7 @@ private:
 
   int _step = 1;
   
+  int group_time = 0;
   int approx_size = 1; // approximation
   int group_size;
   int group_depth = 0;

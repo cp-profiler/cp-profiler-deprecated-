@@ -29,7 +29,7 @@ Q_SIGNALS:
 
 public Q_SLOTS:
     void startBuilding(void);
-    void finishBuilding(void);
+    void setDoneReceiving(void);
 
 protected:
     void run();

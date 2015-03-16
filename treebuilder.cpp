@@ -10,8 +10,8 @@ void TreeBuilder::startBuilding() {
     start();
 }
 
-void TreeBuilder::finishBuilding() {
-    _data->setDone();
+void TreeBuilder::setDoneReceiving() {
+    _data->setDoneReceiving();
 }
 
 void TreeBuilder::reset(Data* data, NodeAllocator* na) {

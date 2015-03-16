@@ -85,12 +85,12 @@ ReceiverThread::run(void) {
                     ptr_gist->canvasTwo = NULL; /// TODO: do I still need this?
 
                     _t->reset(false); // no restarts
-                    emit startWork();
+                    emit startReceiving();
                 } 
                 else if (msg->restart_id == 0){
 
                     _t->reset(true);
-                    emit startWork();
+                    emit startReceiving();
                     qDebug() << ">>> new restart";
                 }
             break;
@@ -99,7 +99,7 @@ ReceiverThread::run(void) {
                 updateCanvas();
                 /// needed for optirion CPX restarts
                 // if (!_t->_data->isRestarts()) 
-                    emit doneWork();
+                    emit doneReceiving();
 
             break;
         }

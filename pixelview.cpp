@@ -179,6 +179,11 @@ PixelTreeCanvas::exploreNode(VisualNode* node, int depth) {
   if (max_stack_size < call_stack_size)
     max_stack_size = call_stack_size;
 
+  Data* data = _tc->getData();
+  DbEntry* entry = data->getEntry(node->getIndex(*_na));
+
+  group_time += entry->node_time;
+
     // draw vertical line if a solution
   if (node->getStatus() == SOLVED) {
     for (uint j = 0; j < height(); j++)
@@ -187,12 +192,10 @@ PixelTreeCanvas::exploreNode(VisualNode* node, int depth) {
           _image->setPixel(x + i + 10, j, qRgb(0, 255, 0));
   }
 
-  
-
   // draw current
   for (uint i = 0; i < _step; i++)
     for (uint j = 0; j < _step; j++)
-      _image->setPixel(x + i + 10, depth + j, qRgb(189, 149, 39));
+      _image->setPixel(x + i + 10, depth + j, qRgba(255, 255, 255, group_time));
 
   // handle approximaiton
   group_size++;
@@ -202,6 +205,7 @@ PixelTreeCanvas::exploreNode(VisualNode* node, int depth) {
   if (group_size == approx_size) {
     x += _step;
     group_size = 0;
+    group_time = 0;
   }
 
   // for children

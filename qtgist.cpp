@@ -802,7 +802,7 @@ Gist::connectCanvas(TreeCanvas* tc) {
     if (current_tc == tc) return;
 
     if (current_tc && current_tc->_builder) {
-        disconnect(receiver, SIGNAL(startWork(void)),
+        disconnect(receiver, SIGNAL(startReceiving(void)),
                    current_tc->_builder, SLOT(startBuilding(void)));
         disconnect(inspect, SIGNAL(triggered()), current_tc, SLOT(inspectCurrentNode()));
         disconnect(inspectBeforeFP, SIGNAL(triggered()), current_tc, SLOT(inspectBeforeFP(void)));
@@ -840,10 +840,10 @@ Gist::connectCanvas(TreeCanvas* tc) {
 
     current_tc = tc;
     
-    connect(receiver, SIGNAL(startWork(void)),
+    connect(receiver, SIGNAL(startReceiving(void)),
             tc->_builder, SLOT(startBuilding(void)));
-    connect(receiver, SIGNAL(doneWork(void)),
-            tc->_builder, SLOT(finishBuilding(void)));
+    connect(receiver, SIGNAL(doneReceiving(void)),
+            tc->_builder, SLOT(setDoneReceiving(void)));
     connect(inspect, SIGNAL(triggered()), tc, SLOT(inspectCurrentNode()));
     connect(inspectBeforeFP, SIGNAL(triggered()), tc, SLOT(inspectBeforeFP(void)));
     connect(stop, SIGNAL(triggered()), tc, SLOT(stopSearch()));

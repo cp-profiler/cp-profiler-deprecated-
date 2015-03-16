@@ -139,7 +139,7 @@ public:
 
   /// for multithreaded search (drawing)
   /// thread id
-  char _tid; 
+  char _tid;  // take out of Node class
 
 };
 

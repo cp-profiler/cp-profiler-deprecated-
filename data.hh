@@ -39,9 +39,11 @@ class DbEntry {
 private:
 
 public:
-    DbEntry(unsigned long long _p, int _alt, int _kids, char _tid, char* _label, int _status) :
+    DbEntry(unsigned long long _p, int _alt, int _kids,
+            char _tid, char* _label, int _status,
+            unsigned long long _time_stamp, unsigned long long _node_time) :
         gid(-1), depth(-1), parent_sid(_p), alt(_alt), numberOfKids(_kids),
-        status(_status), thread(_tid) {
+        status(_status), thread(_tid), time_stamp(_time_stamp), node_time(_node_time) {
           
           memcpy(label, _label, Message::LABEL_SIZE);
     }
@@ -56,7 +58,8 @@ public:
     char label[Message::LABEL_SIZE];
     char thread;
     char depth;
-
+    unsigned long long time_stamp;
+    unsigned long long node_time;
 };
 
 
@@ -92,6 +95,16 @@ private:
     // Whether received DONE_SENDING message
     bool _isDone;
 
+    // Total solver time in microseconds
+    unsigned long int _total_time;
+
+    unsigned long int _last_node_timestamp;
+    int _total_nodes;
+
+
+    /// derived properties
+    int _time_per_node;
+
 public:
 
     /// used to access Data instance from different threads (in parallel solover)
@@ -111,9 +124,6 @@ public:
 
     void show_db(void); /// TODO: write to a file
 
-    // sets _isDone to true when received DONE_SENDING
-    void setDone(void);
-    
     char* getLabelByGid(unsigned int gid);
 
     /// get label omitting gid2aid mapping (i.e. for merged tree)   /// TODO: delete if not used
@@ -138,6 +148,9 @@ public:
 
     public Q_SLOTS:
     void startReading(void);
+
+    // sets _isDone to true when received DONE_SENDING
+    void setDoneReceiving(void);
     
 };
 

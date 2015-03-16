@@ -20,6 +20,7 @@ Data::Data(TreeCanvas* tc, NodeAllocator* na, bool isRestarts)
  : _tc(tc), _id(_tc->_id), _na(na), _isRestarts(isRestarts) {
 
     _isDone = false;
+    
     qDebug() << "+++ new Data created, tc_id: " << _id;
 }
 
@@ -34,13 +35,21 @@ void Data::show_db(void) {
 }
 
 
-void Data::setDone(void) {
+void Data::setDoneReceiving(void) {
     QMutexLocker locker(&dataMutex);
+
+    _total_nodes = nodes_arr.size();
+    _total_time = nodes_arr[_total_nodes - 1]->time_stamp;
+
+
+    _time_per_node = _total_time / _total_time;
+    
     _isDone = true;
+    qDebug() << "Solver time: " << _total_time;
 }
 
 void Data::startReading(void) {
-    qDebug() << "in startReading...\n";
+    qDebug() << "in startReading...";
 
 }
 
@@ -76,8 +85,19 @@ int Data::handleNodeCallback(Message* msg) {
 
     real_id = (id | ((long long)restart_id << 32));
 
+    
+
     pushInstance(real_id,
-        new DbEntry(real_pid, alt, kids, thread, msg->label, status));
+        new DbEntry(real_pid,
+                    alt,
+                    kids,
+                    thread,
+                    msg->label,
+                    status,
+                    msg->time,
+                    msg->time - _last_node_timestamp));
+
+    _last_node_timestamp = msg->time;
 
     return 0;
 }
