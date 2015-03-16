@@ -20,6 +20,7 @@ Data::Data(TreeCanvas* tc, NodeAllocator* na, bool isRestarts)
  : _tc(tc), _id(_tc->_id), _na(na), _isRestarts(isRestarts) {
 
     _isDone = false;
+    _last_node_timestamp = 0;
     
     qDebug() << "+++ new Data created, tc_id: " << _id;
 }
@@ -43,7 +44,7 @@ void Data::setDoneReceiving(void) {
 
 
     _time_per_node = _total_time / _total_time;
-    
+
     _isDone = true;
     qDebug() << "Solver time: " << _total_time;
 }

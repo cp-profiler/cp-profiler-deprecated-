@@ -58,23 +58,46 @@ private:
   QAbstractScrollArea* _sa;
   QScrollBar* _vScrollBar;
 
-  int _step = 1;
-  
-  int group_time = 0;
-  int approx_size = 1; // approximation
-  int group_size;
-  int group_depth = 0;
-
+  /// Constants for a particular execution
   uint _nodeCount;
+
+  /// Pixel Tree settings (changed through GUI)
+    
+  int _step = 1; // size of a 'pixel' in pixels
+  int approx_size = 1; // how many nodes per vertical line
+
+  int hist_height = 50;
+
+  /// temp stuff for a Pixel Tree
+  int x;
+  int group_time;
+  int group_size;
+  int vline_idx; // same as x when _step = 1
+
+  int pt_height;
+  int pt_width;
 
   int call_stack_size = 0; // for debugging
   int max_stack_size = 0;// for debugging
 
-  int x;
+  /// Stuff specific for a particular pixel tree
+  int vlines; /// width of pixel tree
+
+  int* time_arr; // time for each vline
+  int max_time; // max vline time
+  int min_time; // min vline time
 
 private:
-  void draw(void);
+
+  /// Pixel Tree
+  void drawPixelTree(void);
   void exploreNode(VisualNode* node, int depth);
+
+  /// Time Histogram
+  void drawTimeHistogram(void);
+
+  /// auxiliary methods
+  inline void drawPixel(int x, int y, int step, int color);
   
 
 public:
