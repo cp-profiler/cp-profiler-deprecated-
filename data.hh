@@ -33,6 +33,7 @@ struct Message {
     unsigned long long time;
     char thread;
     char label[LABEL_SIZE];
+    float domain;
 };
 
 class DbEntry {

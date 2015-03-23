@@ -50,6 +50,9 @@ PixelTreeCanvas::~PixelTreeCanvas(void) {
 
   if (time_arr != NULL) 
     delete time_arr;
+
+  if (intencity_arr != NULL)
+    delete intencity_arr;
 }
 
 /// ***********************************
@@ -66,11 +69,14 @@ PixelTreeCanvas::PixelTreeCanvas(QWidget* parent, TreeCanvas* tc)
   _step;
 
   time_arr = NULL;
+  intencity_arr = NULL;
 
   _nodeCount = tc->stats.solutions + tc->stats.failures
                        + tc->stats.choices + tc->stats.undetermined;
 
-  int height = tc->stats.maxDepth * _step;
+
+  max_depth = tc->stats.maxDepth;
+  int height = max_depth * _step;
   int width = _nodeCount * _step;
 
   _image = new QImage(width + PixelTreeDialog::MARGIN,
@@ -119,7 +125,7 @@ PixelTreeCanvas::drawPixelTree(void) {
   x = 0;
   delete _image;
 
-  pt_height = _tc->stats.maxDepth * _step;
+  pt_height = max_depth * _step;
   pt_width = _nodeCount * _step;
 
   _image = new QImage(pt_width + PixelTreeDialog::MARGIN,
@@ -143,8 +149,17 @@ PixelTreeCanvas::drawPixelTree(void) {
     delete time_arr;
   
   time_arr = new int[vlines];
+  intencity_arr = new int[max_depth];
+
+  alpha_factor = 100.0 / approx_size;
+
+  // set intencity_arr to zeros
+  memset(intencity_arr, 0, max_depth * sizeof(int));
 
   exploreNode(root, 1);
+
+  // flush(); TODO
+
   drawTimeHistogram();
 
   repaint();
@@ -172,8 +187,7 @@ PixelTreeCanvas::exploreNode(VisualNode* node, int depth) {
           _image->setPixel(x + i, j, qRgb(0, 255, 0));
   }
 
-  // draw current
-  drawPixel(x, depth, _step, qRgb(150, 40, 40));
+  intencity_arr[depth - 1]++;
 
   // handle approximaiton
   group_size++;
@@ -191,12 +205,26 @@ PixelTreeCanvas::exploreNode(VisualNode* node, int depth) {
     vline_idx++;
     group_size = 0;
     group_time = 0;
+
+    // int alpha; // temp variable for intencity level of each pixel
+
+    // draw group
+    for (uint d = 1; d <= max_depth; d++) {
+      if (intencity_arr[d - 1] > 0) {
+        int alpha = intencity_arr[d - 1] * alpha_factor;
+        drawPixel(x, d * _step, _step, QColor::fromHsv(150, 100, 100 - alpha).rgba());
+      }
+        
+    }
+    
+    // set intencity_arr to zeros
+    memset(intencity_arr, 0, max_depth * sizeof(int));
   }
 
   // for children
   uint kids = node->getNumberOfChildren();
   for (uint i = 0; i < kids; ++i) {
-    exploreNode(node->getChild(*_na, i), depth + _step);
+    exploreNode(node->getChild(*_na, i), depth + 1);
   }
 
   call_stack_size--;
@@ -217,7 +245,7 @@ PixelTreeCanvas::drawTimeHistogram(void) {
       _image->setPixel(i * _step + j, pt_height + hist_height + _step, qRgb(150, 150, 150));
 
 
-    qDebug() << "timeValue: " << time_arr[i];
+    // qDebug() << "timeValue: " << time_arr[i];
     qDebug() << "timeValue: " << timeValue;
     
 
@@ -250,9 +278,14 @@ PixelTreeCanvas::compressionChanged(int value) {
 
 void
 PixelTreeCanvas::drawPixel(int x, int y, int step, int color) {
+  if (y < 0)
+    return; /// TODO: fix later
+
   for (uint i = 0; i < _step; i++)
     for (uint j = 0; j < _step; j++)
       _image->setPixel(x + i, y + j, color);
+
+  
 }
 
 

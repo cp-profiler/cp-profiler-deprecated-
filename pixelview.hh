@@ -73,6 +73,8 @@ private:
   int group_time;
   int group_size;
   int vline_idx; // same as x when _step = 1
+  float alpha_factor;
+  int *intencity_arr; // array of intencity for each pixel on vline
 
   int pt_height;
   int pt_width;
@@ -82,6 +84,7 @@ private:
 
   /// Stuff specific for a particular pixel tree
   int vlines; /// width of pixel tree
+  int max_depth;
 
   int* time_arr; // time for each vline
   int max_time; // max vline time

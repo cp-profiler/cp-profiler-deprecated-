@@ -21,6 +21,7 @@ Data::Data(TreeCanvas* tc, NodeAllocator* na, bool isRestarts)
 
     _isDone = false;
     _last_node_timestamp = 0;
+    _time_per_node = -1; // unassigned
     
     qDebug() << "+++ new Data created, tc_id: " << _id;
 }
@@ -43,7 +44,11 @@ void Data::setDoneReceiving(void) {
     _total_time = nodes_arr[_total_nodes - 1]->time_stamp;
 
 
-    _time_per_node = _total_time / _total_time;
+    if (_total_time != 0) {
+        _time_per_node = _total_time / _total_time;
+    } else 
+        qDebug() << "(!) _total_time cannot be 0";
+    
 
     _isDone = true;
     qDebug() << "Solver time: " << _total_time;
