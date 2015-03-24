@@ -16,10 +16,8 @@ enum NodeStatus {
   MERGING
 };
 
-static const unsigned int FIRSTBIT = 23; //< First free bit in status word
-static const unsigned int STATUSMASK = 7<<19; //< Mask for accessing status
-static const unsigned int MAXDISTANCE = (1<<19)-1; //< Maximum representable distance
-static const unsigned int DISTANCEMASK = (1<<19)-1; //< Mask for accessing distance
+static const unsigned int FIRSTBIT = 4; //< First free bit in status word
+static const unsigned int STATUSMASK = 15<<28; //< Mask for accessing status // TODO: check this
 
 class TreeCanvas;
 class Data;

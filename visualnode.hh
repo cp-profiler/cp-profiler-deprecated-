@@ -2,8 +2,8 @@
 #define VISUALNODE_HH
 
 #include "spacenode.hh"
-//#include "treecanvas.hh"
 #include <string>
+#include <iostream>
 
 class Data;
 //class TreeCanvas;
@@ -102,6 +102,7 @@ protected:
     DIRTY = SpaceNode::LASTBIT+1,
     CHILDRENLAYOUTDONE,
     HIDDEN,
+    HIDDENSMALL,
     MARKED,
     ONPATH,
     HIGHLIGHTED,
