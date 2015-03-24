@@ -64,6 +64,7 @@ int Data::handleNodeCallback(Message* msg) {
     int id, pid, alt, kids, status, restart_id;
     char thread;
     unsigned long long real_id, real_pid;
+    float domain;
 
     id = msg->sid;
     pid = msg->parent_sid;
@@ -72,6 +73,7 @@ int Data::handleNodeCallback(Message* msg) {
     status = msg->status;
     thread = msg->thread;
     restart_id = msg->restart_id;
+    domain = msg->domain;
 
     // qDebug() << "Received node: \t" << id << " " << pid << " "
     //                 << alt << " " << kids << " " << status << " wid: "
@@ -101,7 +103,8 @@ int Data::handleNodeCallback(Message* msg) {
                     msg->label,
                     status,
                     msg->time,
-                    msg->time - _last_node_timestamp));
+                    msg->time - _last_node_timestamp,
+                    domain));
 
     _last_node_timestamp = msg->time;
 
