@@ -2,8 +2,8 @@
 #define VISUALNODE_HH
 
 #include "spacenode.hh"
+//#include "treecanvas.hh"
 #include <string>
-#include <iostream>
 
 class Data;
 //class TreeCanvas;
@@ -99,14 +99,16 @@ class VisualNode : public SpaceNode {
 protected:
   /// Flags for VisualNodes
   enum VisualNodeFlags {
-    DIRTY = SpaceNode::LASTBIT+1,
+    DIRTY = SpaceNode::LASTFLAG+1,
     CHILDRENLAYOUTDONE,
     HIDDEN,
-    HIDDENSMALL,
     MARKED,
     ONPATH,
     HIGHLIGHTED,
-    BOOKMARKED
+    BOOKMARKED,
+    SUBTREESIZE,
+    SUBTREESIZE2, // reserve this bit for subtree size
+    SUBTREESIZE3  // reserve this bit for subtree size
   };
 
   /// Relative offset from the parent node

@@ -14,6 +14,20 @@ SpaceNode::getFlag(int flag) const {
   return (nstatus & (1<<(flag-1))) != 0;
 }
 
+inline unsigned int
+SpaceNode::getNumericFlag(int flag, int size) const {
+  unsigned int mask = (1 << size) - 1;
+  return (nstatus >> (flag-1)) & mask;
+}
+
+inline void
+SpaceNode::setNumericFlag(int flag, int size, unsigned int value) {
+  unsigned int mask = (1 << size) - 1;
+  unsigned int clearmask = ~(mask << (flag-1));
+  nstatus &= clearmask;
+  nstatus |= (value & mask) << (flag-1);
+}
+
 inline void
 SpaceNode::setHasOpenChildren(bool b) {
   setFlag(HASOPENCHILDREN, b);
@@ -32,12 +46,12 @@ SpaceNode::setHasSolvedChildren(bool b) {
 inline void
 SpaceNode::setStatus(NodeStatus s) {
   nstatus &= ~( STATUSMASK );
-  nstatus |= s << 28;
+  nstatus |= s << STATUSSTART;
 }
 
 inline NodeStatus
 SpaceNode::getStatus(void) const {
-  return static_cast<NodeStatus>((nstatus & STATUSMASK) >> 28);
+  return static_cast<NodeStatus>((nstatus & STATUSMASK) >> STATUSSTART);
 }
 
 inline

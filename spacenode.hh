@@ -16,8 +16,10 @@ enum NodeStatus {
   MERGING
 };
 
-static const unsigned int FIRSTBIT = 4; //< First free bit in status word
-static const unsigned int STATUSMASK = 15<<28; //< Mask for accessing status // TODO: check this
+static const unsigned int STATUSSTART = 28;
+
+static const unsigned int FIRSTFLAG = 1; //< Number of first flag in status word
+static const unsigned int STATUSMASK = 0xF << STATUSSTART; //< Mask for accessing status
 
 class TreeCanvas;
 class Data;
@@ -54,9 +56,24 @@ protected:
 
   /** \brief Status of the node
    *
-   * If the node has a working copy, the first 20 bits encode the distance
-   * to the closest copy. The next 5 bits encode the NodeStatus, and the
-   * remaining bits are used by the VisualNode class for further flags.
+   * Anatomy of nstatus
+   *
+   *                 Subtree
+   *                  Size |
+   *   Node                |    flags
+   *   Status              | /--------\
+   *                       | BHOMHCDHHH
+   *   /--\               /-\MINRILRSFO
+   *   SSSS               SSSKGPKDDTCCC
+   *   ********************************
+   *    3         2         1         0
+   *   10987654321098765432109876543210
+   *
+   * NOTE THAT THE FLAG NUMBERS DO NOT MATCH THE BIT NUMBERS.
+   * (e.g. HASOPENCHILDREN=1 but resides at bit 0)
+   * setFlag and getFlag subtract one to correct for this.
+   * (setNumericFlag/getNumericFlag do it too.)
+   *
    */
   unsigned int nstatus;
 
@@ -66,14 +83,20 @@ protected:
   /// Return status flag
   bool getFlag(int flag) const;
 
+  /// Set status numeric flag
+  void setNumericFlag(int flag, int size, unsigned int value);
+
+  /// Get status numeric flag
+  unsigned int getNumericFlag(int flag, int size) const;
+
   /// Flags for SpaceNodes
   enum SpaceNodeFlags {
-    HASOPENCHILDREN = FIRSTBIT,
+    HASOPENCHILDREN = FIRSTFLAG,
     HASFAILEDCHILDREN,
     HASSOLVEDCHILDREN
   };
-  /// Last bit used for SpaceNode flags
-  static const int LASTBIT = HASSOLVEDCHILDREN;
+  /// Last flag used for SpaceNode flags
+  static const int LASTFLAG = HASSOLVEDCHILDREN;
 
 private:
   /// Set whether the node has children that are not fully explored
