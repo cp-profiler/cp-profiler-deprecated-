@@ -238,6 +238,8 @@ public Q_SLOTS:
   void toggleHidden(void);
   /// Hide failed subtrees of selected node
   void hideFailed(void);
+  /// Hide subtrees under a certain size
+  void hideSize(void);
   /// Unhide all nodes below selected node
   void unhideAll(void);
   /// Do not stop at selected stop node

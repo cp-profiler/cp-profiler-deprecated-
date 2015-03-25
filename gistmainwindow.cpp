@@ -104,6 +104,7 @@ GistMainWindow::GistMainWindow(void) : aboutGist(this) {
   nodeMenu->addSeparator();
   nodeMenu->addAction(c->toggleHidden);
   nodeMenu->addAction(c->hideFailed);
+  nodeMenu->addAction(c->hideSize);
   nodeMenu->addAction(c->unhideAll);
   nodeMenu->addAction(c->labelBranches);
   nodeMenu->addAction(c->labelPath);

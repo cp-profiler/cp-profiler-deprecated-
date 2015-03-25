@@ -168,11 +168,19 @@ public:
   int getPathAlternative(const NodeAllocator& na);
   /// Set whether node is on the path
   void setOnPath(bool onPath0);
+  /// Set the subtree size to unknown
+  void setSubtreeSizeUnknown(void);
+  /// Set the subtree size to a specific category
+  void setSubtreeSize(int size);
+  /// Get the subtree size (-1 if unknown)
+  int getSubtreeSize(void);
 
   /// Toggle whether this node is hidden
   void toggleHidden(const NodeAllocator& na);
   /// Hide all failed subtrees of this node
   void hideFailed(const NodeAllocator& na, bool onlyDirty=false);
+  /// Hide subtrees by their size
+  void hideSize(const NodeAllocator& na);
   /// Unhide all nodes in the subtree of this node
   void unhideAll(const NodeAllocator& na);
   /// Do not stop at this node

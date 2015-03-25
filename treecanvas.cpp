@@ -631,6 +631,15 @@ TreeCanvas::hideFailed(void) {
 }
 
 void
+TreeCanvas::hideSize(void) {
+    QMutexLocker locker(&mutex);
+    currentNode->hideSize(*na);
+    update();
+    centerCurrentNode();
+    emit statusChanged(currentNode, stats, true);
+}
+
+void
 TreeCanvas::unhideAll(void) {
     QMutexLocker locker(&mutex);
     QMutexLocker layoutLocker(&layoutMutex);

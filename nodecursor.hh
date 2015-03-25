@@ -4,6 +4,8 @@
 #include "visualnode.hh"
 #include "data.hh"
 
+#include <vector>
+
 /// \brief A cursor that can be run over a tree
 template<class Node>
 class NodeCursor {
@@ -241,6 +243,55 @@ public:
     void processCurrentNode(void);
     //@}
     
+};
+
+class SubtreeCountCursor : public NodeCursor<VisualNode> {
+public:
+  std::vector<int> stack;
+  SubtreeCountCursor(VisualNode *theNode,
+                     const VisualNode::NodeAllocator& na)
+    : NodeCursor<VisualNode>(theNode, na) {
+    stack.push_back(0);
+  }
+  void processCurrentNode(void) {
+    stack.back()++;
+    int x = stack.back();
+    VisualNode* n = node();
+    if (x <= 100) {
+      n->setHidden(true);
+      n->setChildrenLayoutDone(true);
+      if (x < 25) {
+        n->setSubtreeSize(0);
+      } else if (x < 50) {
+        n->setSubtreeSize(1);
+      } else if (x < 75) {
+        n->setSubtreeSize(2);
+      } else {
+        n->setSubtreeSize(3);
+      }
+    } else {
+      n->setHidden(false);
+      n->setChildrenLayoutDone(false);
+    }
+    n->dirtyUp(na);
+  }
+  void moveSidewards(void) {
+    NodeCursor<VisualNode>::moveSidewards();
+    int x = stack.back();
+    stack.pop_back();
+    stack.back() += x;
+    stack.push_back(0);
+  }
+  void moveUpwards(void) {
+    NodeCursor<VisualNode>::moveUpwards();
+    int x = stack.back();
+    stack.pop_back();
+    stack.back() += x;
+  }
+  void moveDownwards(void) {
+    NodeCursor<VisualNode>::moveDownwards();
+    stack.push_back(0);
+  }
 };
 
 #include "nodecursor.hpp"

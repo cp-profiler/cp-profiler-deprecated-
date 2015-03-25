@@ -51,6 +51,7 @@ VisualNode::VisualNode(int p)
     setMarked(false);
     setOnPath(false);
     setBookmarked(false);
+    setSubtreeSizeUnknown();
 }
 
 VisualNode::VisualNode( bool)
@@ -64,6 +65,7 @@ VisualNode::VisualNode( bool)
     setMarked(false);
     setOnPath(false);
     setBookmarked(false);
+    setSubtreeSizeUnknown();
 }
 
 void
@@ -133,6 +135,13 @@ void
 VisualNode::hideFailed(const NodeAllocator& na, bool onlyDirty) {
     HideFailedCursor c(this,na,onlyDirty);
     PreorderNodeVisitor<HideFailedCursor>(c).run();
+    dirtyUp(na);
+}
+
+void
+VisualNode::hideSize(const NodeAllocator& na) {
+    SubtreeCountCursor c(this,na);
+    PostorderNodeVisitor<SubtreeCountCursor>(c).run();
     dirtyUp(na);
 }
 

@@ -276,6 +276,7 @@ Gist::on_canvas_statusChanged(VisualNode* n, const Statistics& stats,
         searchAll->setEnabled(false);
         toggleHidden->setEnabled(false);
         hideFailed->setEnabled(false);
+        hideSize->setEnabled(false);
         unhideAll->setEnabled(false);
         // labelBranches->setEnabled(false);
         // labelPath->setEnabled(false);
@@ -311,12 +312,14 @@ Gist::on_canvas_statusChanged(VisualNode* n, const Statistics& stats,
             navDown->setEnabled(true);
             toggleHidden->setEnabled(true);
             hideFailed->setEnabled(true);
+            hideSize->setEnabled(true);
             unhideAll->setEnabled(true);
             unstopAll->setEnabled(true);
         } else {
             navDown->setEnabled(false);
             toggleHidden->setEnabled(false);
             hideFailed->setEnabled(false);
+            hideSize->setEnabled(false);
             unhideAll->setEnabled(false);
             unstopAll->setEnabled(false);
         }
@@ -565,6 +568,8 @@ Gist::addActions(void) {
     
     hideFailed = new QAction("Hide failed subtrees", this);
     hideFailed->setShortcut(QKeySequence("F"));
+
+    hideSize = new QAction("Hide small subtrees", this);
     
     unhideAll = new QAction("Unhide all", this);
     unhideAll->setShortcut(QKeySequence("U"));
@@ -722,6 +727,7 @@ Gist::addActions(void) {
     addAction(searchAll);
     addAction(toggleHidden);
     addAction(hideFailed);
+    addAction(hideSize);
     addAction(unhideAll);
     addAction(labelBranches);
     addAction(labelPath);
@@ -756,6 +762,7 @@ Gist::addActions(void) {
 
     contextMenu->addAction(toggleHidden);
     contextMenu->addAction(hideFailed);
+    contextMenu->addAction(hideSize);
     contextMenu->addAction(unhideAll);
     contextMenu->addAction(labelBranches);
     contextMenu->addAction(labelPath);
@@ -818,6 +825,7 @@ Gist::connectCanvas(TreeCanvas* tc) {
         disconnect(navPrevSol, SIGNAL(triggered()), current_tc, SLOT(navPrevSol()));
         disconnect(toggleHidden, SIGNAL(triggered()), current_tc, SLOT(toggleHidden()));
         disconnect(hideFailed, SIGNAL(triggered()), current_tc, SLOT(hideFailed()));
+        disconnect(hideSize, SIGNAL(triggered()), current_tc, SLOT(hideSize()));
         disconnect(labelBranches, SIGNAL(triggered()), current_tc, SLOT(labelBranches()));
         disconnect(unhideAll, SIGNAL(triggered()), current_tc, SLOT(unhideAll()));
         disconnect(labelPath, SIGNAL(triggered()), current_tc, SLOT(labelPath()));
@@ -858,6 +866,7 @@ Gist::connectCanvas(TreeCanvas* tc) {
     connect(navPrevSol, SIGNAL(triggered()), tc, SLOT(navPrevSol()));
     connect(toggleHidden, SIGNAL(triggered()), tc, SLOT(toggleHidden()));
     connect(hideFailed, SIGNAL(triggered()), tc, SLOT(hideFailed()));
+    connect(hideSize, SIGNAL(triggered()), tc, SLOT(hideSize()));
     connect(labelBranches, SIGNAL(triggered()), tc, SLOT(labelBranches()));
     connect(unhideAll, SIGNAL(triggered()), tc, SLOT(unhideAll()));
     connect(labelPath, SIGNAL(triggered()), tc, SLOT(labelPath()));

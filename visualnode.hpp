@@ -177,6 +177,23 @@ VisualNode::setOnPath(bool b) {
   setFlag(ONPATH, b);
 }
 
+inline void
+VisualNode::setSubtreeSizeUnknown(void) {
+  setNumericFlag(SUBTREESIZE, 3, 7);
+}
+
+inline void
+VisualNode::setSubtreeSize(int size) {
+  setNumericFlag(SUBTREESIZE, 3, size);
+}
+
+inline int
+VisualNode::getSubtreeSize(void) {
+  int size = getNumericFlag(SUBTREESIZE, 3);
+  if (size == 7) return -1;
+  return size;
+}
+
 inline Shape*
 VisualNode::getShape(void) {
   if (isHidden())

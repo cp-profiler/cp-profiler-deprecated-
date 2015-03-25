@@ -121,7 +121,10 @@ DrawingCursor::processCurrentNode(void) {
             if (n->getStatus() == MERGING)
                 drawPentagon(myx, myy, true);
             else
-                drawTriangle(myx, myy, true);
+              if (n->getSubtreeSize() != -1)
+                drawSizedTriangle(myx, myy, n->getSubtreeSize(), false);
+              else
+                drawTriangle(myx, myy, false);
         } else {
             switch (n->getStatus()) {
             case SOLVED:
@@ -181,7 +184,10 @@ DrawingCursor::processCurrentNode(void) {
                     painter.setBrush(QBrush(red));
             }
 
-            drawTriangle(myx, myy, false);            
+            if (n->getSubtreeSize() != -1)
+              drawSizedTriangle(myx, myy, n->getSubtreeSize(), false);
+            else
+              drawTriangle(myx, myy, false);
         }
         
     } else {
@@ -249,6 +255,18 @@ DrawingCursor::drawTriangle(int myx, int myy, bool shadow){
     QPointF points[3] = { QPointF(myx + shadowOffset, myy + shadowOffset),
         QPointF(myx + NODE_WIDTH + shadowOffset, myy + HIDDEN_DEPTH + shadowOffset),
         QPointF(myx - NODE_WIDTH + shadowOffset, myy + HIDDEN_DEPTH + shadowOffset)
+    };
+
+    painter.drawConvexPolygon(points, 3);
+}
+
+inline void
+  DrawingCursor::drawSizedTriangle(int myx, int myy, int subtreeSize, bool shadow){
+    int shadowOffset = shadow? SHADOW_OFFSET : 0;
+    int height = HIDDEN_DEPTH * (subtreeSize + 1) / 4;
+    QPointF points[3] = { QPointF(myx + shadowOffset, myy + shadowOffset),
+        QPointF(myx + NODE_WIDTH + shadowOffset, myy + height + shadowOffset),
+        QPointF(myx - NODE_WIDTH + shadowOffset, myy + height + shadowOffset)
     };
 
     painter.drawConvexPolygon(points, 3);

@@ -130,6 +130,8 @@ public:
   QAction* toggleHidden;
   /// Hide failed subtrees under current node
   QAction* hideFailed;
+  /// Hide subtrees by their size
+  QAction* hideSize;
   /// Unhide all hidden subtrees under current node
   QAction* unhideAll;
   /// Label branches under current node
