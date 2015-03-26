@@ -144,15 +144,15 @@ PixelTreeCanvas::drawPixelTree(void) {
   group_time   = 0;
   group_domain = 0;
   vline_idx    = 0;
-  max_time     = 0;
-  group_domain_red = 0;
+  group_domain_red    = 0;
+  group_size_nonempty = 0;
   
   vlines = ceil((float)_nodeCount / approx_size);
 
   if (time_arr != NULL) 
     delete time_arr;
   
-  time_arr = new int[vlines];
+  time_arr = new float[vlines];
   domain_arr = new float[vlines];
   intencity_arr = new int[max_depth];
   domain_red_arr = new float[vlines];
@@ -164,7 +164,7 @@ PixelTreeCanvas::drawPixelTree(void) {
 
   exploreNode(root, 1);
 
-  // flush(); TODO
+  flush();
 
   drawTimeHistogram();
 
@@ -174,6 +174,30 @@ PixelTreeCanvas::drawPixelTree(void) {
 
   repaint();
   
+}
+
+void
+PixelTreeCanvas::flush(void) {
+
+  qDebug() << "group size = " << group_size; 
+  qDebug() << "nonempty size = " << group_size_nonempty; 
+
+  if (group_size == 0)
+    return;
+
+  if (group_size_nonempty == 0) {
+    group_domain      = -1;
+    group_domain_red  = -1;
+    group_time        = -1;
+  } else {
+    group_domain        = group_domain / group_size_nonempty;
+    group_domain_red    = group_domain_red / group_size_nonempty;
+  }
+
+  domain_arr[vline_idx]     = group_domain;
+  domain_red_arr[vline_idx] = group_domain_red;
+  time_arr[vline_idx]       =  group_time;
+
 }
 
 
@@ -200,14 +224,17 @@ PixelTreeCanvas::exploreNode(VisualNode* node, int depth) {
     else
       parent = data->getEntry(node->getParent());
 
-    std::cout << "domain:" << entry->domain << std::endl;
-
     group_time   += entry->node_time;
     group_domain += entry->domain;
+    group_size_nonempty++;
 
-    if (parent)
+    // if (group_size_nonempty == 2).
+      
+
+    if (parent) { 
       group_domain_red += parent->domain - entry->domain;
-
+    }
+      
       // draw vertical line if a solution
     if (node->getStatus() == SOLVED) {
       for (uint j = 0; j < pt_height; j++)
@@ -224,21 +251,26 @@ PixelTreeCanvas::exploreNode(VisualNode* node, int depth) {
   // handle approximaiton
   group_size++;
 
+
   /// move to the right 
   if (group_size == approx_size) {
 
-    /// record the time for each vline
-    time_arr[vline_idx] = group_time;
 
     /// get average domain size for the group
-    group_domain = group_domain / group_size;
-    group_domain_red = group_domain_red / group_size;
+    if (group_size_nonempty == 0) {
+      group_domain      = -1;
+      group_domain_red  = -1;
+      group_time        = -1;
+    } else {
+      group_domain        = group_domain / group_size_nonempty;
+      group_domain_red    = group_domain_red / group_size_nonempty;
+      
+    }
 
-    /// record domain size for each vline
-    domain_arr[vline_idx] = group_domain;
+    /// record stuff for each vline
+    domain_arr[vline_idx]     = group_domain;
     domain_red_arr[vline_idx] = group_domain_red;
-
-    if (group_time > max_time) max_time = group_time;
+    time_arr[vline_idx]       = group_time;
 
 
     // draw group
@@ -256,6 +288,7 @@ PixelTreeCanvas::exploreNode(VisualNode* node, int depth) {
     group_time = 0;
     group_domain = 0;
     group_domain_red = 0;
+    group_size_nonempty = 0;
     
     // set intencity_arr to zeros
     memset(intencity_arr, 0, max_depth * sizeof(int));
@@ -274,39 +307,22 @@ PixelTreeCanvas::exploreNode(VisualNode* node, int depth) {
 void
 PixelTreeCanvas::drawTimeHistogram(void) {
 
-  float coeff = (float)HIST_HEIGHT / max_time;
 
-  for (int i = 0; i < vlines; i++) {
-
-    int val = time_arr[i] * coeff;
-
-    /// horizontal line / 0 level
-    for (int j = 0; j < _step; j++)
-      _image->setPixel(i * _step + j,
-                       (pt_height + _step) + MARGIN + (HIST_HEIGHT + _step),
-                       qRgb(150, 150, 150));
-
-    // qDebug() << "timeValue: " << val;
-    
-    drawPixel(i * _step,
-              (pt_height + _step) + MARGIN + HIST_HEIGHT - val,
-              _step,
-              qRgb(150, 40, 150));
-  }
+  drawHistogram(0, time_arr, qRgb(150, 150, 40));
 }
 
 void
 PixelTreeCanvas::drawDomainHistogram(void) {
-  drawHistogram(1, domain_arr);
+  drawHistogram(1, domain_arr, qRgb(150, 40, 150));
 }
 
 void
 PixelTreeCanvas::drawDomainReduction(void) {
-  drawHistogram(2, domain_red_arr);
+  drawHistogram(2, domain_red_arr, qRgb(40, 150, 150));
 }
 
 void
-PixelTreeCanvas::drawHistogram(int idx, float* data) {
+PixelTreeCanvas::drawHistogram(int idx, float* data, int color) {
 
 
   /// coordinates for the top-left corner
@@ -334,11 +350,15 @@ PixelTreeCanvas::drawHistogram(int idx, float* data) {
                        zero_level, 
                        qRgb(150, 150, 150));
 
+    qDebug() << "data[" << i << "]: " << data[i];
+
+    if (data[i] < 0) continue;
+
     drawPixel(x + i * _step,
               // pt_height + 2 * MARGIN + (HIST_HEIGHT + _step) + HIST_HEIGHT - val,
               y + HIST_HEIGHT - val,
               _step,
-              qRgb(40, 150, 150));
+              color);
 
   }
 
@@ -367,8 +387,8 @@ PixelTreeCanvas::compressionChanged(int value) {
 
 void
 PixelTreeCanvas::drawPixel(int x, int y, int step, int color) {
-  if (y < 0)
-    return; /// TODO: fix later
+  // if (y < 0)
+  //   return; /// TODO: fix later
 
   for (uint i = 0; i < _step; i++)
     for (uint j = 0; j < _step; j++)

@@ -53,8 +53,13 @@ void Data::setDoneReceiving(void) {
     
     qDebug() << "Size of 'nodes_arr' (bytes): " << nodes_arr.size() * sizeof(DbEntry);
 
-    _isDone = true;
+    qDebug() << "gid2aid size is: " << gid2aid.size();
+    qDebug() << "gid2aid capacity is: " << gid2aid.capacity();
+
     qDebug() << "Solver time: " << _total_time;
+
+    _isDone = true;
+    
 }
 
 void Data::startReading(void) {
@@ -119,6 +124,7 @@ void Data::pushInstance(unsigned long long sid, DbEntry* entry) {
 
     /// is sid == nodes_arr.size? no, because there are also '-1' nodes (backjumped) that dont get counted
     nodes_arr.push_back(entry);
+
     sid2aid[sid] = nodes_arr.size() - 1;
 
 }
@@ -128,11 +134,9 @@ void Data::connectNodeToEntry(unsigned int gid, DbEntry* entry) {
 }
 
 DbEntry* Data::getEntry(unsigned int gid) {
-    int aid = gid2aid[gid]; // TODO: aid is 0 by default??
+    int aid = gid2aid[gid];
 
-    assert(aid < _total_nodes); 
-    qDebug() << "aid: " << aid;
-    if (aid >= _total_nodes)
+    if (aid == -1)
         return NULL;
     return nodes_arr[ aid ];
 }

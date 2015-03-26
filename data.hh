@@ -86,6 +86,7 @@ private:
     std::vector<DbEntry*> nodes_arr;
 
     /// Mapping from solver Id to array Id (nodes_arr)
+    /// can't use vector because sid is too big with threads
     std::unordered_map<unsigned long long, int> sid2aid;
 
     /// Mapping from gist Id to array Id (nodes_arr)

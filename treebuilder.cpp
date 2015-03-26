@@ -114,6 +114,8 @@ void TreeBuilder::run(void) {
                 nodesCreated += 1 + kids;
                 
             }
+
+            gid2aid.resize(nodesCreated, -1);
         }
         else { /// not a root
 
@@ -132,10 +134,6 @@ void TreeBuilder::run(void) {
             
             dbEntry.gid     = gid;
             dbEntry.depth   = nodes_arr[sid2aid[pid]]->depth + 1;
-
-            // qDebug() << "gid2aid size is: " << gid2aid.size();
-            // qDebug() << "gid2aid capacity is: " << gid2aid.capacity();
-            // qDebug() << "inserting into gid2aid: " << gid;
 
             gid2aid[gid] = lastRead;
 
@@ -185,9 +183,8 @@ void TreeBuilder::run(void) {
                     node->setStatus(BRANCH);
                     stats.choices++;
                     stats.undetermined += nalt - 1;
-                    nodesCreated += 2;
-                    gid2aid.resize(nodesCreated);
-                    // qDebug() << "resizing to: " << nodesCreated;
+                    nodesCreated += nalt;
+                    gid2aid.resize(nodesCreated, -1);
                 break;
                 default:
                     qDebug() << "need to handle this type of Node: " << status;
