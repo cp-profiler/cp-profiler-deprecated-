@@ -194,13 +194,19 @@ PixelTreeCanvas::exploreNode(VisualNode* node, int depth) {
   if (!entry) {
     qDebug() << "entry do not exist\n";
   } else {
-    parent = data->getEntry(node->getParent());
+
+    if (entry->parent_sid == ~0u)
+      parent = NULL;
+    else
+      parent = data->getEntry(node->getParent());
 
     std::cout << "domain:" << entry->domain << std::endl;
 
     group_time   += entry->node_time;
     group_domain += entry->domain;
-    group_domain_red += parent->domain - entry->domain;
+
+    if (parent)
+      group_domain_red += parent->domain - entry->domain;
 
       // draw vertical line if a solution
     if (node->getStatus() == SOLVED) {

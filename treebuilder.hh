@@ -19,6 +19,7 @@ private:
 	QMutex* _mutex;
 
 	unsigned long long lastRead;
+  int nodesCreated;
 
 public:
     TreeBuilder(TreeCanvas* tc, QObject *parent = 0);

@@ -89,7 +89,7 @@ private:
     std::unordered_map<unsigned long long, int> sid2aid;
 
     /// Mapping from gist Id to array Id (nodes_arr)
-    std::unordered_map<unsigned long long, int> gid2aid;
+    std::vector<unsigned long long> gid2aid;
 
     /// Maps gist Id to dbEntry (possibly in the other Data instance);
     /// i.e. needed for a merged tree to show labels etc.

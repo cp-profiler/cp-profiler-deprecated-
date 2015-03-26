@@ -18,6 +18,7 @@ void TreeBuilder::reset(Data* data, NodeAllocator* na) {
 	_data = data;
 	_na = na;
 
+    nodesCreated = 1;
     lastRead = 0;
 }
 
@@ -30,7 +31,7 @@ void TreeBuilder::run(void) {
 
 	std::vector<DbEntry*> &nodes_arr = _data->nodes_arr;
 	std::unordered_map<unsigned long long, int> &sid2aid = _data->sid2aid;
-	std::unordered_map<unsigned long long, int> &gid2aid = _data->gid2aid;
+	std::vector<unsigned long long> &gid2aid = _data->gid2aid;
 
     bool _isRestarts = _data->isRestarts();
 
@@ -86,6 +87,10 @@ void TreeBuilder::run(void) {
         _mutex->lock();
 
         if (isRoot) {
+
+            dbEntry.depth = 1;
+            stats.choices++;
+
             if (_isRestarts) {
                 int restart_root = (*_na)[0]->addChild(*_na); // create a node for a new root
                 qDebug() << "restart_root_id: " << restart_root;
@@ -95,7 +100,8 @@ void TreeBuilder::run(void) {
                 new_root->setHasSolvedChildren(true);
                 new_root->_tid = dbEntry.thread;
                 dbEntry.gid = restart_root;
-                dbEntry.depth = 1;
+                stats.undetermined += dbEntry.numberOfKids - 1;
+                nodesCreated += 1 + dbEntry.numberOfKids;
 
             } else {
                 int kids = nodes_arr[0]->numberOfKids;
@@ -104,9 +110,8 @@ void TreeBuilder::run(void) {
                 (*_na)[0]->setHasSolvedChildren(true);
                 (*_na)[0]->_tid = 0; /// thread id
                 dbEntry.gid = 0;
-                dbEntry.depth = 1;
-                stats.choices++;
                 stats.undetermined += kids - 1;
+                nodesCreated += 1 + kids;
                 
             }
         }
@@ -127,6 +132,10 @@ void TreeBuilder::run(void) {
             
             dbEntry.gid     = gid;
             dbEntry.depth   = nodes_arr[sid2aid[pid]]->depth + 1;
+
+            // qDebug() << "gid2aid size is: " << gid2aid.size();
+            // qDebug() << "gid2aid capacity is: " << gid2aid.capacity();
+            // qDebug() << "inserting into gid2aid: " << gid;
 
             gid2aid[gid] = lastRead;
 
@@ -176,6 +185,9 @@ void TreeBuilder::run(void) {
                     node->setStatus(BRANCH);
                     stats.choices++;
                     stats.undetermined += nalt - 1;
+                    nodesCreated += 2;
+                    gid2aid.resize(nodesCreated);
+                    // qDebug() << "resizing to: " << nodesCreated;
                 break;
                 default:
                     qDebug() << "need to handle this type of Node: " << status;
