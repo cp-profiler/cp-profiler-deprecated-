@@ -73,6 +73,7 @@ private:
   int   x;
   int   group_time;
   int   group_domain; // average of domain size of nodes in a group
+  int   group_domain_red;
   int   group_size;
   int   vline_idx; // same as x when _step = 1
   float alpha_factor;
@@ -90,9 +91,9 @@ private:
 
   int*   time_arr; // time for each vline
   float* domain_arr; // domain for each vline
+  float* domain_red_arr; /// domain reduction for each vline
 
   int    max_time; // max vline time
-  float  max_domain;  
 
 public:
 
@@ -105,9 +106,12 @@ private:
   void drawPixelTree(void);
   void exploreNode(VisualNode* node, int depth);
 
+  void drawHistogram(int idx, float* data);
+
   /// Time Histogram
   void drawTimeHistogram(void);
   void drawDomainHistogram(void);
+  void drawDomainReduction(void);
 
   /// auxiliary methods
   inline void drawPixel(int x, int y, int step, int color);

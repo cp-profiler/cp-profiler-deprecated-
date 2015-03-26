@@ -49,7 +49,9 @@ ReceiverThread::run(void) {
 
         zmq::message_t request;
 
-        socket.recv (&request, ZMQ_NOBLOCK);
+        socket.recv (&request, ZMQ_NOBLOCK); /// non-blocking so I can exit any time
+
+        /// TODO: maybe I need to sleep if not recieving anything
 
         Message *msg = reinterpret_cast<Message*>(request.data());
 

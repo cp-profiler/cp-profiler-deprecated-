@@ -48,7 +48,10 @@ void Data::setDoneReceiving(void) {
         _time_per_node = _total_time / _total_time;
     } else 
         qDebug() << "(!) _total_time cannot be 0";
+
+    qDebug() << "Elements in nodes_arr: " << nodes_arr.size();
     
+    qDebug() << "Size of 'nodes_arr' (bytes): " << nodes_arr.size() * sizeof(DbEntry);
 
     _isDone = true;
     qDebug() << "Solver time: " << _total_time;
@@ -125,8 +128,13 @@ void Data::connectNodeToEntry(unsigned int gid, DbEntry* entry) {
 }
 
 DbEntry* Data::getEntry(unsigned int gid) {
+    int aid = gid2aid[gid]; // TODO: aid is 0 by default??
 
-    return nodes_arr[ gid2aid[gid] ];
+    assert(aid < _total_nodes); 
+    qDebug() << "aid: " << aid;
+    if (aid >= _total_nodes)
+        return NULL;
+    return nodes_arr[ aid ];
 }
 
 char* Data::getLabelByGid(unsigned int gid) {
