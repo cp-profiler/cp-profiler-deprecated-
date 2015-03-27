@@ -43,8 +43,8 @@ public:
     DbEntry(unsigned long long _p, int _alt, int _kids, char _tid,
             char* _label, int _status, unsigned long long _time_stamp,
             unsigned long long _node_time, float _domain) :
-        gid(-1), depth(-1), parent_sid(_p), alt(_alt), numberOfKids(_kids),
-        status(_status), thread(_tid), time_stamp(_time_stamp), node_time(_node_time),
+        gid(-1), parent_sid(_p), alt(_alt), numberOfKids(_kids),
+        status(_status), thread(_tid), depth(-1), time_stamp(_time_stamp), node_time(_node_time),
         domain(_domain) {
           
           memcpy(label, _label, Message::LABEL_SIZE);

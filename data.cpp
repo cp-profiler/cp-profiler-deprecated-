@@ -17,7 +17,7 @@ int Data::instance_counter = 0;
 
 
 Data::Data(TreeCanvas* tc, NodeAllocator* na, bool isRestarts)
- : _tc(tc), _id(_tc->_id), _na(na), gid2aid(1), _isRestarts(isRestarts) {
+ : _tc(tc), _id(_tc->_id), _na(na), _isRestarts(isRestarts), gid2aid(1) {
 
     _isDone = false;
     _last_node_timestamp = 0;

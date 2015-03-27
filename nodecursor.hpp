@@ -230,7 +230,7 @@ AnalyzeCursor::AnalyzeCursor(VisualNode* root,
 inline void
 AnalyzeCursor::processCurrentNode(void) {
   VisualNode* n = node();
-  int nSol;
+  int nSol = 0;
   switch (n->getStatus()) {
       case SOLVED:
         nSol = 1;
