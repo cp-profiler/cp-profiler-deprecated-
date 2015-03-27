@@ -17,7 +17,7 @@ int Data::instance_counter = 0;
 
 
 Data::Data(TreeCanvas* tc, NodeAllocator* na, bool isRestarts)
- : _tc(tc), _id(_tc->_id), _na(na), _isRestarts(isRestarts), gid2aid(1) {
+ : _tc(tc), _id(_tc->_id), _na(na), gid2aid(1), _isRestarts(isRestarts) {
 
     _isDone = false;
     _last_node_timestamp = 0;
@@ -141,11 +141,15 @@ DbEntry* Data::getEntry(unsigned int gid) {
     return nodes_arr[ aid ];
 }
 
-char* Data::getLabelByGid(unsigned int gid) {
+const char* Data::getLabelByGid(unsigned int gid) {
     QMutexLocker locker(&dataMutex);
 
-    if (_tc->canvasType == TreeCanvas::REGULAR)
-        return nodes_arr[ gid2aid[gid] ]->label;
+    if (_tc->canvasType == TreeCanvas::REGULAR) {
+        int aid = gid2aid[gid];
+        if (aid == -1)
+            return "";
+        return nodes_arr[ aid ]->label;
+    }
     else {
         DbEntry* entry = gid2entry[gid];
         if (entry)
@@ -155,7 +159,7 @@ char* Data::getLabelByGid(unsigned int gid) {
 
 }
 
-char* Data::getLabelByAid(unsigned int aid) {
+const char* Data::getLabelByAid(unsigned int aid) {
     QMutexLocker locker(&dataMutex);
 
     return nodes_arr[ aid ]->label;

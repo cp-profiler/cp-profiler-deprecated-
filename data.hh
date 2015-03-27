@@ -128,10 +128,10 @@ public:
 
     void show_db(void); /// TODO: write to a file
 
-    char* getLabelByGid(unsigned int gid);
+    const char* getLabelByGid(unsigned int gid);
 
     /// get label omitting gid2aid mapping (i.e. for merged tree)   /// TODO: delete if not used
-    char* getLabelByAid(unsigned int aid);
+    const char* getLabelByAid(unsigned int aid);
 
     /// set label (i.e. for merged tree) 
     void setLabel(unsigned int aid, char* label);   /// TODO: delete if not used
