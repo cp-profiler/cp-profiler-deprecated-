@@ -104,6 +104,11 @@ TreeCanvas::TreeCanvas(QGridLayout* layout, ReceiverThread* receiver, CanvasType
             this, SLOT(scaleTree(int)));
     connect(this, SIGNAL(scaleChanged(int)), scaleBar, SLOT(setValue(int)));
 
+    smallBox = new QLineEdit("100");
+    smallBox->setMaximumWidth(50);
+    connect(smallBox, SIGNAL(returnPressed()),
+            this, SLOT(hideSize()));
+
     connect(&zoomTimeLine, SIGNAL(frameChanged(int)),
             scaleBar, SLOT(setValue(int)));
     zoomTimeLine.setCurveShape(QTimeLine::EaseInOutCurve);
@@ -631,9 +636,12 @@ TreeCanvas::hideFailed(void) {
 }
 
 void
-TreeCanvas::hideSize(void) {
+TreeCanvas::hideSize() {
     QMutexLocker locker(&mutex);
-    currentNode->hideSize(*na);
+    QString boxContents = smallBox->text();
+    int threshold = boxContents.toInt();
+    if (threshold == 0) return;   // conversion failed
+    currentNode->hideSize(threshold, *na);
     update();
     centerCurrentNode();
     emit statusChanged(currentNode, stats, true);

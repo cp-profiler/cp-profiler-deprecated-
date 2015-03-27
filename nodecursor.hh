@@ -248,23 +248,26 @@ public:
 class SubtreeCountCursor : public NodeCursor<VisualNode> {
 public:
   std::vector<int> stack;
+  int threshold;
   SubtreeCountCursor(VisualNode *theNode,
+                     int _threshold,
                      const VisualNode::NodeAllocator& na)
-    : NodeCursor<VisualNode>(theNode, na) {
+    : NodeCursor<VisualNode>(theNode, na),
+      threshold(_threshold) {
     stack.push_back(0);
   }
   void processCurrentNode(void) {
     stack.back()++;
     int x = stack.back();
     VisualNode* n = node();
-    if (x <= 100) {
+    if (x <= threshold) {
       n->setHidden(true);
       n->setChildrenLayoutDone(true);
-      if (x < 25) {
+      if (x < threshold/4) {
         n->setSubtreeSize(0);
-      } else if (x < 50) {
+      } else if (x < threshold/2) {
         n->setSubtreeSize(1);
-      } else if (x < 75) {
+      } else if (x < 3*threshold/4) {
         n->setSubtreeSize(2);
       } else {
         n->setSubtreeSize(3);

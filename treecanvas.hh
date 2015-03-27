@@ -398,6 +398,9 @@ protected:
   /// The scale bar
   QSlider* scaleBar;
 
+  /// Box for selecting "small subtree" size
+  QLineEdit* smallBox;
+
   /// Statistics about the search tree
   Statistics stats;
 

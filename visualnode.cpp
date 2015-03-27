@@ -139,8 +139,8 @@ VisualNode::hideFailed(const NodeAllocator& na, bool onlyDirty) {
 }
 
 void
-VisualNode::hideSize(const NodeAllocator& na) {
-    SubtreeCountCursor c(this,na);
+VisualNode::hideSize(int threshold, const NodeAllocator& na) {
+    SubtreeCountCursor c(this,threshold,na);
     PostorderNodeVisitor<SubtreeCountCursor>(c).run();
     dirtyUp(na);
 }

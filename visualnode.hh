@@ -180,7 +180,7 @@ public:
   /// Hide all failed subtrees of this node
   void hideFailed(const NodeAllocator& na, bool onlyDirty=false);
   /// Hide subtrees by their size
-  void hideSize(const NodeAllocator& na);
+  void hideSize(int threshold, const NodeAllocator& na);
   /// Unhide all nodes in the subtree of this node
   void unhideAll(const NodeAllocator& na);
   /// Do not stop at this node

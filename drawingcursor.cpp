@@ -122,9 +122,9 @@ DrawingCursor::processCurrentNode(void) {
                 drawPentagon(myx, myy, true);
             else
               if (n->getSubtreeSize() != -1)
-                drawSizedTriangle(myx, myy, n->getSubtreeSize(), false);
+                drawSizedTriangle(myx, myy, n->getSubtreeSize(), true);
               else
-                drawTriangle(myx, myy, false);
+                drawTriangle(myx, myy, true);
         } else {
             switch (n->getStatus()) {
             case SOLVED:

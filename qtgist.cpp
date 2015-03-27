@@ -54,7 +54,8 @@ Gist::Gist(QWidget* parent) : QWidget(parent) {
 
     layout->addWidget(scrollArea, 0,0,-1,1);
     layout->addWidget(canvas->scaleBar, 1,1, Qt::AlignHCenter);
-
+    layout->addWidget(canvas->smallBox, 1,2, Qt::AlignBottom);
+    
     connectCanvas(canvas);
 
     connect(initComparison, SIGNAL(triggered()), this, SLOT(initiateComparison()));
@@ -787,6 +788,7 @@ Gist::addActions(void) {
 void
 Gist::onFocusChanged(QWidget* a, QWidget* b) {
   // return;
+  (void) a; // unused
   if (b) {
     if (QString(b->metaObject()->className()) == "QAbstractScrollArea"){
       QAbstractScrollArea* sa = static_cast<QAbstractScrollArea*>(b);
