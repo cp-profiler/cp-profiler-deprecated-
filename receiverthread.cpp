@@ -62,6 +62,7 @@ ReceiverThread::run(void) {
             break;
             case START_SENDING:
                 qDebug() << "START RECEIVING";
+                // _t->_data->startReading();
                 /// start building the tree
 
                 // if (msg->restart_id == -1 || msg->restart_id == 0) { // why 1?

@@ -25,9 +25,6 @@ private:
   
   PixelTreeCanvas* canvas;
 
-  
-
-
 public:
 
   static const int MARGIN = 20;
@@ -107,10 +104,13 @@ private:
 
   void drawHistogram(int idx, float* data, int color);
 
-  /// Time Histogram
+  /// Histograms
   void drawTimeHistogram(void);
   void drawDomainHistogram(void);
   void drawDomainReduction(void);
+
+  /// Node Rate
+  void drawNodeRate(void);
 
   void flush(void); /// make a final group
 

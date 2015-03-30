@@ -4,6 +4,7 @@
 #include <vector>
 #include <unordered_map>
 #include <QTimer>
+#include <chrono>
 #include <QMutex>
 
 #include <iostream>
@@ -13,6 +14,8 @@
 #include "node.hh"
 
 typedef NodeAllocatorBase<VisualNode> NodeAllocator;
+
+using namespace std::chrono;
 
 enum MsgType {
   NODE_DATA = 1,
@@ -70,6 +73,10 @@ class Data : public QObject {
 Q_OBJECT
 
 friend class TreeBuilder;
+friend class PixelTreeCanvas;
+
+/// step for node rate counter (in microseconds)
+static const int NODE_RATE_STEP = 1000;
 
 private:
     /// counts instances of Data
@@ -105,9 +112,20 @@ private:
     unsigned long int _last_node_timestamp;
     int _total_nodes;
 
+    /// How many nodes received within each NODE_RATE_STEP interval
+    std::vector<float> node_rate;
+    /// On which node each interval starts
+    std::vector<int> nr_intervals;
 
     /// derived properties
     int _time_per_node;
+
+    /// for node rate
+    system_clock::time_point begin_time;
+    system_clock::time_point last_interval_time;
+    system_clock::time_point current_time;
+
+    int last_interval_nc;
 
 public:
 
@@ -118,6 +136,9 @@ private:
 
     /// Populate nodes_arr with the data coming from 
     void pushInstance(unsigned long long sid, DbEntry* entry);
+
+    /// Work out node rate for the last (incomplete) interval 
+    void flush_node_rate(void);
     
 public:
 
@@ -155,7 +176,6 @@ public:
 
     // sets _isDone to true when received DONE_SENDING
     void setDoneReceiving(void);
-    
 };
 
 

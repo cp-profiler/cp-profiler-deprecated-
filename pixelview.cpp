@@ -128,7 +128,20 @@ PixelTreeCanvas::drawPixelTree(void) {
   pt_width = _nodeCount * _step;
 
   int img_width  = pt_width + 2 * MARGIN;
-  int img_height = pt_height + 3 * (HIST_HEIGHT + _step) + 3 * MARGIN + 3 * MARGIN;
+  // int img_height = pt_height + 4 * (HIST_HEIGHT + _step) + 3 * MARGIN + 3 * MARGIN;
+  int img_height = MARGIN + 
+                   pt_height + _step +
+                   MARGIN +
+                   HIST_HEIGHT + _step + /// Time Histogram
+                   MARGIN +
+                   HIST_HEIGHT + _step + /// Domain Histogram
+                   MARGIN +
+                   HIST_HEIGHT + _step + /// Domain Reduction Histogram
+                   MARGIN +
+                   HIST_HEIGHT + _step + /// Node Rate Histogram
+                   MARGIN;
+
+  qDebug() << "img_w: " << img_width << " img_h: " << img_height;
 
   _image = new QImage(img_width,
                       img_height,
@@ -166,11 +179,13 @@ PixelTreeCanvas::drawPixelTree(void) {
 
   flush();
 
-  drawTimeHistogram();
+  // drawTimeHistogram();
 
-  drawDomainHistogram();
+  // drawDomainHistogram();
 
-  drawDomainReduction();
+  // drawDomainReduction();
+
+  drawNodeRate();
 
   repaint();
   
@@ -350,9 +365,9 @@ PixelTreeCanvas::drawHistogram(int idx, float* data, int color) {
                        zero_level, 
                        qRgb(150, 150, 150));
 
-    qDebug() << "data[" << i << "]: " << data[i];
+    // qDebug() << "data[" << i << "]: " << data[i];
 
-    if (data[i] < 0) continue;
+    // if (data[i] < 0) continue;
 
     drawPixel(x + i * _step,
               // pt_height + 2 * MARGIN + (HIST_HEIGHT + _step) + HIST_HEIGHT - val,
@@ -361,6 +376,64 @@ PixelTreeCanvas::drawHistogram(int idx, float* data, int color) {
               color);
 
   }
+
+
+}
+
+void
+PixelTreeCanvas::drawNodeRate(void) {
+  Data* data = _tc->getData();
+  std::vector<float>& node_rate = data->node_rate;
+  std::vector<int>& nr_intervals = data->nr_intervals;
+
+  int start_x = 0;
+  int start_y = (pt_height + _step) + MARGIN + 3 * (HIST_HEIGHT + MARGIN + _step);
+
+  float max_node_rate = *std::max_element(node_rate.begin(), node_rate.end());
+
+  float coeff = (float)HIST_HEIGHT / max_node_rate;
+  
+  qDebug() << "max node rate: " << max_node_rate;
+
+  int zero_level = start_y + HIST_HEIGHT + _step;
+
+  for (int i = 0; i < vlines; i++) {
+    for (int j = 0; j < _step; j++)
+      _image->setPixel(start_x + i * _step + j,
+                       // pt_height + 2 * MARGIN + 2 * (HIST_HEIGHT + _step),
+                       zero_level, 
+                       qRgb(150, 150, 150));
+  }
+
+  int x = 0;
+
+  // /// loop through intervals
+  // for (int i = 0; i < node_rate.size(); i++) {
+  //   /// draw line for each interval
+  //   for (int j = 0; j < node_rate[i]; j++) {
+  //     drawPixel(start_x + x,
+  //               // pt_height + 2 * MARGIN + (HIST_HEIGHT + _step) + HIST_HEIGHT - val,
+  //               start_y + HIST_HEIGHT - value,
+  //               _step,
+  //               qRgb(40, 40, 150));
+  //     x++;
+  //   }
+  // }
+
+  for (int i = 1; i < nr_intervals.size(); i++) {
+    float value = node_rate[i - 1] * coeff;
+    for (int x = ceil((float)nr_intervals[i-1] / approx_size);
+             x < ceil((float)nr_intervals[i]   / approx_size); x++) {
+      drawPixel(start_x + x * _step,
+                // pt_height + 2 * MARGIN + (HIST_HEIGHT + _step) + HIST_HEIGHT - val,
+                start_y + HIST_HEIGHT - value,
+                _step,
+                qRgb(40, 40, 150));
+      // qDebug() << "x: " << x;
+    }
+  }
+
+
 
 
 }
