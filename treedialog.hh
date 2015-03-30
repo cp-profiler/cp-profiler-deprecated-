@@ -1,6 +1,8 @@
 #ifndef TREE_DIALOG_HH
 #define TREE_DIALOG_HH
 
+#include <QStatusBar>
+
 #include "treecanvas.hh"
 #include "receiverthread.hh"
 
@@ -10,6 +12,8 @@ class TreeDialog : public QDialog {
 // Q_OBJECT
 private:
 
+  QHBoxLayout* main_layout;
+  QVBoxLayout* status_layout;
   QGridLayout* layout;
   QVBoxLayout* nc_layout;
   QAbstractScrollArea* scrollArea;
@@ -20,6 +24,19 @@ private:
 
   /// A menu bar
   QMenuBar* menuBar;
+
+
+  /// Status Bar
+  // QStatusBar* statusBar;
+  QStatusBar* statusBar;
+
+  /// Status bar label for number of solutions
+  QLabel* depthLabel;
+  QLabel* solvedLabel;
+  QLabel* failedLabel;
+  QLabel* choicesLabel;
+  QLabel* openLabel;
+
 
   void buildMenu(void);
   void connectSignals(void);

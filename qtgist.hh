@@ -40,18 +40,18 @@ private:
   /// Checks for new nodes
   ReceiverThread* receiver;
 
+  /// Points to active canvas
   TreeCanvas* current_tc;
-  
+
   /// The canvas implementation
   TreeCanvas* canvas;
 
   /// Second canvas in case of comparing
   TreeCanvas* canvasTwo;
 
-  QDialog* canvasDialog;
-
   /// Merged tree (comparison)
   TreeCanvas* cmpCanvas;
+
   /// Dialog for a merged tree (comparison)
   QDialog* cmpDialog;
 

@@ -239,9 +239,6 @@ Gist::~Gist(void) {
 
 void
 Gist::prepareNewCanvas(void) {
-    // canvas->hide();
-//    canvasDialog.
-//    canvasDialog.show();
     canvasTwo->show();
 
 }
