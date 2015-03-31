@@ -1,6 +1,10 @@
 #include "nodewidget.hh"
 #include "drawingcursor.hh"
 
+const double NODE_WIDTH = 20.0;
+const double HALF_NODE_WIDTH = NODE_WIDTH / 2.0;
+const double THIRD_NODE_WIDTH = NODE_WIDTH / 3.0;
+
 NodeWidget::NodeWidget(NodeStatus s) : status(s) {
     setMinimumSize(22,22);
     setMaximumSize(22,22);
@@ -39,6 +43,21 @@ void NodeWidget::paintEvent(QPaintEvent*) {
     {
         painter.setBrush(QBrush(Qt::white));
         painter.drawEllipse(myx-8, myy, 16, 16);
+    }
+        break;
+    case MERGING: {
+
+        painter.setBrush(DrawingCursor::orange);
+
+        QPointF points[5] = { QPointF(myx, myy),
+            QPointF(myx + HALF_NODE_WIDTH, myy + THIRD_NODE_WIDTH),
+            QPointF(myx + THIRD_NODE_WIDTH, myy + NODE_WIDTH),
+            QPointF(myx - THIRD_NODE_WIDTH, myy + NODE_WIDTH),
+            QPointF(myx - HALF_NODE_WIDTH, myy + THIRD_NODE_WIDTH)
+        };
+
+        painter.drawConvexPolygon(points, 5);
+
     }
         break;
     default:

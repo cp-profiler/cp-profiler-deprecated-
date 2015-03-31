@@ -26,7 +26,7 @@ public:
     void reset(Data* data, NodeAllocator *na);
 
 Q_SIGNALS:
-	void doneBuilding(void);
+	void doneBuilding(bool finished);
 
 public Q_SLOTS:
     void startBuilding(void);

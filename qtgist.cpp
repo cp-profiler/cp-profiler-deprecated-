@@ -260,7 +260,7 @@ Gist::on_canvas_statusChanged(VisualNode* n, const Statistics& stats,
         compareNode->setEnabled(false);
         compareNodeBeforeFP->setEnabled(false);
         showNodeStats->setEnabled(false);
-        stop->setEnabled(true);
+        stop-> setEnabled(true);
         reset->setEnabled(false);
         navUp->setEnabled(false);
         navDown->setEnabled(false);

@@ -160,8 +160,6 @@ GistMainWindow::GistMainWindow(void) : aboutGist(this) {
   QWidget* stw = new QWidget();
   QHBoxLayout* hbl = new QHBoxLayout();
   hbl->setContentsMargins(0,0,0,0);
-  wmpLabel = new QLabel("");
-  hbl->addWidget(wmpLabel);
   hbl->addWidget(new QLabel("Depth:"));
   depthLabel = new QLabel("0");
   hbl->addWidget(depthLabel);
@@ -213,42 +211,25 @@ GistMainWindow::statusChanged(const Statistics& stats, bool finished) {
     prefAction->setEnabled(true);
   } else if (isSearching && finished) {
     isSearching = false;
-//    double ms = searchTimer.stop();
-//    double s = std::floor(ms / 1000.0);
-//    ms -= s*1000.0;
-//    double m = std::floor(s / 60.0);
-//    s -= m*60.0;
-//    double h = std::floor(m / 60.0);
-//    m -= h*60.0;
 
-    // QString t;
-    // if (static_cast<int>(h) != 0)
-    //   t += QString().setNum(static_cast<int>(h))+"h ";
-    // if (static_cast<int>(m) != 0)
-    //   t += QString().setNum(static_cast<int>(m))+"m ";
-    // if (static_cast<int>(s) != 0)
-    //   t += QString().setNum(static_cast<int>(s));
-    // else
-    //   t += "0";
-    // t += "."+QString().setNum(static_cast<int>(ms))+"s";
-    // statusBar()->showMessage(QString("Ready (search time ")+t+")");
-    statusBar()->showMessage("Ready");
+    /// add total time to 'Done' label
+    QString t;
+    unsigned long long totalTime = c->getCanvas()->getData()->getTotalTime();
+    float seconds = totalTime / 1000000.0;
+    t.setNum(seconds);
+    statusBar()->showMessage("Done in " + t + "s");
+
     prefAction->setEnabled(true);
   } else if (!isSearching && !finished) {
-    prefAction->setEnabled(false);
+    prefAction->setEnabled(false); /// TODO: leave active all the time instead?
     statusBar()->showMessage("Searching");
     isSearching = true;
-//    searchTimer.start();
   }
   depthLabel->setNum(stats.maxDepth);
   solvedLabel->setNum(stats.solutions);
   failedLabel->setNum(stats.failures);
   choicesLabel->setNum(stats.choices);
   openLabel->setNum(stats.undetermined);
-//  if (stats.wmp)
-//    wmpLabel->setText("WMP");
-//  else
-//    wmpLabel->setText("");
 }
 
 void

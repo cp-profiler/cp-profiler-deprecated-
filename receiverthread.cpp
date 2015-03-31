@@ -107,9 +107,11 @@ ReceiverThread::run(void) {
             break;
         }
 
+        /// TODO: this part should be moved into treeCanvas
         if (_t->refresh > 0 && nodeCount >= _t->refresh) {
             _t->currentNode->dirtyUp(*_t->na);
             updateCanvas();
+
             emit statusChanged(false);
             nodeCount = 0;
             if (_t->refreshPause > 0)

@@ -9,7 +9,7 @@
 class Gist;
 
 class TreeDialog : public QDialog {
-// Q_OBJECT
+Q_OBJECT
 private:
 
   QHBoxLayout* main_layout;
@@ -36,6 +36,7 @@ private:
   QLabel* failedLabel;
   QLabel* choicesLabel;
   QLabel* openLabel;
+  QLabel* mergedLabel;
 
 
   void buildMenu(void);
@@ -52,6 +53,9 @@ public:
 
   TreeCanvas* getCanvas(void) { return _tc; }
 
+  private Q_SLOTS:
+  /// The status has changed (e.g., new solutions have been found)
+  void statusChanged(VisualNode*, const Statistics& stats, bool finished);
 };
 
 

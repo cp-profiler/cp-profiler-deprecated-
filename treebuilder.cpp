@@ -206,7 +206,8 @@ void TreeBuilder::run(void) {
     }
 
     node->dirtyUp(*_na);
-    emit doneBuilding();
+    emit doneBuilding(true);
+
     end = clock();
     double elapsed_secs = double(end - begin) / CLOCKS_PER_SEC;
      qDebug() << "Time elapsed: " << elapsed_secs << " seconds";

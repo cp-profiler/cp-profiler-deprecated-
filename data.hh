@@ -107,9 +107,9 @@ private:
     bool _isDone;
 
     // Total solver time in microseconds
-    unsigned long int _total_time;
+    unsigned long long _total_time;
 
-    unsigned long int _last_node_timestamp;
+    unsigned long int _prev_node_timestamp;
     int _total_nodes;
 
     /// How many nodes received within each NODE_RATE_STEP interval
@@ -154,9 +154,6 @@ public:
     /// get label omitting gid2aid mapping (i.e. for merged tree)   /// TODO: delete if not used
     const char* getLabelByAid(unsigned int aid);
 
-    /// set label (i.e. for merged tree) 
-    void setLabel(unsigned int aid, char* label);   /// TODO: delete if not used
-
     void connectNodeToEntry(unsigned int gid, DbEntry* entry);
 
 /// ********* GETTERS **********
@@ -165,6 +162,8 @@ public:
 
     bool isDone(void) { return _isDone; }
     bool isRestarts(void) { return _isRestarts; }
+
+    unsigned long long getTotalTime(void); /// time in microseconds
 
     DbEntry* getEntry(unsigned int gid);
 

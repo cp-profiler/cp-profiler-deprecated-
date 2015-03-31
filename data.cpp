@@ -21,7 +21,7 @@ Data::Data(TreeCanvas* tc, NodeAllocator* na, bool isRestarts)
  : _tc(tc), _id(_tc->_id), _na(na), gid2aid(1), _isRestarts(isRestarts) {
 
     _isDone = false;
-    _last_node_timestamp = 0;
+    _prev_node_timestamp = 0;
     _time_per_node = -1; // unassigned
 
     begin_time = system_clock::now();
@@ -46,7 +46,7 @@ void Data::setDoneReceiving(void) {
     QMutexLocker locker(&dataMutex);
 
     _total_nodes = nodes_arr.size();
-    _total_time = nodes_arr[_total_nodes - 1]->time_stamp;
+    _total_time = nodes_arr.back()->time_stamp;
 
     if (_total_time != 0) {
         _time_per_node = _total_time / _total_time;
@@ -117,10 +117,10 @@ int Data::handleNodeCallback(Message* msg) {
                     msg->label,
                     status,
                     msg->time,
-                    msg->time - _last_node_timestamp,
+                    msg->time - _prev_node_timestamp,
                     domain));
 
-    _last_node_timestamp = msg->time;
+    _prev_node_timestamp = msg->time;
 
     // handle node rate
 
@@ -176,9 +176,12 @@ const char* Data::getLabelByAid(unsigned int aid) {
     return nodes_arr[ aid ]->label;
 }
 
-void Data::setLabel(unsigned int aid, char* label) {
-    assert(nodes_arr[ aid ] == NULL);
-    qDebug() << aid;
+
+unsigned long long Data::getTotalTime(void) {
+
+    if (_isDone)
+        return _total_time;
+    return nodes_arr.back()->time_stamp;
 }
 
 
