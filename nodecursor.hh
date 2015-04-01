@@ -260,7 +260,12 @@ public:
     stack.back()++;
     int x = stack.back();
     VisualNode* n = node();
-    if (x <= threshold) {
+    // A threshold of zero means turn this stuff off.
+    if (threshold == 0) {
+      n->setSubtreeSizeUnknown();
+      n->setHidden(false);
+      n->setChildrenLayoutDone(false);
+    } else if (x <= threshold) {
       n->setHidden(true);
       n->setChildrenLayoutDone(true);
       if (x < threshold/4) {
