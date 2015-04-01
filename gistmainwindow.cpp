@@ -219,6 +219,11 @@ GistMainWindow::statusChanged(const Statistics& stats, bool finished) {
     t.setNum(seconds);
     statusBar()->showMessage("Done in " + t + "s");
 
+    /// no need to change Status Bar anymore
+    disconnect(c,SIGNAL(statusChanged(const Statistics&,bool)),
+            this,SLOT(statusChanged(const Statistics&,bool)));
+
+
     prefAction->setEnabled(true);
   } else if (!isSearching && !finished) {
     prefAction->setEnabled(false); /// TODO: leave active all the time instead?

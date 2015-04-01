@@ -179,11 +179,11 @@ PixelTreeCanvas::drawPixelTree(void) {
 
   flush();
 
-  // drawTimeHistogram();
+  drawTimeHistogram();
 
-  // drawDomainHistogram();
+  drawDomainHistogram();
 
-  // drawDomainReduction();
+  drawDomainReduction();
 
   drawNodeRate();
 

@@ -248,6 +248,7 @@ Gist::on_canvas_contextMenu(QContextMenuEvent* event) {
     contextMenu->popup(event->globalPos());
 }
 
+/// TODO
 void
 Gist::on_canvas_statusChanged(VisualNode* n, const Statistics& stats,
                               bool finished) {

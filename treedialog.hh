@@ -38,7 +38,6 @@ private:
   QLabel* openLabel;
   QLabel* mergedLabel;
 
-
   void buildMenu(void);
   void connectSignals(void);
 

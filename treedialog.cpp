@@ -69,7 +69,6 @@ TreeDialog::TreeDialog(ReceiverThread* receiver, const TreeCanvas::CanvasType ty
   
   statusBar->showMessage("Ready");
 
-
   /// ***********************************
 
   connectSignals();
@@ -118,6 +117,12 @@ TreeDialog::connectSignals(void) {
 void
 TreeDialog::statusChanged(VisualNode*, const Statistics& stats, bool finished) {
 
+  depthLabel->setNum(stats.maxDepth);
+  solvedLabel->setNum(stats.solutions);
+  failedLabel->setNum(stats.failures);
+  choicesLabel->setNum(stats.choices);
+  openLabel->setNum(stats.undetermined);
+
   if (finished) {
     /// add total time to 'Done' label
     QString t;
@@ -126,15 +131,14 @@ TreeDialog::statusChanged(VisualNode*, const Statistics& stats, bool finished) {
     t.setNum(seconds);
     statusBar->showMessage("Done in " + t + "s");
 
+    /// no need to change stats after done
+    disconnect(_tc,SIGNAL(statusChanged(VisualNode*, const Statistics&, bool)),
+          this, SLOT(statusChanged(VisualNode*, const Statistics&, bool)));
+
   } else {
     statusBar->showMessage("Searching");
   }
 
-  depthLabel->setNum(stats.maxDepth);
-  solvedLabel->setNum(stats.solutions);
-  failedLabel->setNum(stats.failures);
-  choicesLabel->setNum(stats.choices);
-  openLabel->setNum(stats.undetermined);
 
   /// TODO: update Pentagon Counter
 }

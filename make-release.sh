@@ -1,9 +1,9 @@
 #!/bin/sh
 set -e
 
-cd /home/maxim/Dropbox/dev/phd/StandaloneGist/build-StandAloneGist-Desktop_Qt_5_3_GCC_64bit-Debug
-qmake ../StandAloneGist.pro -r -spec linux-g++ CONFIG+=debug
+cd build
+qmake ../StandAloneGist.pro -r -spec linux-g++ CONFIG+=release
 make -j6 -Wall
-mv StandAloneGist ../StandAloneGist-debug
+mv StandAloneGist ../StandAloneGist-release
 cd ..
 
