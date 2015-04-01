@@ -351,6 +351,8 @@ PixelTreeCanvas::drawHistogram(int idx, float* data, int color) {
     if (data[i] > max_value) max_value = data[i];
   }
 
+  if (max_value <= 0) return; /// no data for this histogram
+
   float coeff = (float)HIST_HEIGHT / max_value;
 
   int zero_level = y + HIST_HEIGHT + _step;
