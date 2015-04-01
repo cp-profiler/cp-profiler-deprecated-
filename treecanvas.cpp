@@ -641,7 +641,6 @@ TreeCanvas::hideSize() {
     QMutexLocker locker(&mutex);
     QString boxContents = smallBox->text();
     int threshold = boxContents.toInt();
-    if (threshold == 0) return;   // conversion failed
     currentNode->hideSize(threshold, *na);
     update();
     centerCurrentNode();
