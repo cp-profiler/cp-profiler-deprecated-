@@ -1018,7 +1018,7 @@ TreeCanvas::reset(bool isRestarts) {
     bookmarks.clear();
     // root->layout(*na);
 
-    emit statusChanged(currentNode, stats, true);
+    emit statusChanged(currentNode, stats, false);
 
     _data = new Data(this, na, isRestarts);
 

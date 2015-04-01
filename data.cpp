@@ -63,8 +63,6 @@ void Data::setDoneReceiving(void) {
     qDebug() << "gid2aid size is: " << gid2aid.size();
     qDebug() << "gid2aid capacity is: " << gid2aid.capacity();
 
-    qDebug() << "Solver time: " << _total_time;
-
     _isDone = true;
     
 }

@@ -131,6 +131,8 @@ TreeDialog::statusChanged(VisualNode*, const Statistics& stats, bool finished) {
     t.setNum(seconds);
     statusBar->showMessage("Done in " + t + "s");
 
+    qDebug() << "Done in " + t + "s";
+
     /// no need to change stats after done
     disconnect(_tc,SIGNAL(statusChanged(VisualNode*, const Statistics&, bool)),
           this, SLOT(statusChanged(VisualNode*, const Statistics&, bool)));
