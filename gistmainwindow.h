@@ -76,6 +76,8 @@ protected Q_SLOTS:
   void populateInspectors(void);
   /// Populate the bookmarks menus from the actions found in Gist
   void populateBookmarks(void);
+  /// Change MainWindow's title to fzn file name
+  void changeTitle(const char* file_name);
 public:
   /// Constructor
   GistMainWindow(void);

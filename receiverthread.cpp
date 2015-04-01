@@ -60,7 +60,7 @@ ReceiverThread::run(void) {
                 _t->_data->handleNodeCallback(msg);
                 ++nodeCount;
             break;
-            case START_SENDING:
+            case START_SENDING: /// TODO: start sending should have model name
                 qDebug() << "START RECEIVING";
                 // _t->_data->startReading();
                 /// start building the tree
@@ -80,8 +80,12 @@ ReceiverThread::run(void) {
                         emit newCanvasNeeded();
 
                     _t = ptr_gist->_td->getCanvas();
+                    ptr_gist->_td->setTitle(msg->label);
                     ptr_gist->connectCanvas(_t);
                     qDebug() << "Switched to another canvas";
+                } else {
+                    /// set Title through ptr_gist
+                    ptr_gist->emitChangeMainTitle(msg->label);
                 }
 
                 if (msg->restart_id == -1) {

@@ -239,6 +239,9 @@ public:
   /// Handle resize event
   void resizeEvent(QResizeEvent*);
 
+  /// Receiver calles this when name is obtained
+  void emitChangeMainTitle(const char* file_name);
+
 
   /// ***** GETTERS *****
   TreeCanvas* getCanvas(void) { return canvas; }
@@ -251,6 +254,9 @@ Q_SIGNALS:
 
   /// Signals that a solution has been found
   void solution(int);
+
+  /// Notify MainWindow about fzn file name
+  void changeMainTitle(const char* file_name);
 
 
 private Q_SLOTS:

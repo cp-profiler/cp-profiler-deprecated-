@@ -144,3 +144,9 @@ TreeDialog::statusChanged(VisualNode*, const Statistics& stats, bool finished) {
 
   /// TODO: update Pentagon Counter
 }
+
+void
+TreeDialog::setTitle(const char* file_name) {
+  QString title(file_name);
+  this->setWindowTitle(title);
+}

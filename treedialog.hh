@@ -50,6 +50,7 @@ public:
 
   /// **** GETTERS ****
 
+  void setTitle(const char* file_name);
   TreeCanvas* getCanvas(void) { return _tc; }
 
   private Q_SLOTS:

@@ -390,6 +390,11 @@ Gist::on_canvas_statusChanged(VisualNode* n, const Statistics& stats,
 }
 
 void
+Gist::emitChangeMainTitle(const char* file_name) {
+    emit changeMainTitle(file_name);
+}
+
+void
 Gist::inspectWithAction(QAction* a) {
     canvas->inspectCurrentNode(true,inspectGroup->actions().indexOf(a));
 }

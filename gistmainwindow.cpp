@@ -184,6 +184,9 @@ GistMainWindow::GistMainWindow(void) : aboutGist(this) {
   connect(c,SIGNAL(statusChanged(const Statistics&,bool)),
           this,SLOT(statusChanged(const Statistics&,bool)));
 
+  connect(c, SIGNAL(changeMainTitle(const char*)),
+          this, SLOT(changeTitle(const char*)));
+
   connect(this, SIGNAL(stopReceiver()), c->getReceiver(), SLOT(stopThread()));
 
   preferences(true);
@@ -288,4 +291,10 @@ GistMainWindow::populateInspectors(void) {
 //  inspectNodeBeforeFPMenu->addAction(c->inspectBeforeFP);
 //  inspectNodeBeforeFPMenu->addSeparator();
 //  inspectNodeBeforeFPMenu->addActions(c->inspectBeforeFPGroup->actions());
+}
+
+void
+GistMainWindow::changeTitle(const char* file_name) {
+  QString title(file_name);
+  this->setWindowTitle(title);
 }
