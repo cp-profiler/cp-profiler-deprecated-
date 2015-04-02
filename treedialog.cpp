@@ -17,6 +17,8 @@ TreeDialog::TreeDialog(ReceiverThread* receiver, const TreeCanvas::CanvasType ty
   
   scrollArea = new QAbstractScrollArea(this);
 
+
+  // data is created here
   _tc = new TreeCanvas(layout, receiver, type, scrollArea->viewport());
 
   layout->addWidget(scrollArea, 0, 0, 1, 1);

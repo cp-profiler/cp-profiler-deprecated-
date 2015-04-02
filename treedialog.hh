@@ -4,9 +4,10 @@
 #include <QStatusBar>
 
 #include "treecanvas.hh"
-#include "receiverthread.hh"
+// #include "receiverthread.hh"
 
 class Gist;
+class ReceiverThread;
 
 class TreeDialog : public QDialog {
 Q_OBJECT
@@ -24,7 +25,6 @@ private:
 
   /// A menu bar
   QMenuBar* menuBar;
-
 
   /// Status Bar
   // QStatusBar* statusBar;

@@ -49,6 +49,8 @@ TreeCanvas::TreeCanvas(QGridLayout* layout, ReceiverThread* receiver, CanvasType
     _builder = new TreeBuilder(this);
     na = new Node::NodeAllocator(false);
 
+
+
     _data = new Data(this, na, false); // default data instance
 
     // timer disabled for now

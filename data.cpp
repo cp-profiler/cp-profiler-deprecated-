@@ -27,6 +27,11 @@ Data::Data(TreeCanvas* tc, NodeAllocator* na, bool isRestarts)
     begin_time = system_clock::now();
     last_interval_time = begin_time;
     last_interval_nc = 0;
+
+    if (_tc->canvasType == TreeCanvas::MERGED) {
+        _isDone = true;
+        _total_time = 0;
+    }
     
     qDebug() << "+++ new Data created, tc_id: " << _id;
 }

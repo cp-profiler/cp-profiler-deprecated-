@@ -2,11 +2,11 @@
 #define GIST_HH
 
 #include "treecanvas.hh"
-// #include "treebuilder.hh"
 #include "treecomparison.hh"
 #include "nodestats.hh"
 #include "receiverthread.hh"
 #include "treedialog.hh"
+#include "cmp_tree_dialog.hh"
 
 /**
  * \brief %Gecode Interactive %Search Tool

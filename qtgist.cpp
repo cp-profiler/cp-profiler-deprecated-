@@ -8,6 +8,9 @@ Gist::createNewCanvas(void) {
 
     qDebug() << "!!! about to create a new canvas";
 
+    if (_td != NULL)
+        delete _td;
+
     _td = new TreeDialog(receiver, TreeCanvas::REGULAR, this);
 
 }
@@ -16,6 +19,7 @@ void
 Gist::initiateComparison(void) {
 
     TreeDialog* td = new TreeDialog(receiver, TreeCanvas::MERGED, this);
+    // TreeDialog* td = new CmpTreeDialog(receiver, TreeCanvas::MERGED, this);
 
     TreeComparison::compare(canvas, _td->getCanvas(), td->getCanvas());
  
@@ -45,6 +49,7 @@ Gist::Gist(QWidget* parent) : QWidget(parent) {
     addActions();
 
     current_tc = NULL;
+    _td        = NULL;
     
     receiver = new ReceiverThread(this);
 
@@ -233,6 +238,9 @@ Gist::~Gist(void) {
 
     // receiver->terminate();
     // receiver->wait();
+
+    if (_td != NULL)
+        delete _td;
 
     delete canvas;
 }

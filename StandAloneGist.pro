@@ -32,6 +32,7 @@ SOURCES += main.cpp\
     node.cpp \
     data.cpp \
     treedialog.cpp \
+    cmp_tree_dialog.cpp \
     receiverthread.cpp \
     treebuilder.cpp \
     treecomparison.cpp \
@@ -65,6 +66,7 @@ HEADERS  += gistmainwindow.h \
     zoomToFitIcon.hpp \
     data.hh \
     treedialog.hh \
+    cmp_tree_dialog.hh \
     receiverthread.hh \
     treebuilder.hh \
     treecomparison.hh \
