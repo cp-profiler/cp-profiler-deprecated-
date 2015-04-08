@@ -18,10 +18,10 @@ Gist::createNewCanvas(void) {
 void 
 Gist::initiateComparison(void) {
 
-    TreeDialog* td = new TreeDialog(receiver, TreeCanvas::MERGED, this);
-    // TreeDialog* td = new CmpTreeDialog(receiver, TreeCanvas::MERGED, this);
+    TreeDialog* td = new CmpTreeDialog(receiver, TreeCanvas::MERGED, this,
+                        canvas, _td->getCanvas());
 
-    TreeComparison::compare(canvas, _td->getCanvas(), td->getCanvas());
+    // TreeComparison::compare(canvas, _td->getCanvas(), td->getCanvas());
  
 }
 
@@ -588,6 +588,7 @@ Gist::addActions(void) {
     
     labelBranches = new QAction("Label/clear branches", this);
     labelBranches->setShortcut(QKeySequence("L"));
+    labelBranches->setShortcutContext(Qt::ApplicationShortcut);
     
     labelPath = new QAction("Label/clear path", this);
     labelPath->setShortcut(QKeySequence("Shift+L"));
@@ -798,6 +799,7 @@ Gist::addActions(void) {
 
 void
 Gist::onFocusChanged(QWidget* a, QWidget* b) {
+
   // return;
   (void) a; // unused
   if (b) {
@@ -807,7 +809,7 @@ Gist::onFocusChanged(QWidget* a, QWidget* b) {
       if (window == "Gist") {
         Gist* gist = static_cast<Gist*>(sa->parentWidget());
         connectCanvas(gist->getCanvas());
-      } else if (window == "QDialog")  {
+      } else if (window == "QDialog" || window == "TreeDialog")  {
         TreeDialog* td = static_cast<TreeDialog*>(sa->parentWidget());
         connectCanvas(td->getCanvas());
       }

@@ -1,14 +1,5 @@
 #include "treecomparison.hh"
 
-QStack<VisualNode*> TreeComparison::stack;
-QStack<VisualNode*> TreeComparison::stack1;
-QStack<VisualNode*> TreeComparison::stack2;
-
-NodeAllocator* TreeComparison::_na1;
-NodeAllocator* TreeComparison::_na2;
-
-Data* TreeComparison::_data1;
-Data* TreeComparison::_data2;
 
 void
 TreeComparison::compare(TreeCanvas* t1, TreeCanvas* t2, TreeCanvas* new_tc) {

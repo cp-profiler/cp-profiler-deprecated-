@@ -4,7 +4,7 @@
 #include <QStatusBar>
 
 #include "treecanvas.hh"
-// #include "receiverthread.hh"
+
 
 class Gist;
 class ReceiverThread;
@@ -21,8 +21,6 @@ private:
 
   Gist* prt_gist;
 
-  TreeCanvas* _tc;
-
   /// A menu bar
   QMenuBar* menuBar;
 
@@ -36,10 +34,16 @@ private:
   QLabel* failedLabel;
   QLabel* choicesLabel;
   QLabel* openLabel;
-  QLabel* mergedLabel;
 
   void buildMenu(void);
   void connectSignals(void);
+
+protected:
+
+  TreeCanvas* _tc;
+
+  QLabel* mergedLabel;
+  QHBoxLayout* hbl;
 
 public:
 

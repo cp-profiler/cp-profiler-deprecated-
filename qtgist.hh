@@ -18,6 +18,9 @@
  * \ingroup TaskGist
  */
 
+class TreeDialog;
+class CmpTreeDialog;
+
 class Gist : public QWidget {
   Q_OBJECT
 

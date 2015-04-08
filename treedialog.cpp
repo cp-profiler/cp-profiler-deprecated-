@@ -39,7 +39,7 @@ TreeDialog::TreeDialog(ReceiverThread* receiver, const TreeCanvas::CanvasType ty
   statusBar->addPermanentWidget(stw);
   layout->addWidget(statusBar);
 
-  QHBoxLayout* hbl = new QHBoxLayout();
+  hbl = new QHBoxLayout();
   hbl->setContentsMargins(0,0,0,0);
 
   stw->setLayout(hbl);
@@ -64,9 +64,7 @@ TreeDialog::TreeDialog(ReceiverThread* receiver, const TreeCanvas::CanvasType ty
   openLabel = new QLabel("0");
   hbl->addWidget(openLabel);
 
-  // hbl->addWidget(new NodeWidget(MERGING));
-  // mergedLabel = new QLabel("0");
-  // hbl->addWidget(mergedLabel);
+  
 
   
   statusBar->showMessage("Ready");
@@ -86,7 +84,7 @@ TreeDialog::~TreeDialog() {
 void
 TreeDialog::buildMenu(void) {
 
-  menuBar = new QMenuBar(0);
+  menuBar = new QMenuBar(this);
 
     // Don't add the menu bar on Mac OS X
   #ifndef Q_WS_MAC
@@ -94,6 +92,7 @@ TreeDialog::buildMenu(void) {
   #endif
 
   QMenu* nodeMenu = menuBar->addMenu(tr("&Node"));
+
   nodeMenu->addAction(prt_gist->labelBranches);
   nodeMenu->addAction(prt_gist->navUp);
   nodeMenu->addAction(prt_gist->navDown);
