@@ -3,26 +3,26 @@
 #include "nodevisitor.hh"
 #include "nodecursor.hh"
 
+#include "solver_tree_dialog.hh"
+#include "cmp_tree_dialog.hh"
+
+
 void
 Gist::createNewCanvas(void) {
 
     qDebug() << "!!! about to create a new canvas";
 
-    if (_td != NULL)
-        delete _td;
-
-    _td = new TreeDialog(receiver, TreeCanvas::REGULAR, this);
+    SolverTreeDialog* td = new SolverTreeDialog(receiver, TreeCanvas::REGULAR, this);
+    _td_vec.push_back(td);
 
 }
 
 void 
 Gist::initiateComparison(void) {
 
-    TreeDialog* td = new CmpTreeDialog(receiver, TreeCanvas::MERGED, this,
-                        canvas, _td->getCanvas());
-
-    // TreeComparison::compare(canvas, _td->getCanvas(), td->getCanvas());
- 
+    if (_td_vec.size() == 0) return;
+    BaseTreeDialog* cmp_td = new CmpTreeDialog(receiver, TreeCanvas::MERGED, this,
+                        canvas, _td_vec[0]->getCanvas());
 }
 
 void
@@ -48,9 +48,8 @@ Gist::Gist(QWidget* parent) : QWidget(parent) {
     initInterface();
     addActions();
 
-    current_tc = NULL;
-    _td        = NULL;
-    
+    current_tc = nullptr;
+
     receiver = new ReceiverThread(this);
 
     canvas = new TreeCanvas(layout, receiver, TreeCanvas::REGULAR, scrollArea->viewport());
@@ -108,6 +107,20 @@ Gist::Gist(QWidget* parent) : QWidget(parent) {
 void
 Gist::resizeEvent(QResizeEvent*) {
     canvas->resizeToOuter();
+}
+
+TreeCanvas*
+Gist::getLastCanvas(void) {
+    if (_td_vec.size() > 0)
+        return _td_vec.back()->getCanvas();
+    return nullptr;
+}
+
+SolverTreeDialog*
+Gist::getLastTreeDialog(void) {
+    if (_td_vec.size() > 0)
+        return _td_vec.back();
+    return nullptr;
 }
 
 //void
@@ -239,8 +252,9 @@ Gist::~Gist(void) {
     // receiver->terminate();
     // receiver->wait();
 
-    if (_td != NULL)
-        delete _td;
+    for (auto &td : _td_vec) {
+        delete td;
+    }
 
     delete canvas;
 }
@@ -809,8 +823,8 @@ Gist::onFocusChanged(QWidget* a, QWidget* b) {
       if (window == "Gist") {
         Gist* gist = static_cast<Gist*>(sa->parentWidget());
         connectCanvas(gist->getCanvas());
-      } else if (window == "QDialog" || window == "TreeDialog")  {
-        TreeDialog* td = static_cast<TreeDialog*>(sa->parentWidget());
+      } else if (window == "QDialog" || window == "BaseTreeDialog")  {
+        BaseTreeDialog* td = static_cast<BaseTreeDialog*>(sa->parentWidget());
         connectCanvas(td->getCanvas());
       }
       
@@ -824,8 +838,8 @@ Gist::connectCanvas(TreeCanvas* tc) {
     if (current_tc == tc) return;
 
     if (current_tc && current_tc->_builder) {
-        disconnect(receiver, SIGNAL(startReceiving(void)),
-                   current_tc->_builder, SLOT(startBuilding(void)));
+        qDebug() << "--- disconnecting tc#" << current_tc->_id;
+
         disconnect(inspect, SIGNAL(triggered()), current_tc, SLOT(inspectCurrentNode()));
         disconnect(inspectBeforeFP, SIGNAL(triggered()), current_tc, SLOT(inspectBeforeFP(void)));
         disconnect(stop, SIGNAL(triggered()), current_tc, SLOT(stopSearch()));
@@ -861,8 +875,13 @@ Gist::connectCanvas(TreeCanvas* tc) {
         disconnect(inspectPath, SIGNAL(triggered()), current_tc, SLOT(inspectPath()));
     }
 
+    if (current_tc)
+        qDebug() << "!!! current tc was: " << current_tc->_id;
     current_tc = tc;
+    qDebug() << "!!! current tc is now: " << current_tc->_id;
     
+
+    /// TODO: these 2 should not be here
     connect(receiver, SIGNAL(startReceiving(void)),
             tc->_builder, SLOT(startBuilding(void)));
     connect(receiver, SIGNAL(doneReceiving(void)),

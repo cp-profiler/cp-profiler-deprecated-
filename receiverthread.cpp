@@ -1,4 +1,7 @@
 #include "receiverthread.hh"
+#include "solver_tree_dialog.hh"
+
+class SolverTreeDialog;
 
 ReceiverThread::ReceiverThread(QWidget* parent): QThread(parent) {
     ptr_gist = static_cast<Gist*>(parent);
@@ -79,8 +82,8 @@ ReceiverThread::run(void) {
                 if (ptr_gist->sndCanvas->isChecked() && ptr_gist->canvas->_isUsed) {
                         emit newCanvasNeeded();
 
-                    _t = ptr_gist->_td->getCanvas();
-                    ptr_gist->_td->setTitle(msg->label);
+                    _t = ptr_gist->getLastCanvas();
+                    ptr_gist->getLastTreeDialog()->setTitle(msg->label);
                     ptr_gist->connectCanvas(_t);
                     qDebug() << "Switched to another canvas";
                 } else {
@@ -107,6 +110,11 @@ ReceiverThread::run(void) {
                 /// needed for optirion CPX restarts
                 // if (!_t->_data->isRestarts()) 
                     emit doneReceiving();
+                    disconnect(this, SIGNAL(startReceiving(void)),
+                               _t->_builder, SLOT(startBuilding(void)));
+
+
+                
 
             break;
         }

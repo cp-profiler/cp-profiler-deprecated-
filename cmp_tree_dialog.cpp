@@ -4,7 +4,7 @@
 
 CmpTreeDialog::CmpTreeDialog(ReceiverThread* receiver, const TreeCanvas::CanvasType type, Gist* gist,
                              TreeCanvas* tc1, TreeCanvas* tc2)
-: TreeDialog(receiver, type, gist) {
+: BaseTreeDialog(receiver, type, gist) {
 
 
   hbl->addWidget(new NodeWidget(MERGING));
@@ -20,3 +20,8 @@ CmpTreeDialog::CmpTreeDialog(ReceiverThread* receiver, const TreeCanvas::CanvasT
 CmpTreeDialog::~CmpTreeDialog(void) {
   delete _comparison;
 }
+
+// void
+// CmpTreeDialog::statusChanged(void) {
+
+// }

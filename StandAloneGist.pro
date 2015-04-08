@@ -31,7 +31,8 @@ SOURCES += main.cpp\
     spacenode.cpp \
     node.cpp \
     data.cpp \
-    treedialog.cpp \
+    base_tree_dialog.cpp \
+    solver_tree_dialog.cpp \
     cmp_tree_dialog.cpp \
     receiverthread.cpp \
     treebuilder.cpp \
@@ -65,7 +66,8 @@ HEADERS  += gistmainwindow.h \
     nodevisitor.hpp \
     zoomToFitIcon.hpp \
     data.hh \
-    treedialog.hh \
+    base_tree_dialog.hh \
+    solver_tree_dialog.hh \
     cmp_tree_dialog.hh \
     receiverthread.hh \
     treebuilder.hh \

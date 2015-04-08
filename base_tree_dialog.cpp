@@ -1,9 +1,8 @@
-#include "treedialog.hh"
+#include "base_tree_dialog.hh"
 #include "nodewidget.hh"
 
-TreeDialog::TreeDialog(ReceiverThread* receiver, const TreeCanvas::CanvasType type, Gist* gist) : QDialog(gist),
-  prt_gist(gist)
-{
+BaseTreeDialog::BaseTreeDialog(ReceiverThread* receiver, const TreeCanvas::CanvasType type, Gist* gist) :
+  QDialog(gist), ptr_gist(gist) {
 
   layout = new QGridLayout(this);
   nc_layout = new QVBoxLayout();
@@ -75,14 +74,15 @@ TreeDialog::TreeDialog(ReceiverThread* receiver, const TreeCanvas::CanvasType ty
 
   resize(500, 400);
   show();
+
 }
 
-TreeDialog::~TreeDialog() {
+BaseTreeDialog::~BaseTreeDialog() {
   delete _tc;
 }
 
 void
-TreeDialog::buildMenu(void) {
+BaseTreeDialog::buildMenu(void) {
 
   menuBar = new QMenuBar(this);
 
@@ -93,17 +93,17 @@ TreeDialog::buildMenu(void) {
 
   QMenu* nodeMenu = menuBar->addMenu(tr("&Node"));
 
-  nodeMenu->addAction(prt_gist->labelBranches);
-  nodeMenu->addAction(prt_gist->navUp);
-  nodeMenu->addAction(prt_gist->navDown);
-  nodeMenu->addAction(prt_gist->navLeft);
-  nodeMenu->addAction(prt_gist->navRight);
-  nodeMenu->addAction(prt_gist->navRoot);
+  nodeMenu->addAction(ptr_gist->labelBranches);
+  nodeMenu->addAction(ptr_gist->navUp);
+  nodeMenu->addAction(ptr_gist->navDown);
+  nodeMenu->addAction(ptr_gist->navLeft);
+  nodeMenu->addAction(ptr_gist->navRight);
+  nodeMenu->addAction(ptr_gist->navRoot);
 
 }
 
 void
-TreeDialog::connectSignals(void) {
+BaseTreeDialog::connectSignals(void) {
 
   connect(_tc,SIGNAL(statusChanged(VisualNode*, const Statistics&, bool)),
           this, SLOT(statusChanged(VisualNode*, const Statistics&, bool)));
@@ -116,7 +116,7 @@ TreeDialog::connectSignals(void) {
 }
 
 void
-TreeDialog::statusChanged(VisualNode*, const Statistics& stats, bool finished) {
+BaseTreeDialog::statusChanged(VisualNode*, const Statistics& stats, bool finished) {
 
   depthLabel->setNum(stats.maxDepth);
   solvedLabel->setNum(stats.solutions);
@@ -147,7 +147,7 @@ TreeDialog::statusChanged(VisualNode*, const Statistics& stats, bool finished) {
 }
 
 void
-TreeDialog::setTitle(const char* file_name) {
+BaseTreeDialog::setTitle(const char* file_name) {
   QString title(file_name);
   this->setWindowTitle(title);
 }

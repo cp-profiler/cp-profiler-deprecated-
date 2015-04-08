@@ -2,13 +2,13 @@
 #define CMP_TREE_DIALOG_HH
 
 
-#include "treedialog.hh"
+#include "base_tree_dialog.hh"
 
 
 class Gist;
 class TreeComparison;
 
-class CmpTreeDialog : public TreeDialog {
+class CmpTreeDialog : public BaseTreeDialog {
 
 private:
 

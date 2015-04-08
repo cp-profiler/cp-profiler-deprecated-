@@ -5,8 +5,7 @@
 #include "treecomparison.hh"
 #include "nodestats.hh"
 #include "receiverthread.hh"
-#include "treedialog.hh"
-#include "cmp_tree_dialog.hh"
+#include <vector>
 
 /**
  * \brief %Gecode Interactive %Search Tool
@@ -18,8 +17,10 @@
  * \ingroup TaskGist
  */
 
-class TreeDialog;
+class SolverTreeDialog;
 class CmpTreeDialog;
+
+using std::vector;
 
 class Gist : public QWidget {
   Q_OBJECT
@@ -32,9 +33,8 @@ class Gist : public QWidget {
   QPalette* myPalette;
   QGridLayout* layout;
 
-
-  /// this should replace most of current GIST!
-  TreeDialog* _td;
+  /// tree dialogs for additional solver runs
+  vector<SolverTreeDialog*> _td_vec;
 
 
   /// **************** MY STUFF ********************
@@ -43,7 +43,7 @@ private:
   /// Checks for new nodes
   ReceiverThread* receiver;
 
-  /// Points to active canvas
+  /// Points to the active canvas
   TreeCanvas* current_tc;
 
   /// The canvas implementation
@@ -249,6 +249,10 @@ public:
   /// ***** GETTERS *****
   TreeCanvas* getCanvas(void) { return canvas; }
   ReceiverThread* getReceiver(void) { return receiver; }
+
+  /// returns canvas from td_vec (additional canvases)
+  TreeCanvas* getLastCanvas(void);
+  SolverTreeDialog* getLastTreeDialog(void);
 
 Q_SIGNALS:
 

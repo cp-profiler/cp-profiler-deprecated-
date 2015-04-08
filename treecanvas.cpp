@@ -119,6 +119,8 @@ TreeCanvas::TreeCanvas(QGridLayout* layout, ReceiverThread* receiver, CanvasType
     qRegisterMetaType<Statistics>("Statistics");
 
     update();
+
+    qDebug() << "treecanvas " << _id << " constructed";
 }
 
 TreeCanvas::~TreeCanvas(void) {
@@ -1483,7 +1485,6 @@ TreeCanvas::finish(void) {
 
 void
 TreeCanvas::finalizeCanvas(void) {
-  qDebug() << "in finalize canvas: " << _id;
   _isUsed = true;
   ptr_receiver->updateCanvas();
 }

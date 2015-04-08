@@ -61,12 +61,12 @@ void Data::setDoneReceiving(void) {
 
     flush_node_rate();
 
-    qDebug() << "Elements in nodes_arr: " << nodes_arr.size();
+    // qDebug() << "Elements in nodes_arr: " << nodes_arr.size();
     
-    qDebug() << "Size of 'nodes_arr' (bytes): " << nodes_arr.size() * sizeof(DbEntry);
+    // qDebug() << "Size of 'nodes_arr' (bytes): " << nodes_arr.size() * sizeof(DbEntry);
 
-    qDebug() << "gid2aid size is: " << gid2aid.size();
-    qDebug() << "gid2aid capacity is: " << gid2aid.capacity();
+    // qDebug() << "gid2aid size is: " << gid2aid.size();
+    // qDebug() << "gid2aid capacity is: " << gid2aid.capacity();
 
     _isDone = true;
     
