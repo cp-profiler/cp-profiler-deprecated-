@@ -1296,7 +1296,7 @@ TreeCanvas::print(void) {
 
 void
 TreeCanvas::printSearchLog(void) {
-    QString filename = QFileDialog::getSaveFileName(this, tr("Export search log"), "", tr("Text (*.txt)"));
+    QString filename = QFileDialog::getSaveFileName(this, QString(""), "", QString(""));
     if (filename != "") {
         QFile outputFile(filename);
         if (outputFile.open(QFile::WriteOnly | QFile::Truncate)) {

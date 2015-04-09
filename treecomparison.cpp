@@ -127,23 +127,29 @@ TreeComparison::copyTree(VisualNode* target, TreeCanvas* tc,
 
 bool
 TreeComparison::copmareNodes(VisualNode* n1, VisualNode* n2) {
-    if (n1->getNumberOfChildren() != n2->getNumberOfChildren())
+    unsigned int kids = n1->getNumberOfChildren();
+    if (kids != n2->getNumberOfChildren())
         return false;
 
     if (n1->getStatus() != n2->getStatus()) 
         return false;
 
-    int id1 = n1->getIndex(*_na1);
-    int id2 = n2->getIndex(*_na2);
+    // int id1 = n1->getIndex(*_na1);
+    // int id2 = n2->getIndex(*_na2);
 
-    if (
-        strcmp(
-            _data1->getLabelByGid(id1),
-            _data2->getLabelByGid(id2)
-        ) != 0
-    ) { 
-        // qDebug() << "failed on labels comparison";
-        return false;
+    for (auto i = 0; i < kids; i++) {
+
+        int id1 = n1->getChild(i);
+        int id2 = n2->getChild(i);
+
+        if (
+            strcmp(
+                _data1->getLabelByGid(id1),
+                _data2->getLabelByGid(id2)
+            ) != 0
+        ) {
+            return false;
+        }
     }
 
     return true;
