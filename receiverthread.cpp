@@ -52,9 +52,11 @@ ReceiverThread::run(void) {
 
         zmq::message_t request;
 
-        socket.recv (&request, ZMQ_NOBLOCK); /// non-blocking so I can exit any time
+        bool messageReceived = socket.recv (&request, ZMQ_NOBLOCK); /// non-blocking so I can exit any time
 
         /// TODO: maybe I need to sleep if not recieving anything
+
+        if (messageReceived) {
 
         Message *msg = reinterpret_cast<Message*>(request.data());
 
@@ -128,6 +130,10 @@ ReceiverThread::run(void) {
             nodeCount = 0;
             if (_t->refreshPause > 0)
               msleep(_t->refreshPause);
+        }
+
+        } else {
+            msleep(100);
         }
 
     }
