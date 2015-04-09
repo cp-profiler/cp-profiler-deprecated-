@@ -9,12 +9,25 @@ class ReceiverThread;
 
 class SolverTreeDialog : public BaseTreeDialog {
 Q_OBJECT
-  
+
+private:
+
+  /// Status bar label for number of solutions
+  QLabel* depthLabel;
+  QLabel* solvedLabel;
+  QLabel* failedLabel;
+  QLabel* choicesLabel;
+  QLabel* openLabel;
+
 public:
 
   SolverTreeDialog(ReceiverThread* receiver, const TreeCanvas::CanvasType type, Gist* gist);
 
   ~SolverTreeDialog();
+
+
+private Q_SLOTS:
+  void statusChanged(VisualNode*, const Statistics& stats, bool finished);
 
 };
 

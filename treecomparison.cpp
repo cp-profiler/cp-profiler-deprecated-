@@ -1,5 +1,7 @@
 #include "treecomparison.hh"
 
+TreeComparison::TreeComparison(void)
+: no_pentagons(0) {}
 
 void
 TreeComparison::compare(TreeCanvas* t1, TreeCanvas* t2, TreeCanvas* new_tc) {
@@ -58,6 +60,8 @@ TreeComparison::compare(TreeCanvas* t1, TreeCanvas* t2, TreeCanvas* new_tc) {
 
         } else {
             /// not equal
+
+            no_pentagons++;
 
             next = stack.pop();
             next->setNumberOfChildren(2, *na);
@@ -152,4 +156,9 @@ TreeComparison::setSource(NodeAllocator* na1, NodeAllocator* na2,
     _na2 = na2;
     _data1 = data1;
     _data2 = data2;
+}
+
+int
+TreeComparison::get_no_pentagons(void) {
+    return no_pentagons;
 }

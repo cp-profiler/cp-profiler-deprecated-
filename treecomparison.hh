@@ -9,7 +9,10 @@
 
 class TreeComparison {
 public:
+  TreeComparison(void);
   void compare(TreeCanvas* t1, TreeCanvas* t2, TreeCanvas* new_tc);
+
+  int get_no_pentagons(void);
 
 private:
   QStack<VisualNode*> stack1;
@@ -24,6 +27,11 @@ private:
 
   /// The stack used while building new_tc
   QStack<VisualNode*> stack;
+
+  /// statistics
+  int no_pentagons;
+
+private: /// methods
 
   /// Initialize data source for obtaining labels etc.
   void setSource(NodeAllocator* na1, NodeAllocator* na2, Data* data1, Data* data2);

@@ -42,29 +42,6 @@ BaseTreeDialog::BaseTreeDialog(ReceiverThread* receiver, const TreeCanvas::Canva
   hbl->setContentsMargins(0,0,0,0);
 
   stw->setLayout(hbl);
-
-  hbl->addWidget(new QLabel("Depth:"));
-  depthLabel = new QLabel("0");
-  hbl->addWidget(depthLabel);
-
-  hbl->addWidget(new NodeWidget(SOLVED));
-  solvedLabel = new QLabel("0");
-  hbl->addWidget(solvedLabel);
-
-  hbl->addWidget(new NodeWidget(FAILED));
-  failedLabel = new QLabel("0");
-  hbl->addWidget(failedLabel);
-
-  hbl->addWidget(new NodeWidget(BRANCH));
-  choicesLabel = new QLabel("0");
-  hbl->addWidget(choicesLabel);
-
-  hbl->addWidget(new NodeWidget(UNDETERMINED));
-  openLabel = new QLabel("0");
-  hbl->addWidget(openLabel);
-
-  
-
   
   statusBar->showMessage("Ready");
 
@@ -116,19 +93,15 @@ BaseTreeDialog::connectSignals(void) {
 }
 
 void
-BaseTreeDialog::statusChanged(VisualNode*, const Statistics& stats, bool finished) {
-
-  depthLabel->setNum(stats.maxDepth);
-  solvedLabel->setNum(stats.solutions);
-  failedLabel->setNum(stats.failures);
-  choicesLabel->setNum(stats.choices);
-  openLabel->setNum(stats.undetermined);
-
+BaseTreeDialog::statusChangedShared(bool finished) {
   if (finished) {
     /// add total time to 'Done' label
     QString t;
     unsigned long long totalTime = _tc->getData()->getTotalTime();
-    float seconds = totalTime / 1000000.0;
+
+    const int MILLION = 1000000;
+    float seconds = (float)totalTime / MILLION; /// microseconds to seconds
+
     t.setNum(seconds);
     statusBar->showMessage("Done in " + t + "s");
 
@@ -141,9 +114,6 @@ BaseTreeDialog::statusChanged(VisualNode*, const Statistics& stats, bool finishe
   } else {
     statusBar->showMessage("Searching");
   }
-
-
-  /// TODO: update Pentagon Counter
 }
 
 void

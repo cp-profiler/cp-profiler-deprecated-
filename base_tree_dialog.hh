@@ -6,6 +6,7 @@
 class Gist;
 class ReceiverThread;
 
+/// Abstract class
 class BaseTreeDialog : public QDialog {
 Q_OBJECT
 
@@ -17,20 +18,11 @@ Q_OBJECT
     QVBoxLayout* nc_layout;
     QAbstractScrollArea* scrollArea;
 
-   
-
     /// A menu bar
     QMenuBar* menuBar;
 
     /// Status Bar
     QStatusBar* statusBar;
-
-    /// Status bar label for number of solutions
-    QLabel* depthLabel;
-    QLabel* solvedLabel;
-    QLabel* failedLabel;
-    QLabel* choicesLabel;
-    QLabel* openLabel;
 
     void buildMenu(void);
     void connectSignals(void);
@@ -42,6 +34,11 @@ Q_OBJECT
     TreeCanvas* _tc;
     QLabel* mergedLabel;
     QHBoxLayout* hbl;
+
+  protected: /// Methods
+
+    /// manage status message and show total time if finished (TODO: total time for merged tree?)
+    void statusChangedShared(bool finished);
 
   public:
 
@@ -55,8 +52,7 @@ Q_OBJECT
 
     private Q_SLOTS:
     /// The status has changed (e.g., new solutions have been found)
-    void statusChanged(VisualNode*, const Statistics& stats, bool finished);
-
+    virtual void statusChanged(VisualNode*, const Statistics& stats, bool finished) = 0;
 };
 
 #endif

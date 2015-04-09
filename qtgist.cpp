@@ -823,7 +823,7 @@ Gist::onFocusChanged(QWidget* a, QWidget* b) {
       if (window == "Gist") {
         Gist* gist = static_cast<Gist*>(sa->parentWidget());
         connectCanvas(gist->getCanvas());
-      } else if (window == "QDialog" || window == "BaseTreeDialog")  {
+      } else if (window == "QDialog" || window == "CmpTreeDialog" || window == "SolverTreeDialog")  {
         BaseTreeDialog* td = static_cast<BaseTreeDialog*>(sa->parentWidget());
         connectCanvas(td->getCanvas());
       }
@@ -838,7 +838,6 @@ Gist::connectCanvas(TreeCanvas* tc) {
     if (current_tc == tc) return;
 
     if (current_tc && current_tc->_builder) {
-        qDebug() << "--- disconnecting tc#" << current_tc->_id;
 
         disconnect(inspect, SIGNAL(triggered()), current_tc, SLOT(inspectCurrentNode()));
         disconnect(inspectBeforeFP, SIGNAL(triggered()), current_tc, SLOT(inspectBeforeFP(void)));
@@ -875,11 +874,7 @@ Gist::connectCanvas(TreeCanvas* tc) {
         disconnect(inspectPath, SIGNAL(triggered()), current_tc, SLOT(inspectPath()));
     }
 
-    if (current_tc)
-        qDebug() << "!!! current tc was: " << current_tc->_id;
     current_tc = tc;
-    qDebug() << "!!! current tc is now: " << current_tc->_id;
-    
 
     /// TODO: these 2 should not be here
     connect(receiver, SIGNAL(startReceiving(void)),
