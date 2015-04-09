@@ -45,6 +45,7 @@ GistMainWindow::GistMainWindow(void) : aboutGist(this) {
 
   QMenu* fileMenu = menuBar->addMenu(tr("&File"));
   fileMenu->addAction(c->print);
+  fileMenu->addAction(c->printSearchLog);
 #if QT_VERSION >= 0x040400
   fileMenu->addAction(c->exportWholeTreePDF);
 #endif

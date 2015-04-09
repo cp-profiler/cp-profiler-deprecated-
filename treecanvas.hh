@@ -252,6 +252,8 @@ public Q_SLOTS:
   void exportWholeTreePDF(void);
   /// Print the tree
   void print(void);
+  /// Print the search tree log
+  void printSearchLog(void);
   /// Zoom the canvas so that the whole tree fits
   void zoomToFit(void);
   /// Center the view on the currently selected node

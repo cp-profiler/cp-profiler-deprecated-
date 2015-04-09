@@ -5,6 +5,7 @@
 #include "data.hh"
 
 #include <vector>
+#include <QTextStream>
 
 /// \brief A cursor that can be run over a tree
 template<class Node>
@@ -256,6 +257,18 @@ public:
   void moveSidewards(void);
   void moveUpwards(void);
   void moveDownwards(void);
+};
+
+class SearchLogCursor : public NodeCursor<VisualNode> {
+private:
+    /// The node allocator
+    const VisualNode::NodeAllocator& _na;
+    QTextStream& _out;
+public:
+    SearchLogCursor(VisualNode *theNode,
+                    QTextStream& outputStream,
+                    const VisualNode::NodeAllocator& na);
+    void processCurrentNode(void);
 };
 
 #include "nodecursor.hpp"

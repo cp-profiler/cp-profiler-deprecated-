@@ -153,6 +153,8 @@ public:
   QAction* exportWholeTreePDF;
   /// Print tree
   QAction* print;
+  /// Print search tree log
+  QAction* printSearchLog;
   /// Creates new canvas and runs comparison tool
   QAction* initComparison;
   /// Allow second canvas (when new data recieved)

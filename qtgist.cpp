@@ -311,6 +311,7 @@ Gist::on_canvas_statusChanged(VisualNode* n, const Statistics& stats,
         exportPDF->setEnabled(false);
         exportWholeTreePDF->setEnabled(false);
         print->setEnabled(false);
+        printSearchLog->setEnabled(false);
 
         setPath->setEnabled(false);
         inspectPath->setEnabled(false);
@@ -401,6 +402,7 @@ Gist::on_canvas_statusChanged(VisualNode* n, const Statistics& stats,
         exportPDF->setEnabled(true);
         exportWholeTreePDF->setEnabled(true);
         print->setEnabled(true);
+        printSearchLog->setEnabled(true);
 
         setPath->setEnabled(true);
         inspectPath->setEnabled(true);
@@ -630,7 +632,9 @@ Gist::addActions(void) {
     
     print = new QAction("Print...", this);
     print->setShortcut(QKeySequence("Ctrl+P"));
-    
+
+    printSearchLog = new QAction("Export search log...", this);
+
     bookmarkNode = new QAction("Add/remove bookmark", this);
     bookmarkNode->setShortcut(QKeySequence("Shift+B"));
     
@@ -767,6 +771,7 @@ Gist::addActions(void) {
     addAction(exportPDF);
     addAction(exportWholeTreePDF);
     addAction(print);
+    addAction(printSearchLog);
 
     addAction(setPath);
     addAction(inspectPath);
@@ -865,6 +870,7 @@ Gist::connectCanvas(TreeCanvas* tc) {
         disconnect(exportWholeTreePDF, SIGNAL(triggered()), current_tc, SLOT(exportWholeTreePDF()));
         disconnect(exportPDF, SIGNAL(triggered()), current_tc, SLOT(exportPDF()));
         disconnect(print, SIGNAL(triggered()), current_tc, SLOT(print()));
+        disconnect(printSearchLog, SIGNAL(triggered()), current_tc, SLOT(printSearchLog()));
         disconnect(bookmarkNode, SIGNAL(triggered()), current_tc, SLOT(bookmarkNode()));
         disconnect(compareNode, SIGNAL(triggered()), current_tc, SLOT(startCompareNodes()));
         disconnect(compareNodeBeforeFP, SIGNAL(triggered()), current_tc, SLOT(startCompareNodesBeforeFP()));
@@ -908,6 +914,7 @@ Gist::connectCanvas(TreeCanvas* tc) {
     connect(exportWholeTreePDF, SIGNAL(triggered()), tc, SLOT(exportWholeTreePDF()));
     connect(exportPDF, SIGNAL(triggered()), tc, SLOT(exportPDF()));
     connect(print, SIGNAL(triggered()), tc, SLOT(print()));
+    connect(printSearchLog, SIGNAL(triggered()), tc, SLOT(printSearchLog()));
     connect(bookmarkNode, SIGNAL(triggered()), tc, SLOT(bookmarkNode()));
     connect(compareNode, SIGNAL(triggered()), tc, SLOT(startCompareNodes()));
     connect(compareNodeBeforeFP, SIGNAL(triggered()), tc, SLOT(startCompareNodesBeforeFP()));

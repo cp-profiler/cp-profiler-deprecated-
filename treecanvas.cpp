@@ -1294,6 +1294,19 @@ TreeCanvas::print(void) {
     }
 }
 
+void
+TreeCanvas::printSearchLog(void) {
+    QString filename = QFileDialog::getSaveFileName(this, tr("Export search log"), "", tr("Text (*.txt)"));
+    if (filename != "") {
+        QFile outputFile(filename);
+        if (outputFile.open(QFile::WriteOnly | QFile::Truncate)) {
+            QTextStream out(&outputFile);
+            SearchLogCursor slc(root, out, *na);
+            PreorderNodeVisitor<SearchLogCursor>(slc).run();
+        }
+    }
+}
+
 VisualNode*
 TreeCanvas::eventNode(QEvent* event) {
     int x = 0;
