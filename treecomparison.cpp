@@ -15,6 +15,9 @@ TreeComparison::compare(TreeCanvas* t1, TreeCanvas* t2, TreeCanvas* new_tc) {
     stack1.push(root1);
     stack2.push(root2);
 
+    VisualNode* root = (*new_tc->na)[0];
+    stack.push(root);
+
     bool rootBuilt = false;
 
     Node::NodeAllocator* na = new_tc->na;
