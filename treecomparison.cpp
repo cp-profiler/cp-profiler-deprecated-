@@ -24,6 +24,71 @@ TreeComparison::compare(TreeCanvas* t1, TreeCanvas* t2, TreeCanvas* new_tc) {
     while (stack1.size() > 0) {
         VisualNode* node1 = stack1.pop();
         VisualNode* node2 = stack2.pop();
+
+
+        /// ---------- Skipping implied ---------------
+
+        int implied_child;
+
+        /// check if any children of node 1 are implied
+        /// if so, skip this node (stack1.pop())
+
+        do {
+            implied_child = -1;
+
+            unsigned int kids = node1->getNumberOfChildren();
+            for (unsigned int i = 0; i < kids; i++) {
+
+                int child_gid = node1->getChild(i);
+                const char* label = _data1->getLabelByGid(child_gid);
+
+                /// check if label starts with "[i]"
+
+                if (strncmp(label, "[i]", 3) == 0){
+                    implied_child = i;
+                    break;
+                    qDebug() << "found implied: " << label;
+                }
+            }
+
+            /// if implied not found -> continue,
+            /// otherwise skip this node
+            if (implied_child != -1) {
+                node1 = node1->getChild(*na1, implied_child);
+            }
+        } while (implied_child != -1);
+
+
+        /// the same for node 2
+
+        do {
+            implied_child = -1;
+
+            unsigned int kids = node2->getNumberOfChildren();
+            for (unsigned int i = 0; i < kids; i++) {
+
+                int child_gid = node2->getChild(i);
+                const char* label = _data2->getLabelByGid(child_gid);
+
+                /// check if label starts with "[i]"
+
+                if (strncmp(label, "[i]", 3) == 0){
+                    implied_child = i;
+                    break;
+                    qDebug() << "found implied: " << label;
+                }
+            }
+
+            /// if implied not found -> continue,
+            /// otherwise skip this node
+            if (implied_child != -1) {
+                node2 = node2->getChild(*na2, implied_child);
+            }
+        } while (implied_child != -1);
+
+
+        /// ----------------------------------------------------
+
         bool equal = TreeComparison::copmareNodes(node1, node2);
         if (equal) {
             uint kids = node1->getNumberOfChildren();
