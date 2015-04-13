@@ -115,6 +115,8 @@ ReceiverThread::run(void) {
                     emit doneReceiving();
                     disconnect(this, SIGNAL(startReceiving(void)),
                                _t->_builder, SLOT(startBuilding(void)));
+                    disconnect(this, SIGNAL(receivedNodes(bool)), _t,
+                            SLOT(statusChanged(bool)));
 
 
             break;
@@ -125,7 +127,8 @@ ReceiverThread::run(void) {
             _t->currentNode->dirtyUp(*_t->na);
             updateCanvas();
 
-            emit statusChanged(false);
+            // emit statusChanged(false);
+            emit receivedNodes(false);
             nodeCount = 0;
             if (_t->refreshPause > 0)
               msleep(_t->refreshPause);

@@ -81,7 +81,10 @@ TreeCanvas::TreeCanvas(QGridLayout* layout, ReceiverThread* receiver, CanvasType
     connect(ptr_receiver, SIGNAL(update(int,int,int)), this,
             SLOT(layoutDone(int,int,int)));
 
-    connect(ptr_receiver, SIGNAL(statusChanged(bool)), this,
+    // connect(ptr_receiver, SIGNAL(statusChanged(bool)), this,
+    //         SLOT(statusChanged(bool)));
+
+    connect(ptr_receiver, SIGNAL(receivedNodes(bool)), this,
             SLOT(statusChanged(bool)));
 
     connect(&scrollTimeLine, SIGNAL(frameChanged(int)),
@@ -439,6 +442,8 @@ TreeCanvas::scroll(void) {
 void
 TreeCanvas::layoutDone(int w, int h, int scale0) {
 
+  // qDebug() << "in layoutDone of #tc" << _id;
+
     targetW = w; targetH = h; targetScale = scale0;
 
     QSize viewport_size = size();
@@ -458,6 +463,8 @@ TreeCanvas::statusChanged(bool finished) {
         centerCurrentNode();
     }
     emit statusChanged(currentNode, stats, finished);
+    emit needActionsUpdate(currentNode, finished);
+    
 }
 
 int
@@ -577,6 +584,7 @@ TreeCanvas::toggleHidden(void) {
     update();
     centerCurrentNode();
     emit statusChanged(currentNode, stats, true);
+    emit needActionsUpdate(currentNode, true);
 }
 
 void
@@ -586,6 +594,7 @@ TreeCanvas::hideFailed(void) {
     update();
     centerCurrentNode();
     emit statusChanged(currentNode, stats, true);
+    emit needActionsUpdate(currentNode, true);
 }
 
 void
@@ -597,6 +606,7 @@ TreeCanvas::hideSize() {
     update();
     centerCurrentNode();
     emit statusChanged(currentNode, stats, true);
+    emit needActionsUpdate(currentNode, true);
 }
 
 void
@@ -607,6 +617,7 @@ TreeCanvas::unhideAll(void) {
     update();
     centerCurrentNode();
     emit statusChanged(currentNode, stats, true);
+    emit needActionsUpdate(currentNode, true);
 }
 
 void
@@ -616,6 +627,7 @@ TreeCanvas::toggleStop(void) {
     update();
     centerCurrentNode();
     emit statusChanged(currentNode, stats, true);
+    emit needActionsUpdate(currentNode, true);
 }
 
 void
@@ -626,6 +638,7 @@ TreeCanvas::unstopAll(void) {
     update();
     centerCurrentNode();
     emit statusChanged(currentNode, stats, true);
+    emit needActionsUpdate(currentNode, true);
 }
 
 void
@@ -929,6 +942,7 @@ TreeCanvas::labelBranches(void) {
     update();
     centerCurrentNode();
     emit statusChanged(currentNode, stats, true);
+    emit needActionsUpdate(currentNode, true);
 }
 void
 TreeCanvas::labelPath(void) {
@@ -937,6 +951,7 @@ TreeCanvas::labelPath(void) {
     update();
     centerCurrentNode();
     emit statusChanged(currentNode, stats, true);
+    emit needActionsUpdate(currentNode, true);
 }
 
 
@@ -1061,6 +1076,7 @@ TreeCanvas::startCompareNodesBeforeFP(void) {
 void
 TreeCanvas::emitStatusChanged(void) {
     emit statusChanged(currentNode, stats, true);
+    emit needActionsUpdate(currentNode, true);
 }
 
 void
@@ -1138,6 +1154,7 @@ TreeCanvas::navRoot(void) {
 void
 TreeCanvas::navNextSol(bool back) {
     QMutexLocker locker(&mutex);
+    qDebug() << "navigating to Next Solution";
     NextSolCursor nsc(currentNode,back,*na);
     PreorderNodeVisitor<NextSolCursor> nsv(nsc);
     nsv.run();
@@ -1447,8 +1464,7 @@ TreeCanvas::finish(void) {
 void
 TreeCanvas::finalizeCanvas(void) {
   _isUsed = true;
-  disconnect(ptr_receiver, SIGNAL(update(int,int,int)), this,
-          SLOT(layoutDone(int,int,int)));
+  disconnect(_builder, SIGNAL(doneBuilding(bool)), this, SLOT(statusChanged(bool)));
   ptr_receiver->updateCanvas();
 }
 
@@ -1461,7 +1477,8 @@ TreeCanvas::setCurrentNode(VisualNode* n, bool finished, bool update) {
         currentNode->setMarked(false);
         currentNode = n;
         currentNode->setMarked(true);
-        emit statusChanged(currentNode,stats,finished);
+        emit statusChanged(currentNode, stats, finished);
+        emit needActionsUpdate(currentNode, finished);
         if (update) {
             compareNodes = false;
             setCursor(QCursor(Qt::ArrowCursor));

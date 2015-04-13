@@ -279,6 +279,10 @@ private Q_SLOTS:
   void on_canvas_contextMenu(QContextMenuEvent*);
   /// Reacts on status changes
   void on_canvas_statusChanged(VisualNode*, const Statistics&, bool);
+
+
+  /// TODO: this should only react on selecting node?
+  void updateActions(VisualNode*, bool);
 //  /// Reacts on double click inspector selection
 //  void selectDoubleClickInspector(QAction*);
 //  /// Reacts on solution inspector selection

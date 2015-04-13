@@ -352,7 +352,9 @@ Q_SIGNALS:
   /// Context menu triggered
   void contextMenu(QContextMenuEvent*);
   /// Status bar update
-  void statusChanged(VisualNode*,const Statistics&, bool);
+  void statusChanged(VisualNode*, const Statistics&, bool);
+  
+  void needActionsUpdate(VisualNode*, bool);
   /// Signals that a solution has been found
   void solution(int);
   /// Signals that %Gist is finished

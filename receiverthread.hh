@@ -35,6 +35,8 @@ Q_SIGNALS:
   void doneReceiving(void);
   void statusChanged(bool);
   void newCanvasNeeded(void);
+  /// Emit when receives new nodes to update Status Bar
+  void receivedNodes(bool finished);
 
 protected:
   void run(void);

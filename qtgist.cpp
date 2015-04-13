@@ -69,6 +69,9 @@ Gist::Gist(QWidget* parent) : QWidget(parent) {
     connect(scrollArea->verticalScrollBar(), SIGNAL(valueChanged(int)),
             canvas, SLOT(scroll(void)));
 
+    // connect(canvas, SIGNAL(needActionsUpdate(VisualNode*, bool)),
+    //         this, SLOT(updateActions(VisualNode*, bool)));
+
 
     /// TODO: this does not do anything
     connect(receiver, SIGNAL(finished()), receiver, SLOT(deleteLater()));
@@ -151,31 +154,64 @@ Gist::on_canvas_contextMenu(QContextMenuEvent* event) {
     contextMenu->popup(event->globalPos());
 }
 
-/// TODO
 void
-Gist::on_canvas_statusChanged(VisualNode* n, const Statistics& stats,
-                              bool finished) {
-    nodeStatInspector->node(*canvas->na,n,stats,finished);
+Gist::updateActions(VisualNode* n, bool finished) {
+    // qDebug() << "!! updateActions triggered";
+
     if (!finished) {
-        inspect->setEnabled(false);
-        inspectGroup->setEnabled(false);
-        inspectBeforeFP->setEnabled(false);
-        inspectBeforeFPGroup->setEnabled(false);
-        compareNode->setEnabled(false);
-        compareNodeBeforeFP->setEnabled(false);
-        showNodeStats->setEnabled(false);
-        stop-> setEnabled(true);
-        reset->setEnabled(false);
         navUp->setEnabled(false);
         navDown->setEnabled(false);
         navLeft->setEnabled(false);
         navRight->setEnabled(false);
         navRoot->setEnabled(false);
+    } else {
+
+        navRoot->setEnabled(true);
+
+        if (n->getNumberOfChildren() > 0) {
+            navDown->setEnabled(true);
+
+        } else {
+            navDown->setEnabled(false);
+        }
+
+        VisualNode* p = n->getParent(*current_tc->na);
+        if (p == NULL) {
+            navUp->setEnabled(false);
+            navRight->setEnabled(false);
+            navLeft->setEnabled(false);
+        } else {
+            navUp->setEnabled(true);
+            unsigned int alt = n->getAlternative(*current_tc->na);
+            navRight->setEnabled(alt + 1 < p->getNumberOfChildren());
+            navLeft->setEnabled(alt > 0);
+        }
+
+    }
+}
+
+
+/// TODO
+void
+Gist::on_canvas_statusChanged(VisualNode* n, const Statistics& stats,
+                              bool finished) {
+    // nodeStatInspector->node(*canvas->na,n,stats,finished); /// TODO: what does this do?
+    if (!finished) {
+        // inspect->setEnabled(false);
+        // inspectGroup->setEnabled(false);
+        // inspectBeforeFP->setEnabled(false);
+        // inspectBeforeFPGroup->setEnabled(false);
+        // compareNode->setEnabled(false);
+        // compareNodeBeforeFP->setEnabled(false);
+        showNodeStats->setEnabled(false);
+        // stop-> setEnabled(true);
+        // reset->setEnabled(false);
+        
         navNextSol->setEnabled(false);
         navPrevSol->setEnabled(false);
 
-        searchNext->setEnabled(false);
-        searchAll->setEnabled(false);
+        // searchNext->setEnabled(false);
+        // searchAll->setEnabled(false);
         toggleHidden->setEnabled(false);
         hideFailed->setEnabled(false);
         hideSize->setEnabled(false);
@@ -185,10 +221,10 @@ Gist::on_canvas_statusChanged(VisualNode* n, const Statistics& stats,
         analyzeSimilarSubtrees->setEnabled(false);
         // initComparison->setEnabled(false);
 
-        toggleStop->setEnabled(false);
-        unstopAll->setEnabled(false);
+        // toggleStop->setEnabled(false);
+        // unstopAll->setEnabled(false);
 
-        center->setEnabled(false);
+        center->setEnabled(false); /// ??
         exportPDF->setEnabled(false);
         exportWholeTreePDF->setEnabled(false);
         print->setEnabled(false);
@@ -200,70 +236,61 @@ Gist::on_canvas_statusChanged(VisualNode* n, const Statistics& stats,
         bookmarksGroup->setEnabled(false);
         sndCanvas->setEnabled(true);
     } else {
-        stop->setEnabled(false);
-        reset->setEnabled(true);
+        // stop->setEnabled(false);
+        // reset->setEnabled(true);
         sndCanvas->setEnabled(true);
 
         if ( (n->isOpen() || n->hasOpenChildren()) && (!n->isHidden()) ) {
-            searchNext->setEnabled(true);
-            searchAll->setEnabled(true);
+            // searchNext->setEnabled(true);
+            // searchAll->setEnabled(true);
         } else {
-            searchNext->setEnabled(false);
-            searchAll->setEnabled(false);
+            // searchNext->setEnabled(false);
+            // searchAll->setEnabled(false);
         }
         if (n->getNumberOfChildren() > 0) {
-            navDown->setEnabled(true);
+            
             toggleHidden->setEnabled(true);
             hideFailed->setEnabled(true);
-            hideSize->setEnabled(true);
-            unhideAll->setEnabled(true);
-            unstopAll->setEnabled(true);
+            // hideSize->setEnabled(true);
+            // unhideAll->setEnabled(true);
+            // unstopAll->setEnabled(true);
         } else {
-            navDown->setEnabled(false);
             toggleHidden->setEnabled(false);
             hideFailed->setEnabled(false);
-            hideSize->setEnabled(false);
-            unhideAll->setEnabled(false);
-            unstopAll->setEnabled(false);
+            // hideSize->setEnabled(false);
+            // unhideAll->setEnabled(false);
+            // unstopAll->setEnabled(false);
         }
 
         toggleStop->setEnabled(n->getStatus() == STOP ||
                                n->getStatus() == UNSTOP);
 
         showNodeStats->setEnabled(true);
-        inspect->setEnabled(true);
+        // inspect->setEnabled(true);
         labelPath->setEnabled(true);
         analyzeSimilarSubtrees->setEnabled(true);
         if (n->getStatus() == UNDETERMINED) {
-            inspectGroup->setEnabled(false);
-            inspectBeforeFP->setEnabled(false);
-            inspectBeforeFPGroup->setEnabled(false);
-            compareNode->setEnabled(false);
-            compareNodeBeforeFP->setEnabled(false);
+            // inspectGroup->setEnabled(false);
+            // inspectBeforeFP->setEnabled(false);
+            // inspectBeforeFPGroup->setEnabled(false);
+            // compareNode->setEnabled(false);
+            // compareNodeBeforeFP->setEnabled(false);
             /// TODO: disable based on active canvas' current node:
             // labelBranches->setEnabled(false); 
         } else {
-            inspectGroup->setEnabled(true);
-            inspectBeforeFP->setEnabled(true);
-            inspectBeforeFPGroup->setEnabled(true);
-            compareNode->setEnabled(true);
-            compareNodeBeforeFP->setEnabled(true);
+            // inspectGroup->setEnabled(true);
+            // inspectBeforeFP->setEnabled(true);
+            // inspectBeforeFPGroup->setEnabled(true);
+            // compareNode->setEnabled(true);
+            // compareNodeBeforeFP->setEnabled(true);
             // labelBranches->setEnabled(!n->isHidden());
         }
-
-        navRoot->setEnabled(true);
+        
         VisualNode* p = n->getParent(*canvas->na);
         if (p == NULL) {
-            inspectBeforeFP->setEnabled(false);
-            inspectBeforeFPGroup->setEnabled(false);
-            navUp->setEnabled(false);
-            navRight->setEnabled(false);
-            navLeft->setEnabled(false);
-        } else {
-            navUp->setEnabled(true);
-            unsigned int alt = n->getAlternative(*canvas->na);
-            navRight->setEnabled(alt + 1 < p->getNumberOfChildren());
-            navLeft->setEnabled(alt > 0);
+            // inspectBeforeFP->setEnabled(false);
+            // inspectBeforeFPGroup->setEnabled(false);
+
         }
 
         VisualNode* root = n;
@@ -285,8 +312,8 @@ Gist::on_canvas_statusChanged(VisualNode* n, const Statistics& stats,
         print->setEnabled(true);
         printSearchLog->setEnabled(true);
 
-        setPath->setEnabled(true);
-        inspectPath->setEnabled(true);
+        // setPath->setEnabled(true);
+        // inspectPath->setEnabled(true);
 
         bookmarkNode->setEnabled(true);
         bookmarksGroup->setEnabled(true);
@@ -447,18 +474,23 @@ Gist::addActions(void) {
     
     navUp = new QAction("Up", this);
     navUp->setShortcut(QKeySequence("Up"));
+    navUp->setShortcutContext(Qt::ApplicationShortcut);
     
     navDown = new QAction("Down", this);
     navDown->setShortcut(QKeySequence("Down"));
+    navDown->setShortcutContext(Qt::ApplicationShortcut);
     
     navLeft = new QAction("Left", this);
     navLeft->setShortcut(QKeySequence("Left"));
+    navLeft->setShortcutContext(Qt::ApplicationShortcut);
     
     navRight = new QAction("Right", this);
     navRight->setShortcut(QKeySequence("Right"));
+    navRight->setShortcutContext(Qt::ApplicationShortcut);
     
     navRoot = new QAction("Root", this);
     navRoot->setShortcut(QKeySequence("R"));
+    navRoot->setShortcutContext(Qt::ApplicationShortcut);
     
     navNextSol = new QAction("To next solution", this);
     navNextSol->setShortcut(QKeySequence("Shift+Right"));
@@ -759,6 +791,8 @@ Gist::connectCanvas(TreeCanvas* tc) {
         disconnect(current_tc, SIGNAL(removedBookmark(int)), this, SLOT(removeBookmark(int)));
         disconnect(setPath, SIGNAL(triggered()), current_tc, SLOT(setPath()));
         disconnect(inspectPath, SIGNAL(triggered()), current_tc, SLOT(inspectPath()));
+        connect(current_tc, SIGNAL(needActionsUpdate(VisualNode*, bool)),
+            this, SLOT(updateActions(VisualNode*, bool)));
     }
 
     current_tc = tc;
@@ -803,4 +837,6 @@ Gist::connectCanvas(TreeCanvas* tc) {
     connect(tc, SIGNAL(removedBookmark(int)), this, SLOT(removeBookmark(int)));
     connect(setPath, SIGNAL(triggered()), tc, SLOT(setPath()));
     connect(inspectPath, SIGNAL(triggered()), tc, SLOT(inspectPath()));
+    connect(tc, SIGNAL(needActionsUpdate(VisualNode*, bool)),
+            this, SLOT(updateActions(VisualNode*, bool)));
 }
