@@ -77,6 +77,8 @@ BaseTreeDialog::buildMenu(void) {
   nodeMenu->addAction(ptr_gist->navRight);
   nodeMenu->addAction(ptr_gist->navRoot);
 
+  nodeMenu->addAction(ptr_gist->hideFailed);
+
 }
 
 void

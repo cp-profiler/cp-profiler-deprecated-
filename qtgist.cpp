@@ -509,6 +509,7 @@ Gist::addActions(void) {
     
     hideFailed = new QAction("Hide failed subtrees", this);
     hideFailed->setShortcut(QKeySequence("F"));
+    hideFailed->setShortcutContext(Qt::ApplicationShortcut);
 
     hideSize = new QAction("Hide small subtrees", this);
     

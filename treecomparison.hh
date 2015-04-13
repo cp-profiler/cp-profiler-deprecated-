@@ -5,7 +5,13 @@
 #include <QStack>
 #include "treecanvas.hh"
 
+
 // Two stacks or a stack of pairs?
+
+class TreeCanvas;
+class Data;
+class VisualNode;
+class Node;
 
 class TreeComparison {
 public:
@@ -42,6 +48,8 @@ private: /// methods
   /// 'which' is treated as a colour, usually 1 or 2 depending on which tree is a source
   void copyTree(VisualNode*, TreeCanvas*, 
                        VisualNode*, TreeCanvas*, int which = 0);
+
+  // friend void SpaceNode::setStatus(NodeStatus s);
 
 };
 

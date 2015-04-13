@@ -44,11 +44,14 @@ public:
 };
 
 class SpaceNode;
+// class TreeComparison;
 
 /// \brief A node of a search tree of %Gecode spaces
 class SpaceNode : public Node {
 
     friend class TreeBuilder;
+    friend class TreeComparison;
+
 protected:
   /// Reference to node in database
 //  int db_id;
@@ -83,6 +86,9 @@ protected:
   /// Return status flag
   bool getFlag(int flag) const;
 
+  /// Return nstatus for copying nodes
+  // unsigned int getStatusAndFlags(void) const;
+
   /// Set status numeric flag
   void setNumericFlag(int flag, int size, unsigned int value);
 
@@ -109,7 +115,7 @@ private:
   /// Book-keeping of open children
   void closeChild(const NodeAllocator& na,
                   bool hadFailures, bool hadSolutions);
-public: // !TODO: change back to protected
+protected: // !TODO: change back to protected
   /// Set status to \a s
   void setStatus(NodeStatus s);
 public:

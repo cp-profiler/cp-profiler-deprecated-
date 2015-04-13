@@ -1,4 +1,6 @@
 #include "treecomparison.hh"
+#include "treecanvas.hh"
+#include "node.hh"
 
 TreeComparison::TreeComparison(void)
 : no_pentagons(0) {}
@@ -111,7 +113,8 @@ TreeComparison::compare(TreeCanvas* t1, TreeCanvas* t2, TreeCanvas* new_tc) {
             /// new node is built
             
             next->setNumberOfChildren(kids, *na);
-            next->setStatus(node1->getStatus());
+            // next->setStatus(node1->getStatus());
+            next->nstatus = node1->nstatus;
             next->_tid = 0;
 
             /// point to the source node
@@ -171,7 +174,8 @@ TreeComparison::copyTree(VisualNode* target, TreeCanvas* tc,
 
         uint kids = n->getNumberOfChildren();
         next->setNumberOfChildren(kids, *na);
-        next->setStatus(n->getStatus());
+        // next->setStatus(n->getStatus());
+        next->nstatus = n->nstatus;
 
         /// point to the source node
 
