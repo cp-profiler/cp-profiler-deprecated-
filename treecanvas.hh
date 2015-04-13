@@ -188,8 +188,6 @@ private:
 
   ReceiverThread* ptr_receiver;
 
-  QTimer* timer;
-
 public Q_SLOTS:
 
   /// Reset, isRestarts true if we want a dummy node (needed for showing restarts)

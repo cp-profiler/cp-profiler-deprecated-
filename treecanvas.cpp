@@ -49,14 +49,7 @@ TreeCanvas::TreeCanvas(QGridLayout* layout, ReceiverThread* receiver, CanvasType
     _builder = new TreeBuilder(this);
     na = new Node::NodeAllocator(false);
 
-
-
     _data = new Data(this, na, false); // default data instance
-
-    // timer disabled for now
-    // should be removed
-    timer = new QTimer(this);
-    timer->start(2000);
     
     na->allocateRoot();
 
@@ -68,8 +61,6 @@ TreeCanvas::TreeCanvas(QGridLayout* layout, ReceiverThread* receiver, CanvasType
 
     setAutoFillBackground(true);
 
-    /// this one isn't really needed
-    // connect(timer, SIGNAL(timeout(void)), ptr_receiver, SLOT(updateCanvas(void)));
 
     zoomPic.loadFromData(zoomToFitIcon, sizeof(zoomToFitIcon));
 
@@ -362,50 +353,6 @@ ShapeCanvas::scroll(void) {
 ///***********************
 
 
-//void
-//TreeCanvas::addDoubleClickInspector(Inspector* i) {
-//    doubleClickInspectors.append(QPair<Inspector*,bool>(i,false));
-//}
-
-//void
-//TreeCanvas::activateDoubleClickInspector(int i, bool active) {
-//    assert(i < doubleClickInspectors.size());
-//    doubleClickInspectors[i].second = active;
-//}
-
-//void
-//TreeCanvas::addSolutionInspector(Inspector* i) {
-//    solutionInspectors.append(QPair<Inspector*,bool>(i,false));
-//}
-
-//void
-//TreeCanvas::activateSolutionInspector(int i, bool active) {
-//    assert(i < solutionInspectors.size());
-//    solutionInspectors[i].second = active;
-//}
-
-//void
-//TreeCanvas::addMoveInspector(Inspector* i) {
-//    moveInspectors.append(QPair<Inspector*,bool>(i,false));
-//}
-
-//void
-//TreeCanvas::activateMoveInspector(int i, bool active) {
-//    assert(i < moveInspectors.size());
-//    moveInspectors[i].second = active;
-//}
-
-//void
-//TreeCanvas::addComparator(Comparator* c) {
-//    comparators.append(QPair<Comparator*,bool>(c,false));
-//}
-
-//void
-//TreeCanvas::activateComparator(int i, bool active) {
-//    assert(i < comparators.size());
-//    comparators[i].second = active;
-//}
-
 Data* TreeCanvas::getData(void) {
   return _data;
 }
@@ -491,6 +438,7 @@ TreeCanvas::scroll(void) {
 
 void
 TreeCanvas::layoutDone(int w, int h, int scale0) {
+
     targetW = w; targetH = h; targetScale = scale0;
 
     QSize viewport_size = size();
@@ -1499,6 +1447,8 @@ TreeCanvas::finish(void) {
 void
 TreeCanvas::finalizeCanvas(void) {
   _isUsed = true;
+  disconnect(ptr_receiver, SIGNAL(update(int,int,int)), this,
+          SLOT(layoutDone(int,int,int)));
   ptr_receiver->updateCanvas();
 }
 

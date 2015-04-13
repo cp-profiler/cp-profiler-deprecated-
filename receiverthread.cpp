@@ -54,11 +54,12 @@ ReceiverThread::run(void) {
 
         bool messageReceived = socket.recv (&request, ZMQ_NOBLOCK); /// non-blocking so I can exit any time
 
-        /// TODO: maybe I need to sleep if not recieving anything
-
-        if (messageReceived) {
-
         Message *msg = reinterpret_cast<Message*>(request.data());
+
+        if (!messageReceived) {
+            msleep(100);
+            continue;
+        }
 
         switch (msg->type) {
             case NODE_DATA:
@@ -116,8 +117,6 @@ ReceiverThread::run(void) {
                                _t->_builder, SLOT(startBuilding(void)));
 
 
-                
-
             break;
         }
 
@@ -132,10 +131,6 @@ ReceiverThread::run(void) {
               msleep(_t->refreshPause);
         }
 
-        } else {
-            msleep(100);
-        }
-
     }
 
     qDebug() << "quiting run";
@@ -144,6 +139,8 @@ ReceiverThread::run(void) {
 
 void
 ReceiverThread::updateCanvas(void) {
+
+    // qDebug() << "update Canvas" << _t->_id;
 
   _t->layoutMutex.lock();
 

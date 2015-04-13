@@ -69,6 +69,8 @@ Gist::Gist(QWidget* parent) : QWidget(parent) {
     connect(scrollArea->verticalScrollBar(), SIGNAL(valueChanged(int)),
             canvas, SLOT(scroll(void)));
 
+
+    /// TODO: this does not do anything
     connect(receiver, SIGNAL(finished()), receiver, SLOT(deleteLater()));
 
    // connect(canvas, SIGNAL(solution(const Space*)),
@@ -123,127 +125,6 @@ Gist::getLastTreeDialog(void) {
     return nullptr;
 }
 
-//void
-//Gist::addInspector(Inspector* i0, QAction*& nas, QAction*& nad,
-//                   QAction*&nam) {
-//    if (doubleClickInspectorGroup->
-//            actions().indexOf(nullDoubleClickInspector) != -1) {
-//        doubleClickInspectorGroup->removeAction(nullDoubleClickInspector);
-//        solutionInspectorGroup->removeAction(nullSolutionInspector);
-//        moveInspectorGroup->removeAction(nullMoveInspector);
-//    }
-//    canvas->addSolutionInspector(i0);
-//    canvas->addDoubleClickInspector(i0);
-//    canvas->addMoveInspector(i0);
-
-//    nas = new QAction(i0->name().c_str(), this);
-//    nas->setCheckable(true);
-//    solutionInspectorGroup->addAction(nas);
-//    solutionInspectorMenu->clear();
-//    solutionInspectorMenu->addActions(solutionInspectorGroup->actions());
-
-//    nad = new QAction(i0->name().c_str(), this);
-//    nad->setCheckable(true);
-//    doubleClickInspectorGroup->addAction(nad);
-//    doubleClickInspectorMenu->clear();
-//    doubleClickInspectorMenu->addActions(
-//                doubleClickInspectorGroup->actions());
-
-//    nam = new QAction(i0->name().c_str(), this);
-//    nam->setCheckable(true);
-//    moveInspectorGroup->addAction(nam);
-//    moveInspectorMenu->clear();
-//    moveInspectorMenu->addActions(
-//                moveInspectorGroup->actions());
-    
-//    QAction* ia = new QAction(i0->name().c_str(), this);
-//    inspectGroup->addAction(ia);
-//    QAction* ibfpa = new QAction(i0->name().c_str(), this);
-//    inspectBeforeFPGroup->addAction(ibfpa);
-
-//    if (inspectGroup->actions().size() < 10) {
-//        ia->setShortcut(QKeySequence(QString("Ctrl+")+
-//                                     QString("").setNum(inspectGroup->actions().size())));
-//        ibfpa->setShortcut(QKeySequence(QString("Ctrl+Alt+")+
-//                                        QString("").setNum(inspectBeforeFPGroup->actions().size())));
-//    }
-//}
-
-//void
-//Gist::addSolutionInspector(Inspector* ins) {
-//    QAction* nas;
-//    QAction* nad;
-//    QAction* nam;
-//    if (doubleClickInspectorGroup->
-//            actions().indexOf(nullDoubleClickInspector) == -1) {
-//        QList<QAction*> is = solutionInspectorGroup->actions();
-//        for (int i=0; i<is.size(); i++) {
-//            canvas->activateSolutionInspector(i,false);
-//            is[i]->setChecked(false);
-//        }
-//    }
-//    addInspector(ins, nas,nad,nam);
-//    nas->setChecked(true);
-//    selectSolutionInspector(nas);
-//}
-
-//void
-//Gist::addDoubleClickInspector(Inspector* ins) {
-//    QAction* nas;
-//    QAction* nad;
-//    QAction* nam;
-//    if (doubleClickInspectorGroup->
-//            actions().indexOf(nullDoubleClickInspector) == -1) {
-//        QList<QAction*> is = doubleClickInspectorGroup->actions();
-//        for (int i=0; i<is.size(); i++) {
-//            canvas->activateDoubleClickInspector(i,false);
-//            is[i]->setChecked(false);
-//        }
-//    }
-//    addInspector(ins, nas,nad,nam);
-//    nad->setChecked(true);
-//    selectDoubleClickInspector(nad);
-//}
-
-//void
-//Gist::addMoveInspector(Inspector* ins) {
-//    QAction* nas;
-//    QAction* nad;
-//    QAction* nam;
-//    if (doubleClickInspectorGroup->
-//            actions().indexOf(nullDoubleClickInspector) == -1) {
-//        QList<QAction*> is = moveInspectorGroup->actions();
-//        for (int i=0; i<is.size(); i++) {
-//            canvas->activateMoveInspector(i,false);
-//            is[i]->setChecked(false);
-//        }
-//    }
-//    addInspector(ins, nas,nad,nam);
-//    nam->setChecked(true);
-//    selectMoveInspector(nam);
-//}
-
-//void
-//Gist::addComparator(Comparator* c) {
-//    if (comparatorGroup->actions().indexOf(nullComparator) == -1) {
-//        QList<QAction*> is = comparatorGroup->actions();
-//        for (int i=0; i<is.size(); i++) {
-//            canvas->activateComparator(i,false);
-//            is[i]->setChecked(false);
-//        }
-//    } else {
-//        comparatorGroup->removeAction(nullComparator);
-//    }
-//    canvas->addComparator(c);
-
-//    QAction* ncs = new QAction(c->name().c_str(), this);
-//    ncs->setCheckable(true);
-//    comparatorGroup->addAction(ncs);
-//    comparatorMenu->clear();
-//    comparatorMenu->addActions(comparatorGroup->actions());
-//    ncs->setChecked(true);
-//    selectComparator(ncs);
-//}
 
 Gist::~Gist(void) {
 
