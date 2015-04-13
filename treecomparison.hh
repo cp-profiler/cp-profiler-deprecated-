@@ -3,6 +3,7 @@
 
 
 #include <QStack>
+#include <vector>
 #include "treecanvas.hh"
 
 
@@ -14,11 +15,18 @@ class VisualNode;
 class Node;
 
 class TreeComparison {
+
+
 public:
   TreeComparison(void);
   void compare(TreeCanvas* t1, TreeCanvas* t2, TreeCanvas* new_tc);
 
   int get_no_pentagons(void);
+
+  inline const std::vector<VisualNode*>& pentagons(void) { return _pentagons; }
+
+private:
+  std::vector<VisualNode*> _pentagons;
 
 private:
   QStack<VisualNode*> stack1;
@@ -33,9 +41,6 @@ private:
 
   /// The stack used while building new_tc
   QStack<VisualNode*> stack;
-
-  /// statistics
-  int no_pentagons;
 
 private: /// methods
 

@@ -303,7 +303,6 @@ public Q_SLOTS:
   void navNextSol(bool back = false);
   /// Move selection to previous solution (in DFS order)
   void navPrevSol(void);
-
   /// Bookmark current node
   void bookmarkNode(void);
   /// Set the current node to be the head of the path

@@ -112,6 +112,8 @@ TreeCanvas::TreeCanvas(QGridLayout* layout, ReceiverThread* receiver, CanvasType
 
     qRegisterMetaType<Statistics>("Statistics");
 
+    emit needActionsUpdate(currentNode, false);
+
     update();
 
     qDebug() << "treecanvas " << _id << " constructed";

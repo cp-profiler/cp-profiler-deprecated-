@@ -83,11 +83,7 @@ GistMainWindow::GistMainWindow(void) : aboutGist(this) {
 
   treeVisMenu->addAction(c->showPixelTree);
 
-
-
   /// *******************************
-
-
 
   bookmarksMenu = new QMenu("Bookmarks");
   bookmarksMenu->addAction(c->bookmarkNode);
@@ -102,6 +98,7 @@ GistMainWindow::GistMainWindow(void) : aboutGist(this) {
   nodeMenu->addAction(c->navRoot);
   nodeMenu->addAction(c->navNextSol);
   nodeMenu->addAction(c->navPrevSol);
+  nodeMenu->addAction(c->navFirstPentagon);
   nodeMenu->addSeparator();
   nodeMenu->addAction(c->toggleHidden);
   nodeMenu->addAction(c->hideFailed);

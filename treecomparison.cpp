@@ -2,8 +2,7 @@
 #include "treecanvas.hh"
 #include "node.hh"
 
-TreeComparison::TreeComparison(void)
-: no_pentagons(0) {}
+TreeComparison::TreeComparison(void) {}
 
 void
 TreeComparison::compare(TreeCanvas* t1, TreeCanvas* t2, TreeCanvas* new_tc) {
@@ -98,8 +97,8 @@ TreeComparison::compare(TreeCanvas* t1, TreeCanvas* t2, TreeCanvas* new_tc) {
         if (equal) {
             uint kids = node1->getNumberOfChildren();
             for (uint i = 0; i < kids; ++i) {
-                stack1.push(node1->getChild(*na1, i));
-                stack2.push(node2->getChild(*na2, i));
+                stack1.push(node1->getChild(*na1, kids - i - 1));
+                stack2.push(node2->getChild(*na2, kids - i - 1));
             }
 
             /// if roots are equal
@@ -126,19 +125,19 @@ TreeComparison::compare(TreeCanvas* t1, TreeCanvas* t2, TreeCanvas* new_tc) {
             new_tc->_data->connectNodeToEntry(target_index, entry);
 
             for (unsigned int i = 0; i < kids; ++i) {
-                stack.push(next->getChild(*na, i));
+                stack.push(next->getChild(*na, kids - i - 1));
             }
 
         } else {
             /// not equal
-
-            no_pentagons++;
 
             next = stack.pop();
             next->setNumberOfChildren(2, *na);
             next->setStatus(MERGING);
             next->setHidden(true);
             next->_tid = 0;
+
+            _pentagons.push_back(next);
 
             stack.push(next->getChild(*na, 1));
             stack.push(next->getChild(*na, 0));
@@ -238,5 +237,5 @@ TreeComparison::setSource(NodeAllocator* na1, NodeAllocator* na2,
 
 int
 TreeComparison::get_no_pentagons(void) {
-    return no_pentagons;
+    return static_cast<int>(_pentagons.size());
 }

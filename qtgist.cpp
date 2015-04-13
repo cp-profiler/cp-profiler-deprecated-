@@ -188,6 +188,11 @@ Gist::updateActions(VisualNode* n, bool finished) {
         }
 
     }
+
+    // if (current_tc->canvasType == CanvasType::MERGED) {
+    //     navFirstPentagon->setEnabled(true);
+    // }
+
 }
 
 
@@ -491,7 +496,9 @@ Gist::addActions(void) {
     navRoot = new QAction("Root", this);
     navRoot->setShortcut(QKeySequence("R"));
     navRoot->setShortcutContext(Qt::ApplicationShortcut);
-    
+
+    navFirstPentagon = new QAction("To first pentagon", this);
+
     navNextSol = new QAction("To next solution", this);
     navNextSol->setShortcut(QKeySequence("Shift+Right"));
     
@@ -665,6 +672,7 @@ Gist::addActions(void) {
     addAction(navLeft);
     addAction(navRight);
     addAction(navRoot);
+    addAction(navFirstPentagon);
     addAction(navNextSol);
     addAction(navPrevSol);
 
@@ -792,7 +800,7 @@ Gist::connectCanvas(TreeCanvas* tc) {
         disconnect(current_tc, SIGNAL(removedBookmark(int)), this, SLOT(removeBookmark(int)));
         disconnect(setPath, SIGNAL(triggered()), current_tc, SLOT(setPath()));
         disconnect(inspectPath, SIGNAL(triggered()), current_tc, SLOT(inspectPath()));
-        connect(current_tc, SIGNAL(needActionsUpdate(VisualNode*, bool)),
+        disconnect(current_tc, SIGNAL(needActionsUpdate(VisualNode*, bool)),
             this, SLOT(updateActions(VisualNode*, bool)));
     }
 
@@ -840,4 +848,5 @@ Gist::connectCanvas(TreeCanvas* tc) {
     connect(inspectPath, SIGNAL(triggered()), tc, SLOT(inspectPath()));
     connect(tc, SIGNAL(needActionsUpdate(VisualNode*, bool)),
             this, SLOT(updateActions(VisualNode*, bool)));
+    
 }

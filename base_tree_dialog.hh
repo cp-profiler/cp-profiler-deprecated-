@@ -20,6 +20,7 @@ Q_OBJECT
 
     /// A menu bar
     QMenuBar* menuBar;
+    
 
     /// Status Bar
     QStatusBar* statusBar;
@@ -30,6 +31,8 @@ Q_OBJECT
   protected:
 
     Gist* ptr_gist;
+
+    QMenu* nodeMenu;
 
     TreeCanvas* _tc;
     QLabel* mergedLabel;

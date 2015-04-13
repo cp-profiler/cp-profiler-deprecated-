@@ -22,6 +22,9 @@ public:
 private Q_SLOTS:
   void statusChanged(VisualNode*, const Statistics& stats, bool finished);
 
+  /// Move selection to first pentagon (for a Merged tree)
+  void navFirstPentagon(void);
+
 };
 
 #endif

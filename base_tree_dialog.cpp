@@ -2,7 +2,7 @@
 #include "nodewidget.hh"
 
 BaseTreeDialog::BaseTreeDialog(ReceiverThread* receiver, const CanvasType type, Gist* gist) :
-  QDialog(gist), ptr_gist(gist) {
+  QDialog(gist), ptr_gist(gist), menuBar{nullptr}, nodeMenu{nullptr} {
 
   layout = new QGridLayout(this);
   nc_layout = new QVBoxLayout();
@@ -48,7 +48,7 @@ BaseTreeDialog::BaseTreeDialog(ReceiverThread* receiver, const CanvasType type, 
   /// ***********************************
 
   connectSignals();
-
+  
   resize(500, 400);
   show();
 
@@ -68,7 +68,7 @@ BaseTreeDialog::buildMenu(void) {
     layout->setMenuBar(menuBar);
   #endif
 
-  QMenu* nodeMenu = menuBar->addMenu(tr("&Node"));
+  nodeMenu = menuBar->addMenu(tr("&Node"));
 
   nodeMenu->addAction(ptr_gist->labelBranches);
   nodeMenu->addAction(ptr_gist->navUp);
@@ -84,7 +84,7 @@ BaseTreeDialog::buildMenu(void) {
 void
 BaseTreeDialog::connectSignals(void) {
 
-  connect(_tc,SIGNAL(statusChanged(VisualNode*, const Statistics&, bool)),
+  connect(_tc, SIGNAL(statusChanged(VisualNode*, const Statistics&, bool)),
           this, SLOT(statusChanged(VisualNode*, const Statistics&, bool)));
 
   connect(scrollArea->horizontalScrollBar(), SIGNAL(valueChanged(int)),
@@ -110,7 +110,7 @@ BaseTreeDialog::statusChangedShared(bool finished) {
     qDebug() << "Done in " + t + "s";
 
     /// no need to change stats after done
-    disconnect(_tc,SIGNAL(statusChanged(VisualNode*, const Statistics&, bool)),
+    disconnect(_tc, SIGNAL(statusChanged(VisualNode*, const Statistics&, bool)),
           this, SLOT(statusChanged(VisualNode*, const Statistics&, bool)));
 
   } else {

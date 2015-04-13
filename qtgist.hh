@@ -123,6 +123,10 @@ public:
   QAction* navRoot;
   /// Navigate to next solution (to the left)
   QAction* navNextSol;
+  /// Navigate to first pentagon
+  QAction* navFirstPentagon;
+  /// Navigate to next pentagon
+  QAction* navNextPentagon;
   /// Navigate to previous solution (to the right)
   QAction* navPrevSol;
   /// Search next solution in current subtree
