@@ -1156,7 +1156,6 @@ TreeCanvas::navRoot(void) {
 void
 TreeCanvas::navNextSol(bool back) {
     QMutexLocker locker(&mutex);
-    qDebug() << "navigating to Next Solution";
     NextSolCursor nsc(currentNode,back,*na);
     PreorderNodeVisitor<NextSolCursor> nsv(nsc);
     nsv.run();
@@ -1165,6 +1164,19 @@ TreeCanvas::navNextSol(bool back) {
         setCurrentNode(n);
         centerCurrentNode();
     }
+}
+
+void
+TreeCanvas::navNextPentagon(bool back) {
+  QMutexLocker locker(&mutex);
+  NextPentagonCursor nsc(currentNode, back, *na);
+  PreorderNodeVisitor<NextPentagonCursor> nsv(nsc);
+  nsv.run();
+  VisualNode* n = nsv.getCursor().node();
+  if (n != root) {
+      setCurrentNode(n);
+      centerCurrentNode();
+  }
 }
 
 void

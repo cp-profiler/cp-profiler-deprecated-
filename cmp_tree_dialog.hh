@@ -24,6 +24,8 @@ private Q_SLOTS:
 
   /// Move selection to first pentagon (for a Merged tree)
   void navFirstPentagon(void);
+  void navNextPentagon(void);
+  void navPrevPentagon(void);
 
 };
 

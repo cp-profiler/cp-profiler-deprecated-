@@ -14,7 +14,11 @@ CmpTreeDialog::CmpTreeDialog(ReceiverThread* receiver, const CanvasType type, Gi
   _comparison = new TreeComparison();
 
   nodeMenu->addAction(ptr_gist->navFirstPentagon);
+  nodeMenu->addAction(ptr_gist->navNextPentagon);
+  nodeMenu->addAction(ptr_gist->navPrevPentagon);
   connect(ptr_gist->navFirstPentagon, SIGNAL(triggered()), this, SLOT(navFirstPentagon()));
+  connect(ptr_gist->navNextPentagon, SIGNAL(triggered()), this, SLOT(navNextPentagon()));
+  connect(ptr_gist->navPrevPentagon, SIGNAL(triggered()), this, SLOT(navPrevPentagon()));
 
   _comparison->compare(tc1, tc2, _tc);
 
@@ -38,10 +42,25 @@ void
 CmpTreeDialog::navFirstPentagon(void) {
   const std::vector<VisualNode*>& pentagons = _comparison->pentagons();
 
-  if (pentagons.size() == 0)
+  if (pentagons.size() == 0) {
+    qDebug() << "warning: pentagons.size() == 0";
     return;
+  }
 
   _tc->setCurrentNode(pentagons[0]);
   _tc->centerCurrentNode();
 
+}
+
+void
+CmpTreeDialog::navNextPentagon(void) {
+
+  _tc->navNextPentagon();
+
+}
+
+void
+CmpTreeDialog::navPrevPentagon(void) {
+
+  _tc->navNextPentagon(true);
 }

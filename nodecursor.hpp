@@ -190,6 +190,67 @@ NextSolCursor::moveSidewards(void) {
     }
 }
 
+
+/// **************
+
+inline
+NextPentagonCursor::NextPentagonCursor(VisualNode* theNode, bool backwards,
+                             const VisualNode::NodeAllocator& na)
+    : NodeCursor<VisualNode>(theNode,na), back(backwards) {}
+
+inline void
+NextPentagonCursor::processCurrentNode(void) {}
+
+inline bool
+NextPentagonCursor::notOnPentagon(void) {
+    return node() == startNode() || node()->getStatus() != MERGING;
+}
+
+inline bool
+NextPentagonCursor::mayMoveUpwards(void) {
+    return notOnPentagon() && !node()->isRoot();
+}
+
+inline bool
+NextPentagonCursor::mayMoveDownwards(void) {
+    return notOnPentagon() && !(back && node() == startNode())
+            && NodeCursor<VisualNode>::mayMoveDownwards();
+}
+
+inline void
+NextPentagonCursor::moveDownwards(void) {
+    NodeCursor<VisualNode>::moveDownwards();
+    if (back) {
+        while (NodeCursor<VisualNode>::mayMoveSidewards())
+            NodeCursor<VisualNode>::moveSidewards();
+    }
+}
+
+inline bool
+NextPentagonCursor::mayMoveSidewards(void) {
+    if (back) {
+        return notOnPentagon() && !node()->isRoot() && alternative() > 0;
+    } else {
+        return notOnPentagon() && !node()->isRoot() &&
+                (alternative() <
+                 node()->getParent(na)->getNumberOfChildren() - 1);
+    }
+}
+
+inline void
+NextPentagonCursor::moveSidewards(void) {
+    if (back) {
+        alternative(alternative()-1);
+        node(node()->getParent(na)->getChild(na,alternative()));
+    } else {
+        NodeCursor<VisualNode>::moveSidewards();
+    }
+}
+
+
+
+/// **************
+
 inline
 StatCursor::StatCursor(VisualNode* root,
                        const VisualNode::NodeAllocator& na)

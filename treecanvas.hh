@@ -301,6 +301,8 @@ public Q_SLOTS:
   void navRoot(void);
   /// Move selection to next solution (in DFS order)
   void navNextSol(bool back = false);
+  /// Move selection to next pentagon (in DFS order)
+  void navNextPentagon(bool back = false);
   /// Move selection to previous solution (in DFS order)
   void navPrevSol(void);
   /// Bookmark current node
