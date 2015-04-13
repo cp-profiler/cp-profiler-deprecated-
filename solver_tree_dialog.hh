@@ -21,7 +21,7 @@ private:
 
 public:
 
-  SolverTreeDialog(ReceiverThread* receiver, const TreeCanvas::CanvasType type, Gist* gist);
+  SolverTreeDialog(ReceiverThread* receiver, const CanvasType type, Gist* gist);
 
   ~SolverTreeDialog();
 

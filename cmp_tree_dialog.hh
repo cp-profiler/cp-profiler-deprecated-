@@ -15,7 +15,7 @@ private:
 
 public:
 
-  CmpTreeDialog(ReceiverThread* receiver, const TreeCanvas::CanvasType type, Gist* gist,
+  CmpTreeDialog(ReceiverThread* receiver, const CanvasType type, Gist* gist,
                 TreeCanvas *tc1, TreeCanvas *tc2);
   ~CmpTreeDialog();
 

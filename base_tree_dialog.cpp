@@ -1,7 +1,7 @@
 #include "base_tree_dialog.hh"
 #include "nodewidget.hh"
 
-BaseTreeDialog::BaseTreeDialog(ReceiverThread* receiver, const TreeCanvas::CanvasType type, Gist* gist) :
+BaseTreeDialog::BaseTreeDialog(ReceiverThread* receiver, const CanvasType type, Gist* gist) :
   QDialog(gist), ptr_gist(gist) {
 
   layout = new QGridLayout(this);

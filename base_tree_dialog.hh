@@ -42,7 +42,7 @@ Q_OBJECT
 
   public:
 
-    BaseTreeDialog(ReceiverThread* receiver, const TreeCanvas::CanvasType type, Gist* gist);
+    BaseTreeDialog(ReceiverThread* receiver, const CanvasType type, Gist* gist);
     ~BaseTreeDialog();
 
     /// **** GETTERS ****

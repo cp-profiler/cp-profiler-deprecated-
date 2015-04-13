@@ -28,7 +28,7 @@ Data::Data(TreeCanvas* tc, NodeAllocator* na, bool isRestarts)
     last_interval_time = begin_time;
     last_interval_nc = 0;
 
-    if (_tc->canvasType == TreeCanvas::MERGED) {
+    if (_tc->canvasType == CanvasType::MERGED) {
         _isDone = true;
         _total_time = 0;
     }
@@ -158,7 +158,7 @@ DbEntry* Data::getEntry(unsigned int gid) {
 const char* Data::getLabelByGid(unsigned int gid) {
     QMutexLocker locker(&dataMutex);
 
-    if (_tc->canvasType == TreeCanvas::REGULAR) {
+    if (_tc->canvasType == CanvasType::REGULAR) {
         int aid = gid2aid[gid];
         if (aid == -1)
             return "";

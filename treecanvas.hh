@@ -144,6 +144,11 @@ public:
   bool operator()(const ShapeI& s1, const ShapeI& s2) const;
 };
 
+enum class CanvasType {
+  REGULAR,
+  MERGED
+};
+
 /// \brief A canvas that displays the search tree
 class TreeCanvas : public QWidget {
   Q_OBJECT
@@ -161,16 +166,11 @@ class TreeCanvas : public QWidget {
 
 public:
 
-  enum CanvasType {
-    REGULAR,
-    MERGED
-  };
-
 /// each new consequent Canvas will get an id
   int _id;
   bool _isUsed; /// TODO: make private
 
-  const int canvasType;
+  const CanvasType canvasType;
 
 private:
 
