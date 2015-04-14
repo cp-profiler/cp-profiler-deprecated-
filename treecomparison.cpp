@@ -143,8 +143,10 @@ TreeComparison::compare(TreeCanvas* t1, TreeCanvas* t2, TreeCanvas* new_tc) {
             stack.push(next->getChild(*na, 1));
             stack.push(next->getChild(*na, 0));
 
-            copyTree(stack.pop(), new_tc, node1, t1, 1);
-            copyTree(stack.pop(), new_tc, node2, t2, 2);
+            unsigned int left = copyTree(stack.pop(), new_tc, node1, t1, 1);
+            unsigned int right = copyTree(stack.pop(), new_tc, node2, t2, 2);
+
+            _pentSize.push_back(std::make_pair(left, right));
 
         }
 
@@ -153,7 +155,7 @@ TreeComparison::compare(TreeCanvas* t1, TreeCanvas* t2, TreeCanvas* new_tc) {
     }
 }
 
-void 
+unsigned int
 TreeComparison::copyTree(VisualNode* target, TreeCanvas* tc,
                          VisualNode* root,   TreeCanvas* tc_source, int which) {
 
@@ -166,7 +168,11 @@ TreeComparison::copyTree(VisualNode* target, TreeCanvas* tc,
     source_stack->push(root);
     target_stack->push(target);
 
+    unsigned int count = 0;
+
     while (source_stack->size() > 0) {
+        count++;
+
         VisualNode* n = source_stack->pop();
         VisualNode* next = target_stack->pop();
 
@@ -195,6 +201,8 @@ TreeComparison::copyTree(VisualNode* target, TreeCanvas* tc,
 
     delete source_stack;
     delete target_stack;
+
+    return count;
 }
 
 bool

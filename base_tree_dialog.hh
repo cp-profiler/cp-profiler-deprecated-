@@ -18,10 +18,6 @@ Q_OBJECT
     QVBoxLayout* nc_layout;
     QAbstractScrollArea* scrollArea;
 
-    /// A menu bar
-    QMenuBar* menuBar;
-    
-
     /// Status Bar
     QStatusBar* statusBar;
 
@@ -30,9 +26,11 @@ Q_OBJECT
 
   protected:
 
-    Gist* ptr_gist;
-
+    /// Interface stuff
+    QMenuBar* menuBar;
     QMenu* nodeMenu;
+
+    Gist* ptr_gist;
 
     TreeCanvas* _tc;
     QLabel* mergedLabel;

@@ -188,11 +188,6 @@ Gist::updateActions(VisualNode* n, bool finished) {
         }
 
     }
-
-    // if (current_tc->canvasType == CanvasType::MERGED) {
-    //     navFirstPentagon->setEnabled(true);
-    // }
-
 }
 
 
@@ -497,18 +492,6 @@ Gist::addActions(void) {
     navRoot->setShortcut(QKeySequence("R"));
     navRoot->setShortcutContext(Qt::ApplicationShortcut);
 
-    navFirstPentagon = new QAction("To first pentagon", this);
-    navFirstPentagon->setShortcut(QKeySequence("Ctrl+Shift+1"));
-    navFirstPentagon->setShortcutContext(Qt::ApplicationShortcut);
-
-    navNextPentagon = new QAction("To next pentagon", this);
-    navNextPentagon->setShortcut(QKeySequence("Ctrl+Shift+Right"));
-    navNextPentagon->setShortcutContext(Qt::ApplicationShortcut);
-
-    navPrevPentagon = new QAction("To prev pentagon", this);
-    navPrevPentagon->setShortcut(QKeySequence("Ctrl+Shift+Left"));
-    navPrevPentagon->setShortcutContext(Qt::ApplicationShortcut);
-
     navNextSol = new QAction("To next solution", this);
     navNextSol->setShortcut(QKeySequence("Shift+Right"));
     
@@ -682,9 +665,6 @@ Gist::addActions(void) {
     addAction(navLeft);
     addAction(navRight);
     addAction(navRoot);
-    addAction(navFirstPentagon);
-    addAction(navNextPentagon);
-    addAction(navPrevPentagon);
     addAction(navNextSol);
     addAction(navPrevSol);
 

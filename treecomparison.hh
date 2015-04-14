@@ -1,10 +1,11 @@
 #ifndef TREE_COMPARISON
 #define TREE_COMPARISON
 
+#include "treecanvas.hh"
 
 #include <QStack>
 #include <vector>
-#include "treecanvas.hh"
+#include <utility>
 
 
 // Two stacks or a stack of pairs?
@@ -24,9 +25,11 @@ public:
   int get_no_pentagons(void);
 
   inline const std::vector<VisualNode*>& pentagons(void) { return _pentagons; }
+  inline const std::vector<std::pair<unsigned int, unsigned int>>& pentSize(void) { return _pentSize;}
 
 private:
   std::vector<VisualNode*> _pentagons;
+  std::vector<std::pair<unsigned int, unsigned int>> _pentSize;
 
 private:
   QStack<VisualNode*> stack1;
@@ -51,10 +54,8 @@ private: /// methods
   bool copmareNodes(VisualNode* n1, VisualNode* n2); /// TODO: make it inline?
 
   /// 'which' is treated as a colour, usually 1 or 2 depending on which tree is a source
-  void copyTree(VisualNode*, TreeCanvas*, 
+  unsigned int copyTree(VisualNode*, TreeCanvas*, 
                        VisualNode*, TreeCanvas*, int which = 0);
-
-  // friend void SpaceNode::setStatus(NodeStatus s);
 
 };
 
