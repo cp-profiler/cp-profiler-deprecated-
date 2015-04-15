@@ -450,8 +450,10 @@ Gist::showStats(void) {
 
 void
 Gist::addActions(void) {
+    /// important! Expands hidden nodes and pentagons
     inspect = new QAction("Inspect", this);
     inspect->setShortcut(QKeySequence("Return"));
+    inspect->setShortcutContext(Qt::ApplicationShortcut);
     
     inspectBeforeFP = new QAction("Inspect before fixpoint", this);
     inspectBeforeFP->setShortcut(QKeySequence("Ctrl+Return"));
