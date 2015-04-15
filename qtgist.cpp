@@ -164,6 +164,7 @@ Gist::updateActions(VisualNode* n, bool finished) {
         navLeft->setEnabled(false);
         navRight->setEnabled(false);
         navRoot->setEnabled(false);
+        unhideAll->setEnabled(false);
     } else {
 
         navRoot->setEnabled(true);
@@ -187,6 +188,12 @@ Gist::updateActions(VisualNode* n, bool finished) {
             navLeft->setEnabled(alt > 0);
         }
 
+        if (n->getNumberOfChildren() > 0) {
+            unhideAll->setEnabled(true);
+        } else {
+            unhideAll->setEnabled(false);
+        }
+
     }
 }
 
@@ -206,7 +213,7 @@ Gist::on_canvas_statusChanged(VisualNode* n, const Statistics& stats,
         showNodeStats->setEnabled(false);
         // stop-> setEnabled(true);
         // reset->setEnabled(false);
-        
+
         navNextSol->setEnabled(false);
         navPrevSol->setEnabled(false);
 
@@ -215,7 +222,7 @@ Gist::on_canvas_statusChanged(VisualNode* n, const Statistics& stats,
         toggleHidden->setEnabled(false);
         hideFailed->setEnabled(false);
         hideSize->setEnabled(false);
-        unhideAll->setEnabled(false);
+        
         // labelBranches->setEnabled(false);
         // labelPath->setEnabled(false);
         analyzeSimilarSubtrees->setEnabled(false);
@@ -252,7 +259,6 @@ Gist::on_canvas_statusChanged(VisualNode* n, const Statistics& stats,
             toggleHidden->setEnabled(true);
             hideFailed->setEnabled(true);
             // hideSize->setEnabled(true);
-            // unhideAll->setEnabled(true);
             // unstopAll->setEnabled(true);
         } else {
             toggleHidden->setEnabled(false);
@@ -517,6 +523,7 @@ Gist::addActions(void) {
     
     unhideAll = new QAction("Unhide all", this);
     unhideAll->setShortcut(QKeySequence("U"));
+    unhideAll->setShortcutContext(Qt::ApplicationShortcut);
     
     labelBranches = new QAction("Label/clear branches", this);
     labelBranches->setShortcut(QKeySequence("L"));
