@@ -531,6 +531,7 @@ Gist::addActions(void) {
     
     labelPath = new QAction("Label/clear path", this);
     labelPath->setShortcut(QKeySequence("Shift+L"));
+    labelPath->setShortcutContext(Qt::ApplicationShortcut);
 
     analyzeSimilarSubtrees = new QAction("Analyse similar subtrees", this);
     analyzeSimilarSubtrees->setShortcut(QKeySequence("Shift+s"));

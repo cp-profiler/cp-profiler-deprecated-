@@ -949,7 +949,7 @@ TreeCanvas::labelBranches(void) {
 void
 TreeCanvas::labelPath(void) {
     QMutexLocker locker(&mutex);
-    currentNode->labelPath(*na);
+    currentNode->labelPath(*na, *this);
     update();
     centerCurrentNode();
     emit statusChanged(currentNode, stats, true);

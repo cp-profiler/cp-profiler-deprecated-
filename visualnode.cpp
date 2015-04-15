@@ -154,7 +154,7 @@ VisualNode::labelBranches(NodeAllocator& na, TreeCanvas& tc) {
 }
 
 void
-VisualNode::labelPath(NodeAllocator& na) {
+VisualNode::labelPath(NodeAllocator& na, TreeCanvas& tc) {
     if (na.hasLabel(this)) {
         // clear labels on path to root
         VisualNode* p = this;
@@ -173,9 +173,10 @@ VisualNode::labelPath(NodeAllocator& na) {
         while (!path.empty()) {
             std::pair<VisualNode*,int> cur = path.back(); path.pop_back();
             if (p) {
-                std::string l =
-                        cur.first->getBranchLabel(na,p,cur.second);
-                na.setLabel(cur.first,QString(l.c_str()));
+                int gid = cur.first->getIndex(na);
+                std::string l = tc.getData()->getLabelByGid(gid);
+
+                na.setLabel(cur.first, QString(l.c_str()));
             }
             p = cur.first;
         }

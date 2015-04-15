@@ -204,7 +204,7 @@ public:
   /// Create or clear branch labels in subtree
   void labelBranches(NodeAllocator& na, TreeCanvas& tc);
   /// Create or clear branch labels on path to root
-  void labelPath(NodeAllocator& na);
+  void labelPath(NodeAllocator& na, TreeCanvas& tc);
   /// Return string that describes the branch
   std::string getBranchLabel(NodeAllocator& na, VisualNode* p, int alt);
 
