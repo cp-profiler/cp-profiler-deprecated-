@@ -3,6 +3,8 @@
 
 #include "treecanvas.hh"
 #include <QImage>
+#include <list>
+#include <vector>
 
 
 class PixelTreeCanvas;
@@ -37,6 +39,19 @@ public:
 
 
 /// ***********************************
+
+class PixelData {
+private:
+  int   _idx;
+  int   _depth;
+  VisualNode* _node;
+public:
+  PixelData(int idx, VisualNode* node, int depth)
+  : _idx(idx), _node(node), _depth(depth) {};
+  inline int idx() { return _idx; }
+  inline int depth() { return _depth; }
+  inline VisualNode* node() { return _node; }
+};
 
 
 /// ******** PIXEL_TREE_CANVAS ********
@@ -75,14 +90,10 @@ private:
   int   group_size;
   int   vline_idx; // same as x when _step = 1
   float alpha_factor;
-  int*  intencity_arr = nullptr; // array of intencity for each pixel on vline
   int   group_size_nonempty; // for calculating average
 
   int pt_height;
   int pt_width;
-
-  int call_stack_size = 0; // for debugging
-  int max_stack_size = 0;// for debugging
 
   /// Stuff specific for a particular pixel tree
   int vlines; /// width of pixel tree
@@ -94,6 +105,11 @@ private:
 
   int node_selected;
 
+  /// New Stuff
+  std::vector<std::list<PixelData*>> pixelList;
+
+
+
 public:
 
   static const int HIST_HEIGHT = 50;
@@ -102,18 +118,22 @@ public:
 private:
 
   /// Pixel Tree
+  void constructTree(void);
   void drawPixelTree(void);
   void exploreNode(VisualNode* node, int depth);
+  void exploreNew(VisualNode* node, int depth);
+  void freePixelList(std::vector<std::list<PixelData*>>& pixelList);
 
-  void drawHistogram(int idx, float* data, int color);
+  void actuallyDraw(void);
+  void drawHistogram(int idx, float* data, int l_vline, int r_vline, int color);
 
   /// Histograms
-  void drawTimeHistogram(void);
-  void drawDomainHistogram(void);
-  void drawDomainReduction(void);
+  void drawTimeHistogram(int l_vline, int r_vline);
+  void drawDomainHistogram(int l_vline, int r_vline);
+  void drawDomainReduction(int l_vline, int r_vline);
 
   /// Node Rate
-  void drawNodeRate(void);
+  void drawNodeRate(int leftmost_vline, int rightmost_vline);
 
   void flush(void); /// make a final group
 

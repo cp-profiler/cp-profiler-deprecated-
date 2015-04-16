@@ -57,7 +57,7 @@ ReceiverThread::run(void) {
         Message *msg = reinterpret_cast<Message*>(request.data());
 
         if (!messageReceived) {
-            // msleep(100);
+            msleep(100);
             continue;
         }
 
