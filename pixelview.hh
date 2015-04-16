@@ -27,7 +27,7 @@ private:
 
 public:
 
-  static const int MARGIN = 20;
+  static const int MARGIN = 50;
   static const int DEPTH = 50;
   
 
@@ -48,8 +48,8 @@ class PixelTreeCanvas : public QWidget {
 private:
   TreeCanvas*     _tc;
   NodeAllocator*  _na;
-  QImage*         _image;
-  QLabel          qlabel;
+  QImage*    _image;
+  QLabel     qlabel;
   QPixmap         pixmap;
 
   QAbstractScrollArea*  _sa;
@@ -67,6 +67,7 @@ private:
   // int margin = 10;
 
   /// temp stuff for a Pixel Tree
+  int   node_idx;
   int   x;
   float   group_time;
   float   group_domain; // average of domain size of nodes in a group
@@ -74,7 +75,7 @@ private:
   int   group_size;
   int   vline_idx; // same as x when _step = 1
   float alpha_factor;
-  int*  intencity_arr; // array of intencity for each pixel on vline
+  int*  intencity_arr = nullptr; // array of intencity for each pixel on vline
   int   group_size_nonempty; // for calculating average
 
   int pt_height;
@@ -87,9 +88,11 @@ private:
   int vlines; /// width of pixel tree
   int max_depth;
 
-  float*   time_arr; // time for each vline
-  float* domain_arr; // domain for each vline
-  float* domain_red_arr; /// domain reduction for each vline
+  float* time_arr         = nullptr; // time for each vline
+  float* domain_arr       = nullptr; // domain for each vline
+  float* domain_red_arr   = nullptr; /// domain reduction for each vline
+
+  int node_selected;
 
 public:
 
@@ -116,6 +119,9 @@ private:
 
   /// auxiliary methods
   inline void drawPixel(int x, int y, int step, int color);
+
+  /// select nodes that correspond to selected vline in pixel tree
+  void selectNodesfromPT(int first, int last);
   
 
 public:
@@ -125,12 +131,12 @@ public:
 protected:
   void paintEvent(QPaintEvent* event);
 
+  void mousePressEvent(QMouseEvent* me);
+
 public Q_SLOTS:
   void scaleUp(void);
   void scaleDown(void);
   void compressionChanged(int value);
-  
-
 };
 
 

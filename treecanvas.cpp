@@ -229,8 +229,9 @@ SimilarShapesWindow::drawHistogram(void) {
 
   int y = 0, x = 0;
 
-  for(std::multiset<ShapeI>::iterator it = tc->shapesMap.begin(),
-   end = tc->shapesMap.end(); it != end; it = tc->shapesMap.upper_bound(*it))
+  std::multiset<ShapeI, CompareShapes>& smap = tc->shapesMap;
+
+  for(auto it = smap.begin(), end = smap.end(); it != end; it = smap.upper_bound(*it))
   {
 
     if (!filters.apply(*it)){
@@ -245,7 +246,7 @@ SimilarShapesWindow::drawHistogram(void) {
    // 
    // histScene.addItem(text);
 
-    int nShapes = tc->shapesMap.count(*it);
+    int nShapes = smap.count(*it);
     x = 5 * nShapes;
 
     rect = new ShapeRect(0, y, x, 20, it->node, this);
@@ -609,6 +610,20 @@ TreeCanvas::hideSize() {
     centerCurrentNode();
     emit statusChanged(currentNode, stats, true);
     emit needActionsUpdate(currentNode, true);
+}
+
+void
+TreeCanvas::hideAll(void) {
+  QMutexLocker locker_1(&mutex);
+  QMutexLocker locker_2(&layoutMutex);
+
+  HideAllCursor hac(root, *na);
+  PostorderNodeVisitor<HideAllCursor>(hac).run();
+
+  update();
+  centerCurrentNode();
+  emit statusChanged(currentNode, stats, true);
+  emit needActionsUpdate(currentNode, true);
 }
 
 void

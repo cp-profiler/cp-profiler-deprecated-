@@ -82,6 +82,19 @@ public:
     //@}
 };
 
+/// \brief A cursor that marks all nodes in the tree as hidden
+class HideAllCursor : public NodeCursor<VisualNode> {
+public:
+    /// Constructor
+    HideAllCursor(VisualNode* theNode,
+                    const VisualNode::NodeAllocator& na);
+    /// \name Cursor interface
+    //@{
+    /// Process node
+    void processCurrentNode(void);
+    //@}
+};
+
 /// \brief A cursor that marks all nodes in the tree as not stopping
 class UnstopAllCursor : public NodeCursor<VisualNode> {
 public:

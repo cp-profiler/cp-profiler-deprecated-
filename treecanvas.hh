@@ -478,6 +478,9 @@ public:
   /// Map of nodes for analyzing
   std::multiset<ShapeI, CompareShapes> shapesMap;
 
+  /// traverse every node and set hidden
+  void hideAll(void);
+
 public Q_SLOTS:
   /// Update display
   void update(void);

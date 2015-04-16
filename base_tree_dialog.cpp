@@ -48,7 +48,7 @@ BaseTreeDialog::BaseTreeDialog(ReceiverThread* receiver, const CanvasType type, 
   /// ***********************************
 
   connectSignals();
-  
+
   resize(500, 400);
   show();
 
@@ -71,6 +71,7 @@ BaseTreeDialog::buildMenu(void) {
   nodeMenu = menuBar->addMenu(tr("&Node"));
 
   nodeMenu->addAction(ptr_gist->labelBranches);
+  nodeMenu->addAction(ptr_gist->labelPath);
   nodeMenu->addAction(ptr_gist->navUp);
   nodeMenu->addAction(ptr_gist->navDown);
   nodeMenu->addAction(ptr_gist->navLeft);
@@ -78,6 +79,7 @@ BaseTreeDialog::buildMenu(void) {
   nodeMenu->addAction(ptr_gist->navRoot);
 
   nodeMenu->addAction(ptr_gist->hideFailed);
+  nodeMenu->addAction(ptr_gist->unhideAll);
 
 }
 

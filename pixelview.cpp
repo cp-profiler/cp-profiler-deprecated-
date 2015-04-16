@@ -36,6 +36,7 @@ PixelTreeDialog::PixelTreeDialog(TreeCanvas* tc)
   QObject::connect(&compressionSB, SIGNAL(valueChanged(int)),
     canvas, SLOT(compressionChanged(int)));
 
+
   setAttribute(Qt::WA_QuitOnClose, true);
   setAttribute(Qt::WA_DeleteOnClose, true);
 
@@ -48,17 +49,10 @@ PixelTreeDialog::~PixelTreeDialog(void) {
 PixelTreeCanvas::~PixelTreeCanvas(void) {
   delete _image;
 
-  if (time_arr != NULL) 
-    delete time_arr;
-
-  if (domain_arr != NULL)
-    delete domain_arr;
-
-  if (intencity_arr != NULL)
-    delete intencity_arr;
-
-  if (domain_red_arr != NULL)
-    delete domain_red_arr;
+  if (time_arr)       delete time_arr;
+  if (domain_arr)     delete domain_arr;
+  if (intencity_arr)  delete intencity_arr;
+  if (domain_red_arr) delete domain_red_arr;
 }
 
 /// ***********************************
@@ -67,17 +61,11 @@ PixelTreeCanvas::~PixelTreeCanvas(void) {
 /// ******** PIXEL_TREE_CANVAS ********
 
 PixelTreeCanvas::PixelTreeCanvas(QWidget* parent, TreeCanvas* tc)
-  : QWidget(parent), _tc(tc), _na(tc->na)
+  : QWidget(parent), _tc(tc), _na(tc->na), node_selected(-1)
 {
 
   _sa = static_cast<QAbstractScrollArea*>(parentWidget());
   _vScrollBar = _sa->verticalScrollBar();
-  _step;
-
-  time_arr        = NULL;
-  domain_arr      = NULL;
-  intencity_arr   = NULL;
-  domain_red_arr  = NULL;
 
   _nodeCount = tc->stats.solutions + tc->stats.failures
                        + tc->stats.choices + tc->stats.undetermined;
@@ -87,7 +75,7 @@ PixelTreeCanvas::PixelTreeCanvas(QWidget* parent, TreeCanvas* tc)
   int height = max_depth * _step;
   int width = _nodeCount * _step;
 
-  _image = NULL;
+  _image = nullptr;
 
   /// scrolling business
   _sa->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
@@ -99,7 +87,7 @@ PixelTreeCanvas::PixelTreeCanvas(QWidget* parent, TreeCanvas* tc)
 
   pixmap.fromImage(*_image);
   qlabel.setPixmap(pixmap);
-  qlabel.show();
+  // qlabel.show();
 
 }
 
@@ -113,7 +101,7 @@ PixelTreeCanvas::paintEvent(QPaintEvent* event) {
   int xoff = _sa->horizontalScrollBar()->value();
   int yoff = _sa->verticalScrollBar()->value();
 
-  painter.drawImage(10, 10, *_image, xoff, yoff);
+  painter.drawImage(0, 0, *_image, xoff, yoff);
   
 
 }
@@ -122,6 +110,7 @@ void
 PixelTreeCanvas::drawPixelTree(void) {
 
   x = 0;
+  node_idx = 0;
   delete _image;
 
   pt_height = max_depth * _step;
@@ -162,7 +151,7 @@ PixelTreeCanvas::drawPixelTree(void) {
   
   vlines = ceil((float)_nodeCount / approx_size);
 
-  if (time_arr != NULL) 
+  if (time_arr != nullptr) 
     delete time_arr;
   
   time_arr = new float[vlines];
@@ -235,7 +224,7 @@ PixelTreeCanvas::exploreNode(VisualNode* node, int depth) {
   } else {
 
     if (entry->parent_sid == ~0u)
-      parent = NULL;
+      parent = nullptr;
     else
       parent = data->getEntry(node->getParent());
 
@@ -292,7 +281,11 @@ PixelTreeCanvas::exploreNode(VisualNode* node, int depth) {
     for (uint d = 1; d <= max_depth; d++) {
       if (intencity_arr[d - 1] > 0) {
         int alpha = intencity_arr[d - 1] * alpha_factor;
-        drawPixel(x, d * _step, _step, QColor::fromHsv(150, 100, 100 - alpha).rgba());
+        if (node_idx - group_size < node_selected && node_selected <= node_idx) {
+          drawPixel(x, d * _step, _step, qRgb(255, 0, 0));
+        } else {
+          drawPixel(x, d * _step, _step, QColor::fromHsv(150, 100, 100 - alpha).rgba());
+        }
       }
         
     }
@@ -308,6 +301,8 @@ PixelTreeCanvas::exploreNode(VisualNode* node, int depth) {
     // set intencity_arr to zeros
     memset(intencity_arr, 0, max_depth * sizeof(int));
   }
+
+  node_idx++;
 
   // for children
   uint kids = node->getNumberOfChildren();
@@ -372,7 +367,6 @@ PixelTreeCanvas::drawHistogram(int idx, float* data, int color) {
     // if (data[i] < 0) continue;
 
     drawPixel(x + i * _step,
-              // pt_height + 2 * MARGIN + (HIST_HEIGHT + _step) + HIST_HEIGHT - val,
               y + HIST_HEIGHT - val,
               _step,
               color);
@@ -402,36 +396,20 @@ PixelTreeCanvas::drawNodeRate(void) {
   for (int i = 0; i < vlines; i++) {
     for (int j = 0; j < _step; j++)
       _image->setPixel(start_x + i * _step + j,
-                       // pt_height + 2 * MARGIN + 2 * (HIST_HEIGHT + _step),
                        zero_level, 
                        qRgb(150, 150, 150));
   }
 
   int x = 0;
 
-  // /// loop through intervals
-  // for (int i = 0; i < node_rate.size(); i++) {
-  //   /// draw line for each interval
-  //   for (int j = 0; j < node_rate[i]; j++) {
-  //     drawPixel(start_x + x,
-  //               // pt_height + 2 * MARGIN + (HIST_HEIGHT + _step) + HIST_HEIGHT - val,
-  //               start_y + HIST_HEIGHT - value,
-  //               _step,
-  //               qRgb(40, 40, 150));
-  //     x++;
-  //   }
-  // }
-
   for (int i = 1; i < nr_intervals.size(); i++) {
     float value = node_rate[i - 1] * coeff;
     for (int x = ceil((float)nr_intervals[i-1] / approx_size);
              x < ceil((float)nr_intervals[i]   / approx_size); x++) {
       drawPixel(start_x + x * _step,
-                // pt_height + 2 * MARGIN + (HIST_HEIGHT + _step) + HIST_HEIGHT - val,
                 start_y + HIST_HEIGHT - value,
                 _step,
                 qRgb(40, 40, 150));
-      // qDebug() << "x: " << x;
     }
   }
 
@@ -469,10 +447,128 @@ PixelTreeCanvas::drawPixel(int x, int y, int step, int color) {
     for (uint j = 0; j < _step; j++)
       _image->setPixel(x + i, y + j, color);
 
-  
 }
 
+void
+PixelTreeCanvas::mousePressEvent(QMouseEvent* me) {
+
+  int xoff = _sa->horizontalScrollBar()->value();
+  int yoff = _sa->verticalScrollBar()->value();
+
+  int x = me->x() + xoff;
+  int y = me->y() + yoff;
+
+  /// check boundaries:
+  if (y > pt_height) return;
+
+  // which node?
+
+  int vline = x / _step;
+
+  node_selected = vline * approx_size;
+
+  selectNodesfromPT(node_selected, node_selected + approx_size);
+
+  drawPixelTree();
+
+  // qDebug() << "mouse click (x: " << x << " y: " << y << ")"
+  //          << " vline: " << vline;
+}
+
+void
+PixelTreeCanvas::selectNodesfromPT(int first, int last) {
+
+  struct Actions {
+
+  private:
+    NodeAllocator* _na;
+    TreeCanvas* _tc;
+    int node_id;
+    int _first;
+    int _last;
+    void (Actions::*apply)(VisualNode*);
+    bool _done;
+
+  private:
+
+    void selectOne(VisualNode* node) {
+      _tc->setCurrentNode(node);
+      _tc->centerCurrentNode();
+    }
+
+    void selectGroup(VisualNode* node) {
+      node->dirtyUp(*_na);
+
+      VisualNode* next = node;
+
+      while (!next->isRoot() && next->isHidden()) {
+        next->setHidden(false);
+        next = next->getParent(*_na);
+      }
+    }
+
+  public:
+
+    Actions(NodeAllocator* na, TreeCanvas* tc, int first, int last)
+    : _na(na), _tc(tc), _first(first), _last(last), _done(false) {}
+
+    /// Initiate traversal
+    void traverse() {
+      node_id = 0;
+      VisualNode* root = (*_na)[0];
+
+      if (_last - _first == 1)
+        apply = &Actions::selectOne;
+      else {
+
+        /// hide everything
+
+        _tc->hideAll();
+        root->setHidden(false);
 
 
+        apply = &Actions::selectGroup;
+      }
+
+      explore(root);
+    }
+
+
+
+    void explore(VisualNode* node) {
+      // if (_done) return;
+
+      // for current node:
+
+      if (node_id >= _first) {
+        if (node_id < _last) {
+
+            qDebug() << "node_id: " << node_id;
+            (*this.*apply)(node);
+
+        } else {
+          /// stop traversal
+          _done = true;
+        }
+      }
+
+      node_id++;
+      // for children
+      uint kids = node->getNumberOfChildren();
+      for (uint i = 0; i < kids; ++i) {
+        explore(node->getChild(*_na, i));
+      }
+
+    }
+
+
+
+  };
+
+  Actions actions(_na, _tc, first, last);
+  actions.traverse();
+  _tc->update();
+
+}
 
 /// ***********************************
