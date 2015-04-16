@@ -134,7 +134,8 @@ TreeComparison::compare(TreeCanvas* t1, TreeCanvas* t2, TreeCanvas* new_tc) {
             next = stack.pop();
             next->setNumberOfChildren(2, *na);
             next->setStatus(MERGING);
-            next->getParent(*na)->setHidden(false);
+            if (!next->isRoot())
+                next->getParent(*na)->setHidden(false);
             next->setHidden(true);
             next->_tid = 0;
 
