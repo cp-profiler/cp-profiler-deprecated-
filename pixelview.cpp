@@ -157,7 +157,8 @@ PixelTreeCanvas::actuallyDraw() {
   delete _image;
 
   _sa->horizontalScrollBar()->setRange(0, vlines * _step - _sa->width() + 100);
-  _sa->verticalScrollBar()->setRange(0, max_depth * _step - _sa->height());
+  _sa->verticalScrollBar()->setRange(0, max_depth * _step +
+    4 * (HIST_HEIGHT + MARGIN + _step) - _sa->height()); // 4 histograms
 
   int xoff = _sa->horizontalScrollBar()->value();
   int yoff = _sa->verticalScrollBar()->value();
@@ -203,10 +204,9 @@ PixelTreeCanvas::actuallyDraw() {
 
       for (auto pixel : pixelList[vline]) {
 
-        
 
         int xpos = (vline  - leftmost_vline) * _step;
-        int ypos = pixel->depth() * _step;
+        int ypos = pixel->depth() * _step - yoff;
 
         intencity_arr[pixel->depth()]++;
 
@@ -222,9 +222,9 @@ PixelTreeCanvas::actuallyDraw() {
         if (pixel->node()->getStatus() == SOLVED) {
 
           for (uint j = 0; j < pt_height; j++)
-            if (_image->pixel(xpos, j) == qRgb(255, 255, 255))
+            if (_image->pixel(xpos, j - yoff) == qRgb(255, 255, 255))
               for (uint i = 0; i < _step; i++)
-                _image->setPixel(xpos + i, j, qRgb(0, 255, 0));
+                _image->setPixel(xpos + i, j - yoff, qRgb(0, 255, 0));
 
         }
 
@@ -375,7 +375,8 @@ PixelTreeCanvas::drawHistogram(int idx, float* data, int l_vline, int r_vline, i
 
   /// coordinates for the top-left corner
   int init_x = 0;
-  int y = (pt_height + _step) + MARGIN + idx * (HIST_HEIGHT + MARGIN + _step);
+  int yoff = _sa->verticalScrollBar()->value();
+  int y = (pt_height + _step) + MARGIN + idx * (HIST_HEIGHT + MARGIN + _step) - yoff;
 
   /// work out maximum value
   int max_value = 0;
