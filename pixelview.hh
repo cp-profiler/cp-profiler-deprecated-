@@ -45,6 +45,7 @@ private:
   int   _idx;
   int   _depth;
   VisualNode* _node;
+  bool  _selected;
 public:
   PixelData(int idx, VisualNode* node, int depth)
   : _idx(idx), _node(node), _depth(depth) {};
@@ -103,12 +104,10 @@ private:
   float* domain_arr       = nullptr; // domain for each vline
   float* domain_red_arr   = nullptr; /// domain reduction for each vline
 
-  int node_selected;
+  std::vector<VisualNode*> nodes_selected;
 
   /// New Stuff
   std::vector<std::list<PixelData*>> pixelList;
-
-
 
 public:
 
@@ -120,7 +119,6 @@ private:
   /// Pixel Tree
   void constructTree(void);
   void drawPixelTree(void);
-  void exploreNode(VisualNode* node, int depth);
   void exploreNew(VisualNode* node, int depth);
   void freePixelList(std::vector<std::list<PixelData*>>& pixelList);
 
@@ -141,7 +139,7 @@ private:
   inline void drawPixel(int x, int y, int step, int color);
 
   /// select nodes that correspond to selected vline in pixel tree
-  void selectNodesfromPT(int first, int last);
+  void selectNodesfromPT(int vline);
   
 
 public:

@@ -63,7 +63,7 @@ PixelTreeCanvas::~PixelTreeCanvas(void) {
 /// ******** PIXEL_TREE_CANVAS ********
 
 PixelTreeCanvas::PixelTreeCanvas(QWidget* parent, TreeCanvas* tc)
-  : QWidget(parent), _tc(tc), _na(tc->na), node_selected(-1)
+  : QWidget(parent), _tc(tc), _na(tc->na)
 {
 
   _sa = static_cast<QAbstractScrollArea*>(parentWidget());
@@ -194,6 +194,8 @@ PixelTreeCanvas::actuallyDraw() {
 
   int* intencity_arr = new int[max_depth + 1];
 
+  int node_idx = 0;
+
   for (unsigned int vline = leftmost_vline; vline < rightmost_vline; vline++) {
     if (!pixelList[vline].empty()) {
 
@@ -201,15 +203,21 @@ PixelTreeCanvas::actuallyDraw() {
 
       for (auto pixel : pixelList[vline]) {
 
+        
+
         int xpos = (vline  - leftmost_vline) * _step;
         int ypos = pixel->depth() * _step;
 
         intencity_arr[pixel->depth()]++;
 
         /// draw pixel itself:
-        int alpha = intencity_arr[pixel->depth()] * alpha_factor;
-        drawPixel(xpos, ypos, _step, QColor::fromHsv(150, 100, 100 - alpha).rgba());
-
+        if (!pixel->node()->isSelected()) {
+          int alpha = intencity_arr[pixel->depth()] * alpha_factor;
+          drawPixel(xpos, ypos, _step, QColor::fromHsv(150, 100, 100 - alpha).rgba());
+        } else {
+          drawPixel(xpos, ypos, _step, qRgb(255, 0, 0));
+        }
+        
         /// draw green vertical line if solved:
         if (pixel->node()->getStatus() == SOLVED) {
 
@@ -219,6 +227,8 @@ PixelTreeCanvas::actuallyDraw() {
                 _image->setPixel(xpos + i, j, qRgb(0, 255, 0));
 
         }
+
+        node_idx++;
       }
       
     }
@@ -337,41 +347,6 @@ PixelTreeCanvas::exploreNew(VisualNode* node, int depth) {
   uint kids = node->getNumberOfChildren();
   for (uint i = 0; i < kids; ++i) {
     exploreNew(node->getChild(*_na, i), depth + 1);
-  }
-
-
-}
-
-
-void
-PixelTreeCanvas::exploreNode(VisualNode* node, int depth) {
-
-
-
-  /// move to the right 
-  if (group_size == approx_size) {
-
-
-
-
-    /// record stuff for each vline
-    // 
-    // 
-
-
-    // draw group
-    // for (uint d = 1; d <= max_depth; d++) {
-    //   if (intencity_arr[d - 1] > 0) {
-    //     int alpha = intencity_arr[d - 1] * alpha_factor;
-    //     if (node_idx - group_size < node_selected && node_selected <= node_idx) {
-    //       drawPixel(x, d * _step, _step, qRgb(255, 0, 0));
-    //     } else {
-    //       drawPixel(x, d * _step, _step, QColor::fromHsv(150, 100, 100 - alpha).rgba());
-    //     }
-    //   }
-        
-    // }
-
   }
 
 
@@ -538,9 +513,7 @@ PixelTreeCanvas::mousePressEvent(QMouseEvent* me) {
 
   int vline = x / _step;
 
-  node_selected = vline * approx_size;
-
-  selectNodesfromPT(node_selected, node_selected + approx_size);
+  selectNodesfromPT(vline);
 
   actuallyDraw();
   repaint();
@@ -548,7 +521,9 @@ PixelTreeCanvas::mousePressEvent(QMouseEvent* me) {
 }
 
 void
-PixelTreeCanvas::selectNodesfromPT(int first, int last) {
+PixelTreeCanvas::selectNodesfromPT(int vline) {
+
+  qDebug() << "selecting vline: " << vline;
 
   struct Actions {
 
@@ -556,12 +531,10 @@ PixelTreeCanvas::selectNodesfromPT(int first, int last) {
     NodeAllocator* _na;
     TreeCanvas* _tc;
     int node_id;
-    int _first;
-    int _last;
-    void (Actions::*apply)(VisualNode*);
+    
     bool _done;
 
-  private:
+  public:
 
     void selectOne(VisualNode* node) {
       _tc->setCurrentNode(node);
@@ -581,61 +554,40 @@ PixelTreeCanvas::selectNodesfromPT(int first, int last) {
 
   public:
 
-    Actions(NodeAllocator* na, TreeCanvas* tc, int first, int last)
-    : _na(na), _tc(tc), _first(first), _last(last), _done(false) {}
-
-    /// Initiate traversal
-    void traverse() {
-      node_id = 0;
-      VisualNode* root = (*_na)[0];
-
-      if (_last - _first == 1)
-        apply = &Actions::selectOne;
-      else {
-
-        /// hide everything
-        _tc->hideAll();
-        root->setHidden(false);
-
-        apply = &Actions::selectGroup;
-      }
-
-      explore(root);
-    }
-
-
-
-    void explore(VisualNode* node) {
-      if (_done) return;
-
-      // for current node:
-
-      if (node_id >= _first) {
-        if (node_id < _last) {
-
-            (*this.*apply)(node);
-
-        } else {
-          /// stop traversal
-          _done = true;
-        }
-      }
-
-      node_id++;
-      // for children
-      uint kids = node->getNumberOfChildren();
-      for (uint i = 0; i < kids; ++i) {
-        explore(node->getChild(*_na, i));
-      }
-
-    }
-
-
+    Actions(NodeAllocator* na, TreeCanvas* tc)
+    : _na(na), _tc(tc), _done(false) {}
 
   };
 
-  Actions actions(_na, _tc, first, last);
-  actions.traverse();
+  Actions actions(_na, _tc);
+  void (Actions::*apply)(VisualNode*);
+
+  /// unset currently selected nodes
+  for (auto node : nodes_selected) {
+    node->setSelected(false);
+  }
+
+  nodes_selected.clear();
+
+  std::list<PixelData*>& vline_list = pixelList[vline];
+
+  if (vline_list.size() == 1) {
+    apply = &Actions::selectOne;
+  } else {
+    apply = &Actions::selectGroup;
+
+    /// hide everything except root
+    _tc->hideAll();
+    (*_na)[0]->setHidden(false);
+  }
+
+  for (auto pixel : vline_list) {
+    (actions.*apply)(pixel->node());
+    pixel->node()->setSelected(true);
+    nodes_selected.push_back(pixel->node());
+  }
+
+  
   _tc->update();
 
 }

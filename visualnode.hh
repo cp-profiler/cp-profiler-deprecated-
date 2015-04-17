@@ -108,7 +108,8 @@ protected:
     BOOKMARKED,
     SUBTREESIZE,
     SUBTREESIZE2, // reserve this bit for subtree size
-    SUBTREESIZE3  // reserve this bit for subtree size
+    SUBTREESIZE3,  // reserve this bit for subtree size
+    SELECTED
   };
 
   /// Relative offset from the parent node
@@ -150,6 +151,10 @@ public:
   bool isMarked(void);
   /// Set mark of this node
   void setMarked(bool m);
+  /// Return whether node is selected
+  bool isSelected(void);
+  /// Set selected flag of this node
+  void setSelected(bool m);
   /// Return whether node is bookmarked
   bool isBookmarked(void);
   /// Set bookmark of this node

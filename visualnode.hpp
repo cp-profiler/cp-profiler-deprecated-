@@ -148,6 +148,16 @@ VisualNode::setMarked(bool m) {
 }
 
 inline bool
+VisualNode::isSelected(void) {
+  return getFlag(SELECTED);
+}
+
+inline void
+VisualNode::setSelected(bool m) {
+  setFlag(SELECTED, m);
+}
+
+inline bool
 VisualNode::isBookmarked(void) {
   return getFlag(BOOKMARKED);
 }
