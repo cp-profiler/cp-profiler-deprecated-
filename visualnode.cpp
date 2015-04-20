@@ -177,9 +177,11 @@ VisualNode::labelPath(NodeAllocator& na, TreeCanvas& tc) {
                 std::string l = tc.getData()->getLabelByGid(gid);
 
                 na.setLabel(cur.first, QString(l.c_str()));
+                std::cout << l << "; ";
             }
             p = cur.first;
         }
+        std::cout << "\n";
     }
     dirtyUp(na);
 }

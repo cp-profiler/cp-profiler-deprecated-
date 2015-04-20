@@ -274,6 +274,9 @@ public Q_SLOTS:
   /// Show Indented Pixel Tree View
   void showPixelTree(void);
 
+  /// Follow path from root
+  void followPath(void);
+
   /// Analyze similar subtrees of current node
   void analyzeSimilarSubtrees(void);
 

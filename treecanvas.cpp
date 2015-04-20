@@ -485,6 +485,40 @@ void TreeCanvas::showPixelTree(void) {
   pixelTreeDialog->show();
 }
 
+void TreeCanvas::followPath(void) {
+  QMutexLocker locker(&mutex);
+  bool ok;
+  QString text = QInputDialog::getText(this, tr("Path to follow"),
+                                       tr("Path:"), QLineEdit::Normal,
+                                       "", &ok);
+  if (ok && !text.isEmpty()) {
+    QStringList choices = text.split(QRegExp(";\\s+"));
+    VisualNode *n = root;
+    for (int i = 0 ; i < choices.length() ; i++) {
+      int numChildren = n->getNumberOfChildren();
+      for (int j = 0 ; j < numChildren ; j++) {
+        int childIndex = n->getChild(j);
+        VisualNode* c = (*na)[childIndex];
+        // If we find the right label, follow it and go to the next
+        // iteration of the outer loop.
+        if (na->getLabel(c) == choices[i]) {
+          n = c;
+          goto found;
+        }
+      }
+      // If the inner loop terminates, we didn't find the right label.
+      // In that case, terminate the outer loop.
+      break;
+    found:
+      ;
+    }
+    // However far we made it, select that node.
+    setCurrentNode(n);
+    centerCurrentNode();
+  }
+}
+
+
 CompareShapes::CompareShapes(TreeCanvas& tc) : _tc(tc) {}
 
 bool
