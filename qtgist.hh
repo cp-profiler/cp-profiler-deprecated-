@@ -180,6 +180,8 @@ public:
 
   /// Show Indented Pixel Tree View
   QAction* showPixelTree;
+  /// Follow path
+  QAction* followPath;
 
   /// Group of all actions for solution inspectors
   QActionGroup* solutionInspectorGroup;

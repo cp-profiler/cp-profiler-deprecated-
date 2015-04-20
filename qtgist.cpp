@@ -479,6 +479,7 @@ Gist::addActions(void) {
     /// TODO: set a shortcut
 
     showPixelTree = new QAction("Pixel Tree View", this);
+    followPath = new QAction("Follow Path", this);
     
     navUp = new QAction("Up", this);
     navUp->setShortcut(QKeySequence("Up"));
@@ -687,6 +688,7 @@ Gist::addActions(void) {
     addAction(labelBranches);
     addAction(labelPath);
     addAction(showPixelTree);
+    addAction(followPath);
     addAction(analyzeSimilarSubtrees);
     addAction(toggleStop);
     addAction(unstopAll);
@@ -832,6 +834,7 @@ Gist::connectCanvas(TreeCanvas* tc) {
     connect(unhideAll, SIGNAL(triggered()), tc, SLOT(unhideAll()));
     connect(labelPath, SIGNAL(triggered()), tc, SLOT(labelPath()));
     connect(showPixelTree, SIGNAL(triggered()), tc, SLOT(showPixelTree()));
+    connect(followPath, SIGNAL(triggered()), tc, SLOT(followPath()));
     connect(analyzeSimilarSubtrees, SIGNAL(triggered()), tc, SLOT(analyzeSimilarSubtrees()));
     connect(toggleStop, SIGNAL(triggered()), tc, SLOT(toggleStop()));
     connect(unstopAll, SIGNAL(triggered()), tc, SLOT(unstopAll()));
