@@ -89,8 +89,8 @@ PixelTreeCanvas::PixelTreeCanvas(QWidget* parent, TreeCanvas* tc)
 
 
   pixmap.fromImage(*_image);
-  qlabel.setPixmap(pixmap);
-  qlabel.show();
+  // qlabel.setPixmap(pixmap);
+  // qlabel.show();
 
 }
 
@@ -143,8 +143,8 @@ PixelTreeCanvas::constructTree(void) {
 
 void
 PixelTreeCanvas::freePixelList(std::vector<std::list<PixelData*>>& pixelList) {
-  for (auto l : pixelList) {
-    for (auto nodeData : l) {
+  for (auto& l : pixelList) {
+    for (auto& nodeData : l) {
       delete nodeData;
     }
     l.clear();
@@ -202,29 +202,33 @@ PixelTreeCanvas::actuallyDraw() {
 
       memset(intencity_arr, 0, (max_depth + 1)* sizeof(int));
 
-      for (auto pixel : pixelList[vline]) {
+      for (auto& pixel : pixelList[vline]) {
 
 
         int xpos = (vline  - leftmost_vline) * _step;
         int ypos = pixel->depth() * _step - yoff;
 
+
+
         intencity_arr[pixel->depth()]++;
 
         /// draw pixel itself:
-        if (!pixel->node()->isSelected()) {
-          int alpha = intencity_arr[pixel->depth()] * alpha_factor;
-          drawPixel(xpos, ypos, _step, QColor::fromHsv(150, 100, 100 - alpha).rgba());
-        } else {
-          drawPixel(xpos, ypos, _step, qRgb(255, 0, 0));
+        if (ypos > 0) {
+          if (!pixel->node()->isSelected()) {
+            int alpha = intencity_arr[pixel->depth()] * alpha_factor;
+            drawPixel(xpos, ypos, _step, QColor::fromHsv(150, 100, 100 - alpha).rgba());
+          } else {
+            drawPixel(xpos, ypos, _step, qRgb(255, 0, 0));
+          }
         }
         
         /// draw green vertical line if solved:
         if (pixel->node()->getStatus() == SOLVED) {
 
-          for (uint j = 0; j < pt_height; j++)
-            if (_image->pixel(xpos, j - yoff) == qRgb(255, 255, 255))
+          for (uint j = 0; j < pt_height - yoff; j++)
+            if (_image->pixel(xpos, j) == qRgb(255, 255, 255))
               for (uint i = 0; i < _step; i++)
-                _image->setPixel(xpos + i, j - yoff, qRgb(0, 255, 0));
+                _image->setPixel(xpos + i, j, qRgb(0, 255, 0));
 
         }
 
@@ -564,7 +568,7 @@ PixelTreeCanvas::selectNodesfromPT(int vline) {
   void (Actions::*apply)(VisualNode*);
 
   /// unset currently selected nodes
-  for (auto node : nodes_selected) {
+  for (auto& node : nodes_selected) {
     node->setSelected(false);
   }
 
@@ -582,7 +586,7 @@ PixelTreeCanvas::selectNodesfromPT(int vline) {
     (*_na)[0]->setHidden(false);
   }
 
-  for (auto pixel : vline_list) {
+  for (auto& pixel : vline_list) {
     (actions.*apply)(pixel->node());
     pixel->node()->setSelected(true);
     nodes_selected.push_back(pixel->node());

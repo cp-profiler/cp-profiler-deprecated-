@@ -62,7 +62,7 @@ public:
     int status;
     char label[Message::LABEL_SIZE];
     char thread;
-    char depth;
+    int depth;
     unsigned long long time_stamp;
     unsigned long long node_time;
     float domain;
