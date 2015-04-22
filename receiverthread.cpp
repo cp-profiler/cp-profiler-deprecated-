@@ -91,6 +91,7 @@ ReceiverThread::run(void) {
                     qDebug() << "Switched to another canvas";
                 } else {
                     /// set Title through ptr_gist
+                    qDebug() << "here: " << _t->getData()->getTitle().c_str();
                     ptr_gist->emitChangeMainTitle(msg->label);
                 }
 
@@ -106,6 +107,8 @@ ReceiverThread::run(void) {
                     emit startReceiving();
                     qDebug() << ">>> new restart";
                 }
+
+                _t->getData()->setTitle(msg->label);
             break;
             case DONE_SENDING:
                 qDebug() << "recieved DONE SENDING";

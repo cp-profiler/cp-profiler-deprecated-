@@ -11,6 +11,11 @@ PixelTreeDialog::PixelTreeDialog(TreeCanvas* tc)
 {
 
   this->resize(600, 400);
+
+  /// set Title
+  this->setWindowTitle(QString::fromStdString(tc->getData()->getTitle()));
+  qDebug() << "title: " << tc->getData()->getTitle().c_str();
+
   setLayout(&layout);
   layout.addWidget(&scrollArea);
   layout.addLayout(&controlLayout);
@@ -225,7 +230,8 @@ PixelTreeCanvas::actuallyDraw() {
             int alpha = intencity_arr[pixel->depth()] * alpha_factor;
             drawPixel(xpos, ypos, _step, QColor::fromHsv(150, 100, 100 - alpha).rgba());
           } else {
-            drawPixel(xpos, ypos, _step, qRgb(255, 0, 0));
+            // drawPixel(xpos, ypos, _step, qRgb(255, 0, 0));
+            drawPixel(xpos, ypos, _step, qRgb(255, 0, 255));
           }
         }
         

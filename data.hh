@@ -8,6 +8,7 @@
 #include <QMutex>
 
 #include <iostream>
+#include <string>
 
 #include "treebuilder.hh"
 #include "treecanvas.hh"
@@ -16,6 +17,7 @@
 typedef NodeAllocatorBase<VisualNode> NodeAllocator;
 
 using namespace std::chrono;
+using std::string;
 
 enum MsgType {
   NODE_DATA = 1,
@@ -106,6 +108,9 @@ private:
     // Whether received DONE_SENDING message
     bool _isDone;
 
+    // Name of the FlatZinc model
+    string _title;
+
     // Total solver time in microseconds
     unsigned long long _total_time;
 
@@ -129,7 +134,7 @@ private:
 
 public:
 
-    /// used to access Data instance from different threads (in parallel solover)
+    /// used to access Data instance from different threads (in parallel solver)
     QMutex dataMutex;
 
 private:
@@ -162,11 +167,18 @@ public:
 
     bool isDone(void) { return _isDone; }
     bool isRestarts(void) { return _isRestarts; }
+    string getTitle(void) { return _title; }
 
     unsigned long long getTotalTime(void); /// time in microseconds
 
     DbEntry* getEntry(unsigned int gid);
 
+
+/// ****************************
+
+/// ********* SETTERS **********
+
+    void setTitle(char* title) { _title = title; qDebug() << "sent: " << _title.c_str();}
 
 /// ****************************
 
