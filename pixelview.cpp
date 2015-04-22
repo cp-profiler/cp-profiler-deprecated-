@@ -73,7 +73,14 @@ PixelTreeCanvas::PixelTreeCanvas(QWidget* parent, TreeCanvas* tc)
                        + tc->stats.choices + tc->stats.undetermined;
 
 
+
   max_depth = tc->stats.maxDepth;
+
+  // if (_tc->getData()->isRestarts()) {
+  //   max_depth++; /// consider the first, dummy node
+  //   _nodeCount++;
+  // }
+
   int height = max_depth * _step;
   int width = _nodeCount * _step;
 
@@ -89,8 +96,8 @@ PixelTreeCanvas::PixelTreeCanvas(QWidget* parent, TreeCanvas* tc)
 
 
   pixmap.fromImage(*_image);
-  // qlabel.setPixmap(pixmap);
-  // qlabel.show();
+  qlabel.setPixmap(pixmap);
+  qlabel.show();
 
 }
 
@@ -170,7 +177,6 @@ PixelTreeCanvas::actuallyDraw() {
 
   if (rightmost_x > pixelList.size() * _step) {
     rightmost_x = pixelList.size() * _step;
-    // qDebug() << "rightmost_x = pixelList.size()\n";
   }
 
   int img_height = MARGIN + 
@@ -185,13 +191,14 @@ PixelTreeCanvas::actuallyDraw() {
                    HIST_HEIGHT + _step + /// Node Rate Histogram
                    MARGIN;
 
-  _image = new QImage(rightmost_x - leftmost_x, img_height, QImage::Format_RGB888);
+  _image = new QImage(rightmost_x - leftmost_x + _step, img_height, QImage::Format_RGB888);
+
   _image->fill(qRgb(255, 255, 255));
 
   this->resize(_image->width(), _image->height());
 
   int leftmost_vline = leftmost_x / _step;
-  int rightmost_vline = rightmost_x / _step - 1;
+  int rightmost_vline = rightmost_x / _step;
 
   int* intencity_arr = new int[max_depth + 1];
 
@@ -296,6 +303,8 @@ PixelTreeCanvas::exploreNew(VisualNode* node, int depth) {
 
   assert(depth <= max_depth);
 
+  if (vline_idx >= pixelList.size()) return;
+
   pixelList[vline_idx].push_back(new PixelData(node_idx, node, depth));
 
   if (!entry) {
@@ -307,7 +316,8 @@ PixelTreeCanvas::exploreNew(VisualNode* node, int depth) {
     if (entry->parent_sid != ~0u) {
       parent = data->getEntry(node->getParent());
 
-      group_domain_red += parent->domain - entry->domain;
+      if (parent) /// need this for restarts
+        group_domain_red += parent->domain - entry->domain;
     }
 
     group_time   += entry->node_time;
@@ -528,8 +538,6 @@ PixelTreeCanvas::mousePressEvent(QMouseEvent* me) {
 void
 PixelTreeCanvas::selectNodesfromPT(int vline) {
 
-  qDebug() << "selecting vline: " << vline;
-
   struct Actions {
 
   private:
@@ -563,6 +571,11 @@ PixelTreeCanvas::selectNodesfromPT(int vline) {
     : _na(na), _tc(tc), _done(false) {}
 
   };
+
+  qDebug() << "selecting vline: " << vline;
+  if (pixelList.size() <= vline) {
+    qDebug() << "no such vline";
+  }
 
   Actions actions(_na, _tc);
   void (Actions::*apply)(VisualNode*);

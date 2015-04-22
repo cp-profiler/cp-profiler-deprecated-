@@ -88,7 +88,7 @@ void TreeBuilder::run(void) {
 
         if (isRoot) {
 
-            dbEntry.depth = 1;
+            
             stats.choices++;
 
             if (_isRestarts) {
@@ -102,6 +102,7 @@ void TreeBuilder::run(void) {
                 dbEntry.gid = restart_root;
                 stats.undetermined += dbEntry.numberOfKids - 1;
                 nodesCreated += 1 + dbEntry.numberOfKids;
+                dbEntry.depth = 2;
 
             } else {
                 int kids = nodes_arr[0]->numberOfKids;
@@ -112,6 +113,7 @@ void TreeBuilder::run(void) {
                 dbEntry.gid = 0;
                 stats.undetermined += kids - 1;
                 nodesCreated += 1 + kids;
+                dbEntry.depth = 1;
                 
             }
 
