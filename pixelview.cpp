@@ -424,10 +424,13 @@ PixelTreeCanvas::drawHistogram(int idx, float* data, int l_vline, int r_vline, i
 
     // if (data[i] < 0) continue;
 
-    drawPixel(init_x + (i - l_vline) * _step,
-              y + HIST_HEIGHT - val,
-              _step,
-              color);
+    for (int v = val; v >= 0; v--) {
+      drawPixel(init_x + (i - l_vline) * _step,
+                y + HIST_HEIGHT - v,
+                _step,
+                color);
+    }
+    
 
   }
 
