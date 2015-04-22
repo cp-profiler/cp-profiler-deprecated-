@@ -90,7 +90,7 @@ DrawingCursor::processCurrentNode(void) {
     if (!parent || parent->_tid != n->_tid) {
         switch (n->_tid) {
             case 0:
-                painter.setBrush(QColor(255, 255, 150, 255));
+                painter.setBrush(QColor(255, 255, 255, 255));
             break;
             case 1:
                 painter.setBrush(QColor(150, 255, 255, 255));
