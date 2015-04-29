@@ -76,7 +76,8 @@ private:
 
   /// Pixel Tree settings (changed through GUI)
     
-  int _step = 6; // size of a 'pixel' in pixels
+  int _step = 2; // size of a 'pixel' in pixels
+  int _step_y = 2; // size of a 'pixel' in pixels
   int approx_size = 1; // how many nodes per vertical line
 
   // int hist_height = 50;

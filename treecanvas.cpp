@@ -64,7 +64,7 @@ TreeCanvas::TreeCanvas(QGridLayout* layout, ReceiverThread* receiver, CanvasType
 
     zoomPic.loadFromData(zoomToFitIcon, sizeof(zoomToFitIcon));
 
-    autoZoomButton = new QToolButton();
+    autoZoomButton = new QToolButton(this);
     autoZoomButton->setCheckable(true);
     autoZoomButton->setIcon(zoomPic);
 
@@ -125,6 +125,8 @@ TreeCanvas::~TreeCanvas(void) {
         PreorderNodeVisitor<DisposeCursor>(dc).run();
     }
     delete na;
+
+    delete _builder;
 }
 
 ///***********************
@@ -1018,9 +1020,10 @@ TreeCanvas::reset(bool isRestarts) {
 
     qDebug() << "tc #" << _id << "is resetting";
 
-    if (na) delete na;
-    if (_data) delete _data;
+    
+    
 
+    delete na;
     na = new Node::NodeAllocator(false);
 
     int rootIdx = na->allocateRoot();
@@ -1038,6 +1041,7 @@ TreeCanvas::reset(bool isRestarts) {
 
     emit statusChanged(currentNode, stats, false);
 
+    delete _data;
     _data = new Data(this, na, isRestarts);
 
     _builder->reset(_data, na);

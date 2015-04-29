@@ -57,9 +57,9 @@ PixelTreeCanvas::~PixelTreeCanvas(void) {
   freePixelList(pixelList);
   delete _image;
 
-  if (time_arr)       delete [] time_arr;
-  if (domain_arr)     delete [] domain_arr;
-  if (domain_red_arr) delete [] domain_red_arr;
+  delete [] time_arr;
+  delete [] domain_arr;
+  delete [] domain_red_arr;
 }
 
 /// ***********************************
@@ -124,14 +124,14 @@ PixelTreeCanvas::constructTree(void) {
 
   vlines = ceil((float)_nodeCount / approx_size);
 
-  if (time_arr != nullptr) delete time_arr;
-  time_arr = new float[vlines];
+  delete [] time_arr;
+  time_arr = new float[vlines]; //  TODO: "Uninitialised value was created by a heap allocation"
 
-  if (domain_arr != nullptr) delete domain_arr;
-  domain_arr = new float[vlines];
+  delete [] domain_arr;
+  domain_arr = new float[vlines]; //  TODO: "Uninitialised value was created by a heap allocation"
 
-  if (domain_red_arr != nullptr) delete domain_red_arr;
-  domain_red_arr = new float[vlines];
+  delete [] domain_red_arr;
+  domain_red_arr = new float[vlines]; //  TODO: "Uninitialised value was created by a heap allocation"
 
   pixelList.resize(vlines);
 
@@ -178,7 +178,7 @@ PixelTreeCanvas::actuallyDraw() {
   int leftmost_x = xoff;
   int rightmost_x = xoff + _sa->width();
 
-  pt_height = max_depth * _step;
+  pt_height = max_depth * _step_y;
 
   if (rightmost_x > pixelList.size() * _step) {
     rightmost_x = pixelList.size() * _step;
@@ -218,8 +218,7 @@ PixelTreeCanvas::actuallyDraw() {
 
 
         int xpos = (vline  - leftmost_vline) * _step;
-        int ypos = pixel->depth() * _step - yoff;
-
+        int ypos = pixel->depth() * _step_y - yoff;
 
 
         intencity_arr[pixel->depth()]++;
@@ -475,10 +474,12 @@ PixelTreeCanvas::drawNodeRate(int l_vline, int r_vline) {
 
     for (int x = i_begin; x < i_end; x++) {
 
-      drawPixel(start_x + (x - l_vline) * _step,
-                start_y + HIST_HEIGHT - value,
-                _step,
-                qRgb(40, 40, 150));
+      for (int v = value; v >= 0; v--) {
+        drawPixel(start_x + (x - l_vline) * _step,
+                  start_y + HIST_HEIGHT - v,
+                  _step,
+                  qRgb(40, 40, 150));
+      }
     }
   }
 
@@ -490,6 +491,7 @@ PixelTreeCanvas::drawNodeRate(int l_vline, int r_vline) {
 void
 PixelTreeCanvas::scaleUp(void) {
   _step++;
+  _step_y++;
   actuallyDraw();
   repaint();
 }
@@ -498,6 +500,7 @@ void
 PixelTreeCanvas::scaleDown(void) {
   if (_step <= 1) return;
   _step--;
+  _step_y--;
   actuallyDraw();
   repaint();
 }
@@ -516,7 +519,7 @@ PixelTreeCanvas::drawPixel(int x, int y, int step, int color) {
     return; /// TODO: fix later
 
   for (uint i = 0; i < _step; i++)
-    for (uint j = 0; j < _step; j++)
+    for (uint j = 0; j < _step_y; j++)
       _image->setPixel(x + i, y + j, color);
 
 }

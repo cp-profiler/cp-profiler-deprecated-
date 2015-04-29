@@ -58,12 +58,12 @@ GistMainWindow::GistMainWindow(void) : aboutGist(this) {
 
   QMenu* nodeMenu = menuBar->addMenu(tr("&Node"));
 
-  inspectNodeMenu = new QMenu("Inspect");
+  inspectNodeMenu = new QMenu("Inspect", this);
   inspectNodeMenu->addAction(c->inspect);
   connect(inspectNodeMenu, SIGNAL(aboutToShow()),
           this, SLOT(populateInspectors()));
 
-  inspectNodeBeforeFPMenu = new QMenu("Inspect before fixpoint");
+  inspectNodeBeforeFPMenu = new QMenu("Inspect before fixpoint", this);
   inspectNodeBeforeFPMenu->addAction(c->inspectBeforeFP);
   connect(inspectNodeBeforeFPMenu, SIGNAL(aboutToShow()),
           this, SLOT(populateInspectors()));
@@ -86,7 +86,7 @@ GistMainWindow::GistMainWindow(void) : aboutGist(this) {
 
   /// *******************************
 
-  bookmarksMenu = new QMenu("Bookmarks");
+  bookmarksMenu = new QMenu("Bookmarks", this);
   bookmarksMenu->addAction(c->bookmarkNode);
   connect(bookmarksMenu, SIGNAL(aboutToShow()),
           this, SLOT(populateBookmarks()));
@@ -127,19 +127,19 @@ GistMainWindow::GistMainWindow(void) : aboutGist(this) {
   searchMenu->addAction(c->initComparison);
 
   QMenu* toolsMenu = menuBar->addMenu(tr("&Tools"));
-  doubleClickInspectorsMenu = new QMenu("Double click Inspectors");
+  doubleClickInspectorsMenu = new QMenu("Double click Inspectors", this);
   connect(doubleClickInspectorsMenu, SIGNAL(aboutToShow()),
           this, SLOT(populateInspectorSelection()));
   toolsMenu->addMenu(doubleClickInspectorsMenu);
-  solutionInspectorsMenu = new QMenu("Solution inspectors");
+  solutionInspectorsMenu = new QMenu("Solution inspectors", this);
   connect(solutionInspectorsMenu, SIGNAL(aboutToShow()),
           this, SLOT(populateInspectorSelection()));
   toolsMenu->addMenu(solutionInspectorsMenu);
-  moveInspectorsMenu = new QMenu("Move inspectors");
+  moveInspectorsMenu = new QMenu("Move inspectors", this);
   connect(moveInspectorsMenu, SIGNAL(aboutToShow()),
           this, SLOT(populateInspectorSelection()));
   toolsMenu->addMenu(moveInspectorsMenu);
-  comparatorsMenu = new QMenu("Comparators");
+  comparatorsMenu = new QMenu("Comparators", this);
   connect(comparatorsMenu, SIGNAL(aboutToShow()),
           this, SLOT(populateInspectorSelection()));
   toolsMenu->addMenu(comparatorsMenu);

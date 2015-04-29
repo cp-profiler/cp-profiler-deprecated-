@@ -162,20 +162,20 @@ TreeComparison::copyTree(VisualNode* target, TreeCanvas* tc,
 
     NodeAllocator* na = tc->na;
     NodeAllocator* na_source = tc_source->na; 
-    
-    QStack<VisualNode*>* source_stack = new QStack<VisualNode*>();
-    QStack<VisualNode*>* target_stack = new QStack<VisualNode*>();
 
-    source_stack->push(root);
-    target_stack->push(target);
+    QStack<VisualNode*> source_stack;
+    QStack<VisualNode*> target_stack;
+
+    source_stack.push(root);
+    target_stack.push(target);
 
     unsigned int count = 0;
 
-    while (source_stack->size() > 0) {
+    while (source_stack.size() > 0) {
         count++;
 
-        VisualNode* n = source_stack->pop();
-        VisualNode* next = target_stack->pop();
+        VisualNode* n = source_stack.pop();
+        VisualNode* next = target_stack.pop();
 
         next->_tid = which; // treated as a colour
 
@@ -195,13 +195,10 @@ TreeComparison::copyTree(VisualNode* target, TreeCanvas* tc,
         next->dirtyUp(*na);
 
         for (uint i = 0; i < kids; ++i) {
-            source_stack->push(n->getChild(*na_source, i));
-            target_stack->push(next->getChild(*na, i));
+            source_stack.push(n->getChild(*na_source, i));
+            target_stack.push(next->getChild(*na, i));
         }
     }
-
-    delete source_stack;
-    delete target_stack;
 
     return count;
 }

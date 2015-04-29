@@ -68,8 +68,6 @@ ReceiverThread::run(void) {
             break;
             case START_SENDING: /// TODO: start sending should have model name
                 qDebug() << "START RECEIVING";
-                // _t->_data->startReading();
-                /// start building the tree
 
                 // if (msg->restart_id == -1 || msg->restart_id == 0) { // why 1?
 
@@ -113,7 +111,7 @@ ReceiverThread::run(void) {
             case DONE_SENDING:
                 qDebug() << "recieved DONE SENDING";
                 updateCanvas();
-                /// needed for optirion CPX restarts
+                /// needed for Opturion CPX restarts
                 // if (!_t->_data->isRestarts()) 
                     emit doneReceiving();
                     disconnect(this, SIGNAL(startReceiving(void)),

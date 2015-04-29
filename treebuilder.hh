@@ -19,7 +19,12 @@ private:
 	QMutex* _mutex;
 
 	unsigned long long lastRead;
-  int nodesCreated;
+    int nodesCreated;
+
+private:
+
+    inline void processRoot(DbEntry& dbEntry);
+    inline void processNode(DbEntry& dbEntry);
 
 public:
     TreeBuilder(TreeCanvas* tc, QObject *parent = 0);

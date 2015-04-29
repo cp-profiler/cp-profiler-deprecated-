@@ -141,6 +141,8 @@ Gist::~Gist(void) {
     }
 
     delete canvas;
+
+    delete myPalette;
 }
 
 void
@@ -580,7 +582,7 @@ Gist::addActions(void) {
     connect(bookmarksGroup, SIGNAL(triggered(QAction*)),
             this, SLOT(selectBookmark(QAction*)));
 
-    bookmarksMenu = new QMenu("Bookmarks");
+    bookmarksMenu = new QMenu("Bookmarks", this);
     connect(bookmarksMenu, SIGNAL(aboutToShow()),
             this, SLOT(populateBookmarksMenu()));
 
@@ -635,14 +637,14 @@ Gist::addActions(void) {
 //    connect(comparatorGroup, SIGNAL(triggered(QAction*)),
 //            this, SLOT(selectComparator(QAction*)));
 
-    solutionInspectorMenu = new QMenu("Solution inspectors");
+    solutionInspectorMenu = new QMenu("Solution inspectors", this);
     solutionInspectorMenu->addActions(solutionInspectorGroup->actions());
-    doubleClickInspectorMenu = new QMenu("Double click inspectors");
+    doubleClickInspectorMenu = new QMenu("Double click inspectors", this);
     doubleClickInspectorMenu->addActions(
                 doubleClickInspectorGroup->actions());
-    moveInspectorMenu = new QMenu("Move inspectors");
+    moveInspectorMenu = new QMenu("Move inspectors", this);
     moveInspectorMenu->addActions(moveInspectorGroup->actions());
-    comparatorMenu = new QMenu("Comparators");
+    comparatorMenu = new QMenu("Comparators", this);
     comparatorMenu->addActions(comparatorGroup->actions());
 
     inspectGroup = new QActionGroup(this);
@@ -652,12 +654,12 @@ Gist::addActions(void) {
     connect(inspectBeforeFPGroup, SIGNAL(triggered(QAction*)),
             this, SLOT(inspectBeforeFPWithAction(QAction*)));
 
-    inspectNodeMenu = new QMenu("Inspect");
+    inspectNodeMenu = new QMenu("Inspect", this);
     inspectNodeMenu->addAction(inspect);
     connect(inspectNodeMenu, SIGNAL(aboutToShow()),
             this, SLOT(populateInspectors()));
 
-    inspectNodeBeforeFPMenu = new QMenu("Inspect before fixpoint");
+    inspectNodeBeforeFPMenu = new QMenu("Inspect before fixpoint", this);
     inspectNodeBeforeFPMenu->addAction(inspectBeforeFP);
     connect(inspectNodeBeforeFPMenu, SIGNAL(aboutToShow()),
             this, SLOT(populateInspectors()));

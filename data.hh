@@ -183,7 +183,6 @@ public:
 /// ****************************
 
     public Q_SLOTS:
-    void startReading(void);
 
     // sets _isDone to true when received DONE_SENDING
     void setDoneReceiving(void);

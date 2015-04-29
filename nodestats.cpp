@@ -8,7 +8,7 @@
 NodeStatInspector::NodeStatInspector(QWidget* parent)
     : QWidget(parent) {
     setWindowFlags(Qt::Tool);
-    QGraphicsScene* scene = new QGraphicsScene();
+    QGraphicsScene* scene = new QGraphicsScene(parent);
     
     scene->addEllipse(70,10,16,16,QPen(),QBrush(DrawingCursor::white));
     scene->addEllipse(70,60,16,16,QPen(),QBrush(DrawingCursor::blue));

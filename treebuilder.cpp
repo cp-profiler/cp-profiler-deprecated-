@@ -15,12 +15,137 @@ void TreeBuilder::setDoneReceiving() {
 }
 
 void TreeBuilder::reset(Data* data, NodeAllocator* na) {
+
+    /// old _data and _na are deleted by this point
 	_data = data;
 	_na = na;
 
     nodesCreated = 1;
     lastRead = 0;
 }
+
+void TreeBuilder::processRoot(DbEntry& dbEntry) {
+
+    std::vector<DbEntry*> &nodes_arr = _data->nodes_arr;
+    std::vector<unsigned long long> &gid2aid = _data->gid2aid;
+    Statistics &stats = _tc->stats;
+
+    stats.choices++;
+
+    VisualNode* root = nullptr; // can be a real root, or one of initial nodes in restarts
+
+    int kids = dbEntry.numberOfKids;
+
+    if (_data->isRestarts()) {
+        int restart_root = (*_na)[0]->addChild(*_na); // create a node for a new root        
+        root = (*_na)[restart_root];
+        root->_tid = dbEntry.thread;
+        dbEntry.gid = restart_root;
+        dbEntry.depth = 2;
+
+    } else {
+        root = (*_na)[0]; // use the root that is already there
+        root->_tid = 0;
+        dbEntry.gid = 0;
+        dbEntry.depth = 1;
+    }
+
+    /// setNumberOfChildren
+    root->setNumberOfChildren(kids, *_na);
+    root->setStatus(BRANCH);
+    root->setHasSolvedChildren(true);
+
+    stats.undetermined += kids - 1;
+    nodesCreated += 1 + kids;
+
+    gid2aid.resize(nodesCreated, -1);
+}
+
+void TreeBuilder::processNode(DbEntry& dbEntry) {
+    unsigned long long pid = dbEntry.parent_sid; /// parent ID as it comes from Solver
+    int alt      = dbEntry.alt;        /// which alternative the current node is
+    int nalt     = dbEntry.numberOfKids; /// number of kids in current node
+    int status   = dbEntry.status;
+
+    std::vector<DbEntry*> &nodes_arr = _data->nodes_arr;
+    std::unordered_map<unsigned long long, int> &sid2aid = _data->sid2aid;
+    std::vector<unsigned long long> &gid2aid = _data->gid2aid;
+
+    Statistics &stats = _tc->stats;
+
+    DbEntry& parentEntry = *nodes_arr[sid2aid[pid]];
+    int parent_gid  = parentEntry.gid; /// parent ID as it is in Node Allocator (Gist)
+    VisualNode& parent = *(*_na)[parent_gid];
+
+    assert(parent_gid >= 0);
+
+    VisualNode& node = *parent.getChild(*_na, alt);
+
+    /// !!!!!!!!!!!! Tomorrow: Fix skipped node overriding
+
+    if (node.getStatus() == UNDETERMINED) {
+        stats.undetermined--;
+
+        int gid = node.getIndex(*_na); // node ID as it is in Gist
+
+        /// fill in empty fields of dbEntry
+        dbEntry.gid = gid;
+        dbEntry.depth   = parentEntry.depth + 1; /// parent's depth + 1
+        gid2aid[gid] = lastRead; /// this way we can find dbEntry
+
+        stats.maxDepth =
+          std::max(stats.maxDepth, static_cast<int>(dbEntry.depth));
+
+        node._tid = dbEntry.thread; /// TODO: tid should be in node's flags
+        node.setNumberOfChildren(nalt, *_na);
+
+        switch (status) {
+            case FAILED: // 1
+                node.setHasOpenChildren(false);
+                node.setHasSolvedChildren(false);
+                node.setHasFailedChildren(true);
+                node.setStatus(FAILED);
+                parent.closeChild(*_na, true, false);
+                stats.failures++;
+
+            break;
+            case SKIPPED: // 6
+                // check if node hasn't been explored by other thread
+                // (for now just check if failure node)
+                node.setHasOpenChildren(false);
+                node.setHasSolvedChildren(false);
+                node.setHasFailedChildren(true);
+                node.setStatus(SKIPPED);
+                parent.closeChild(*_na, true, false);
+                stats.failures++;
+            break;
+            case SOLVED: // 0
+                node.setHasFailedChildren(false);
+                node.setHasSolvedChildren(true);
+                node.setHasOpenChildren(false);
+                node.setStatus(SOLVED);
+                parent.closeChild(*_na, false, true);
+                stats.solutions++;
+            break;
+            case BRANCH: // 2
+                node.setHasOpenChildren(true);
+                node.setStatus(BRANCH);
+                stats.choices++;
+                stats.undetermined += nalt;
+                nodesCreated += nalt;
+                gid2aid.resize(nodesCreated, -1);
+            break;
+            default:
+                qDebug() << "need to handle this type of Node: " << node.getStatus();
+            break;
+
+        }
+
+        node.changedStatus(*_na);
+        node.dirtyUp(*_na);
+    }
+}
+
 
 void TreeBuilder::run(void) {
     
@@ -29,29 +154,17 @@ void TreeBuilder::run(void) {
     begin = clock();
 	// qDebug() << "### in run method of tc:" << _tc->_id;
 
-	std::vector<DbEntry*> &nodes_arr = _data->nodes_arr;
-	std::unordered_map<unsigned long long, int> &sid2aid = _data->sid2aid;
-	std::vector<unsigned long long> &gid2aid = _data->gid2aid;
-
     bool _isRestarts = _data->isRestarts();
 
-    VisualNode* node;
-    VisualNode* parent;
-
+    std::vector<DbEntry*> &nodes_arr = _data->nodes_arr;
     QMutex &dataMutex = _data->dataMutex;
+    
     Statistics &stats = _tc->stats;
-
     stats.undetermined = 1;
-
 
     while(true) {
 
-        int gid; /// gist Id
-        unsigned long long pid;
-        int parent_gid = -2; /// gist Id of parent
-        int alt;
-        int nalt;
-        int status;
+        system_clock::time_point before_tp = system_clock::now();
 
         int depth;
 
@@ -87,117 +200,12 @@ void TreeBuilder::run(void) {
         _mutex->lock();
 
         if (isRoot) {
-
-            
-            stats.choices++;
-
-            if (_isRestarts) {
-                int restart_root = (*_na)[0]->addChild(*_na); // create a node for a new root
-                qDebug() << "restart_root_id: " << restart_root;
-                VisualNode* new_root = (*_na)[restart_root];
-                new_root->setNumberOfChildren(dbEntry.numberOfKids, *_na);
-                new_root->setStatus(BRANCH);
-                new_root->setHasSolvedChildren(true);
-                new_root->_tid = dbEntry.thread;
-                dbEntry.gid = restart_root;
-                stats.undetermined += dbEntry.numberOfKids - 1;
-                nodesCreated += 1 + dbEntry.numberOfKids;
-                dbEntry.depth = 2;
-
-            } else {
-                int kids = nodes_arr[0]->numberOfKids;
-                (*_na)[0]->setNumberOfChildren(kids, *_na);
-                (*_na)[0]->setStatus(BRANCH);
-                (*_na)[0]->setHasSolvedChildren(true);
-                (*_na)[0]->_tid = 0; /// thread id
-                dbEntry.gid = 0;
-                stats.undetermined += kids - 1;
-                nodesCreated += 1 + kids;
-                dbEntry.depth = 1;
-                
-            }
-
-            gid2aid.resize(nodesCreated, -1);
+            processRoot(dbEntry);            
+        } else { /// not a root
+            processNode(dbEntry);
         }
-        else { /// not a root
 
-            pid         = dbEntry.parent_sid;
-            alt         = dbEntry.alt;
-            nalt        = dbEntry.numberOfKids;
-            status      = dbEntry.status;
-            parent_gid  = nodes_arr[sid2aid[pid]]->gid;
-
-            assert(parent_gid >= 0);
-
-            parent      = (*_na)[parent_gid];
-            node        = parent->getChild(*_na, alt);
-
-            gid         = node->getIndex(*_na);	// Gist ID
-            
-            dbEntry.gid     = gid;
-            dbEntry.depth   = nodes_arr[sid2aid[pid]]->depth + 1;
-
-            gid2aid[gid] = lastRead;
-
-
-
-//            qDebug() << "[" << lastRead << parent_gid << "] pid: " << pid << ", sid2aid:" << sid2aid[pid] << ", nodes_arr[sid2aid[pid]]->gid:" << nodes_arr[sid2aid[pid]]->gid;
-
-            node->_tid = dbEntry.thread;
-            node->setNumberOfChildren(nalt, *_na);
-
-            stats.maxDepth =
-              std::max(stats.maxDepth, static_cast<int>(dbEntry.depth));
-
-
-
-            switch (status) {
-                case FAILED: // 1
-                    node->setHasOpenChildren(false);
-                    node->setHasSolvedChildren(false);
-                    node->setHasFailedChildren(true);
-                    node->setStatus(FAILED);
-                    parent->closeChild(*_na, true, false);
-                    stats.failures++;
-                    stats.undetermined--;
-
-                break;
-                case SKIPPED: // 6
-                    node->setHasOpenChildren(false);
-                    node->setHasSolvedChildren(false);
-                    node->setHasFailedChildren(true);
-                    node->setStatus(SKIPPED);
-                    parent->closeChild(*_na, true, false);
-                    stats.failures++;
-                    stats.undetermined--;
-                break;
-                case SOLVED: // 0
-                    node->setHasFailedChildren(false);
-                    node->setHasSolvedChildren(true);
-                    node->setHasOpenChildren(false);
-                    node->setStatus(SOLVED);
-                    parent->closeChild(*_na, false, true);
-                    stats.solutions++;
-                    stats.undetermined--;
-                break;
-                case BRANCH: // 2
-                    node->setHasOpenChildren(true);
-                    node->setStatus(BRANCH);
-                    stats.choices++;
-                    stats.undetermined += nalt - 1;
-                    nodesCreated += nalt;
-                    gid2aid.resize(nodesCreated, -1);
-                break;
-                default:
-                    qDebug() << "need to handle this type of Node: " << status;
-                break;
-
-            }
-                
-            static_cast<VisualNode*>(node)->changedStatus(*_na);
-            node->dirtyUp(*_na);
-
-        }
+           
 
         _mutex->unlock();
 
@@ -205,13 +213,24 @@ void TreeBuilder::run(void) {
 
         lastRead++;
 
+        // system_clock::time_point after_tp = system_clock::now();
+        // qDebug () << "building node takes: " << 
+        //     duration_cast<nanoseconds>(after_tp - before_tp).count() << "ns";
+
     }
 
-    node->dirtyUp(*_na);
     emit doneBuilding(true);
 
     end = clock();
     double elapsed_secs = double(end - begin) / CLOCKS_PER_SEC;
-     qDebug() << "Time elapsed: " << elapsed_secs << " seconds";
+    qDebug() << "Time elapsed: " << elapsed_secs << " seconds";
+
+    qDebug() << "solutions:" << stats.solutions;
+    qDebug() << "failures:" << stats.failures;
+    qDebug() << "undetermined:" << stats.undetermined;
+
+    /// test if first argument is '--test'
+    if (qApp->arguments().size() > 1 && qApp->arguments().at(1) == "--test")
+        qApp->exit();
 
 }

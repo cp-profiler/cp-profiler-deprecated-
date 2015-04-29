@@ -182,7 +182,7 @@ private:
   static int counter;
 
   /// Pointer to Data Object
-  Data* _data;
+  Data* _data = nullptr;
 
   TreeBuilder* _builder;
 
@@ -377,7 +377,7 @@ protected:
   /// Flag signalling that Gist is ready to be closed
   bool finishedFlag;
   /// Allocator for nodes
-  Node::NodeAllocator* na;
+  Node::NodeAllocator* na = nullptr;
   /// The root node of the tree
   VisualNode* root;
   /// The currently selected node

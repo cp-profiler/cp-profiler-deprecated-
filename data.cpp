@@ -72,28 +72,20 @@ void Data::setDoneReceiving(void) {
     
 }
 
-void Data::startReading(void) {
-    qDebug() << "in startReading...";
-
-}
-
 int Data::handleNodeCallback(Message* msg) {
 
-    int id, pid, alt, kids, status, restart_id;
-    char thread;
     unsigned long long real_id, real_pid;
-    float domain;
 
     current_time = system_clock::now();
 
-    id = msg->sid;
-    pid = msg->parent_sid;
-    alt = msg->alt;
-    kids = msg->kids;
-    status = msg->status;
-    thread = msg->thread;
-    restart_id = msg->restart_id;
-    domain = msg->domain;
+    int id = msg->sid;
+    int pid = msg->parent_sid;
+    int alt = msg->alt;
+    int kids = msg->kids;
+    int status = msg->status;
+    int restart_id = msg->restart_id;
+    char thread = msg->thread;
+    float domain = msg->domain;
 
     // qDebug() << "Received node: \t" << id << " " << pid << " "
     //                 << alt << " " << kids << " " << status << " wid: "
@@ -105,6 +97,7 @@ int Data::handleNodeCallback(Message* msg) {
     if (restart_id == -1) restart_id = 0;
 
     /// this way thread id and node id are stored in one variable
+    /// TODO: shouldn't I make a custom hash function instead?
     if (pid != -1)
         real_pid = (pid | ((long long)restart_id << 32));
     else 
@@ -138,6 +131,10 @@ int Data::handleNodeCallback(Message* msg) {
         last_interval_time = current_time;
         last_interval_nc = nodes_arr.size();
     }
+
+    // system_clock::time_point after_tp = system_clock::now();
+    // qDebug () << "receiving node takes: " << 
+    //     duration_cast<nanoseconds>(after_tp - current_time).count() << "ns";
 
     return 0;
 }
@@ -192,8 +189,9 @@ Data::~Data(void) {
 
     qDebug() << "--- destruct Data";
 
-    for (auto it = nodes_arr.begin(); it != nodes_arr.end(); it++) {
+    for (auto it = nodes_arr.begin(); it != nodes_arr.end();) {
         delete (*it);
+        it = nodes_arr.erase(it);
     }
 }
 
