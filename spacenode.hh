@@ -115,7 +115,7 @@ private:
   /// Book-keeping of open children
   void closeChild(const NodeAllocator& na,
                   bool hadFailures, bool hadSolutions);
-protected: // !TODO: change back to protected
+protected:
   /// Set status to \a s
   void setStatus(NodeStatus s);
 public:

@@ -1,9 +1,15 @@
 #include "treebuilder.hh"
 #include "debug.cpp"
+#include "readingQueue.hh"
+#include <cassert>
 
 TreeBuilder::TreeBuilder(TreeCanvas* tc, QObject *parent)
-    : QThread(parent), _tc(tc) {
-        _mutex = &(_tc->layoutMutex);
+    : QThread(parent), _tc(tc), read_queue(nullptr) {
+        layout_mutex = &(_tc->layoutMutex);
+}
+
+TreeBuilder::~TreeBuilder() {
+    delete read_queue;
 }
 
 void TreeBuilder::startBuilding() {
@@ -20,14 +26,20 @@ void TreeBuilder::reset(Data* data, NodeAllocator* na) {
 	_data = data;
 	_na = na;
 
+    delete read_queue;
+    read_queue = new ReadingQueue(data->nodes_arr);
+
     nodesCreated = 1;
     lastRead = 0;
 }
 
-void TreeBuilder::processRoot(DbEntry& dbEntry) {
+bool TreeBuilder::processRoot(DbEntry& dbEntry) {
+
+    QMutexLocker locker(layout_mutex);
 
     std::vector<DbEntry*> &nodes_arr = _data->nodes_arr;
-    std::vector<unsigned long long> &gid2aid = _data->gid2aid;
+    auto& gid2entry = _data->gid2entry;
+
     Statistics &stats = _tc->stats;
 
     stats.choices++;
@@ -50,6 +62,8 @@ void TreeBuilder::processRoot(DbEntry& dbEntry) {
         dbEntry.depth = 1;
     }
 
+    gid2entry[dbEntry.gid] = &dbEntry;
+
     /// setNumberOfChildren
     root->setNumberOfChildren(kids, *_na);
     root->setStatus(BRANCH);
@@ -58,10 +72,15 @@ void TreeBuilder::processRoot(DbEntry& dbEntry) {
     stats.undetermined += kids - 1;
     nodesCreated += 1 + kids;
 
-    gid2aid.resize(nodesCreated, -1);
+    root->changedStatus(*_na);
+    root->dirtyUp(*_na);
+
+    return true;
 }
 
-void TreeBuilder::processNode(DbEntry& dbEntry) {
+bool TreeBuilder::processNode(DbEntry& dbEntry, bool is_delayed) {
+    QMutexLocker locker(layout_mutex);
+
     unsigned long long pid = dbEntry.parent_sid; /// parent ID as it comes from Solver
     int alt      = dbEntry.alt;        /// which alternative the current node is
     int nalt     = dbEntry.numberOfKids; /// number of kids in current node
@@ -69,19 +88,45 @@ void TreeBuilder::processNode(DbEntry& dbEntry) {
 
     std::vector<DbEntry*> &nodes_arr = _data->nodes_arr;
     std::unordered_map<unsigned long long, int> &sid2aid = _data->sid2aid;
-    std::vector<unsigned long long> &gid2aid = _data->gid2aid;
+    auto& gid2entry = _data->gid2entry;
 
     Statistics &stats = _tc->stats;
 
-    DbEntry& parentEntry = *nodes_arr[sid2aid[pid]];
+
+    /// find out if node exists
+
+    auto pid_it = sid2aid.find(pid);
+    std::cerr << "process node: " << dbEntry << "\n";
+
+
+    if (pid_it == sid2aid.end()) {
+        qDebug() << "node for parent is not in db yet";
+
+        if (!is_delayed)
+            read_queue->readLater(&dbEntry);
+        else
+            qDebug() << "node already in the queue";
+
+        return false;
+    }
+
+    std::cerr << "sid2aid[pid]: " << pid_it->second << "\n";
+    
+
+    DbEntry& parentEntry = *nodes_arr[pid_it->second];
     int parent_gid  = parentEntry.gid; /// parent ID as it is in Node Allocator (Gist)
     VisualNode& parent = *(*_na)[parent_gid];
 
-    assert(parent_gid >= 0);
+    // assert(parent_gid >= 0);
+    if (parent_gid < 0) {
+        // qDebug() << "Ignoring a node: " << ignored_entries.size();
+        ignored_entries.push_back(&dbEntry);
+        return false;
+    }
 
     VisualNode& node = *parent.getChild(*_na, alt);
 
-    /// !!!!!!!!!!!! Tomorrow: Fix skipped node overriding
+    /// Normal behaviour: insert into Undetermined
 
     if (node.getStatus() == UNDETERMINED) {
         stats.undetermined--;
@@ -91,7 +136,7 @@ void TreeBuilder::processNode(DbEntry& dbEntry) {
         /// fill in empty fields of dbEntry
         dbEntry.gid = gid;
         dbEntry.depth   = parentEntry.depth + 1; /// parent's depth + 1
-        gid2aid[gid] = lastRead; /// this way we can find dbEntry
+        gid2entry[gid] = &dbEntry;
 
         stats.maxDepth =
           std::max(stats.maxDepth, static_cast<int>(dbEntry.depth));
@@ -133,21 +178,60 @@ void TreeBuilder::processNode(DbEntry& dbEntry) {
                 stats.choices++;
                 stats.undetermined += nalt;
                 nodesCreated += nalt;
-                gid2aid.resize(nodesCreated, -1);
             break;
             default:
-                qDebug() << "need to handle this type of Node: " << node.getStatus();
+                qDebug() << "need to handle this type of Node: " << status;
             break;
 
         }
 
         node.changedStatus(*_na);
         node.dirtyUp(*_na);
+    } else {
+        /// Not normal cases:
+        /// 1. Branch Node or Failed node into Skipped
+
+        if (node.getStatus() == SKIPPED) {
+            switch (status) {
+                case FAILED: // 1
+                    node.setHasOpenChildren(false);
+                    node.setHasSolvedChildren(false);
+                    node.setHasFailedChildren(true);
+                    node.setStatus(FAILED);
+                    parent.closeChild(*_na, true, false);
+                    stats.failures++;
+
+                break;
+                case BRANCH: // 2
+                    node.setHasOpenChildren(true);
+                    node.setStatus(BRANCH);
+                    stats.choices++;
+                    stats.undetermined += nalt;
+                    nodesCreated += nalt;
+                break;
+                default:
+                    qDebug() << "need to handle this type of Node: " << status;
+                    assert(status != SOLVED);
+                break;
+            }
+        } else {
+            // qDebug() << "Ignoring a node: " << ignored_entries.size();
+            // assert(status == SKIPPED);
+            ignored_entries.push_back(&dbEntry);
+            /// sometimes branch wants to override branch
+        }
+
+
+
     }
+
+    return true;
 }
 
 
 void TreeBuilder::run(void) {
+
+    using std::cout; using std::cerr;
     
     clock_t begin, end;
     
@@ -162,58 +246,48 @@ void TreeBuilder::run(void) {
     Statistics &stats = _tc->stats;
     stats.undetermined = 1;
 
+    bool is_delayed;
+
     while(true) {
 
         system_clock::time_point before_tp = system_clock::now();
 
         int depth;
 
-        while (!dataMutex.tryLock()) { 
-            // qDebug() << "Can't lock, trying again";
-        };
+        while (!dataMutex.tryLock()) { /* qDebug() << "Can't lock, trying again"; */ };
 
-        // qDebug() << "lastRead:" << lastRead << "nodes_arr.size():" << nodes_arr.size();
 
-        /// We can still be processing nodes when the DONE_SENDING message come
-        /// so only stop when the nodes_arr is completely read
-        if (lastRead >= nodes_arr.size()) {
+        /// check if done
+        if (!read_queue->canRead()) {
+            dataMutex.unlock();
+
             if (_data->isDone()) {
-                qDebug() << "stop because done, " << "tc_id: " << _tc->_id;
-                dataMutex.unlock();
+                qDebug() << "stop because done " << "tc_id: " << _tc->_id;
                 break;
-            } else {
-                dataMutex.unlock();
-                continue;
             }
+            /// can't read, but receiving not done, waiting...
+            msleep(1);
+            continue;
         }
 
-        DbEntry& dbEntry = *nodes_arr[lastRead];
+        /// ask queue for an entry
+        DbEntry* entry = read_queue->next(is_delayed);
 
-        // qDebug() << "node: " << dbEntry.parent_sid << " " << dbEntry.alt << " "
-        //          << dbEntry.numberOfKids << " " << dbEntry.status;
+        std::cout << "about to process: " << *entry << "\n";
 
-        bool isRoot = (dbEntry.parent_sid == ~0u) ? true : false;
+        bool isRoot = (entry->parent_sid == ~0u) ? true : false;
 
-        // DebugHelper::printNodes(nodes_arr);
-        // DebugHelper::printMap(sid2aid);
+        /// TODO: process node should know if the node is delayed
 
-        _mutex->lock();
+        /// try to put node into the tree
+        bool success = isRoot ? processRoot(*entry) : processNode(*entry, is_delayed);
 
-        if (isRoot) {
-            processRoot(dbEntry);            
-        } else { /// not a root
-            processNode(dbEntry);
-        }
-
-           
-
-        _mutex->unlock();
+        read_queue->update(success);
 
         dataMutex.unlock();
 
-        lastRead++;
 
-        // system_clock::time_point after_tp = system_clock::now();
+        system_clock::time_point after_tp = system_clock::now();
         // qDebug () << "building node takes: " << 
         //     duration_cast<nanoseconds>(after_tp - before_tp).count() << "ns";
 

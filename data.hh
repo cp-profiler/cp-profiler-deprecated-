@@ -18,6 +18,7 @@ typedef NodeAllocatorBase<VisualNode> NodeAllocator;
 
 using namespace std::chrono;
 using std::string;
+using std::ostream;
 
 enum MsgType {
   NODE_DATA = 1,
@@ -45,18 +46,21 @@ class DbEntry {
 private:
 
 public:
-    DbEntry(unsigned long long _p, int _alt, int _kids, char _tid,
+    DbEntry(unsigned long long id, unsigned long long _p, int _alt, int _kids, char _tid,
             char* _label, int _status, unsigned long long _time_stamp,
             unsigned long long _node_time, float _domain) :
-        gid(-1), parent_sid(_p), alt(_alt), numberOfKids(_kids),
+        gid(-1), sid(id), parent_sid(_p), alt(_alt), numberOfKids(_kids),
         status(_status), thread(_tid), depth(-1), time_stamp(_time_stamp), node_time(_node_time),
         domain(_domain) {
           
           memcpy(label, _label, Message::LABEL_SIZE);
     }
 
+    friend ostream& operator<<(ostream& s, const DbEntry& e);
+
     DbEntry(): gid(-1) {}
 
+    int sid; // TODO: redundant, only for debugging
     int gid; // gist id, set to -1 so we don't forget to assign the real value
     unsigned long long parent_sid; // parent id in database 
     int alt; // which child by order
@@ -69,7 +73,6 @@ public:
     unsigned long long node_time;
     float domain;
 };
-
 
 class Data : public QObject {
 Q_OBJECT
@@ -99,7 +102,7 @@ private:
     std::unordered_map<unsigned long long, int> sid2aid;
 
     /// Mapping from gist Id to array Id (nodes_arr)
-    std::vector<unsigned long long> gid2aid;
+    // std::vector<unsigned long long> gid2aid; /// use gid2entry instead
 
     /// Maps gist Id to dbEntry (possibly in the other Data instance);
     /// i.e. needed for a merged tree to show labels etc.
@@ -156,10 +159,7 @@ public:
 
     const char* getLabelByGid(unsigned int gid);
 
-    /// get label omitting gid2aid mapping (i.e. for merged tree)   /// TODO: delete if not used
-    const char* getLabelByAid(unsigned int aid);
-
-    void connectNodeToEntry(unsigned int gid, DbEntry* entry);
+    void connectNodeToEntry(unsigned int gid, DbEntry* const entry);
 
 /// ********* GETTERS **********
 
@@ -187,6 +187,16 @@ public:
     // sets _isDone to true when received DONE_SENDING
     void setDoneReceiving(void);
 };
+
+inline
+void Data::connectNodeToEntry(unsigned int gid, DbEntry* entry) {
+    gid2entry[gid] = entry;
+}
+
+inline
+DbEntry* Data::getEntry(unsigned int gid) {
+    return gid2entry[gid];
+}
 
 
 

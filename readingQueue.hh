@@ -1,0 +1,56 @@
+#ifndef READING_QUEUE
+#define READING_QUEUE
+
+#include <vector>
+#include <map>
+#include <queue>
+
+class DbEntry;
+
+typedef std::map<int, std::queue<DbEntry*>*> QueueMap;
+
+class ReadingQueue {
+
+private:
+
+  /// nodes from Data
+  std::vector<DbEntry*>& nodes_arr;
+
+  /// nodes delayed, map: thread_id -> queue
+  QueueMap delayed_treads;
+  QueueMap::iterator it;
+
+  int last_read;                      /// node id from nodes_arr currently read
+  int delayed_count;                 /// how many nodes delayed
+  
+
+  bool read_delayed;
+
+
+// inline DbEntry* nextNormal();
+// inline DbEntry* nextDelayed();
+
+  inline QueueMap::iterator nextNonemptyIt(QueueMap::iterator it);
+
+public:
+
+
+
+  ReadingQueue(std::vector<DbEntry*>& nodes);
+
+  DbEntry* next(bool& delayed);
+
+  /// whether nodes_arr is processed and all queues are empty
+  bool canRead();
+
+  /// notify regarding last processed entry
+  void update(bool success);
+
+  /// put into delayed queue
+  void readLater(DbEntry* delayed);
+
+
+};
+
+
+#endif

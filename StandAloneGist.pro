@@ -36,6 +36,7 @@ SOURCES += main.cpp\
     cmp_tree_dialog.cpp \
     receiverthread.cpp \
     treebuilder.cpp \
+    readingQueue.cpp \
     treecomparison.cpp \
     pixelview.cpp \
     debug.cpp \
@@ -71,6 +72,7 @@ HEADERS  += gistmainwindow.h \
     cmp_tree_dialog.hh \
     receiverthread.hh \
     treebuilder.hh \
+    readingQueue.hh \
     treecomparison.hh \
     pixelview.hh
 

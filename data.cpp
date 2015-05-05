@@ -16,9 +16,20 @@ using namespace std;
 
 int Data::instance_counter = 0;
 
+ostream& operator<<(ostream& s, const DbEntry& e) {
+    s << "dbEntry: {";
+    s << " sid: " << e.sid;
+    s << " pid: " << e.parent_sid;
+    s << " alt: " << e.alt;
+    s << " kids: " << e.numberOfKids;
+    s << " tid: " << (int)e.thread;
+    s << " }";
+    return s;
+}
+
 
 Data::Data(TreeCanvas* tc, NodeAllocator* na, bool isRestarts)
- : _tc(tc), _id(_tc->_id), _na(na), gid2aid(1), _isRestarts(isRestarts) {
+ : _tc(tc), _id(_tc->_id), _na(na), _isRestarts(isRestarts) {
 
     _isDone = false;
     _prev_node_timestamp = 0;
@@ -65,9 +76,6 @@ void Data::setDoneReceiving(void) {
     
     // qDebug() << "Size of 'nodes_arr' (bytes): " << nodes_arr.size() * sizeof(DbEntry);
 
-    // qDebug() << "gid2aid size is: " << gid2aid.size();
-    // qDebug() << "gid2aid capacity is: " << gid2aid.capacity();
-
     _isDone = true;
     
 }
@@ -103,10 +111,13 @@ int Data::handleNodeCallback(Message* msg) {
     else 
         real_pid = ~0u;
 
+    assert(restart_id == 0);
+
     real_id = (id | ((long long)restart_id << 32));
 
     pushInstance(real_id,
-        new DbEntry(real_pid,
+        new DbEntry(real_id,
+                    real_pid,
                     alt,
                     kids,
                     thread,
@@ -139,41 +150,14 @@ int Data::handleNodeCallback(Message* msg) {
     return 0;
 }
 
-
-void Data::connectNodeToEntry(unsigned int gid, DbEntry* entry) {
-    gid2entry[gid] = entry;
-}
-
-DbEntry* Data::getEntry(unsigned int gid) {
-    int aid = gid2aid[gid];
-
-    if (aid == -1)
-        return NULL;
-    return nodes_arr[ aid ];
-}
-
 const char* Data::getLabelByGid(unsigned int gid) {
     QMutexLocker locker(&dataMutex);
 
-    if (_tc->canvasType == CanvasType::REGULAR) {
-        int aid = gid2aid[gid];
-        if (aid == -1)
-            return "";
-        return nodes_arr[ aid ]->label;
-    }
-    else {
-        DbEntry* entry = gid2entry[gid];
-        if (entry)
-            return entry->label;
-        return "";
-    }
+    auto it = gid2entry.find(gid);
+    if (it != gid2entry.end())
+        return it->second->label;
+    return "";
 
-}
-
-const char* Data::getLabelByAid(unsigned int aid) {
-    QMutexLocker locker(&dataMutex);
-
-    return nodes_arr[ aid ]->label;
 }
 
 
@@ -217,5 +201,7 @@ void Data::pushInstance(unsigned long long sid, DbEntry* entry) {
     nodes_arr.push_back(entry);
 
     sid2aid[sid] = nodes_arr.size() - 1;
+    
+    qDebug() << "sid2aid[" << sid << "] = " << sid2aid[sid];
 
 }

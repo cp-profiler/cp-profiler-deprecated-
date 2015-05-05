@@ -157,7 +157,7 @@ public:
   QAction* printSearchLog;
   /// Creates new canvas and runs comparison tool
   QAction* initComparison;
-  /// Allow second canvas (when new data recieved)
+  /// Allow second canvas (when new data received)
   QAction* sndCanvas;
 
   /// Bookmark current node

@@ -109,7 +109,7 @@ ReceiverThread::run(void) {
                 _t->getData()->setTitle(msg->label);
             break;
             case DONE_SENDING:
-                qDebug() << "recieved DONE SENDING";
+                qDebug() << "received DONE SENDING";
                 updateCanvas();
                 /// needed for Opturion CPX restarts
                 // if (!_t->_data->isRestarts()) 
