@@ -202,6 +202,6 @@ void Data::pushInstance(unsigned long long sid, DbEntry* entry) {
 
     sid2aid[sid] = nodes_arr.size() - 1;
     
-    qDebug() << "sid2aid[" << sid << "] = " << sid2aid[sid];
+    // qDebug() << "sid2aid[" << sid << "] = " << sid2aid[sid];
 
 }

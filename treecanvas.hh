@@ -205,24 +205,6 @@ public:
 
   /// *******************
 
-
-//  /// Add inspector \a i
-//  void addDoubleClickInspector(Inspector* i);
-//  /// Set active inspector
-//  void activateDoubleClickInspector(int i, bool active);
-//  /// Add inspector \a i
-//  void addSolutionInspector(Inspector* i);
-//  /// Set active inspector
-//  void activateSolutionInspector(int i, bool active);
-//  /// Add inspector \a i
-//  void addMoveInspector(Inspector* i);
-//  /// Set active inspector
-//  void activateMoveInspector(int i, bool active);
-//  /// Add comparator \a c
-//  void addComparator(Comparator* c);
-//  /// Set active comparator
-//  void activateComparator(int i, bool active);
-
   int getNoOfSolvedLeaves(VisualNode& n);  // TODO: duplicate?
   /// Return number of solved children in the node
   int getNoOfSolvedLeaves(VisualNode* node);
@@ -256,16 +238,8 @@ public Q_SLOTS:
   void zoomToFit(void);
   /// Center the view on the currently selected node
   void centerCurrentNode(void);
-  /**
-   * \brief Call the double click inspector for the currently selected node
-   *
-   * If \a fix is true, then the node is inspected after fixpoint
-   * computation, otherwise its status after branching but before
-   * fixpoint computation is inspected.
-   */
-  void inspectCurrentNode(bool fix=true, int inspectorNo=-1);
-  /// Calls inspectCurrentNode(false)
-  void inspectBeforeFP(void);
+  /// Expand hidden node or pentagon
+  void expandCurrentNode();
   /// Label all branches in subtree under current node
   void labelBranches(void);
   /// Label all branches on path to root node
@@ -310,15 +284,6 @@ public Q_SLOTS:
   void navPrevSol(void);
   /// Bookmark current node
   void bookmarkNode(void);
-  /// Set the current node to be the head of the path
-  void setPath(void);
-  /// Call the double click inspector for all nodes on the path from root to head of the path
-  void inspectPath(void);
-  /// Wait for click on node to compare with current node
-  void startCompareNodes(void);
-  /// Wait for click on node to compare with current node before fixpoint
-  void startCompareNodesBeforeFP(void);
-
   /// Re-emit status change information for current node
   void emitStatusChanged(void);
 
@@ -384,22 +349,9 @@ protected:
   VisualNode* currentNode;
   /// The head of the currently selected path
   VisualNode* pathHead;
-//  /// The registered click inspectors, and whether they are active
-//  QVector<QPair<Inspector*,bool> > doubleClickInspectors;
-//  /// The registered solution inspectors, and whether they are active
-//  QVector<QPair<Inspector*,bool> > solutionInspectors;
-//  /// The registered move inspectors, and whether they are active
-//  QVector<QPair<Inspector*,bool> > moveInspectors;
-//  /// The registered comparators, and whether they are active
-//  QVector<QPair<Comparator*,bool> > comparators;
 
   /// The bookmarks map
   QVector<VisualNode*> bookmarks;
-
-  /// Whether node comparison action is running
-  bool compareNodes;
-  /// Whether node comparison action computes fixpoint
-  bool compareNodesBeforeFP;
 
   /// The scale bar
   QSlider* scaleBar;

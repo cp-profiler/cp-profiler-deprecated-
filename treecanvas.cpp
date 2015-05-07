@@ -27,7 +27,6 @@ TreeCanvas::TreeCanvas(QGridLayout* layout, ReceiverThread* receiver, CanvasType
     , mutex(QMutex::Recursive)
     , layoutMutex(QMutex::Recursive)
     , finishedFlag(false)
-    , compareNodes(false), compareNodesBeforeFP(false)
     , autoHideFailed(true), autoZoom(false)
     , refresh(500), refreshPause(0), smoothScrollAndZoom(false)
     , moveDuringSearch(false)
@@ -807,166 +806,22 @@ TreeCanvas::scroll(int i) {
 
 /// check what should be uncommented out.
 void
-TreeCanvas::inspectCurrentNode(bool, int) {
-    QMutexLocker locker(&mutex);
+TreeCanvas::expandCurrentNode() {
+  QMutexLocker locker(&mutex);
 
-    if (currentNode->isHidden()) {
-        toggleHidden();
-        return;
-    }
-
-    if (currentNode->getStatus() == MERGING) {
-        toggleHidden();
-        
-        return;
-    }
-
-    int failedInspectorType = -1;
-    int failedInspector = -1;
-//    bool needCentering;
-
-   uint kids = currentNode->getNumberOfChildren();
-    int depth = -1;
-    for (VisualNode* p = currentNode; p != NULL; p=p->getParent(*na))
-        depth++;
-  if (kids > 0) {
-//      needCentering = true;
-      depth++;
+  if (currentNode->isHidden()) {
+      toggleHidden();
+      return;
   }
-    stats.maxDepth =
-            std::max(stats.maxDepth, depth);
 
-    try {
-        switch (currentNode->getStatus()) {
-            case UNDETERMINED:
-            {
-               // uint kids = currentNode->getNumberOfChildNodes(*na);
-               // int depth = -1;
-               // for (VisualNode* p = currentNode; p != NULL; p=p->getParent(*na))
-               //     depth++;
-               // if (kids > 0) {
-               //     // needCentering = true;
-               //     depth++;
-               // }
-               // stats.maxDepth =
-               //         std::max(stats.maxDepth, depth);
-   //         if (currentNode->getStatus() == SOLVED) {
-   //             emit solution(0);
-   //         }
-   //         emit statusChanged(currentNode,stats,true);
-   //         // for (int i=0; i<moveInspectors.size(); i++) {
-   //         //     if (moveInspectors[i].second) {
-   //         //         failedInspectorType = 0;
-   //         //         failedInspector = i;
-   //         //         if (currentNode->getStatus() == FAILED) {
-   //         //             if (!currentNode->isRoot()) {
-   //         //                 Space* curSpace =
-   //         //                         currentNode->getSpace(*na,curBest,c_d,a_d);
-   //         //                 moveInspectors[i].first->inspect(*curSpace);
-   //         //                 delete curSpace;
-   //         //             }
-   //         //         } else {
-   //         //             moveInspectors[i].first->
-   //         //                     inspect(*currentNode->getWorkingSpace());
-   //         //         }
-   //         //         failedInspectorType = -1;
-   //         //     }
-   //         // }
-            }
-            break;
-            case FAILED:
-            case STOP:
-            case UNSTOP:
-            case BRANCH:
-            case SOLVED:
-            case SKIPPED:
-            case MERGING:
-            break;
-   //     {
-   //         // SizeCursor sc(currentNode);
-   //         // PreorderNodeVisitor<SizeCursor> pnv(sc);
-   //         // int nodes = 1;
-   //         // while (pnv.next()) { nodes++; }
-   //         // std::cout << "sizeof(VisualNode): " << sizeof(VisualNode)
-   //         //           << std::endl;
-   //         // std::cout << "Size: " << (pnv.getCursor().s)/1024 << std::endl;
-   //         // std::cout << "Nodes: " << nodes << std::endl;
-   //         // std::cout << "Size / node: " << (pnv.getCursor().s)/nodes
-   //         //           << std::endl;
+  if (currentNode->getStatus() == MERGING) {
+      toggleHidden();
+      
+      return;
+  }
 
-   //         Space* curSpace;
-
-   //         if (fix) {
-   //             if (currentNode->isRoot() && currentNode->getStatus() == FAILED)
-   //                 break;
-   //             curSpace = currentNode->getSpace(*na,curBest,c_d,a_d);
-   //             if (currentNode->getStatus() == SOLVED &&
-   //                     curSpace->status() != SS_SOLVED) {
-   //                 // in the presence of weakly monotonic propagators, we may have
-   //                 // to use search to find the solution here
-   //                 assert(curSpace->status() == SS_BRANCH &&
-   //                        "Something went wrong - probably an incorrect brancher");
-   //                 Space* dfsSpace = Gecode::dfs(curSpace);
-   //                 delete curSpace;
-   //                 curSpace = dfsSpace;
-   //             }
-   //         } else {
-   //             if (currentNode->isRoot())
-   //                 break;
-   //             VisualNode* p = currentNode->getParent(*na);
-   //             curSpace = p->getSpace(*na,curBest,c_d,a_d);
-   //             switch (curSpace->status()) {
-   //             case SS_SOLVED:
-   //             case SS_FAILED:
-   //                 break;
-   //             case SS_BRANCH:
-   //                 curSpace->commit(*p->getChoice(),
-   //                                  currentNode->getAlternative(*na));
-   //                 break;
-   //             default:
-   //                 GECODE_NEVER;
-   //             }
-   //         }
-
-   //         if (inspectorNo==-1) {
-   //             for (int i=0; i<doubleClickInspectors.size(); i++) {
-   //                 if (doubleClickInspectors[i].second) {
-   //                     failedInspectorType = 1;
-   //                     failedInspector = i;
-   //                     doubleClickInspectors[i].first->inspect(*curSpace);
-   //                     failedInspectorType = -1;
-   //                 }
-   //             }
-   //         } else {
-   //             failedInspectorType = 1;
-   //             failedInspector = inspectorNo;
-   //             doubleClickInspectors[inspectorNo].first->inspect(*curSpace);
-   //             failedInspectorType = -1;
-   //         }
-   //         delete curSpace;
-   //     }
-   //         break;
-       }
-    } catch (QException& e) {
-       switch (failedInspectorType) {
-       case 0:
-           qFatal("Exception in move inspector %d: %s.\n Stopping.",
-                  failedInspector, e.what());
-           break;
-       case 1:
-           qFatal("Exception in double click inspector %d: %s.\n Stopping.",
-                  failedInspector, e.what());
-           break;
-       default:
-           qFatal("Exception: %s.\n Stopping.", e.what());
-           break;
-       }
-   }
-
-   currentNode->dirtyUp(*na);
-   update();
-   // if (needCentering)
-   //     centerCurrentNode();
+  currentNode->dirtyUp(*na);
+  update();
 }
 
   int 
@@ -980,12 +835,6 @@ TreeCanvas::getNoOfSolvedLeaves(VisualNode* node) {
   PreorderNodeVisitor<CountSolvedCursor>(csc).run();
 
   return count;
-}
-
-
-void
-TreeCanvas::inspectBeforeFP(void) {
-    inspectCurrentNode(false);
 }
 
 void
@@ -1080,52 +929,6 @@ TreeCanvas::bookmarkNode(void) {
     }
     currentNode->dirtyUp(*na);
     update();
-}
-
-void
-TreeCanvas::setPath(void) {
-    QMutexLocker locker(&mutex);
-    if(currentNode == pathHead)
-        return;
-
-    pathHead->unPathUp(*na);
-    pathHead = currentNode;
-
-    currentNode->pathUp(*na);
-    currentNode->dirtyUp(*na);
-    update();
-}
-
-void
-TreeCanvas::inspectPath(void) {
-    QMutexLocker locker(&mutex);
-    setCurrentNode(root);
-    if (currentNode->isOnPath()) {
-        inspectCurrentNode();
-        int nextAlt = currentNode->getPathAlternative(*na);
-        while (nextAlt >= 0) {
-            setCurrentNode(currentNode->getChild(*na,nextAlt));
-            inspectCurrentNode();
-            nextAlt = currentNode->getPathAlternative(*na);
-        }
-    }
-    update();
-}
-
-void
-TreeCanvas::startCompareNodes(void) {
-    QMutexLocker locker(&mutex);
-    compareNodes = true;
-    compareNodesBeforeFP = false;
-    setCursor(QCursor(Qt::CrossCursor));
-}
-
-void
-TreeCanvas::startCompareNodesBeforeFP(void) {
-    QMutexLocker locker(&mutex);
-    compareNodes = true;
-    compareNodesBeforeFP = true;
-    setCursor(QCursor(Qt::CrossCursor));
 }
 
 void
@@ -1458,7 +1261,7 @@ TreeCanvas::mouseDoubleClickEvent(QMouseEvent* event) {
         if(event->button() == Qt::LeftButton) {
             VisualNode* n = eventNode(event);
             if(n == currentNode) {
-                inspectCurrentNode();
+                expandCurrentNode();
                 event->accept();
                 mutex.unlock();
                 return;
@@ -1517,14 +1320,7 @@ TreeCanvas::finish(void) {
         return true;
     stopSearchFlag = true;
     finishedFlag = true;
-//    for (int i=0; i<doubleClickInspectors.size(); i++)
-//        doubleClickInspectors[i].first->finalize();
-//    for (int i=0; i<solutionInspectors.size(); i++)
-//        solutionInspectors[i].first->finalize();
-//    for (int i=0; i<moveInspectors.size(); i++)
-//        moveInspectors[i].first->finalize();
-//    for (int i=0; i<comparators.size(); i++)
-//        comparators[i].first->finalize();
+
     return !ptr_receiver->isRunning();
 }
 
@@ -1547,7 +1343,6 @@ TreeCanvas::setCurrentNode(VisualNode* n, bool finished, bool update) {
         emit statusChanged(currentNode, stats, finished);
         emit needActionsUpdate(currentNode, finished);
         if (update) {
-            compareNodes = false;
             setCursor(QCursor(Qt::ArrowCursor));
             QWidget::update();
         }
@@ -1561,48 +1356,7 @@ TreeCanvas::mousePressEvent(QMouseEvent* event) {
     if (mutex.tryLock()) {
         if (event->button() == Qt::LeftButton) {
             VisualNode* n = eventNode(event);
-            if (compareNodes) {
-                if (n != NULL && n->getStatus() != UNDETERMINED &&
-                        currentNode != NULL &&
-                        currentNode->getStatus() != UNDETERMINED) {
-//                    Space* curSpace = NULL;
-//                    Space* compareSpace = NULL;
-//                    for (int i=0; i<comparators.size(); i++) {
-//                        if (comparators[i].second) {
-//                            if (curSpace == NULL) {
-//                                curSpace = currentNode->getSpace(*na,curBest,c_d,a_d);
-
-//                                if (!compareNodesBeforeFP || n->isRoot()) {
-//                                    compareSpace = n->getSpace(*na,curBest,c_d,a_d);
-//                                } else {
-//                                    VisualNode* p = n->getParent(*na);
-//                                    compareSpace = p->getSpace(*na,curBest,c_d,a_d);
-//                                    switch (compareSpace->status()) {
-//                                    case SS_SOLVED:
-//                                    case SS_FAILED:
-//                                        break;
-//                                    case SS_BRANCH:
-//                                        compareSpace->commit(*p->getChoice(),
-//                                                             n->getAlternative(*na));
-//                                        break;
-//                                    default:
-//                                        GECODE_NEVER;
-//                                    }
-//                                }
-//                            }
-//                            try {
-//                                comparators[i].first->compare(*curSpace,*compareSpace);
-//                            } catch (Exception& e) {
-//                                qFatal("Exception in comparator %d: %s.\n Stopping.",
-//                                       i, e.what());
-//                            }
-//                        }
-//                    }
-                }
-            } else {
-                setCurrentNode(n);
-            }
-            compareNodes = false;
+            setCurrentNode(n);
             setCursor(QCursor(Qt::ArrowCursor));
             if (n != NULL) {
                 event->accept();

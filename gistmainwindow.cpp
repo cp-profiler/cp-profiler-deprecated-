@@ -58,23 +58,6 @@ GistMainWindow::GistMainWindow(void) : aboutGist(this) {
 
   QMenu* nodeMenu = menuBar->addMenu(tr("&Node"));
 
-  inspectNodeMenu = new QMenu("Inspect", this);
-  inspectNodeMenu->addAction(c->inspect);
-  connect(inspectNodeMenu, SIGNAL(aboutToShow()),
-          this, SLOT(populateInspectors()));
-
-  inspectNodeBeforeFPMenu = new QMenu("Inspect before fixpoint", this);
-  inspectNodeBeforeFPMenu->addAction(c->inspectBeforeFP);
-  connect(inspectNodeBeforeFPMenu, SIGNAL(aboutToShow()),
-          this, SLOT(populateInspectors()));
-  populateInspectors();
-
-  nodeMenu->addMenu(inspectNodeMenu);
-  nodeMenu->addMenu(inspectNodeBeforeFPMenu);
-  nodeMenu->addAction(c->compareNode);
-  nodeMenu->addAction(c->compareNodeBeforeFP);
-  nodeMenu->addAction(c->setPath);
-  nodeMenu->addAction(c->inspectPath);
   nodeMenu->addAction(c->showNodeStats);
 
   /// ***** Tree Visualisaitons *****
@@ -127,21 +110,9 @@ GistMainWindow::GistMainWindow(void) : aboutGist(this) {
   searchMenu->addAction(c->initComparison);
 
   QMenu* toolsMenu = menuBar->addMenu(tr("&Tools"));
-  doubleClickInspectorsMenu = new QMenu("Double click Inspectors", this);
-  connect(doubleClickInspectorsMenu, SIGNAL(aboutToShow()),
-          this, SLOT(populateInspectorSelection()));
-  toolsMenu->addMenu(doubleClickInspectorsMenu);
-  solutionInspectorsMenu = new QMenu("Solution inspectors", this);
-  connect(solutionInspectorsMenu, SIGNAL(aboutToShow()),
-          this, SLOT(populateInspectorSelection()));
-  toolsMenu->addMenu(solutionInspectorsMenu);
-  moveInspectorsMenu = new QMenu("Move inspectors", this);
-  connect(moveInspectorsMenu, SIGNAL(aboutToShow()),
-          this, SLOT(populateInspectorSelection()));
-  toolsMenu->addMenu(moveInspectorsMenu);
+
   comparatorsMenu = new QMenu("Comparators", this);
-  connect(comparatorsMenu, SIGNAL(aboutToShow()),
-          this, SLOT(populateInspectorSelection()));
+
   toolsMenu->addMenu(comparatorsMenu);
 
   QMenu* helpMenu = menuBar->addMenu(tr("&Help"));
@@ -259,36 +230,11 @@ GistMainWindow::preferences(bool setup) {
 }
 
 void
-GistMainWindow::populateInspectorSelection(void) {
-//  doubleClickInspectorsMenu->clear();
-//  doubleClickInspectorsMenu->addActions(
-//    c->doubleClickInspectorGroup->actions());
-//  solutionInspectorsMenu->clear();
-//  solutionInspectorsMenu->addActions(c->solutionInspectorGroup->actions());
-//  moveInspectorsMenu->clear();
-//  moveInspectorsMenu->addActions(c->moveInspectorGroup->actions());
-//  comparatorsMenu->clear();
-//  comparatorsMenu->addActions(c->comparatorGroup->actions());
-}
-
-void
 GistMainWindow::populateBookmarks(void) {
   bookmarksMenu->clear();
   bookmarksMenu->addAction(c->bookmarkNode);
   bookmarksMenu->addSeparator();
   bookmarksMenu->addActions(c->bookmarksGroup->actions());
-}
-
-void
-GistMainWindow::populateInspectors(void) {
-//  inspectNodeMenu->clear();
-//  inspectNodeMenu->addAction(c->inspect);
-//  inspectNodeMenu->addSeparator();
-//  inspectNodeMenu->addActions(c->inspectGroup->actions());
-//  inspectNodeBeforeFPMenu->clear();
-//  inspectNodeBeforeFPMenu->addAction(c->inspectBeforeFP);
-//  inspectNodeBeforeFPMenu->addSeparator();
-//  inspectNodeBeforeFPMenu->addActions(c->inspectBeforeFPGroup->actions());
 }
 
 void

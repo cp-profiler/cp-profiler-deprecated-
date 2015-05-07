@@ -12,13 +12,13 @@ DbEntry*
 ReadingQueue::next(bool& delayed) {
 
   /// for dubugging
-  std::cout << "*** delayed: ***\n";
-  for (auto it = delayed_treads.begin(); it != delayed_treads.end(); it++) {
-    // std::cout << "front: " << (*it->second).front()->sid;
-    std::cout << "size: " << (*it->second).size();
-    std::cout << "\n";
-  }
-  std::cout << "*********\n";
+  // std::cout << "*** delayed: ***\n";
+  // for (auto it = delayed_treads.begin(); it != delayed_treads.end(); it++) {
+  //   // std::cout << "front: " << (*it->second).front()->sid;
+  //   std::cout << "size: " << (*it->second).size();
+  //   std::cout << "\n";
+  // }
+  // std::cout << "*********\n";
 
   // std::cout << "nodes_arr: ";
   // for (auto entry = nodes_arr.begin(); entry != nodes_arr.end(); entry++) {
@@ -82,15 +82,13 @@ ReadingQueue::canRead() {
 
 void
 ReadingQueue::update(bool success) {
-
-
   /// if success on array -> continue array
-  if (!read_delayed && success) {
-    std::cout << "successfully read, misses: " << node_misses << "\n";
-    node_misses = 0;
-    delayed_cd_count--;
-    return;
-  }
+  // if (!read_delayed && success) {
+  //   std::cout << "successfully read, misses: " << node_misses << "\n";
+  //   node_misses = 0;
+  //   delayed_cd_count--;
+  //   return;
+  // }
 
   /// if success on delayed -> continue delayed
   if (read_delayed && success) {

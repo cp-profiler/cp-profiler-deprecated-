@@ -206,12 +206,6 @@ Gist::on_canvas_statusChanged(VisualNode* n, const Statistics& stats,
                               bool finished) {
     // nodeStatInspector->node(*canvas->na,n,stats,finished); /// TODO: what does this do?
     if (!finished) {
-        // inspect->setEnabled(false);
-        // inspectGroup->setEnabled(false);
-        // inspectBeforeFP->setEnabled(false);
-        // inspectBeforeFPGroup->setEnabled(false);
-        // compareNode->setEnabled(false);
-        // compareNodeBeforeFP->setEnabled(false);
         showNodeStats->setEnabled(false);
         // stop-> setEnabled(true);
         // reset->setEnabled(false);
@@ -239,8 +233,6 @@ Gist::on_canvas_statusChanged(VisualNode* n, const Statistics& stats,
         print->setEnabled(false);
         printSearchLog->setEnabled(false);
 
-        setPath->setEnabled(false);
-        inspectPath->setEnabled(false);
         bookmarkNode->setEnabled(false);
         bookmarksGroup->setEnabled(false);
         sndCanvas->setEnabled(true);
@@ -274,32 +266,16 @@ Gist::on_canvas_statusChanged(VisualNode* n, const Statistics& stats,
                                n->getStatus() == UNSTOP);
 
         showNodeStats->setEnabled(true);
-        // inspect->setEnabled(true);
         labelPath->setEnabled(true);
         analyzeSimilarSubtrees->setEnabled(true);
         if (n->getStatus() == UNDETERMINED) {
-            // inspectGroup->setEnabled(false);
-            // inspectBeforeFP->setEnabled(false);
-            // inspectBeforeFPGroup->setEnabled(false);
-            // compareNode->setEnabled(false);
-            // compareNodeBeforeFP->setEnabled(false);
             /// TODO: disable based on active canvas' current node:
             // labelBranches->setEnabled(false); 
         } else {
-            // inspectGroup->setEnabled(true);
-            // inspectBeforeFP->setEnabled(true);
-            // inspectBeforeFPGroup->setEnabled(true);
-            // compareNode->setEnabled(true);
-            // compareNodeBeforeFP->setEnabled(true);
             // labelBranches->setEnabled(!n->isHidden());
         }
         
         VisualNode* p = n->getParent(*canvas->na);
-        if (p == NULL) {
-            // inspectBeforeFP->setEnabled(false);
-            // inspectBeforeFPGroup->setEnabled(false);
-
-        }
 
         VisualNode* root = n;
         while (!root->isRoot())
@@ -320,9 +296,6 @@ Gist::on_canvas_statusChanged(VisualNode* n, const Statistics& stats,
         print->setEnabled(true);
         printSearchLog->setEnabled(true);
 
-        // setPath->setEnabled(true);
-        // inspectPath->setEnabled(true);
-
         bookmarkNode->setEnabled(true);
         bookmarksGroup->setEnabled(true);
     }
@@ -334,40 +307,11 @@ Gist::emitChangeMainTitle(const char* file_name) {
     emit changeMainTitle(file_name);
 }
 
-void
-Gist::inspectWithAction(QAction* a) {
-    canvas->inspectCurrentNode(true,inspectGroup->actions().indexOf(a));
-}
-
-void
-Gist::inspectBeforeFPWithAction(QAction* a) {
-    canvas->inspectCurrentNode(false,
-                               inspectBeforeFPGroup->actions().indexOf(a));
-}
-
 bool
 Gist::finish(void) {
     return canvas->finish();
 }
 
-//void
-//Gist::selectDoubleClickInspector(QAction* a) {
-//    canvas->activateDoubleClickInspector(
-//                doubleClickInspectorGroup->actions().indexOf(a),
-//                a->isChecked());
-//}
-//void
-//Gist::selectSolutionInspector(QAction* a) {
-//    canvas->activateSolutionInspector(
-//                solutionInspectorGroup->actions().indexOf(a),
-//                a->isChecked());
-//}
-//void
-//Gist::selectMoveInspector(QAction* a) {
-//    canvas->activateMoveInspector(
-//                moveInspectorGroup->actions().indexOf(a),
-//                a->isChecked());
-//}
 //void
 //Gist::selectComparator(QAction* a) {
 //    canvas->activateComparator(comparatorGroup->actions().indexOf(a),
@@ -408,17 +352,6 @@ Gist::populateBookmarksMenu(void) {
     bookmarksMenu->addActions(bookmarksGroup->actions());
 }
 
-void
-Gist::populateInspectors(void) {
-    inspectNodeMenu->clear();
-    inspectNodeMenu->addAction(inspect);
-    inspectNodeMenu->addSeparator();
-    inspectNodeMenu->addActions(inspectGroup->actions());
-    inspectNodeBeforeFPMenu->clear();
-    inspectNodeBeforeFPMenu->addAction(inspectBeforeFP);
-    inspectNodeBeforeFPMenu->addSeparator();
-    inspectNodeBeforeFPMenu->addActions(inspectBeforeFPGroup->actions());
-}
 
 void
 Gist::setAutoHideFailed(bool b) { canvas->setAutoHideFailed(b); }
@@ -459,13 +392,10 @@ Gist::showStats(void) {
 void
 Gist::addActions(void) {
     /// important! Expands hidden nodes and pentagons
-    inspect = new QAction("Inspect", this);
-    inspect->setShortcut(QKeySequence("Return"));
-    inspect->setShortcutContext(Qt::ApplicationShortcut);
+    expand = new QAction("Expand", this);
+    expand->setShortcut(QKeySequence("Return"));
+    expand->setShortcutContext(Qt::ApplicationShortcut);
     
-    inspectBeforeFP = new QAction("Inspect before fixpoint", this);
-    inspectBeforeFP->setShortcut(QKeySequence("Ctrl+Return"));
-
     stop = new QAction("Stop search", this);
     stop->setShortcut(QKeySequence("Esc"));
 
@@ -565,12 +495,6 @@ Gist::addActions(void) {
     bookmarkNode = new QAction("Add/remove bookmark", this);
     bookmarkNode->setShortcut(QKeySequence("Shift+B"));
     
-    compareNode = new QAction("Compare", this);
-    compareNode->setShortcut(QKeySequence("V"));
-    
-    compareNodeBeforeFP = new QAction("Compare before fixpoint", this);
-    compareNodeBeforeFP->setShortcut(QKeySequence("Ctrl+V"));
-
     nullBookmark = new QAction("<none>",this);
     nullBookmark->setCheckable(true);
     nullBookmark->setChecked(false);
@@ -586,46 +510,10 @@ Gist::addActions(void) {
     connect(bookmarksMenu, SIGNAL(aboutToShow()),
             this, SLOT(populateBookmarksMenu()));
 
-    setPath = new QAction("Set path", this);
-    setPath->setShortcut(QKeySequence("Shift+P"));
-    
-    inspectPath = new QAction("Inspect path", this);
-    inspectPath->setShortcut(QKeySequence("Shift+I"));  
-
     showNodeStats = new QAction("Node statistics", this);
     showNodeStats->setShortcut(QKeySequence("S"));
     connect(showNodeStats, SIGNAL(triggered()),
             this, SLOT(showStats()));
-
-    nullSolutionInspector = new QAction("<none>",this);
-    nullSolutionInspector->setCheckable(true);
-    nullSolutionInspector->setChecked(false);
-    nullSolutionInspector->setEnabled(false);
-    solutionInspectorGroup = new QActionGroup(this);
-    solutionInspectorGroup->setExclusive(false);
-    solutionInspectorGroup->addAction(nullSolutionInspector);
-//    connect(solutionInspectorGroup, SIGNAL(triggered(QAction*)),
-//            this, SLOT(selectSolutionInspector(QAction*)));
-
-    nullDoubleClickInspector = new QAction("<none>",this);
-    nullDoubleClickInspector->setCheckable(true);
-    nullDoubleClickInspector->setChecked(false);
-    nullDoubleClickInspector->setEnabled(false);
-    doubleClickInspectorGroup = new QActionGroup(this);
-    doubleClickInspectorGroup->setExclusive(false);
-    doubleClickInspectorGroup->addAction(nullDoubleClickInspector);
-//    connect(doubleClickInspectorGroup, SIGNAL(triggered(QAction*)),
-//            this, SLOT(selectDoubleClickInspector(QAction*)));
-
-    nullMoveInspector = new QAction("<none>",this);
-    nullMoveInspector->setCheckable(true);
-    nullMoveInspector->setChecked(false);
-    nullMoveInspector->setEnabled(false);
-    moveInspectorGroup = new QActionGroup(this);
-    moveInspectorGroup->setExclusive(false);
-    moveInspectorGroup->addAction(nullMoveInspector);
-//    connect(moveInspectorGroup, SIGNAL(triggered(QAction*)),
-//            this, SLOT(selectMoveInspector(QAction*)));
 
     nullComparator = new QAction("<none>",this);
     nullComparator->setCheckable(true);
@@ -637,38 +525,10 @@ Gist::addActions(void) {
 //    connect(comparatorGroup, SIGNAL(triggered(QAction*)),
 //            this, SLOT(selectComparator(QAction*)));
 
-    solutionInspectorMenu = new QMenu("Solution inspectors", this);
-    solutionInspectorMenu->addActions(solutionInspectorGroup->actions());
-    doubleClickInspectorMenu = new QMenu("Double click inspectors", this);
-    doubleClickInspectorMenu->addActions(
-                doubleClickInspectorGroup->actions());
-    moveInspectorMenu = new QMenu("Move inspectors", this);
-    moveInspectorMenu->addActions(moveInspectorGroup->actions());
     comparatorMenu = new QMenu("Comparators", this);
     comparatorMenu->addActions(comparatorGroup->actions());
 
-    inspectGroup = new QActionGroup(this);
-    connect(inspectGroup, SIGNAL(triggered(QAction*)),
-            this, SLOT(inspectWithAction(QAction*)));
-    inspectBeforeFPGroup = new QActionGroup(this);
-    connect(inspectBeforeFPGroup, SIGNAL(triggered(QAction*)),
-            this, SLOT(inspectBeforeFPWithAction(QAction*)));
-
-    inspectNodeMenu = new QMenu("Inspect", this);
-    inspectNodeMenu->addAction(inspect);
-    connect(inspectNodeMenu, SIGNAL(aboutToShow()),
-            this, SLOT(populateInspectors()));
-
-    inspectNodeBeforeFPMenu = new QMenu("Inspect before fixpoint", this);
-    inspectNodeBeforeFPMenu->addAction(inspectBeforeFP);
-    connect(inspectNodeBeforeFPMenu, SIGNAL(aboutToShow()),
-            this, SLOT(populateInspectors()));
-    populateInspectors();
-
-    addAction(inspect);
-    addAction(inspectBeforeFP);
-    addAction(compareNode);
-    addAction(compareNodeBeforeFP);
+    addAction(expand);
     addAction(stop);
     addAction(reset);
     addAction(sndCanvas);
@@ -701,15 +561,9 @@ Gist::addActions(void) {
     addAction(print);
     addAction(printSearchLog);
 
-    addAction(setPath);
-    addAction(inspectPath);
     addAction(showNodeStats);
 
     contextMenu = new QMenu(this);
-    contextMenu->addMenu(inspectNodeMenu);
-    contextMenu->addMenu(inspectNodeBeforeFPMenu);
-    contextMenu->addAction(compareNode);
-    contextMenu->addAction(compareNodeBeforeFP);
     contextMenu->addAction(showNodeStats);
     contextMenu->addAction(center);
 
@@ -734,14 +588,8 @@ Gist::addActions(void) {
     contextMenu->addSeparator();
 
     contextMenu->addMenu(bookmarksMenu);
-    contextMenu->addAction(setPath);
-    contextMenu->addAction(inspectPath);
 
     contextMenu->addSeparator();
-
-    contextMenu->addMenu(doubleClickInspectorMenu);
-    contextMenu->addMenu(solutionInspectorMenu);
-    contextMenu->addMenu(moveInspectorMenu);
 }
 
 void
@@ -772,8 +620,7 @@ Gist::connectCanvas(TreeCanvas* tc) {
 
     if (current_tc && current_tc->_builder) {
 
-        disconnect(inspect, SIGNAL(triggered()), current_tc, SLOT(inspectCurrentNode()));
-        disconnect(inspectBeforeFP, SIGNAL(triggered()), current_tc, SLOT(inspectBeforeFP(void)));
+        disconnect(expand, SIGNAL(triggered()), current_tc, SLOT(expandCurrentNode()));
         disconnect(stop, SIGNAL(triggered()), current_tc, SLOT(stopSearch()));
         disconnect(reset, SIGNAL(triggered()), current_tc, SLOT(reset()));
         disconnect(sndCanvas, SIGNAL(triggered()), current_tc, SLOT(toggleSecondCanvas()));
@@ -800,12 +647,8 @@ Gist::connectCanvas(TreeCanvas* tc) {
         disconnect(print, SIGNAL(triggered()), current_tc, SLOT(print()));
         disconnect(printSearchLog, SIGNAL(triggered()), current_tc, SLOT(printSearchLog()));
         disconnect(bookmarkNode, SIGNAL(triggered()), current_tc, SLOT(bookmarkNode()));
-        disconnect(compareNode, SIGNAL(triggered()), current_tc, SLOT(startCompareNodes()));
-        disconnect(compareNodeBeforeFP, SIGNAL(triggered()), current_tc, SLOT(startCompareNodesBeforeFP()));
         disconnect(current_tc, SIGNAL(addedBookmark(const QString&)), this, SLOT(addBookmark(const QString&)));
         disconnect(current_tc, SIGNAL(removedBookmark(int)), this, SLOT(removeBookmark(int)));
-        disconnect(setPath, SIGNAL(triggered()), current_tc, SLOT(setPath()));
-        disconnect(inspectPath, SIGNAL(triggered()), current_tc, SLOT(inspectPath()));
         disconnect(current_tc, SIGNAL(needActionsUpdate(VisualNode*, bool)),
             this, SLOT(updateActions(VisualNode*, bool)));
     }
@@ -817,8 +660,7 @@ Gist::connectCanvas(TreeCanvas* tc) {
             tc->_builder, SLOT(startBuilding(void)));
     connect(receiver, SIGNAL(doneReceiving(void)),
             tc->_builder, SLOT(setDoneReceiving(void)));
-    connect(inspect, SIGNAL(triggered()), tc, SLOT(inspectCurrentNode()));
-    connect(inspectBeforeFP, SIGNAL(triggered()), tc, SLOT(inspectBeforeFP(void)));
+    connect(expand, SIGNAL(triggered()), tc, SLOT(expandCurrentNode()));
     connect(stop, SIGNAL(triggered()), tc, SLOT(stopSearch()));
     connect(reset, SIGNAL(triggered()), tc, SLOT(reset()));
     connect(sndCanvas, SIGNAL(triggered()), tc, SLOT(toggleSecondCanvas()));
@@ -847,12 +689,8 @@ Gist::connectCanvas(TreeCanvas* tc) {
     connect(print, SIGNAL(triggered()), tc, SLOT(print()));
     connect(printSearchLog, SIGNAL(triggered()), tc, SLOT(printSearchLog()));
     connect(bookmarkNode, SIGNAL(triggered()), tc, SLOT(bookmarkNode()));
-    connect(compareNode, SIGNAL(triggered()), tc, SLOT(startCompareNodes()));
-    connect(compareNodeBeforeFP, SIGNAL(triggered()), tc, SLOT(startCompareNodesBeforeFP()));
     connect(tc, SIGNAL(addedBookmark(const QString&)), this, SLOT(addBookmark(const QString&)));
     connect(tc, SIGNAL(removedBookmark(int)), this, SLOT(removeBookmark(int)));
-    connect(setPath, SIGNAL(triggered()), tc, SLOT(setPath()));
-    connect(inspectPath, SIGNAL(triggered()), tc, SLOT(inspectPath()));
     connect(tc, SIGNAL(needActionsUpdate(VisualNode*, bool)),
             this, SLOT(updateActions(VisualNode*, bool)));
     

@@ -113,7 +113,7 @@ bool TreeBuilder::processNode(DbEntry& dbEntry, bool is_delayed) {
         return false;
     }
 
-    std::cerr << "sid2aid[pid]: " << pid_it->second << "\n";
+    // std::cerr << "sid2aid[pid]: " << pid_it->second << "\n";
     
     DbEntry& parentEntry = *nodes_arr[pid_it->second];
     int parent_gid  = parentEntry.gid; /// parent ID as it is in Node Allocator (Gist)

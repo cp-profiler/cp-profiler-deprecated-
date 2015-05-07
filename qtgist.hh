@@ -76,18 +76,6 @@ private:
   QSlider* timeBar;
   /// Context menu
   QMenu* contextMenu;
-  /// Action used when no solution inspector is registered
-  QAction* nullSolutionInspector;
-  /// Menu of solution inspectors
-  QMenu* solutionInspectorMenu;
-  /// Action used when no double click inspector is registered
-  QAction* nullDoubleClickInspector;
-  /// Menu of double click inspectors
-  QMenu* doubleClickInspectorMenu;
-  /// Action used when no double click inspector is registered
-  QAction* nullMoveInspector;
-  /// Menu of double click inspectors
-  QMenu* moveInspectorMenu;
   /// Action used when no comparator is registered
   QAction* nullComparator;
   /// Menu of comparators
@@ -96,17 +84,11 @@ private:
   QAction* nullBookmark;
   /// Bookmark menu
   QMenu* bookmarksMenu;
-  /// Menu for direct node inspection
-  QMenu* inspectNodeMenu;
-  /// Menu for direct node inspection before fixpoint
-  QMenu* inspectNodeBeforeFPMenu;
   /// Information about individual nodes
   NodeStatInspector* nodeStatInspector;
 public:
-  /// Inspect current node
-  QAction* inspect;
-  /// Inspect current node before fixpoint
-  QAction* inspectBeforeFP;
+  /// Expand current node
+  QAction* expand;
   /// Stop search
   QAction* stop;
   /// Reset %Gist
@@ -162,14 +144,6 @@ public:
 
   /// Bookmark current node
   QAction* bookmarkNode;
-  /// Compare current node to other node
-  QAction* compareNode;
-  /// Compare current node to other node before fixpoint
-  QAction* compareNodeBeforeFP;
-  /// Set path from current node to the root
-  QAction* setPath;
-  /// Inspect all nodes on selected path
-  QAction* inspectPath;
   /// Open node statistics inspector
   QAction* showNodeStats;
   /// Bookmark current node
@@ -183,20 +157,10 @@ public:
   /// Follow path
   QAction* followPath;
 
-  /// Group of all actions for solution inspectors
-  QActionGroup* solutionInspectorGroup;
-  /// Group of all actions for double click inspectors
-  QActionGroup* doubleClickInspectorGroup;
-  /// Group of all actions for move inspectors
-  QActionGroup* moveInspectorGroup;
   /// Group of all actions for comparators
   QActionGroup* comparatorGroup;
   /// Group of all actions for bookmarks
   QActionGroup* bookmarksGroup;
-  /// Group of all actions for direct inspector selection
-  QActionGroup* inspectGroup;
-  /// Group of all actions for direct inspector selection
-  QActionGroup* inspectBeforeFPGroup;
 
 public:
   /// Constructor
@@ -205,12 +169,6 @@ public:
   /// Destructor
   ~Gist(void);
 
-//  /// Add double click inspector \a i0
-//  void addDoubleClickInspector(Inspector* i0);
-//  /// Add solution inspector \a i0
-//  void addSolutionInspector(Inspector* i0);
-//  /// Add move inspector \a i0
-//  void addMoveInspector(Inspector* i0);
 //  /// Add comparator \a c0
 //  void addComparator(Comparator* c0);
 
@@ -285,12 +243,6 @@ private Q_SLOTS:
 
   /// TODO: this should only react on selecting node?
   void updateActions(VisualNode*, bool);
-//  /// Reacts on double click inspector selection
-//  void selectDoubleClickInspector(QAction*);
-//  /// Reacts on solution inspector selection
-//  void selectSolutionInspector(QAction*);
-//  /// Reacts on move inspector selection
-//  void selectMoveInspector(QAction*);
 //  /// Reacts on comparator selection
 //  void selectComparator(QAction*);
   /// Reacts on bookmark selection
@@ -299,24 +251,15 @@ private Q_SLOTS:
   void addBookmark(const QString& id);
   /// Reacts on removing a bookmark
   void removeBookmark(int idx);
-  /// Populate the inspector menus from the actions found in Gist
-  void populateInspectors(void);
   /// Populate the bookmarks menu
   void populateBookmarksMenu(void);
   /// Shows node status information
   void showStats(void);
-  /// Inspect current node with inspector described by \a a
-  void inspectWithAction(QAction* a);
-  /// Inspect current node with inspector described by \a a
-  void inspectBeforeFPWithAction(QAction* a);
+
 
 public Q_SLOTS:
   void onFocusChanged(QWidget*, QWidget*);
 
-protected:
-  /// Add inspector \a i0
-//  void addInspector(Inspector* i, QAction*& nas, QAction*& nad,
-//                    QAction*& nam);
 };
 
 

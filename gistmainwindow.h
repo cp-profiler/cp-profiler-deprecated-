@@ -34,20 +34,10 @@ private:
   QLabel* choicesLabel;
   /// Status bar label for number of open nodes
   QLabel* openLabel;
-  /// Menu for solution inspectors
-  QMenu* solutionInspectorsMenu;
-  /// Menu for double click inspectors
-  QMenu* doubleClickInspectorsMenu;
-  /// Menu for move inspectors
-  QMenu* moveInspectorsMenu;
   /// Menu for comparators
   QMenu* comparatorsMenu;
   /// Menu for bookmarks
   QMenu* bookmarksMenu;
-  /// Menu for direct node inspection
-  QMenu* inspectNodeMenu;
-  /// Menu for direct node inspection before fixpoint
-  QMenu* inspectNodeBeforeFPMenu;
   /// Action for activating the preferences menu
   QAction* prefAction;
 protected:
@@ -70,10 +60,6 @@ protected Q_SLOTS:
   void about(void);
   /// Open the preferences dialog
   void preferences(bool setup=false);
-  /// Populate the inspector menus from the actions found in Gist
-  void populateInspectorSelection(void);
-  /// Populate the inspector menus from the actions found in Gist
-  void populateInspectors(void);
   /// Populate the bookmarks menus from the actions found in Gist
   void populateBookmarks(void);
   /// Change MainWindow's title to fzn file name
