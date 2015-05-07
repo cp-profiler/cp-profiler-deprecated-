@@ -20,11 +20,18 @@ private:
   QueueMap delayed_treads;
   QueueMap::iterator it;
 
-  int last_read;                      /// node id from nodes_arr currently read
-  int delayed_count;                 /// how many nodes delayed
-  
+  int last_read        = 0;       /// node id from nodes_arr currently read
+  int delayed_count    = 0;       /// how many nodes delayed
+  int delayed_cd_count = 0;       /// if zero, read delayed again
+  const int DELAYED_CD = 1;     /// delayed cooldown
 
-  bool read_delayed;
+
+  /// how many nodes tried until success;
+  /// increment if failed
+  /// refresh on success
+  int node_misses = 0;
+
+  bool read_delayed    = false;
 
 
 // inline DbEntry* nextNormal();

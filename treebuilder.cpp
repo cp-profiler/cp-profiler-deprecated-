@@ -37,6 +37,8 @@ bool TreeBuilder::processRoot(DbEntry& dbEntry) {
 
     QMutexLocker locker(layout_mutex);
 
+    std::cerr << "process root: " << dbEntry << "\n";
+
     std::vector<DbEntry*> &nodes_arr = _data->nodes_arr;
     auto& gid2entry = _data->gid2entry;
 
@@ -67,7 +69,8 @@ bool TreeBuilder::processRoot(DbEntry& dbEntry) {
     /// setNumberOfChildren
     root->setNumberOfChildren(kids, *_na);
     root->setStatus(BRANCH);
-    root->setHasSolvedChildren(true);
+    root->setHasSolvedChildren(false);
+    root->setHasOpenChildren(true);
 
     stats.undetermined += kids - 1;
     nodesCreated += 1 + kids;
@@ -96,11 +99,28 @@ bool TreeBuilder::processNode(DbEntry& dbEntry, bool is_delayed) {
     /// find out if node exists
 
     auto pid_it = sid2aid.find(pid);
-    std::cerr << "process node: " << dbEntry << "\n";
+    // std::cerr << "process node: " << dbEntry << "\n";
 
+
+    
 
     if (pid_it == sid2aid.end()) {
-        qDebug() << "node for parent is not in db yet";
+        // qDebug() << "node for parent is not in db yet";
+
+        if (!is_delayed)
+            read_queue->readLater(&dbEntry);
+
+        return false;
+    }
+
+    std::cerr << "sid2aid[pid]: " << pid_it->second << "\n";
+    
+    DbEntry& parentEntry = *nodes_arr[pid_it->second];
+    int parent_gid  = parentEntry.gid; /// parent ID as it is in Node Allocator (Gist)
+    
+    /// put delayed also if parent node hasn't been processed yet:
+    if (parent_gid == -1) {
+        // qDebug() << "parent arrived, but has not been processed yet";
 
         if (!is_delayed)
             read_queue->readLater(&dbEntry);
@@ -110,14 +130,10 @@ bool TreeBuilder::processNode(DbEntry& dbEntry, bool is_delayed) {
         return false;
     }
 
-    std::cerr << "sid2aid[pid]: " << pid_it->second << "\n";
-    
 
-    DbEntry& parentEntry = *nodes_arr[pid_it->second];
-    int parent_gid  = parentEntry.gid; /// parent ID as it is in Node Allocator (Gist)
     VisualNode& parent = *(*_na)[parent_gid];
 
-    // assert(parent_gid >= 0);
+    assert(parent_gid >= 0);
     if (parent_gid < 0) {
         // qDebug() << "Ignoring a node: " << ignored_entries.size();
         ignored_entries.push_back(&dbEntry);
@@ -270,22 +286,27 @@ void TreeBuilder::run(void) {
             continue;
         }
 
-        /// ask queue for an entry
+        /// ask queue for an entry, note: is_delayed gets assigned here
         DbEntry* entry = read_queue->next(is_delayed);
 
-        std::cout << "about to process: " << *entry << "\n";
-
         bool isRoot = (entry->parent_sid == ~0u) ? true : false;
-
-        /// TODO: process node should know if the node is delayed
 
         /// try to put node into the tree
         bool success = isRoot ? processRoot(*entry) : processNode(*entry, is_delayed);
 
         read_queue->update(success);
 
-        dataMutex.unlock();
+        // /// for debug
+        // if (success)
+        //     processed.push_back(entry);
 
+        // std::cout << "processed: ";
+        // for (auto entry = processed.begin(); entry != processed.end(); entry++) {
+        //     std::cout << (*entry)->sid << " ";
+        // }
+        // std::cout << std::endl;
+
+        dataMutex.unlock();
 
         system_clock::time_point after_tp = system_clock::now();
         // qDebug () << "building node takes: " << 
