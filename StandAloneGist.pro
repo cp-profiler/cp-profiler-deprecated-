@@ -20,6 +20,7 @@ CONFIG += c++11
 
 SOURCES += main.cpp\
         gistmainwindow.cpp \
+        globalhelper.cpp \
     heap.cpp \
     nodewidget.cpp \
     drawingcursor.cpp \
@@ -45,6 +46,7 @@ SOURCES += main.cpp\
 
 
 HEADERS  += gistmainwindow.h \
+    globalhelper.hh \
     qtgist.hh \
     treecanvas.hh \
     visualnode.hh \

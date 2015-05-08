@@ -40,14 +40,13 @@ private:
   QMenu* bookmarksMenu;
   /// Action for activating the preferences menu
   QAction* prefAction;
-protected:
   /// The contained %Gist object
   Gist* c;
   /// A menu bar
   QMenuBar* menuBar;
   /// About dialog
   AboutGist aboutGist;
-
+  
 Q_SIGNALS:
 
   /// stops the receiver thread
@@ -66,7 +65,7 @@ protected Q_SLOTS:
   void changeTitle(const char* file_name);
 public:
   /// Constructor
-  GistMainWindow(void);
+  GistMainWindow();
 
   Gist* getGist(void) { return c; }
 protected:

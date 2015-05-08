@@ -1,4 +1,5 @@
 #include "receiverthread.hh"
+#include "globalhelper.hh"
 #include "solver_tree_dialog.hh"
 
 class SolverTreeDialog;
@@ -38,16 +39,21 @@ ReceiverThread::run(void) {
 
     zmq::context_t context(1);
     zmq::socket_t socket (context, ZMQ_PULL);
+
+    QString port  = GlobalParser::value(GlobalParser::port_option());
+    QString address = QString("tcp://*:") + port;
+
     try {
-        socket.bind("tcp://*:6565");
-        qDebug() << "connected to 6565";
+        socket.bind(address.toStdString().c_str());
+        qDebug() << "connected to" << port;
     } catch (std::exception& e) {
-        std::cerr << "error connecting to socket\n";
+        std::cerr << "error connecting to socket: "
+                  << address.toStdString().c_str() << "\n";
+        abort();
     }
     
     int nodeCount = 0;
 
-    
     while (!_quit) {
 
         zmq::message_t request;

@@ -1,28 +1,21 @@
 #include "gistmainwindow.h"
+#include "globalhelper.hh"
 #include <QApplication>
 
 int main(int argc, char *argv[])
 {
+
     QApplication a(argc, argv);
     
     QCoreApplication::setApplicationName("cpprof");
     QCoreApplication::setApplicationVersion("0.1");
 
-    QCommandLineParser qParser;
+    GlobalParser clParser;
 
-    /// Add command line options
-    const QCommandLineOption versionOption = qParser.addVersionOption();
-    const QCommandLineOption helpOption    = qParser.addHelpOption();
+    clParser.process(a);
 
-    QCommandLineOption testOption("test", "Terminates right after getting DONE RECEIVING");
-    qParser.addOption(testOption);
-
-    qParser.process(a);
-
-    qDebug() << qParser.isSet(testOption);
-
-
-    if (qParser.isSet(helpOption) || qParser.isSet(versionOption)) {
+    if (GlobalParser::isSet(GlobalParser::version_option()) ||
+        GlobalParser::isSet(GlobalParser::help_option())) {
       return 0;
     }
 

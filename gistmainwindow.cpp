@@ -28,7 +28,7 @@ AboutGist::AboutGist(QWidget* parent) : QDialog(parent) {
 
 
 
-GistMainWindow::GistMainWindow(void) : aboutGist(this) {
+GistMainWindow::GistMainWindow() : aboutGist(this) {
   c = new Gist(this);
   setCentralWidget(c);
   setWindowTitle(tr("Gist"));

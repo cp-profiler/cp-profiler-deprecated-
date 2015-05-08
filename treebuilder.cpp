@@ -1,4 +1,5 @@
 #include "treebuilder.hh"
+#include "globalhelper.hh"
 #include "debug.cpp"
 #include "readingQueue.hh"
 #include <cassert>
@@ -100,9 +101,6 @@ bool TreeBuilder::processNode(DbEntry& dbEntry, bool is_delayed) {
 
     auto pid_it = sid2aid.find(pid);
     // std::cerr << "process node: " << dbEntry << "\n";
-
-
-    
 
     if (pid_it == sid2aid.end()) {
         // qDebug() << "node for parent is not in db yet";
@@ -325,7 +323,13 @@ void TreeBuilder::run(void) {
     qDebug() << "undetermined:" << stats.undetermined;
 
     /// test if first argument is '--test'
-    if (qApp->arguments().size() > 1 && qApp->arguments().at(1) == "--test")
+    // if (qApp->arguments().size() > 1 && qApp->arguments().at(1) == "--test")
+    //     qApp->exit();
+
+
+    if (GlobalParser::isSet(GlobalParser::test_option())) {
+        qDebug() << "test mode, terminate";
         qApp->exit();
+    }
 
 }
