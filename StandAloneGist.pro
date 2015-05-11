@@ -40,7 +40,6 @@ SOURCES += main.cpp\
     readingQueue.cpp \
     treecomparison.cpp \
     pixelview.cpp \
-    debug.cpp \
     
 
 
