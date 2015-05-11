@@ -34,8 +34,6 @@ private:
   QLabel* choicesLabel;
   /// Status bar label for number of open nodes
   QLabel* openLabel;
-  /// Menu for comparators
-  QMenu* comparatorsMenu;
   /// Menu for bookmarks
   QMenu* bookmarksMenu;
   /// Action for activating the preferences menu

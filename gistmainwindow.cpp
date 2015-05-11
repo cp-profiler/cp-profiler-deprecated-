@@ -49,25 +49,16 @@ GistMainWindow::GistMainWindow() : aboutGist(this) {
 #if QT_VERSION >= 0x040400
   fileMenu->addAction(c->exportWholeTreePDF);
 #endif
-  QAction* quitAction = fileMenu->addAction(tr("Quit"));
-  quitAction->setShortcut(QKeySequence("Ctrl+Q"));
-  connect(quitAction, SIGNAL(triggered()),
-          this, SLOT(close()));
+
   prefAction = fileMenu->addAction(tr("Preferences"));
   connect(prefAction, SIGNAL(triggered()), this, SLOT(preferences()));
 
+  QAction* quitAction = fileMenu->addAction(tr("Quit"));
+  quitAction->setShortcut(QKeySequence("Ctrl+Q"));
+  connect(quitAction, SIGNAL(triggered()), this, SLOT(close()));
+
   QMenu* nodeMenu = menuBar->addMenu(tr("&Node"));
-
   nodeMenu->addAction(c->showNodeStats);
-
-  /// ***** Tree Visualisaitons *****
-
-  QMenu* treeVisMenu = menuBar->addMenu(tr("Tree"));
-
-  treeVisMenu->addAction(c->showPixelTree);
-  treeVisMenu->addAction(c->followPath);
-
-  /// *******************************
 
   bookmarksMenu = new QMenu("Bookmarks", this);
   bookmarksMenu->addAction(c->bookmarkNode);
@@ -90,8 +81,8 @@ GistMainWindow::GistMainWindow() : aboutGist(this) {
   nodeMenu->addAction(c->labelBranches);
   nodeMenu->addAction(c->labelPath);
   nodeMenu->addAction(c->analyzeSimilarSubtrees);
-  nodeMenu->addAction(c->toggleStop);
-  nodeMenu->addAction(c->unstopAll);
+  // nodeMenu->addAction(c->toggleStop);
+  // nodeMenu->addAction(c->unstopAll);
   nodeMenu->addSeparator();
   nodeMenu->addAction(c->zoomToFit);
   nodeMenu->addAction(c->center);
@@ -99,21 +90,24 @@ GistMainWindow::GistMainWindow() : aboutGist(this) {
   nodeMenu->addAction(c->exportPDF);
 #endif
 
+  /// ***** Tree Visualisaitons *****
+
+  QMenu* treeVisMenu = menuBar->addMenu(tr("Tree"));
+
+  treeVisMenu->addAction(c->showPixelTree);
+  treeVisMenu->addAction(c->followPath);
+
+  /// *******************************
+
   QMenu* searchMenu = menuBar->addMenu(tr("&Search"));
-  searchMenu->addAction(c->searchNext);
-  searchMenu->addAction(c->searchAll);
-  searchMenu->addSeparator();
-  searchMenu->addAction(c->stop);
+  // searchMenu->addAction(c->searchNext);
+  // searchMenu->addAction(c->searchAll);
+  // searchMenu->addSeparator();
+  // searchMenu->addAction(c->stop);
   searchMenu->addSeparator();
   searchMenu->addAction(c->reset);
   searchMenu->addAction(c->sndCanvas);
   searchMenu->addAction(c->initComparison);
-
-  QMenu* toolsMenu = menuBar->addMenu(tr("&Tools"));
-
-  comparatorsMenu = new QMenu("Comparators", this);
-
-  toolsMenu->addMenu(comparatorsMenu);
 
   QMenu* helpMenu = menuBar->addMenu(tr("&Help"));
   QAction* aboutAction = helpMenu->addAction(tr("About"));

@@ -869,9 +869,6 @@ TreeCanvas::reset(bool isRestarts) {
 
     qDebug() << "tc #" << _id << "is resetting";
 
-    
-    
-
     delete na;
     na = new Node::NodeAllocator(false);
 
@@ -886,9 +883,6 @@ TreeCanvas::reset(bool isRestarts) {
     for (int i=bookmarks.size(); i--;)
         emit removedBookmark(i);
     bookmarks.clear();
-    // root->layout(*na);
-
-    emit statusChanged(currentNode, stats, false);
 
     delete _data;
     _data = new Data(this, na, isRestarts);
@@ -896,6 +890,8 @@ TreeCanvas::reset(bool isRestarts) {
     _builder->reset(_data, na);
 
     _isUsed = false;
+
+    emit statusChanged(currentNode, stats, false);
 
     update();
 }
