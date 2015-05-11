@@ -4,7 +4,7 @@
 
 #include <utility> // pair
 
-CmpTreeDialog::CmpTreeDialog(ReceiverThread* receiver, const CanvasType type, Gist* gist,
+CmpTreeDialog::CmpTreeDialog(ReceiverThread* receiver, const CanvasType& type, Gist* gist,
                              TreeCanvas* tc1, TreeCanvas* tc2)
 : BaseTreeDialog(receiver, type, gist),
 _comparison{new TreeComparison()}, analysisMenu{nullptr}, pentListWindow{this} {
@@ -57,7 +57,7 @@ CmpTreeDialog::~CmpTreeDialog(void) {
 }
 
 void
-CmpTreeDialog::statusChanged(VisualNode*, const Statistics& stats, bool finished) {
+CmpTreeDialog::statusChanged(VisualNode*, const Statistics&, bool finished) {
 
   statusChangedShared(finished);
 

@@ -150,7 +150,7 @@ int Data::handleNodeCallback(Message* msg) {
     return 0;
 }
 
-const char* Data::getLabelByGid(unsigned int gid) {
+const char* Data::getLabel(unsigned int gid) {
     QMutexLocker locker(&dataMutex);
 
     auto it = gid2entry.find(gid);

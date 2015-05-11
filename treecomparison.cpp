@@ -44,7 +44,7 @@ TreeComparison::compare(TreeCanvas* t1, TreeCanvas* t2, TreeCanvas* new_tc) {
             for (unsigned int i = 0; i < kids; i++) {
 
                 int child_gid = node1->getChild(i);
-                const char* label = _data1->getLabelByGid(child_gid);
+                const char* label = _data1->getLabel(child_gid);
 
                 /// check if label starts with "[i]"
 
@@ -72,7 +72,7 @@ TreeComparison::compare(TreeCanvas* t1, TreeCanvas* t2, TreeCanvas* new_tc) {
             for (unsigned int i = 0; i < kids; i++) {
 
                 int child_gid = node2->getChild(i);
-                const char* label = _data2->getLabelByGid(child_gid);
+                const char* label = _data2->getLabel(child_gid);
 
                 /// check if label starts with "[i]"
 
@@ -205,7 +205,7 @@ TreeComparison::copyTree(VisualNode* target, TreeCanvas* tc,
 
 bool
 TreeComparison::copmareNodes(VisualNode* n1, VisualNode* n2) {
-    unsigned int kids = n1->getNumberOfChildren();
+    unsigned kids = n1->getNumberOfChildren();
     if (kids != n2->getNumberOfChildren())
         return false;
 
@@ -215,19 +215,21 @@ TreeComparison::copmareNodes(VisualNode* n1, VisualNode* n2) {
     // int id1 = n1->getIndex(*_na1);
     // int id2 = n2->getIndex(*_na2);
 
-    for (auto i = 0; i < kids; i++) {
+    for (unsigned i = 0; i < kids; i++) {
 
         int id1 = n1->getChild(i);
         int id2 = n2->getChild(i);
 
         if (
             strcmp(
-                _data1->getLabelByGid(id1),
-                _data2->getLabelByGid(id2)
+                _data1->getLabel(id1),
+                _data2->getLabel(id2)
             ) != 0
         ) {
             return false;
         }
+
+        
     }
 
     return true;

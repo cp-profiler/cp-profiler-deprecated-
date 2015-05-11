@@ -67,6 +67,8 @@ TreeCanvas::TreeCanvas(QGridLayout* layout, ReceiverThread* receiver, CanvasType
     autoZoomButton->setCheckable(true);
     autoZoomButton->setIcon(zoomPic);
 
+    (void) layout;
+
     // layout->addWidget(autoZoomButton, 1,1, Qt::AlignTop); /// TODO: make available again
 
     connect(autoZoomButton, SIGNAL(toggled(bool)), this, SLOT(setAutoZoom(bool)));

@@ -1,10 +1,20 @@
 #ifndef BASE_TREE_DIALOG_HH
 #define BASE_TREE_DIALOG_HH
 
-#include "treecanvas.hh"
+#include <QDialog>
+#include <QLayout>
 
 class Gist;
 class ReceiverThread;
+class QAbstractScrollArea;
+class QStatusBar;
+class QMenuBar;
+class QMenu;
+class QLabel;
+class TreeCanvas;
+enum class CanvasType;
+class VisualNode;
+class Statistics;
 
 /// Abstract class
 class BaseTreeDialog : public QDialog {
@@ -26,11 +36,11 @@ Q_OBJECT
 
   protected:
 
+    Gist* ptr_gist;
+
     /// Interface stuff
     QMenuBar* menuBar;
     QMenu* nodeMenu;
-
-    Gist* ptr_gist;
 
     TreeCanvas* _tc;
     QLabel* mergedLabel;

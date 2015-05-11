@@ -46,9 +46,10 @@ private:
   int   _depth;
   VisualNode* _node;
   bool  _selected;
+
 public:
   PixelData(int idx, VisualNode* node, int depth)
-  : _idx(idx), _node(node), _depth(depth) {};
+  : _idx(idx), _depth(depth), _node(node) {};
   inline int idx() { return _idx; }
   inline int depth() { return _depth; }
   inline VisualNode* node() { return _node; }
@@ -76,9 +77,9 @@ private:
 
   /// Pixel Tree settings (changed through GUI)
     
-  int _step = 2; // size of a 'pixel' in pixels
-  int _step_y = 2; // size of a 'pixel' in pixels
-  int approx_size = 1; // how many nodes per vertical line
+  unsigned _step = 2; // size of a 'pixel' in pixels
+  unsigned _step_y = 2; // size of a 'pixel' in pixels
+  unsigned approx_size = 1; // how many nodes per vertical line
 
   // int hist_height = 50;
   // int margin = 10;
@@ -89,17 +90,17 @@ private:
   float   group_time;
   float   group_domain; // average of domain size of nodes in a group
   float   group_domain_red;
-  int   group_size;
-  int   vline_idx; // same as x when _step = 1
+  unsigned   group_size; // current size of the group
+  unsigned   vline_idx;  // same as x when _step = 1
   float alpha_factor;
   int   group_size_nonempty; // for calculating average
 
-  int pt_height;
-  int pt_width;
+  unsigned pt_height;
+  unsigned pt_width;
 
   /// Stuff specific for a particular pixel tree
-  int vlines; /// width of pixel tree
-  int max_depth;
+  unsigned vlines; /// width of pixel tree
+  unsigned max_depth;
 
   float* time_arr         = nullptr; // time for each vline
   float* domain_arr       = nullptr; // domain for each vline
@@ -120,27 +121,27 @@ private:
   /// Pixel Tree
   void constructTree(void);
   void drawPixelTree(void);
-  void exploreNew(VisualNode* node, int depth);
+  void exploreNew(VisualNode* node, unsigned depth);
   void freePixelList(std::vector<std::list<PixelData*>>& pixelList);
 
   void actuallyDraw(void);
-  void drawHistogram(int idx, float* data, int l_vline, int r_vline, int color);
+  void drawHistogram(int idx, float* data, unsigned l_vline, unsigned r_vline, int color);
 
   /// Histograms
-  void drawTimeHistogram(int l_vline, int r_vline);
-  void drawDomainHistogram(int l_vline, int r_vline);
-  void drawDomainReduction(int l_vline, int r_vline);
+  void drawTimeHistogram(unsigned l_vline, unsigned r_vline);
+  void drawDomainHistogram(unsigned l_vline, unsigned r_vline);
+  void drawDomainReduction(unsigned l_vline, unsigned r_vline);
 
   /// Node Rate
-  void drawNodeRate(int leftmost_vline, int rightmost_vline);
+  void drawNodeRate(unsigned leftmost_vline, unsigned rightmost_vline);
 
   void flush(void); /// make a final group
 
   /// auxiliary methods
-  inline void drawPixel(int x, int y, int step, int color);
+  inline void drawPixel(int x, int y, int color);
 
   /// select nodes that correspond to selected vline in pixel tree
-  void selectNodesfromPT(int vline);
+  void selectNodesfromPT(unsigned vline);
   
 
 public:

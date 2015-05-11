@@ -21,8 +21,10 @@ void
 Gist::initiateComparison(void) {
 
     if (_td_vec.size() == 0) return;
-    BaseTreeDialog* cmp_td = new CmpTreeDialog(receiver, CanvasType::MERGED, this,
-                        canvas, _td_vec[0]->getCanvas());
+
+    /// will be destroyed with Gist
+    new CmpTreeDialog(receiver, CanvasType::MERGED, this,
+                      canvas, _td_vec[0]->getCanvas());
 }
 
 void
@@ -48,8 +50,6 @@ Gist::Gist(QWidget* parent) : QWidget(parent) {
     initInterface();
     addActions();
 
-    current_tc = nullptr;
-
     receiver = new ReceiverThread(this);
 
     canvas = new TreeCanvas(layout, receiver, CanvasType::REGULAR, scrollArea->viewport());
@@ -72,12 +72,6 @@ Gist::Gist(QWidget* parent) : QWidget(parent) {
     // connect(canvas, SIGNAL(needActionsUpdate(VisualNode*, bool)),
     //         this, SLOT(updateActions(VisualNode*, bool)));
 
-
-    /// TODO: this does not do anything
-    connect(receiver, SIGNAL(finished()), receiver, SLOT(deleteLater()));
-
-   // connect(canvas, SIGNAL(solution(const Space*)),
-   //         this, SIGNAL(solution(const Space*)));
 
     // create new TreeCanvas when receiver gets new data
     connect(receiver, SIGNAL(newCanvasNeeded()), this, SLOT(createNewCanvas(void)),
@@ -274,8 +268,6 @@ Gist::on_canvas_statusChanged(VisualNode* n, const Statistics& stats,
         } else {
             // labelBranches->setEnabled(!n->isHidden());
         }
-        
-        VisualNode* p = n->getParent(*canvas->na);
 
         VisualNode* root = n;
         while (!root->isRoot())

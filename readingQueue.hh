@@ -20,7 +20,7 @@ private:
   QueueMap delayed_treads;
   QueueMap::iterator it;
 
-  int last_read        = 0;       /// node id from nodes_arr currently read
+  unsigned last_read        = 0;       /// node id from nodes_arr currently read
   int delayed_count    = 0;       /// how many nodes delayed
   int delayed_cd_count = 0;       /// if zero, read delayed again
   const int DELAYED_CD = 1;     /// delayed cooldown

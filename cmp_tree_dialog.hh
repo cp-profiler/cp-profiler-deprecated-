@@ -1,6 +1,7 @@
 #ifndef CMP_TREE_DIALOG_HH
 #define CMP_TREE_DIALOG_HH
 
+#include <QTableWidget>
 #include "base_tree_dialog.hh"
 
 class Gist;
@@ -55,7 +56,7 @@ private:
 
 public:
 
-  CmpTreeDialog(ReceiverThread* receiver, const CanvasType type, Gist* gist,
+  CmpTreeDialog(ReceiverThread* receiver, const CanvasType& type, Gist* gist,
                 TreeCanvas *tc1, TreeCanvas *tc2);
   ~CmpTreeDialog();
 

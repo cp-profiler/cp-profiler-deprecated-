@@ -49,7 +49,7 @@ public:
     DbEntry(unsigned long long id, unsigned long long _p, int _alt, int _kids, char _tid,
             char* _label, int _status, unsigned long long _time_stamp,
             unsigned long long _node_time, float _domain) :
-        gid(-1), sid(id), parent_sid(_p), alt(_alt), numberOfKids(_kids),
+        sid(id), gid(-1), parent_sid(_p), alt(_alt), numberOfKids(_kids),
         status(_status), thread(_tid), depth(-1), time_stamp(_time_stamp), node_time(_node_time),
         domain(_domain) {
           
@@ -157,7 +157,8 @@ public:
 
     void show_db(void); /// TODO: write to a file
 
-    const char* getLabelByGid(unsigned int gid);
+    /// return label by gid (Gist ID)
+    const char* getLabel(unsigned int gid);
 
     void connectNodeToEntry(unsigned int gid, DbEntry* const entry);
 

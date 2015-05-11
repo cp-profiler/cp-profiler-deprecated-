@@ -86,9 +86,6 @@ PixelTreeCanvas::PixelTreeCanvas(QWidget* parent, TreeCanvas* tc)
   //   _nodeCount++;
   // }
 
-  int height = max_depth * _step;
-  int width = _nodeCount * _step;
-
   _image = nullptr;
 
   /// scrolling business
@@ -107,7 +104,7 @@ PixelTreeCanvas::PixelTreeCanvas(QWidget* parent, TreeCanvas* tc)
 }
 
 void
-PixelTreeCanvas::paintEvent(QPaintEvent* event) {
+PixelTreeCanvas::paintEvent(QPaintEvent*) {
   QPainter painter(this);
 
   actuallyDraw();
@@ -175,8 +172,8 @@ PixelTreeCanvas::actuallyDraw() {
   int xoff = _sa->horizontalScrollBar()->value();
   int yoff = _sa->verticalScrollBar()->value();
 
-  int leftmost_x = xoff;
-  int rightmost_x = xoff + _sa->width();
+  unsigned int leftmost_x = xoff;
+  unsigned int rightmost_x = xoff + _sa->width();
 
   pt_height = max_depth * _step_y;
 
@@ -202,8 +199,8 @@ PixelTreeCanvas::actuallyDraw() {
 
   this->resize(_image->width(), _image->height());
 
-  int leftmost_vline = leftmost_x / _step;
-  int rightmost_vline = rightmost_x / _step;
+  unsigned leftmost_vline = leftmost_x / _step;
+  unsigned rightmost_vline = rightmost_x / _step;
 
   int* intencity_arr = new int[max_depth + 1];
 
@@ -227,19 +224,19 @@ PixelTreeCanvas::actuallyDraw() {
         if (ypos > 0) {
           if (!pixel->node()->isSelected()) {
             int alpha = intencity_arr[pixel->depth()] * alpha_factor;
-            drawPixel(xpos, ypos, _step, QColor::fromHsv(150, 100, 100 - alpha).rgba());
+            drawPixel(xpos, ypos, QColor::fromHsv(150, 100, 100 - alpha).rgba());
           } else {
-            // drawPixel(xpos, ypos, _step, qRgb(255, 0, 0));
-            drawPixel(xpos, ypos, _step, qRgb(255, 0, 255));
+            // drawPixel(xpos, ypos, qRgb(255, 0, 0));
+            drawPixel(xpos, ypos, qRgb(255, 0, 255));
           }
         }
         
         /// draw green vertical line if solved:
         if (pixel->node()->getStatus() == SOLVED) {
 
-          for (uint j = 0; j < pt_height - yoff; j++)
+          for (unsigned j = 0; j < pt_height - yoff; j++)
             if (_image->pixel(xpos, j) == qRgb(255, 255, 255))
-              for (uint i = 0; i < _step; i++)
+              for (unsigned i = 0; i < _step; i++)
                 _image->setPixel(xpos + i, j, qRgb(0, 255, 0));
 
         }
@@ -300,7 +297,7 @@ PixelTreeCanvas::flush(void) {
 }
 
 void
-PixelTreeCanvas::exploreNew(VisualNode* node, int depth) {
+PixelTreeCanvas::exploreNew(VisualNode* node, unsigned depth) {
 
   Data* data = _tc->getData();
   DbEntry* entry = data->getEntry(node->getIndex(*_na));
@@ -373,23 +370,23 @@ PixelTreeCanvas::exploreNew(VisualNode* node, int depth) {
 
 /// Draw time histogram underneath the pixel tree
 void
-PixelTreeCanvas::drawTimeHistogram(int l_vline, int r_vline) {
+PixelTreeCanvas::drawTimeHistogram(unsigned l_vline, unsigned r_vline) {
 
   drawHistogram(0, time_arr, l_vline, r_vline, qRgb(150, 150, 40));
 }
 
 void
-PixelTreeCanvas::drawDomainHistogram(int l_vline, int r_vline) {
+PixelTreeCanvas::drawDomainHistogram(unsigned l_vline, unsigned r_vline) {
   drawHistogram(1, domain_arr, l_vline, r_vline, qRgb(150, 40, 150));
 }
 
 void
-PixelTreeCanvas::drawDomainReduction(int l_vline, int r_vline) {
+PixelTreeCanvas::drawDomainReduction(unsigned l_vline, unsigned r_vline) {
   drawHistogram(2, domain_red_arr, l_vline, r_vline, qRgb(40, 150, 150));
 }
 
 void
-PixelTreeCanvas::drawHistogram(int idx, float* data, int l_vline, int r_vline, int color) {
+PixelTreeCanvas::drawHistogram(int idx, float* data, unsigned l_vline, unsigned r_vline, int color) {
 
 
   /// coordinates for the top-left corner
@@ -400,7 +397,7 @@ PixelTreeCanvas::drawHistogram(int idx, float* data, int l_vline, int r_vline, i
   /// work out maximum value
   int max_value = 0;
 
-  for (int i = 0; i < vlines; i++) {
+  for (unsigned i = 0; i < vlines; i++) {
     if (data[i] > max_value) max_value = data[i];
   }
 
@@ -410,11 +407,11 @@ PixelTreeCanvas::drawHistogram(int idx, float* data, int l_vline, int r_vline, i
 
   int zero_level = y + HIST_HEIGHT + _step;
 
-  for (int i = l_vline; i < r_vline; i++) {
+  for (unsigned i = l_vline; i < r_vline; i++) {
     int val = data[i] * coeff;
 
     /// horizontal line for 0 level
-    for (int j = 0; j < _step; j++)
+    for (unsigned j = 0; j < _step; j++)
       _image->setPixel(init_x + (i - l_vline) * _step + j,
                        zero_level, 
                        qRgb(150, 150, 150));
@@ -426,7 +423,6 @@ PixelTreeCanvas::drawHistogram(int idx, float* data, int l_vline, int r_vline, i
     for (int v = val; v >= 0; v--) {
       drawPixel(init_x + (i - l_vline) * _step,
                 y + HIST_HEIGHT - v,
-                _step,
                 color);
     }
     
@@ -437,7 +433,7 @@ PixelTreeCanvas::drawHistogram(int idx, float* data, int l_vline, int r_vline, i
 }
 
 void
-PixelTreeCanvas::drawNodeRate(int l_vline, int r_vline) {
+PixelTreeCanvas::drawNodeRate(unsigned l_vline, unsigned r_vline) {
   Data* data = _tc->getData();
   std::vector<float>& node_rate = data->node_rate;
   std::vector<int>& nr_intervals = data->nr_intervals;
@@ -451,19 +447,17 @@ PixelTreeCanvas::drawNodeRate(int l_vline, int r_vline) {
 
   int zero_level = start_y + HIST_HEIGHT + _step;
 
-  for (int i = l_vline; i < r_vline; i++) {
-    for (int j = 0; j < _step; j++)
+  for (unsigned i = l_vline; i < r_vline; i++) {
+    for (unsigned j = 0; j < _step; j++)
       _image->setPixel(start_x + (i - l_vline) * _step + j,
                        zero_level, 
                        qRgb(150, 150, 150));
   }
 
-  int x = 0;
-
-  for (int i = 1; i < nr_intervals.size(); i++) {
+  for (unsigned i = 1; i < nr_intervals.size(); i++) {
     float value = node_rate[i - 1] * coeff;
-    int i_begin = ceil((float)nr_intervals[i-1] / approx_size);
-    int i_end   = ceil((float)nr_intervals[i]   / approx_size);
+    unsigned i_begin = ceil((float)nr_intervals[i-1] / approx_size);
+    unsigned i_end   = ceil((float)nr_intervals[i]   / approx_size);
 
     /// draw this interval?
     if (i_end < l_vline || i_begin > r_vline)
@@ -472,20 +466,15 @@ PixelTreeCanvas::drawNodeRate(int l_vline, int r_vline) {
     if (i_begin < l_vline) i_begin = l_vline;
     if (i_end   > r_vline) i_end   = r_vline;
 
-    for (int x = i_begin; x < i_end; x++) {
+    for (unsigned x = i_begin; x < i_end; x++) {
 
       for (int v = value; v >= 0; v--) {
         drawPixel(start_x + (x - l_vline) * _step,
                   start_y + HIST_HEIGHT - v,
-                  _step,
                   qRgb(40, 40, 150));
       }
     }
   }
-
-
-
-
 }
 
 void
@@ -514,12 +503,12 @@ PixelTreeCanvas::compressionChanged(int value) {
 }
 
 void
-PixelTreeCanvas::drawPixel(int x, int y, int step, int color) {
+PixelTreeCanvas::drawPixel(int x, int y, int color) {
   if (y < 0)
     return; /// TODO: fix later
 
-  for (uint i = 0; i < _step; i++)
-    for (uint j = 0; j < _step_y; j++)
+  for (unsigned i = 0; i < _step; i++)
+    for (unsigned j = 0; j < _step_y; j++)
       _image->setPixel(x + i, y + j, color);
 
 }
@@ -530,15 +519,15 @@ PixelTreeCanvas::mousePressEvent(QMouseEvent* me) {
   int xoff = _sa->horizontalScrollBar()->value();
   int yoff = _sa->verticalScrollBar()->value();
 
-  int x = me->x() + xoff;
-  int y = me->y() + yoff;
+  unsigned x = me->x() + xoff;
+  unsigned y = me->y() + yoff;
 
   /// check boundaries:
   if (y > pt_height) return;
 
   // which node?
 
-  int vline = x / _step;
+  unsigned vline = x / _step;
 
   selectNodesfromPT(vline);
 
@@ -548,7 +537,7 @@ PixelTreeCanvas::mousePressEvent(QMouseEvent* me) {
 }
 
 void
-PixelTreeCanvas::selectNodesfromPT(int vline) {
+PixelTreeCanvas::selectNodesfromPT(unsigned vline) {
 
   struct Actions {
 

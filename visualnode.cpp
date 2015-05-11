@@ -174,7 +174,7 @@ VisualNode::labelPath(NodeAllocator& na, TreeCanvas& tc) {
             std::pair<VisualNode*,int> cur = path.back(); path.pop_back();
             if (p) {
                 int gid = cur.first->getIndex(na);
-                std::string l = tc.getData()->getLabelByGid(gid);
+                std::string l = tc.getData()->getLabel(gid);
 
                 na.setLabel(cur.first, QString(l.c_str()));
                 std::cout << l << "; ";

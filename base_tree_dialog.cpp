@@ -1,5 +1,6 @@
 #include "base_tree_dialog.hh"
 #include "nodewidget.hh"
+#include "treecanvas.hh"
 
 BaseTreeDialog::BaseTreeDialog(ReceiverThread* receiver, const CanvasType type, Gist* gist) :
   QDialog(gist), ptr_gist(gist), menuBar{nullptr}, nodeMenu{nullptr} {

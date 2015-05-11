@@ -44,7 +44,7 @@ private:
   ReceiverThread* receiver;
 
   /// Points to the active canvas
-  TreeCanvas* current_tc;
+  TreeCanvas* current_tc = nullptr;
 
   /// The canvas implementation
   TreeCanvas* canvas;

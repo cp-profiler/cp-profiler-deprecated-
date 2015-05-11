@@ -40,7 +40,6 @@ bool TreeBuilder::processRoot(DbEntry& dbEntry) {
 
     std::cerr << "process root: " << dbEntry << "\n";
 
-    std::vector<DbEntry*> &nodes_arr = _data->nodes_arr;
     auto& gid2entry = _data->gid2entry;
 
     Statistics &stats = _tc->stats;
@@ -252,9 +251,6 @@ void TreeBuilder::run(void) {
     begin = clock();
 	// qDebug() << "### in run method of tc:" << _tc->_id;
 
-    bool _isRestarts = _data->isRestarts();
-
-    std::vector<DbEntry*> &nodes_arr = _data->nodes_arr;
     QMutex &dataMutex = _data->dataMutex;
     
     Statistics &stats = _tc->stats;
@@ -266,10 +262,7 @@ void TreeBuilder::run(void) {
 
         system_clock::time_point before_tp = system_clock::now();
 
-        int depth;
-
         while (!dataMutex.tryLock()) { /* qDebug() << "Can't lock, trying again"; */ };
-
 
         /// check if done
         if (!read_queue->canRead()) {
