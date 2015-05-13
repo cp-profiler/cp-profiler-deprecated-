@@ -273,7 +273,6 @@ StatCursor::StatCursor(VisualNode* root,
 
 inline void
 StatCursor::processCurrentNode(void) {
-    qDebug() << "doesnt go here";
     VisualNode* n = node();
     switch (n->getStatus()) {
     case SOLVED: solved++; break;

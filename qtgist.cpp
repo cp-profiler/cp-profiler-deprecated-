@@ -198,7 +198,7 @@ Gist::updateActions(VisualNode* n, bool finished) {
 void
 Gist::on_canvas_statusChanged(VisualNode* n, const Statistics& stats,
                               bool finished) {
-    // nodeStatInspector->node(*canvas->na,n,stats,finished); /// TODO: what does this do?
+    nodeStatInspector->node(*canvas->na,n,stats,finished); /// for single node stats
     if (!finished) {
         showNodeStats->setEnabled(false);
         // stop-> setEnabled(true);
