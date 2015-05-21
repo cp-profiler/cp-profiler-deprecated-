@@ -205,7 +205,7 @@ public:
   void resizeEvent(QResizeEvent*);
 
   /// Receiver calles this when name is obtained
-  void emitChangeMainTitle(const char* file_name);
+  void emitChangeMainTitle(const std::string& file_name);
 
 
   /// ***** GETTERS *****
@@ -225,7 +225,7 @@ Q_SIGNALS:
   void solution(int);
 
   /// Notify MainWindow about fzn file name
-  void changeMainTitle(const char* file_name);
+  void changeMainTitle(const std::string& file_name);
 
 
 private Q_SLOTS:

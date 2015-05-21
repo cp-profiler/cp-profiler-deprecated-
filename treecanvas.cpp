@@ -890,6 +890,7 @@ TreeCanvas::reset(bool isRestarts) {
     _data = new Data(this, na, isRestarts);
 
     _builder->reset(_data, na);
+    ptr_receiver->receive(this);
 
     _isUsed = false;
 

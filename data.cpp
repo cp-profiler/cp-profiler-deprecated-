@@ -3,14 +3,13 @@
 #include <string>
 #include <sstream>
 #include <QString>
-
 #include <ctime>
 
 #include <zmq.hpp>
 
-
 #include "visualnode.hh"
 #include "data.hh"
+#include "message.pb.h"
 
 using namespace std;
 
@@ -80,26 +79,26 @@ void Data::setDoneReceiving(void) {
     
 }
 
-int Data::handleNodeCallback(Message* msg) {
+int Data::handleNodeCallback(message::Node& node) {
 
     unsigned long long real_id, real_pid;
 
     current_time = system_clock::now();
 
-    int id = msg->sid;
-    int pid = msg->parent_sid;
-    int alt = msg->alt;
-    int kids = msg->kids;
-    int status = msg->status;
-    int restart_id = msg->restart_id;
-    char thread = msg->thread;
-    float domain = msg->domain;
+    int id = node.sid();
+    int pid = node.pid();
+    int alt = node.alt();
+    int kids = node.kids();
+    int status = node.status();
+    int restart_id = node.restart_id();
+    char thread = node.thread_id();
+    float domain = node.domain_size();
 
-    // qDebug() << "Received node: \t" << id << " " << pid << " "
-    //                 << alt << " " << kids << " " << status << " wid: "
-    //                 << (int)thread << " restart: " << restart_id
-    //                 << "time: " << msg->time
-    //                 << "label: " << msg->label;
+    qDebug() << "Received node: \t" << id << " " << pid << " "
+                    << alt << " " << kids << " " << status << " wid: "
+                    << (int)thread << " restart: " << restart_id
+                    << "time: " << node.time()
+                    << "label: " << node.label().c_str();
 
     /// just so we don't have ugly numbers when not using restarts   
     if (restart_id == -1) restart_id = 0;
@@ -121,13 +120,13 @@ int Data::handleNodeCallback(Message* msg) {
                     alt,
                     kids,
                     thread,
-                    msg->label,
+                    node.label().c_str(),
                     status,
-                    msg->time,
-                    msg->time - _prev_node_timestamp,
+                    node.time(),
+                    node.time() - _prev_node_timestamp,
                     domain));
 
-    _prev_node_timestamp = msg->time;
+    _prev_node_timestamp = node.time();
 
     // handle node rate
 
@@ -155,7 +154,7 @@ const char* Data::getLabel(unsigned int gid) {
 
     auto it = gid2entry.find(gid);
     if (it != gid2entry.end())
-        return it->second->label;
+        return it->second->label.c_str();
     return "";
 
 }

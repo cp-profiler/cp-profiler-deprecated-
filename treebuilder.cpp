@@ -1,6 +1,5 @@
 #include "treebuilder.hh"
 #include "globalhelper.hh"
-#include "debug.cpp"
 #include "readingQueue.hh"
 #include <cassert>
 

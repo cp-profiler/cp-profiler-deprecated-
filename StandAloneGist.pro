@@ -40,9 +40,8 @@ SOURCES += main.cpp\
     readingQueue.cpp \
     treecomparison.cpp \
     pixelview.cpp \
+    message.pb.cc \
     
-
-
 
 HEADERS  += gistmainwindow.h \
     globalhelper.hh \
@@ -75,13 +74,16 @@ HEADERS  += gistmainwindow.h \
     treebuilder.hh \
     readingQueue.hh \
     treecomparison.hh \
-    pixelview.hh
+    pixelview.hh \
+    message.pb.h
 
 FORMS    +=
 
 win32:CONFIG(release, debug|release): LIBS += -L$$PWD/../../../../../../../usr/local/lib/release/ -lzmq
 else:win32:CONFIG(debug, debug|release): LIBS += -L$$PWD/../../../../../../../usr/local/lib/debug/ -lzmq
 else:unix: LIBS += -L$$PWD/../../../../../../usr/local/lib/ -lzmq -ldl
+
+LIBS += `pkg-config --cflags --libs protobuf`
 
 INCLUDEPATH += $$PWD/../../../../../../../../usr/local/include
 DEPENDPATH += $$PWD/../../../../../../../../usr/local/include

@@ -1,6 +1,7 @@
 #include "receiverthread.hh"
 #include "globalhelper.hh"
 #include "solver_tree_dialog.hh"
+#include "message.pb.h"
 
 class SolverTreeDialog;
 
@@ -9,14 +10,10 @@ ReceiverThread::ReceiverThread(QWidget* parent): QThread(parent) {
 }
 
 void
-// ReceiverThread::recieve(VisualNode* n, TreeCanvas* tc) {
-ReceiverThread::recieve(TreeCanvas* tc) {
-//  QMutexLocker locker(&mutex);
-  /// skipped smth here
- // _node = n;
+ReceiverThread::receive(TreeCanvas* tc) {
   
+  qDebug() << "in ReceiverThread::receive";
   _t = tc;
-
   _quit = false;
   
   start();
@@ -56,29 +53,33 @@ ReceiverThread::run(void) {
 
     while (!_quit) {
 
-        zmq::message_t request;
+        zmq::message_t raw_message;
 
-        bool messageReceived = socket.recv (&request, ZMQ_NOBLOCK); /// non-blocking so I can exit any time
-
-        Message *msg = reinterpret_cast<Message*>(request.data());
+        bool messageReceived = socket.recv (&raw_message, ZMQ_NOBLOCK); /// non-blocking so I can exit any time
 
         if (!messageReceived) {
             msleep(100);
             continue;
         }
 
-        switch (msg->type) {
-            case NODE_DATA:
-                _t->_data->handleNodeCallback(msg);
+        // Message *msg = reinterpret_cast<Message*>(raw_message.data());
+        message::Node msg1;
+        msg1.ParseFromArray(raw_message.data(), raw_message.size());
+
+        
+
+        switch (msg1.type()) {
+            case message::Node::NODE:
+                _t->_data->handleNodeCallback(msg1);
                 ++nodeCount;
             break;
-            case START_SENDING: /// TODO: start sending should have model name
+            case message::Node::START: /// TODO: start sending should have model name
                 qDebug() << "START RECEIVING";
 
                 // if (msg->restart_id == -1 || msg->restart_id == 0) { // why 1?
 
 
-                if (msg->restart_id != -1 && msg->restart_id != 0) {
+                if (msg1.restart_id() != -1 && msg1.restart_id() != 0) {
                     qDebug() << ">>> restart and continue";
                     break;
                 }
@@ -90,31 +91,31 @@ ReceiverThread::run(void) {
                         emit newCanvasNeeded();
 
                     _t = ptr_gist->getLastCanvas();
-                    ptr_gist->getLastTreeDialog()->setTitle(msg->label);
+                    ptr_gist->getLastTreeDialog()->setTitle(msg1.label());
                     ptr_gist->connectCanvas(_t);
                     qDebug() << "Switched to another canvas";
                 } else {
                     /// set Title through ptr_gist
                     qDebug() << "here: " << _t->getData()->getTitle().c_str();
-                    ptr_gist->emitChangeMainTitle(msg->label);
+                    ptr_gist->emitChangeMainTitle(msg1.label());
                 }
 
-                if (msg->restart_id == -1) {
+                if (msg1.restart_id() == -1) {
                     ptr_gist->canvasTwo = NULL; /// TODO: do I still need this?
 
                     _t->reset(false); // no restarts
                     emit startReceiving();
                 } 
-                else if (msg->restart_id == 0){
+                else if (msg1.restart_id() == 0){
 
                     _t->reset(true);
                     emit startReceiving();
                     qDebug() << ">>> new restart";
                 }
 
-                _t->getData()->setTitle(msg->label);
+                _t->getData()->setTitle(msg1.label());
             break;
-            case DONE_SENDING:
+            case message::Node::DONE:
                 qDebug() << "received DONE SENDING";
                 updateCanvas();
                 /// needed for Opturion CPX restarts

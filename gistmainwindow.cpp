@@ -147,8 +147,8 @@ GistMainWindow::GistMainWindow() : aboutGist(this) {
   connect(c,SIGNAL(statusChanged(const Statistics&,bool)),
           this,SLOT(statusChanged(const Statistics&,bool)));
 
-  connect(c, SIGNAL(changeMainTitle(const char*)),
-          this, SLOT(changeTitle(const char*)));
+  connect(c, SIGNAL(changeMainTitle(const std::string&)),
+          this, SLOT(changeTitle(const std::string&)));
 
   connect(this, SIGNAL(stopReceiver()), c->getReceiver(), SLOT(stopThread()));
 

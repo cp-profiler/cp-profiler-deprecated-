@@ -122,7 +122,7 @@ BaseTreeDialog::statusChangedShared(bool finished) {
 }
 
 void
-BaseTreeDialog::setTitle(const char* file_name) {
-  QString title(file_name);
+BaseTreeDialog::setTitle(const std::string& file_name) {
+  QString title(file_name.c_str());
   this->setWindowTitle(title);
 }

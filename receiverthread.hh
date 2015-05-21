@@ -17,6 +17,7 @@ public:
 
   ReceiverThread(QWidget* parent = 0);
   void switchCanvas(TreeCanvas* tc);
+  void receive(TreeCanvas* tc);
 
 
 private:
@@ -40,7 +41,7 @@ Q_SIGNALS:
 
 protected:
   void run(void);
-  void recieve(TreeCanvas* tc);
+  
 
 
 };

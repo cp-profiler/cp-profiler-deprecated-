@@ -80,7 +80,7 @@ Gist::Gist(QWidget* parent) : QWidget(parent) {
 
     nodeStatInspector = new NodeStatInspector(this);
 
-    receiver->recieve(canvas);
+    receiver->receive(canvas);
     canvas->show();
 
     resize(500, 400);
@@ -295,7 +295,7 @@ Gist::on_canvas_statusChanged(VisualNode* n, const Statistics& stats,
 }
 
 void
-Gist::emitChangeMainTitle(const char* file_name) {
+Gist::emitChangeMainTitle(const std::string& file_name) {
     emit changeMainTitle(file_name);
 }
 

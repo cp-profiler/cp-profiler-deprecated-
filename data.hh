@@ -20,26 +20,14 @@ using namespace std::chrono;
 using std::string;
 using std::ostream;
 
+namespace message {
+    class Node;
+}
+
 enum MsgType {
   NODE_DATA = 1,
   DONE_SENDING = 2,
   START_SENDING = 3
-};
-
-struct Message {
-    static const int LABEL_SIZE = 32;
-
-    MsgType type;
-    int sid;
-    int parent_sid;
-    int alt;
-    int kids;
-    int status;
-    int restart_id;
-    unsigned long long time;
-    char thread;
-    char label[LABEL_SIZE];
-    float domain;
 };
 
 class DbEntry {
@@ -47,13 +35,12 @@ private:
 
 public:
     DbEntry(unsigned long long id, unsigned long long _p, int _alt, int _kids, char _tid,
-            char* _label, int _status, unsigned long long _time_stamp,
+            const char* _label, int _status, unsigned long long _time_stamp,
             unsigned long long _node_time, float _domain) :
         sid(id), gid(-1), parent_sid(_p), alt(_alt), numberOfKids(_kids),
-        status(_status), thread(_tid), depth(-1), time_stamp(_time_stamp), node_time(_node_time),
+        status(_status), label(_label), thread(_tid), depth(-1), time_stamp(_time_stamp), node_time(_node_time),
         domain(_domain) {
-          
-          memcpy(label, _label, Message::LABEL_SIZE);
+            
     }
 
     friend ostream& operator<<(ostream& s, const DbEntry& e);
@@ -66,7 +53,7 @@ public:
     int alt; // which child by order
     int numberOfKids;
     int status;
-    char label[Message::LABEL_SIZE];
+    std::string label;
     char thread;
     int depth;
     unsigned long long time_stamp;
@@ -89,6 +76,8 @@ private:
 
     const TreeCanvas* _tc; /// TreeCanvas instance it belongs to
     const int _id; /// Id of the TreeCanvas instance it belongs to
+
+    /// TODO: do I even need NodeAllocator in Data?
     const NodeAllocator* _na; /// Node allocator of _tc
 
     /// True if we want a dummy node (needed for showing restarts)
@@ -153,7 +142,7 @@ public:
     Data(TreeCanvas* tc, NodeAllocator* na, bool isRestarts);
     ~Data(void);
 
-    int handleNodeCallback(Message* data);
+    int handleNodeCallback(message::Node& node);
 
     void show_db(void); /// TODO: write to a file
 
@@ -179,7 +168,7 @@ public:
 
 /// ********* SETTERS **********
 
-    void setTitle(char* title) { _title = title; qDebug() << "sent: " << _title.c_str();}
+    void setTitle(string title) { _title = title; qDebug() << "sent: " << _title.c_str();}
 
 /// ****************************
 
