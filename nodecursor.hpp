@@ -464,7 +464,7 @@ SubtreeCountCursor::processCurrentNode(void) {
         n->setSubtreeSizeUnknown();
         n->setHidden(false);
         n->setChildrenLayoutDone(false);
-    } else if (x <= threshold) {
+    } else if (1 < x && x <= threshold) {
         n->setHidden(true);
         n->setChildrenLayoutDone(true);
         if (x < threshold/4) {
