@@ -1,7 +1,7 @@
 #include "receiverthread.hh"
 #include "globalhelper.hh"
 #include "solver_tree_dialog.hh"
-#include "message.pb.h"
+#include "message.pb.hh"
 
 class SolverTreeDialog;
 
@@ -11,11 +11,11 @@ ReceiverThread::ReceiverThread(QWidget* parent): QThread(parent) {
 
 void
 ReceiverThread::receive(TreeCanvas* tc) {
-  
+
   qDebug() << "in ReceiverThread::receive";
   _t = tc;
   _quit = false;
-  
+
   start();
 }
 
@@ -48,7 +48,7 @@ ReceiverThread::run(void) {
                   << address.toStdString().c_str() << "\n";
         abort();
     }
-    
+
     int nodeCount = 0;
 
     while (!_quit) {
@@ -66,7 +66,7 @@ ReceiverThread::run(void) {
         message::Node msg1;
         msg1.ParseFromArray(raw_message.data(), raw_message.size());
 
-        
+
 
         switch (msg1.type()) {
             case message::Node::NODE:
@@ -105,7 +105,7 @@ ReceiverThread::run(void) {
 
                     _t->reset(false); // no restarts
                     emit startReceiving();
-                } 
+                }
                 else if (msg1.restart_id() == 0){
 
                     _t->reset(true);
@@ -119,7 +119,7 @@ ReceiverThread::run(void) {
                 qDebug() << "received DONE SENDING";
                 updateCanvas();
                 /// needed for Opturion CPX restarts
-                // if (!_t->_data->isRestarts()) 
+                // if (!_t->_data->isRestarts())
                     emit doneReceiving();
                     disconnect(this, SIGNAL(startReceiving(void)),
                                _t->_builder, SLOT(startBuilding(void)));
@@ -169,7 +169,7 @@ ReceiverThread::updateCanvas(void) {
             break;
         }
     }
-    
+
 
     _t->root->layout(*_t->na);
     BoundingBox bb = _t->root->getBoundingBox();

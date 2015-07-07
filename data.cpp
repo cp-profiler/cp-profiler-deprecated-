@@ -9,7 +9,7 @@
 
 #include "visualnode.hh"
 #include "data.hh"
-#include "message.pb.h"
+#include "message.pb.hh"
 
 using namespace std;
 
@@ -42,7 +42,7 @@ Data::Data(TreeCanvas* tc, NodeAllocator* na, bool isRestarts)
         _isDone = true;
         _total_time = 0;
     }
-    
+
     qDebug() << "+++ new Data created, tc_id: " << _id;
 }
 
@@ -65,18 +65,18 @@ void Data::setDoneReceiving(void) {
 
     if (_total_time != 0) {
         _time_per_node = _total_time / _total_time;
-    } else 
+    } else
         qDebug() << "(!) _total_time cannot be 0";
 
 
     flush_node_rate();
 
     // qDebug() << "Elements in nodes_arr: " << nodes_arr.size();
-    
+
     // qDebug() << "Size of 'nodes_arr' (bytes): " << nodes_arr.size() * sizeof(DbEntry);
 
     _isDone = true;
-    
+
 }
 
 int Data::handleNodeCallback(message::Node& node) {
@@ -100,14 +100,14 @@ int Data::handleNodeCallback(message::Node& node) {
                     << "time: " << node.time()
                     << "label: " << node.label().c_str();
 
-    /// just so we don't have ugly numbers when not using restarts   
+    /// just so we don't have ugly numbers when not using restarts
     if (restart_id == -1) restart_id = 0;
 
     /// this way thread id and node id are stored in one variable
     /// TODO: shouldn't I make a custom hash function instead?
     if (pid != -1)
         real_pid = (pid | ((long long)restart_id << 32));
-    else 
+    else
         real_pid = ~0u;
 
     assert(restart_id == 0);
@@ -131,7 +131,7 @@ int Data::handleNodeCallback(message::Node& node) {
     // handle node rate
 
     long long time_passed = static_cast<long long>(duration_cast<microseconds>(current_time - last_interval_time).count());
-    
+
     // qDebug() << "time passed: " << time_passed;
     if (static_cast<long>(time_passed) > NODE_RATE_STEP) {
         float nr = (nodes_arr.size() - last_interval_nc) * (float)NODE_RATE_STEP / time_passed;
@@ -143,7 +143,7 @@ int Data::handleNodeCallback(message::Node& node) {
     }
 
     // system_clock::time_point after_tp = system_clock::now();
-    // qDebug () << "receiving node takes: " << 
+    // qDebug () << "receiving node takes: " <<
     //     duration_cast<nanoseconds>(after_tp - current_time).count() << "ns";
 
     return 0;
@@ -200,7 +200,7 @@ void Data::pushInstance(unsigned long long sid, DbEntry* entry) {
     nodes_arr.push_back(entry);
 
     sid2aid[sid] = nodes_arr.size() - 1;
-    
+
     // qDebug() << "sid2aid[" << sid << "] = " << sid2aid[sid];
 
 }

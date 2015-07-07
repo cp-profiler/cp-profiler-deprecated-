@@ -40,8 +40,8 @@ SOURCES += main.cpp\
     readingQueue.cpp \
     treecomparison.cpp \
     pixelview.cpp \
-    message.pb.cc \
-    
+    message.pb.cpp \
+
 
 HEADERS  += gistmainwindow.h \
     globalhelper.hh \
@@ -75,7 +75,7 @@ HEADERS  += gistmainwindow.h \
     readingQueue.hh \
     treecomparison.hh \
     pixelview.hh \
-    message.pb.h
+    message.pb.hh
 
 FORMS    +=
 
