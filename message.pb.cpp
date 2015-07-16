@@ -36,7 +36,7 @@ void protobuf_AssignDesc_message_2eproto() {
       "message.proto");
   GOOGLE_CHECK(file != NULL);
   Node_descriptor_ = file->message_type(0);
-  static const int Node_offsets_[11] = {
+  static const int Node_offsets_[13] = {
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(Node, type_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(Node, sid_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(Node, pid_),
@@ -48,6 +48,8 @@ void protobuf_AssignDesc_message_2eproto() {
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(Node, thread_id_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(Node, label_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(Node, domain_size_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(Node, solution_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(Node, nogood_),
   };
   Node_reflection_ =
     new ::google::protobuf::internal::GeneratedMessageReflection(
@@ -92,17 +94,18 @@ void protobuf_AddDesc_message_2eproto() {
   GOOGLE_PROTOBUF_VERIFY_VERSION;
 
   ::google::protobuf::DescriptorPool::InternalAddGeneratedFile(
-    "\n\rmessage.proto\022\007message\"\201\003\n\004Node\022#\n\004typ"
+    "\n\rmessage.proto\022\007message\"\243\003\n\004Node\022#\n\004typ"
     "e\030\001 \002(\0162\025.message.Node.MsgType\022\013\n\003sid\030\002 "
     "\001(\005\022\013\n\003pid\030\003 \001(\005\022\013\n\003alt\030\004 \001(\005\022\014\n\004kids\030\005 "
     "\001(\005\022(\n\006status\030\006 \001(\0162\030.message.Node.NodeS"
     "tatus\022\022\n\nrestart_id\030\007 \001(\005\022\014\n\004time\030\010 \001(\004\022"
     "\021\n\tthread_id\030\t \001(\005\022\r\n\005label\030\n \001(\t\022\023\n\013dom"
-    "ain_size\030\013 \001(\002\"(\n\007MsgType\022\010\n\004NODE\020\000\022\010\n\004D"
-    "ONE\020\001\022\t\n\005START\020\002\"r\n\nNodeStatus\022\n\n\006SOLVED"
-    "\020\000\022\n\n\006FAILED\020\001\022\n\n\006BRANCH\020\002\022\020\n\014UNDETERMIN"
-    "ED\020\003\022\010\n\004STOP\020\004\022\n\n\006UNSTOP\020\005\022\013\n\007SKIPPED\020\006\022"
-    "\013\n\007MERGING\020\007", 412);
+    "ain_size\030\013 \001(\002\022\020\n\010solution\030\014 \001(\t\022\016\n\006nogo"
+    "od\030\r \001(\t\"(\n\007MsgType\022\010\n\004NODE\020\000\022\010\n\004DONE\020\001\022"
+    "\t\n\005START\020\002\"r\n\nNodeStatus\022\n\n\006SOLVED\020\000\022\n\n\006"
+    "FAILED\020\001\022\n\n\006BRANCH\020\002\022\020\n\014UNDETERMINED\020\003\022\010"
+    "\n\004STOP\020\004\022\n\n\006UNSTOP\020\005\022\013\n\007SKIPPED\020\006\022\013\n\007MER"
+    "GING\020\007", 446);
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedFile(
     "message.proto", &protobuf_RegisterTypes);
   Node::default_instance_ = new Node();
@@ -187,6 +190,8 @@ const int Node::kTimeFieldNumber;
 const int Node::kThreadIdFieldNumber;
 const int Node::kLabelFieldNumber;
 const int Node::kDomainSizeFieldNumber;
+const int Node::kSolutionFieldNumber;
+const int Node::kNogoodFieldNumber;
 #endif  // !_MSC_VER
 
 Node::Node()
@@ -219,6 +224,8 @@ void Node::SharedCtor() {
   thread_id_ = 0;
   label_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   domain_size_ = 0;
+  solution_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  nogood_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   ::memset(_has_bits_, 0, sizeof(_has_bits_));
 }
 
@@ -230,6 +237,12 @@ Node::~Node() {
 void Node::SharedDtor() {
   if (label_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
     delete label_;
+  }
+  if (solution_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    delete solution_;
+  }
+  if (nogood_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    delete nogood_;
   }
   if (this != default_instance_) {
   }
@@ -270,7 +283,7 @@ void Node::Clear() {
   if (_has_bits_[0 / 32] & 255) {
     ZR_(type_, restart_id_);
   }
-  if (_has_bits_[8 / 32] & 1792) {
+  if (_has_bits_[8 / 32] & 7936) {
     thread_id_ = 0;
     if (has_label()) {
       if (label_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
@@ -278,6 +291,16 @@ void Node::Clear() {
       }
     }
     domain_size_ = 0;
+    if (has_solution()) {
+      if (solution_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+        solution_->clear();
+      }
+    }
+    if (has_nogood()) {
+      if (nogood_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+        nogood_->clear();
+      }
+    }
   }
 
 #undef OFFSET_OF_FIELD_
@@ -469,6 +492,40 @@ bool Node::MergePartialFromCodedStream(
         } else {
           goto handle_unusual;
         }
+        if (input->ExpectTag(98)) goto parse_solution;
+        break;
+      }
+
+      // optional string solution = 12;
+      case 12: {
+        if (tag == 98) {
+         parse_solution:
+          DO_(::google::protobuf::internal::WireFormatLite::ReadString(
+                input, this->mutable_solution()));
+          ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
+            this->solution().data(), this->solution().length(),
+            ::google::protobuf::internal::WireFormat::PARSE,
+            "solution");
+        } else {
+          goto handle_unusual;
+        }
+        if (input->ExpectTag(106)) goto parse_nogood;
+        break;
+      }
+
+      // optional string nogood = 13;
+      case 13: {
+        if (tag == 106) {
+         parse_nogood:
+          DO_(::google::protobuf::internal::WireFormatLite::ReadString(
+                input, this->mutable_nogood()));
+          ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
+            this->nogood().data(), this->nogood().length(),
+            ::google::protobuf::internal::WireFormat::PARSE,
+            "nogood");
+        } else {
+          goto handle_unusual;
+        }
         if (input->ExpectAtEnd()) goto success;
         break;
       }
@@ -560,6 +617,26 @@ void Node::SerializeWithCachedSizes(
     ::google::protobuf::internal::WireFormatLite::WriteFloat(11, this->domain_size(), output);
   }
 
+  // optional string solution = 12;
+  if (has_solution()) {
+    ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
+      this->solution().data(), this->solution().length(),
+      ::google::protobuf::internal::WireFormat::SERIALIZE,
+      "solution");
+    ::google::protobuf::internal::WireFormatLite::WriteStringMaybeAliased(
+      12, this->solution(), output);
+  }
+
+  // optional string nogood = 13;
+  if (has_nogood()) {
+    ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
+      this->nogood().data(), this->nogood().length(),
+      ::google::protobuf::internal::WireFormat::SERIALIZE,
+      "nogood");
+    ::google::protobuf::internal::WireFormatLite::WriteStringMaybeAliased(
+      13, this->nogood(), output);
+  }
+
   if (!unknown_fields().empty()) {
     ::google::protobuf::internal::WireFormat::SerializeUnknownFields(
         unknown_fields(), output);
@@ -631,6 +708,28 @@ void Node::SerializeWithCachedSizes(
   // optional float domain_size = 11;
   if (has_domain_size()) {
     target = ::google::protobuf::internal::WireFormatLite::WriteFloatToArray(11, this->domain_size(), target);
+  }
+
+  // optional string solution = 12;
+  if (has_solution()) {
+    ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
+      this->solution().data(), this->solution().length(),
+      ::google::protobuf::internal::WireFormat::SERIALIZE,
+      "solution");
+    target =
+      ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
+        12, this->solution(), target);
+  }
+
+  // optional string nogood = 13;
+  if (has_nogood()) {
+    ::google::protobuf::internal::WireFormat::VerifyUTF8StringNamedField(
+      this->nogood().data(), this->nogood().length(),
+      ::google::protobuf::internal::WireFormat::SERIALIZE,
+      "nogood");
+    target =
+      ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
+        13, this->nogood(), target);
   }
 
   if (!unknown_fields().empty()) {
@@ -720,6 +819,20 @@ int Node::ByteSize() const {
       total_size += 1 + 4;
     }
 
+    // optional string solution = 12;
+    if (has_solution()) {
+      total_size += 1 +
+        ::google::protobuf::internal::WireFormatLite::StringSize(
+          this->solution());
+    }
+
+    // optional string nogood = 13;
+    if (has_nogood()) {
+      total_size += 1 +
+        ::google::protobuf::internal::WireFormatLite::StringSize(
+          this->nogood());
+    }
+
   }
   if (!unknown_fields().empty()) {
     total_size +=
@@ -782,6 +895,12 @@ void Node::MergeFrom(const Node& from) {
     if (from.has_domain_size()) {
       set_domain_size(from.domain_size());
     }
+    if (from.has_solution()) {
+      set_solution(from.solution());
+    }
+    if (from.has_nogood()) {
+      set_nogood(from.nogood());
+    }
   }
   mutable_unknown_fields()->MergeFrom(from.unknown_fields());
 }
@@ -817,6 +936,8 @@ void Node::Swap(Node* other) {
     std::swap(thread_id_, other->thread_id_);
     std::swap(label_, other->label_);
     std::swap(domain_size_, other->domain_size_);
+    std::swap(solution_, other->solution_);
+    std::swap(nogood_, other->nogood_);
     std::swap(_has_bits_[0], other->_has_bits_[0]);
     _unknown_fields_.Swap(&other->_unknown_fields_);
     std::swap(_cached_size_, other->_cached_size_);

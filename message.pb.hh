@@ -273,6 +273,30 @@ class Node : public ::google::protobuf::Message {
   inline float domain_size() const;
   inline void set_domain_size(float value);
 
+  // optional string solution = 12;
+  inline bool has_solution() const;
+  inline void clear_solution();
+  static const int kSolutionFieldNumber = 12;
+  inline const ::std::string& solution() const;
+  inline void set_solution(const ::std::string& value);
+  inline void set_solution(const char* value);
+  inline void set_solution(const char* value, size_t size);
+  inline ::std::string* mutable_solution();
+  inline ::std::string* release_solution();
+  inline void set_allocated_solution(::std::string* solution);
+
+  // optional string nogood = 13;
+  inline bool has_nogood() const;
+  inline void clear_nogood();
+  static const int kNogoodFieldNumber = 13;
+  inline const ::std::string& nogood() const;
+  inline void set_nogood(const ::std::string& value);
+  inline void set_nogood(const char* value);
+  inline void set_nogood(const char* value, size_t size);
+  inline ::std::string* mutable_nogood();
+  inline ::std::string* release_nogood();
+  inline void set_allocated_nogood(::std::string* nogood);
+
   // @@protoc_insertion_point(class_scope:message.Node)
  private:
   inline void set_has_type();
@@ -297,6 +321,10 @@ class Node : public ::google::protobuf::Message {
   inline void clear_has_label();
   inline void set_has_domain_size();
   inline void clear_has_domain_size();
+  inline void set_has_solution();
+  inline void clear_has_solution();
+  inline void set_has_nogood();
+  inline void clear_has_nogood();
 
   ::google::protobuf::UnknownFieldSet _unknown_fields_;
 
@@ -312,6 +340,8 @@ class Node : public ::google::protobuf::Message {
   ::google::protobuf::int32 restart_id_;
   ::google::protobuf::int32 thread_id_;
   ::std::string* label_;
+  ::std::string* solution_;
+  ::std::string* nogood_;
   float domain_size_;
   friend void  protobuf_AddDesc_message_2eproto();
   friend void protobuf_AssignDesc_message_2eproto();
@@ -643,6 +673,158 @@ inline void Node::set_domain_size(float value) {
   set_has_domain_size();
   domain_size_ = value;
   // @@protoc_insertion_point(field_set:message.Node.domain_size)
+}
+
+// optional string solution = 12;
+inline bool Node::has_solution() const {
+  return (_has_bits_[0] & 0x00000800u) != 0;
+}
+inline void Node::set_has_solution() {
+  _has_bits_[0] |= 0x00000800u;
+}
+inline void Node::clear_has_solution() {
+  _has_bits_[0] &= ~0x00000800u;
+}
+inline void Node::clear_solution() {
+  if (solution_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    solution_->clear();
+  }
+  clear_has_solution();
+}
+inline const ::std::string& Node::solution() const {
+  // @@protoc_insertion_point(field_get:message.Node.solution)
+  return *solution_;
+}
+inline void Node::set_solution(const ::std::string& value) {
+  set_has_solution();
+  if (solution_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    solution_ = new ::std::string;
+  }
+  solution_->assign(value);
+  // @@protoc_insertion_point(field_set:message.Node.solution)
+}
+inline void Node::set_solution(const char* value) {
+  set_has_solution();
+  if (solution_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    solution_ = new ::std::string;
+  }
+  solution_->assign(value);
+  // @@protoc_insertion_point(field_set_char:message.Node.solution)
+}
+inline void Node::set_solution(const char* value, size_t size) {
+  set_has_solution();
+  if (solution_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    solution_ = new ::std::string;
+  }
+  solution_->assign(reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_set_pointer:message.Node.solution)
+}
+inline ::std::string* Node::mutable_solution() {
+  set_has_solution();
+  if (solution_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    solution_ = new ::std::string;
+  }
+  // @@protoc_insertion_point(field_mutable:message.Node.solution)
+  return solution_;
+}
+inline ::std::string* Node::release_solution() {
+  clear_has_solution();
+  if (solution_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    return NULL;
+  } else {
+    ::std::string* temp = solution_;
+    solution_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+    return temp;
+  }
+}
+inline void Node::set_allocated_solution(::std::string* solution) {
+  if (solution_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    delete solution_;
+  }
+  if (solution) {
+    set_has_solution();
+    solution_ = solution;
+  } else {
+    clear_has_solution();
+    solution_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  }
+  // @@protoc_insertion_point(field_set_allocated:message.Node.solution)
+}
+
+// optional string nogood = 13;
+inline bool Node::has_nogood() const {
+  return (_has_bits_[0] & 0x00001000u) != 0;
+}
+inline void Node::set_has_nogood() {
+  _has_bits_[0] |= 0x00001000u;
+}
+inline void Node::clear_has_nogood() {
+  _has_bits_[0] &= ~0x00001000u;
+}
+inline void Node::clear_nogood() {
+  if (nogood_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    nogood_->clear();
+  }
+  clear_has_nogood();
+}
+inline const ::std::string& Node::nogood() const {
+  // @@protoc_insertion_point(field_get:message.Node.nogood)
+  return *nogood_;
+}
+inline void Node::set_nogood(const ::std::string& value) {
+  set_has_nogood();
+  if (nogood_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    nogood_ = new ::std::string;
+  }
+  nogood_->assign(value);
+  // @@protoc_insertion_point(field_set:message.Node.nogood)
+}
+inline void Node::set_nogood(const char* value) {
+  set_has_nogood();
+  if (nogood_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    nogood_ = new ::std::string;
+  }
+  nogood_->assign(value);
+  // @@protoc_insertion_point(field_set_char:message.Node.nogood)
+}
+inline void Node::set_nogood(const char* value, size_t size) {
+  set_has_nogood();
+  if (nogood_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    nogood_ = new ::std::string;
+  }
+  nogood_->assign(reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_set_pointer:message.Node.nogood)
+}
+inline ::std::string* Node::mutable_nogood() {
+  set_has_nogood();
+  if (nogood_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    nogood_ = new ::std::string;
+  }
+  // @@protoc_insertion_point(field_mutable:message.Node.nogood)
+  return nogood_;
+}
+inline ::std::string* Node::release_nogood() {
+  clear_has_nogood();
+  if (nogood_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    return NULL;
+  } else {
+    ::std::string* temp = nogood_;
+    nogood_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+    return temp;
+  }
+}
+inline void Node::set_allocated_nogood(::std::string* nogood) {
+  if (nogood_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
+    delete nogood_;
+  }
+  if (nogood) {
+    set_has_nogood();
+    nogood_ = nogood;
+  } else {
+    clear_has_nogood();
+    nogood_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  }
+  // @@protoc_insertion_point(field_set_allocated:message.Node.nogood)
 }
 
 
