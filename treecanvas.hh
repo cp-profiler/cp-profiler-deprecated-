@@ -254,6 +254,9 @@ public Q_SLOTS:
   /// Analyze similar subtrees of current node
   void analyzeSimilarSubtrees(void);
 
+  /// Show no-goods
+  void showNogoods(void);
+
   /// calls when clicking right mouse button on a shape
   void highlightShape(VisualNode* node);
 
@@ -445,6 +448,8 @@ public Q_SLOTS:
   void layoutDone(int w, int h, int scale0);
   /// Set the selected node to \a n
   void setCurrentNode(VisualNode* n, bool finished=true, bool update=true);
+  /// Set the selected not to a node by solver id (from no-good table)
+  void navigateToNodeBySid(unsigned int sid);
 private Q_SLOTS:
   /// Set isUsed to true and update
   void finalizeCanvas(void);

@@ -460,6 +460,9 @@ Gist::addActions(void) {
 
     analyzeSimilarSubtrees = new QAction("Analyse similar subtrees", this);
     analyzeSimilarSubtrees->setShortcut(QKeySequence("Shift+s"));
+
+    showNogoods = new QAction("Show no-goods", this);
+    showNogoods->setShortcut(QKeySequence("Shift+N"));
     
     toggleStop = new QAction("Stop/unstop", this);
     toggleStop->setShortcut(QKeySequence("X"));
@@ -544,6 +547,7 @@ Gist::addActions(void) {
     addAction(showPixelTree);
     addAction(followPath);
     addAction(analyzeSimilarSubtrees);
+    addAction(showNogoods);
     addAction(toggleStop);
     addAction(unstopAll);
     addAction(zoomToFit);
@@ -573,6 +577,7 @@ Gist::addActions(void) {
     contextMenu->addAction(labelBranches);
     contextMenu->addAction(labelPath);
     contextMenu->addAction(analyzeSimilarSubtrees);
+    contextMenu->addAction(showNogoods);
 
     contextMenu->addAction(toggleStop);
     contextMenu->addAction(unstopAll);
@@ -630,6 +635,7 @@ Gist::connectCanvas(TreeCanvas* tc) {
         disconnect(unhideAll, SIGNAL(triggered()), current_tc, SLOT(unhideAll()));
         disconnect(labelPath, SIGNAL(triggered()), current_tc, SLOT(labelPath()));
         disconnect(analyzeSimilarSubtrees, SIGNAL(triggered()), current_tc, SLOT(analyzeSimilarSubtrees()));
+        disconnect(showNogoods, SIGNAL(triggered()), current_tc, SLOT(showNogoods()));
         disconnect(toggleStop, SIGNAL(triggered()), current_tc, SLOT(toggleStop()));
         disconnect(unstopAll, SIGNAL(triggered()), current_tc, SLOT(unstopAll()));
         disconnect(zoomToFit, SIGNAL(triggered()), current_tc, SLOT(zoomToFit()));
@@ -672,6 +678,7 @@ Gist::connectCanvas(TreeCanvas* tc) {
     connect(showPixelTree, SIGNAL(triggered()), tc, SLOT(showPixelTree()));
     connect(followPath, SIGNAL(triggered()), tc, SLOT(followPath()));
     connect(analyzeSimilarSubtrees, SIGNAL(triggered()), tc, SLOT(analyzeSimilarSubtrees()));
+    connect(showNogoods, SIGNAL(triggered()), current_tc, SLOT(showNogoods()));
     connect(toggleStop, SIGNAL(triggered()), tc, SLOT(toggleStop()));
     connect(unstopAll, SIGNAL(triggered()), tc, SLOT(unstopAll()));
     connect(zoomToFit, SIGNAL(triggered()), tc, SLOT(zoomToFit()));

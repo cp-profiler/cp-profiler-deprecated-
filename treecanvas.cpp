@@ -12,6 +12,7 @@
 #include "treebuilder.hh"
 #include "receiverthread.hh"
 #include "pixelview.hh"
+#include "nogood_dialog.hh"
 
 #include "data.hh"
 
@@ -549,6 +550,12 @@ TreeCanvas::analyzeSimilarSubtrees(void) {
   addNodesToMap();
   shapesWindow.drawHistogram();
   shapesWindow.show();  
+}
+
+void
+TreeCanvas::showNogoods(void) {
+  NogoodDialog* ngdialog = new NogoodDialog(this, *this, _data->getNogoods());
+  ngdialog->show();
 }
 
 void
@@ -1348,6 +1355,16 @@ TreeCanvas::setCurrentNode(VisualNode* n, bool finished, bool update) {
     }
     if (finished)
         mutex.unlock();
+}
+
+void
+TreeCanvas::navigateToNodeBySid(unsigned int sid) {
+  QMutexLocker locker(&mutex);
+  unsigned int gid = _data->getGidBySid(sid);
+  VisualNode* node = (*na)[gid];
+  setCurrentNode(node, true, true);
+  centerCurrentNode();
+  expandCurrentNode();
 }
 
 void

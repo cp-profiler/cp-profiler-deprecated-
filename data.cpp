@@ -93,6 +93,19 @@ int Data::handleNodeCallback(message::Node& node) {
     char thread = node.thread_id();
     float domain = node.domain_size();
 
+    // qDebug() << "Received node: \t" << id << " " << pid << " "
+    //                 << alt << " " << kids << " " << status << " wid: "
+    //                 << (int)thread << " restart: " << restart_id
+    //                 << "time: " << node.time()
+    //                 << "label: " << node.label().c_str()
+    //                 << "nogood: " << node.nogood().c_str();
+
+
+    if (status == 1 && node.has_nogood()) {
+        // qDebug() << id << " -> " << node.nogood().c_str();
+        sid2nogood[id] = node.nogood();
+    }
+    
     /// just so we don't have ugly numbers when not using restarts
     if (restart_id == -1) restart_id = 0;
 

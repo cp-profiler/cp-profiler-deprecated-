@@ -35,7 +35,7 @@ private:
 
   QMenu* analysisMenu;
 
-  PentListWindow pentListWindow;  
+  PentListWindow pentListWindow;
 
 
   /// ******* Actions *******

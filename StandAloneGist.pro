@@ -40,6 +40,7 @@ SOURCES += main.cpp\
     readingQueue.cpp \
     treecomparison.cpp \
     pixelview.cpp \
+    nogood_dialog.cpp \
     message.pb.cpp \
 
 
@@ -75,6 +76,7 @@ HEADERS  += gistmainwindow.h \
     readingQueue.hh \
     treecomparison.hh \
     pixelview.hh \
+    nogood_dialog.hh \
     message.pb.hh
 
 FORMS    +=

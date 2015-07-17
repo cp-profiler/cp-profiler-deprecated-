@@ -53,7 +53,7 @@ public:
     int alt; // which child by order
     int numberOfKids;
     int status;
-    std::string label;
+    string label;
     char thread;
     int depth;
     unsigned long long time_stamp;
@@ -96,6 +96,9 @@ private:
     /// Maps gist Id to dbEntry (possibly in the other Data instance);
     /// i.e. needed for a merged tree to show labels etc.
     std::unordered_map<unsigned int, DbEntry*> gid2entry;
+
+    /// Map gist Id to no-good string
+    std::unordered_map<unsigned long long, string> sid2nogood;
 
     // Whether received DONE_SENDING message
     bool _isDone;
@@ -158,10 +161,13 @@ public:
     bool isDone(void) { return _isDone; }
     bool isRestarts(void) { return _isRestarts; }
     string getTitle(void) { return _title; }
+    inline const std::unordered_map<unsigned long long, string> getNogoods(void) { return sid2nogood; }
 
     unsigned long long getTotalTime(void); /// time in microseconds
 
     DbEntry* getEntry(unsigned int gid);
+
+    unsigned int getGidBySid(unsigned int sid) { return nodes_arr[sid2aid[sid]]->gid; }
 
 
 /// ****************************

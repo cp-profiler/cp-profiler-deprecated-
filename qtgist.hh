@@ -125,6 +125,8 @@ public:
   QAction* labelPath;
   /// Analyze similar subtrees
   QAction* analyzeSimilarSubtrees;
+  /// Show no-goods
+  QAction* showNogoods;
   /// Zoom tree to fit window
   QAction* zoomToFit;
   /// Center on current node
