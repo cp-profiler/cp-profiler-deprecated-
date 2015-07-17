@@ -3,6 +3,18 @@
 #include "readingQueue.hh"
 #include <cassert>
 
+#include <time.h>
+#include <sys/time.h>
+
+double get_wall_time(){
+    struct timeval time;
+    if (gettimeofday(&time,NULL)){
+        //  Handle error
+        return 0;
+    }
+    return (double)time.tv_sec + (double)time.tv_usec * .000001;
+}
+
 TreeBuilder::TreeBuilder(TreeCanvas* tc, QObject *parent)
     : QThread(parent), _tc(tc), read_queue(nullptr) {
         layout_mutex = &(_tc->layoutMutex);
@@ -245,9 +257,11 @@ void TreeBuilder::run(void) {
 
     using std::cout; using std::cerr;
     
-    clock_t begin, end;
+    clock_t beginClock, endClock;
+    double beginTime, endTime;
     
-    begin = clock();
+    beginClock = clock();
+    beginTime = get_wall_time();
 	// qDebug() << "### in run method of tc:" << _tc->_id;
 
     QMutex &dataMutex = _data->dataMutex;
@@ -258,8 +272,6 @@ void TreeBuilder::run(void) {
     bool is_delayed;
 
     while(true) {
-
-        system_clock::time_point before_tp = system_clock::now();
 
         while (!dataMutex.tryLock()) { /* qDebug() << "Can't lock, trying again"; */ };
 
@@ -298,18 +310,19 @@ void TreeBuilder::run(void) {
 
         dataMutex.unlock();
 
-        system_clock::time_point after_tp = system_clock::now();
-        // qDebug () << "building node takes: " << 
-        //     duration_cast<nanoseconds>(after_tp - before_tp).count() << "ns";
-
     }
 
     emit doneBuilding(true);
 
-    end = clock();
-    double elapsed_secs = double(end - begin) / CLOCKS_PER_SEC;
-    qDebug() << "Time elapsed: " << elapsed_secs << " seconds";
+    endClock = clock();
+    endTime = get_wall_time();
 
+    double elapsed_clock_secs = double(endClock - beginClock) / CLOCKS_PER_SEC;
+    //    qDebug() << "Time elapsed: " << elapsed_secs << " seconds";
+    qDebug() << "Elapsed CPU time:  " << elapsed_clock_secs << " seconds";
+    qDebug() << "Elapsed wall time: " << (endTime - beginTime) << " seconds";
+    // qDebug() << fixed << beginTime << "  ->  " << endTime;
+    
     qDebug() << "solutions:" << stats.solutions;
     qDebug() << "failures:" << stats.failures;
     qDebug() << "undetermined:" << stats.undetermined;

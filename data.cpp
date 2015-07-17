@@ -43,7 +43,6 @@ Data::Data(TreeCanvas* tc, NodeAllocator* na, bool isRestarts)
         _total_time = 0;
     }
 
-    qDebug() << "+++ new Data created, tc_id: " << _id;
 }
 
 
@@ -93,12 +92,6 @@ int Data::handleNodeCallback(message::Node& node) {
     int restart_id = node.restart_id();
     char thread = node.thread_id();
     float domain = node.domain_size();
-
-    qDebug() << "Received node: \t" << id << " " << pid << " "
-                    << alt << " " << kids << " " << status << " wid: "
-                    << (int)thread << " restart: " << restart_id
-                    << "time: " << node.time()
-                    << "label: " << node.label().c_str();
 
     /// just so we don't have ugly numbers when not using restarts
     if (restart_id == -1) restart_id = 0;
@@ -170,7 +163,6 @@ unsigned long long Data::getTotalTime(void) {
 
 Data::~Data(void) {
 
-    qDebug() << "--- destruct Data";
 
     for (auto it = nodes_arr.begin(); it != nodes_arr.end();) {
         delete (*it);
