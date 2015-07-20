@@ -1364,7 +1364,7 @@ TreeCanvas::navigateToNodeBySid(unsigned int sid) {
   VisualNode* node = (*na)[gid];
   setCurrentNode(node, true, true);
   centerCurrentNode();
-  expandCurrentNode();
+  // TODO: traverse upwards to unhide
 }
 
 void
