@@ -101,9 +101,13 @@ int Data::handleNodeCallback(message::Node& node) {
     //                 << "nogood: " << node.nogood().c_str();
 
 
-    if (status == 1 && node.has_nogood()) {
+    if (node.has_nogood() && node.nogood().length() > 0) {
         // qDebug() << id << " -> " << node.nogood().c_str();
         sid2nogood[id] = node.nogood();
+    }
+
+    if (node.has_info() && node.info().length() > 0) {
+        sid2info[id] = node.info();
     }
     
     /// just so we don't have ugly numbers when not using restarts

@@ -257,6 +257,9 @@ public Q_SLOTS:
   /// Show no-goods
   void showNogoods(void);
 
+  /// Show node info
+  void showNodeInfo(void);
+
   /// calls when clicking right mouse button on a shape
   void highlightShape(VisualNode* node);
 

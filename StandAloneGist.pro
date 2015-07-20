@@ -41,6 +41,7 @@ SOURCES += main.cpp\
     treecomparison.cpp \
     pixelview.cpp \
     nogood_dialog.cpp \
+    node_info_dialog.cpp \
     message.pb.cpp \
 
 
@@ -77,6 +78,7 @@ HEADERS  += gistmainwindow.h \
     treecomparison.hh \
     pixelview.hh \
     nogood_dialog.hh \
+    node_info_dialog.hh \
     message.pb.hh
 
 FORMS    +=

@@ -47,7 +47,7 @@ public:
 
     DbEntry(): gid(-1) {}
 
-    int sid; // TODO: redundant, only for debugging
+    int sid; // solver id
     int gid; // gist id, set to -1 so we don't forget to assign the real value
     unsigned long long parent_sid; // parent id in database 
     int alt; // which child by order
@@ -97,8 +97,10 @@ private:
     /// i.e. needed for a merged tree to show labels etc.
     std::unordered_map<unsigned int, DbEntry*> gid2entry;
 
-    /// Map gist Id to no-good string
+    /// Map solver Id to no-good string
     std::unordered_map<unsigned long long, string> sid2nogood;
+
+    std::unordered_map<unsigned long long, string> sid2info;
 
     // Whether received DONE_SENDING message
     bool _isDone;
@@ -161,7 +163,8 @@ public:
     bool isDone(void) { return _isDone; }
     bool isRestarts(void) { return _isRestarts; }
     string getTitle(void) { return _title; }
-    inline const std::unordered_map<unsigned long long, string> getNogoods(void) { return sid2nogood; }
+    inline const std::unordered_map<unsigned long long, string>& getNogoods(void) { return sid2nogood; }
+    inline std::unordered_map<unsigned long long, string>& getInfo(void) { return sid2info; }
 
     unsigned long long getTotalTime(void); /// time in microseconds
 

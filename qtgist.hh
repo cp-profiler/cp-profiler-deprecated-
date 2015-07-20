@@ -127,6 +127,8 @@ public:
   QAction* analyzeSimilarSubtrees;
   /// Show no-goods
   QAction* showNogoods;
+  /// Show node info
+  QAction* showNodeInfo;
   /// Zoom tree to fit window
   QAction* zoomToFit;
   /// Center on current node

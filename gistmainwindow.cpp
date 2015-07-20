@@ -82,6 +82,7 @@ GistMainWindow::GistMainWindow() : aboutGist(this) {
   nodeMenu->addAction(c->labelPath);
   nodeMenu->addAction(c->analyzeSimilarSubtrees);
   nodeMenu->addAction(c->showNogoods);
+  nodeMenu->addAction(c->showNodeInfo);
   // nodeMenu->addAction(c->toggleStop);
   // nodeMenu->addAction(c->unstopAll);
   nodeMenu->addSeparator();

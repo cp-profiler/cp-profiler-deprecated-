@@ -13,6 +13,7 @@
 #include "receiverthread.hh"
 #include "pixelview.hh"
 #include "nogood_dialog.hh"
+#include "node_info_dialog.hh"
 
 #include "data.hh"
 
@@ -556,6 +557,17 @@ void
 TreeCanvas::showNogoods(void) {
   NogoodDialog* ngdialog = new NogoodDialog(this, *this, _data->getNogoods());
   ngdialog->show();
+}
+
+void
+TreeCanvas::showNodeInfo(void) {
+  int gid = currentNode->getIndex(*na);
+  unsigned int sid = _data->getEntry(gid)->sid;
+  std::unordered_map<unsigned long long, string>& sid2info = _data->getInfo();
+  const string& info_str = sid2info[sid];
+
+  NodeInfoDialog* nidialog = new NodeInfoDialog(this, info_str);
+  nidialog->show();
 }
 
 void
