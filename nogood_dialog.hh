@@ -5,10 +5,23 @@
 #include <QTableWidget>
 #include <unordered_map>
 #include <vector>
-#include <QStandardItemModel>
+#include <QSortFilterProxyModel>
 
 class TreeCanvas;
+class QStandardItemModel;
 
+class MyProxyModel: public QSortFilterProxyModel
+{
+public:
+  MyProxyModel(QWidget* parent) : QSortFilterProxyModel(parent) {}
+
+protected:
+  bool lessThan ( const QModelIndex & left, const QModelIndex & right ) const {
+    int lhs = sourceModel()->data(sourceModel()->index(left.row(), 0)).toInt();
+    int rhs = sourceModel()->data(sourceModel()->index(right.row(), 0)).toInt();
+    return lhs < rhs;
+  }
+};
 
 class NogoodDialog : public QDialog {
   Q_OBJECT
@@ -25,6 +38,7 @@ private:
   const std::unordered_map<unsigned long long, std::string>& _sid2nogood;
 
   QStandardItemModel* _model;
+  MyProxyModel* _proxy_model;
 
 private:
 

@@ -2,6 +2,7 @@
 #include "treecanvas.hh"
 #include <QDebug>
 #include <QHBoxLayout>
+#include <QStandardItemModel>
 
 
 const int NogoodDialog::DEFAULT_WIDTH = 600;
@@ -11,10 +12,13 @@ NogoodDialog::NogoodDialog(QWidget* parent, TreeCanvas& tc,
     const std::unordered_map<unsigned long long, std::string>& sid2nogood)
 : QDialog(parent), _tc(tc), _sid2nogood(sid2nogood) {
 
-  _nogoodTable = new QTableView(this);
   _model = new QStandardItemModel(0,2,this);
+
+
+  _nogoodTable = new QTableView(this);
   _nogoodTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
   _nogoodTable->setSelectionBehavior(QAbstractItemView::SelectRows);
+
   QStringList tableHeaders; tableHeaders << "node id" << "clause";
   _model->setHorizontalHeaderLabels(tableHeaders);
 
@@ -31,7 +35,11 @@ NogoodDialog::NogoodDialog(QWidget* parent, TreeCanvas& tc,
 
   populateTable();
 
-  _nogoodTable->setModel(_model);
+  _proxy_model = new MyProxyModel(this);
+  _proxy_model->setSourceModel(_model);
+
+  _nogoodTable->setModel(_proxy_model);
+
 
   layout->addWidget(_nogoodTable);
 
