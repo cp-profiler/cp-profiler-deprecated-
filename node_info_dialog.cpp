@@ -9,6 +9,7 @@ NodeInfoDialog::NodeInfoDialog(QWidget* parent, const std::string& text)
 : QDialog(parent), _textField(this) {
 
   _textField.setText(text.c_str());
+  _textField.setReadOnly(true);
 
   QHBoxLayout* layout = new QHBoxLayout(this);
   layout->addWidget(&_textField);

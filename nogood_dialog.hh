@@ -5,8 +5,10 @@
 #include <QTableWidget>
 #include <unordered_map>
 #include <vector>
+#include <QStandardItemModel>
 
 class TreeCanvas;
+
 
 class NogoodDialog : public QDialog {
   Q_OBJECT
@@ -18,11 +20,11 @@ private:
 
   TreeCanvas& _tc;
 
-  QTableWidget* _nogoodTable;
+  // QTableWidget* _nogoodTable;
+  QTableView* _nogoodTable;
   const std::unordered_map<unsigned long long, std::string>& _sid2nogood;
 
-/// used to reference corresponding to a no-good node 
-  std::vector<unsigned int> row2sid;
+  QStandardItemModel* _model;
 
 private:
 
@@ -30,7 +32,7 @@ private:
 
 private Q_SLOTS:
 
-  void selectNode(int row, int column);
+  void selectNode(const QModelIndex & index);
 
 public:
 
@@ -41,5 +43,7 @@ public:
 
 
 };
+
+
 
 #endif
