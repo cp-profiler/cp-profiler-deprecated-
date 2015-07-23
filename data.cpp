@@ -15,6 +15,9 @@ using namespace std;
 
 int Data::instance_counter = 0;
 
+#define SSTR( x ) dynamic_cast< std::ostringstream & >( \
+        ( std::ostringstream() << std::dec << x ) ).str()
+
 ostream& operator<<(ostream& s, const DbEntry& e) {
     s << "dbEntry: {";
     s << " sid: " << e.sid;
@@ -107,7 +110,7 @@ int Data::handleNodeCallback(message::Node& node) {
     }
 
     if (node.has_info() && node.info().length() > 0) {
-        sid2info[id] = node.info();
+        sid2info[id] = string("sid: ") + SSTR(id) + string("\n") + node.info();
     }
     
     /// just so we don't have ugly numbers when not using restarts

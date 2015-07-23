@@ -64,6 +64,7 @@ void NogoodDialog::populateTable() {
 
 void NogoodDialog::selectNode(const QModelIndex & index) {
 
-  unsigned int sid = _model->data(_model->index(index.row(), 0)).toInt();
+  unsigned int sid = index.sibling(index.row(), 0).data().toInt();
+  // qDebug() << "selected nogood sid: " << sid;
   _tc.navigateToNodeBySid(sid); /// assuming that parent is TreeCanvas
 }
