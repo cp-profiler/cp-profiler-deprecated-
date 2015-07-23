@@ -48,6 +48,20 @@ public:
     void run(void);
 };
 
+/// \brief Run a cursor through ancestors of the node
+template<class Cursor>
+class AncestorNodeVisitor : public NodeVisitor<Cursor> {
+protected:
+    using NodeVisitor<Cursor>::c;
+public:
+    /// Constructor
+    AncestorNodeVisitor(const Cursor& c);
+    /// Move cursor to the next node, return true if succeeded
+    bool next(void);
+    /// Execute visitor
+    void run(void);
+};
+
 
 #include "nodevisitor.hpp"
 

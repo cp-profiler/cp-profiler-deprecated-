@@ -1374,9 +1374,16 @@ TreeCanvas::navigateToNodeBySid(unsigned int sid) {
   QMutexLocker locker(&mutex);
   unsigned int gid = _data->getGidBySid(sid);
   VisualNode* node = (*na)[gid];
+
   setCurrentNode(node, true, true);
+  
+  UnhideAncestorsCursor unhideCursor(node, *na);
+  AncestorNodeVisitor<UnhideAncestorsCursor> unhideAncestors(unhideCursor);
+  unhideAncestors.run();
+
   centerCurrentNode();
-  // TODO: traverse upwards to unhide
+  update();
+
 }
 
 void

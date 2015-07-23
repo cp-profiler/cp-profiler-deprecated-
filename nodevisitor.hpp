@@ -83,3 +83,27 @@ inline void
 PreorderNodeVisitor<Cursor>::run(void) {
     while (next()) {}
 }
+
+template<class Cursor>
+AncestorNodeVisitor<Cursor>::AncestorNodeVisitor(const Cursor& c0)
+    : NodeVisitor<Cursor>(c0) {}
+
+template<class Cursor>
+inline bool
+AncestorNodeVisitor<Cursor>::next(void) {
+    c.processCurrentNode();
+    if (c.mayMoveUpwards()) {
+        c.moveUpwards();
+        return true;
+    } else {
+        qDebug() << "cannot move upwards";
+        return false;
+    }
+    
+}
+
+template<class Cursor>
+inline void
+AncestorNodeVisitor<Cursor>::run(void) {
+    while (next()) { qDebug() << "unhide"; }
+}

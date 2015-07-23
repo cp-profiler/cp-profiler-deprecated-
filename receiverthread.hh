@@ -27,7 +27,7 @@ private:
   volatile bool _quit;
 
 public Q_SLOTS:
-  void updateCanvas(void);
+  void updateCanvas(void); /// TODO: should be moved to TreeCanvas
   void stopThread(void);
 
 Q_SIGNALS:

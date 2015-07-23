@@ -82,6 +82,21 @@ public:
     //@}
 };
 
+/// \brief A cursor that marks ancestor nodes in the tree as not hidden
+class UnhideAncestorsCursor : public NodeCursor<VisualNode> {
+public:
+    /// Constructor
+    UnhideAncestorsCursor(VisualNode* theNode,
+                    const VisualNode::NodeAllocator& na);
+    /// \name Cursor interface
+    //@{
+    /// Test if the cursor may move to the parent node
+    bool mayMoveUpwards(void);
+    /// Process node
+    void processCurrentNode(void);
+    //@}
+};
+
 /// \brief A cursor that marks all nodes in the tree as hidden
 class HideAllCursor : public NodeCursor<VisualNode> {
 public:

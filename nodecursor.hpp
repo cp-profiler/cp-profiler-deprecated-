@@ -121,6 +121,7 @@ UnhideAllCursor::processCurrentNode(void) {
     }
 }
 
+
 inline
 HideAllCursor::HideAllCursor(VisualNode* root,
                                  const VisualNode::NodeAllocator& na)
@@ -535,4 +536,24 @@ SearchLogCursor::processCurrentNode(void) {
 
     // Terminate the line.
     _out << "\n";
+}
+
+inline
+UnhideAncestorsCursor::UnhideAncestorsCursor(VisualNode* root,
+                                 const VisualNode::NodeAllocator& na)
+    : NodeCursor<VisualNode>(root,na) {}
+
+inline void
+UnhideAncestorsCursor::processCurrentNode(void) {
+    VisualNode* n = node();
+    if (n->isHidden()) {
+        n->setHidden(false);
+        n->dirtyUp(na);
+    }
+    // n->setChildrenLayoutDone(false);
+}
+
+inline bool
+UnhideAncestorsCursor::mayMoveUpwards(void) {
+    return !node()->isRoot();
 }
