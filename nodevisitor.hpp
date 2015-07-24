@@ -96,7 +96,6 @@ AncestorNodeVisitor<Cursor>::next(void) {
         c.moveUpwards();
         return true;
     } else {
-        qDebug() << "cannot move upwards";
         return false;
     }
     
@@ -105,5 +104,5 @@ AncestorNodeVisitor<Cursor>::next(void) {
 template<class Cursor>
 inline void
 AncestorNodeVisitor<Cursor>::run(void) {
-    while (next()) { qDebug() << "unhide"; }
+    while (next()) { }
 }

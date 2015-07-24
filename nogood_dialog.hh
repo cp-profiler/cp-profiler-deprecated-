@@ -2,6 +2,7 @@
 #define NOGOOD_DIALOG_HH
 
 #include <QDialog>
+#include <QDebug>
 #include <QTableWidget>
 #include <unordered_map>
 #include <vector>
@@ -17,9 +18,15 @@ public:
 
 protected:
   bool lessThan ( const QModelIndex & left, const QModelIndex & right ) const {
-    int lhs = sourceModel()->data(sourceModel()->index(left.row(), 0)).toInt();
-    int rhs = sourceModel()->data(sourceModel()->index(right.row(), 0)).toInt();
-    return lhs < rhs;
+    if (left.column() == 0) {
+      int lhs = sourceModel()->data(sourceModel()->index(left.row(), 0)).toInt();
+      int rhs = sourceModel()->data(sourceModel()->index(right.row(), 0)).toInt();
+      return lhs < rhs;
+    } else if (left.column() == 1) {
+      int lhs = sourceModel()->data(sourceModel()->index(left.row(), 1)).toString().size();
+      int rhs = sourceModel()->data(sourceModel()->index(right.row(), 1)).toString().size();
+      return lhs < rhs;
+    }
   }
 };
 
