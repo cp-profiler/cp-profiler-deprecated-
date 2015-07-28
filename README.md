@@ -5,11 +5,12 @@ Pre-release binaries for Linux are available here:
   https://github.com/cp-profiler/cp-profiler/releases/tag/0.1
 
 Dependencies:
-  <TODO>
 
-For Linux:
-  mkdir build && cd build
-  qmake ../StandAloneGist.pro -r -spec linux-g++ CONFIG+=release
-  make
+  * Qt >=5.4.x
+  * Protocol Buffers v2.6.x (v3 is alpha and not supported)
+  * ZeroMQ 4.x.x
 
-run build/StandAloneGist-release
+Linux/Mac:
+
+    mkdir build && cd build
+    qmake .. && make
