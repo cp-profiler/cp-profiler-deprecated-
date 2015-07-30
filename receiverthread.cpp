@@ -23,6 +23,7 @@
 #include "globalhelper.hh"
 #include "solver_tree_dialog.hh"
 #include "message.pb.hh"
+#include "third-party/zmq.hpp"
 
 class SolverTreeDialog;
 

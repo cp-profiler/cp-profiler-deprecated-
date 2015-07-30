@@ -30,7 +30,6 @@
 #endif
 
 #include <set>
-#include <zmq.hpp>
 #include "visualnode.hh"
 #include "treebuilder.hh"
 #include "zoomToFitIcon.hpp"
