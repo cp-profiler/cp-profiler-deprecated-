@@ -30,6 +30,7 @@ const int NogoodDialog::DEFAULT_WIDTH = 600;
 const int NogoodDialog::DEFAULT_HEIGHT = 400;
 
 NogoodDialog::NogoodDialog(QWidget* parent, TreeCanvas& tc,
+    const std::vector<int>& selected_nodes,
     const std::unordered_map<unsigned long long, std::string>& sid2nogood)
 : QDialog(parent), _tc(tc), _sid2nogood(sid2nogood) {
 
@@ -54,7 +55,7 @@ NogoodDialog::NogoodDialog(QWidget* parent, TreeCanvas& tc,
 
   QHBoxLayout* layout = new QHBoxLayout(this);
 
-  populateTable();
+  populateTable(selected_nodes);
 
   _proxy_model = new MyProxyModel(this);
   _proxy_model->setSourceModel(_model);
@@ -70,12 +71,20 @@ NogoodDialog::~NogoodDialog() {
 
 }
 
-void NogoodDialog::populateTable() {
+void NogoodDialog::populateTable(const std::vector<int>& selected_nodes) {
 
   int row = 0;
-  for (auto it = _sid2nogood.begin(); it != _sid2nogood.end(); it++) {
-    _model->setItem(row, 0, new QStandardItem(QString::number(it->first)));
-    _model->setItem(row, 1, new QStandardItem(it->second.c_str()));
+  for (auto it = selected_nodes.begin(); it != selected_nodes.end(); it++) {
+
+    unsigned long long sid = _tc.getData()->gid2sid(*it);
+
+    _model->setItem(row, 0, new QStandardItem(QString::number(sid)));
+
+    auto ng_item = _sid2nogood.find(sid);
+    qDebug() << "gid: " << *it << " sid: " << sid;
+    if (ng_item == _sid2nogood.end()) continue; /// nogood not found
+
+    _model->setItem(row, 1, new QStandardItem((ng_item->second).c_str()));
     row++;
 
   }

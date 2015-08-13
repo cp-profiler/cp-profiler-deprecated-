@@ -291,6 +291,18 @@ private:
 
 };
 
+class GetIndexesCursor : public NodeCursor<VisualNode> {
+public:
+  // Constructor
+  GetIndexesCursor(VisualNode* startNode, const VisualNode::NodeAllocator& na, std::vector<int>& node_gids);
+  // Populate node_gids vector with gid of nodes
+  void processCurrentNode(void);
+private:
+  const VisualNode::NodeAllocator& _na;
+  std::vector<int>& _node_gids;
+
+};
+
 /// Hide subtrees that are not highlighted
 class HideNotHighlightedCursor : public NodeCursor<VisualNode> {
 protected:

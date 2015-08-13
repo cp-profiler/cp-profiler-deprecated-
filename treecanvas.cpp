@@ -577,7 +577,15 @@ TreeCanvas::analyzeSimilarSubtrees(void) {
 
 void
 TreeCanvas::showNogoods(void) {
-  NogoodDialog* ngdialog = new NogoodDialog(this, *this, _data->getNogoods());
+
+  // create an array of ids (sid) of nodes/nogoods to show
+  std::vector<int> selected;
+
+  GetIndexesCursor gic(currentNode, *na, selected);
+  PreorderNodeVisitor<GetIndexesCursor>(gic).run();
+
+  NogoodDialog* ngdialog = new NogoodDialog(this, *this, selected, _data->getNogoods());
+
   ngdialog->show();
 }
 

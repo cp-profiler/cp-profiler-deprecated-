@@ -405,8 +405,19 @@ CountSolvedCursor::processCurrentNode(void) {
   if (n->getStatus() == SOLVED){
     _count++;
   }
-  // n->setHighlighted(false);
-  // if leaf and solved count
+}
+
+inline
+GetIndexesCursor::GetIndexesCursor(VisualNode* startNode, 
+  const VisualNode::NodeAllocator& na, std::vector<int>& node_gids)
+: NodeCursor<VisualNode>(startNode, na), _na(na), _node_gids(node_gids){
+
+}
+
+inline void
+GetIndexesCursor::processCurrentNode(void) {
+  VisualNode* n = node();
+  _node_gids.push_back(n->getIndex(_na));
 }
 
 inline

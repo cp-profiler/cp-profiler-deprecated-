@@ -69,15 +69,16 @@ private:
 
 private:
 
-  void populateTable();
+  void populateTable(const std::vector<int>& selected_nodes);
 
 private Q_SLOTS:
 
   void selectNode(const QModelIndex & index);
 
 public:
-
+  /// Create a nogood dialog with nogoods for selected nodes
   NogoodDialog(QWidget* parent, TreeCanvas& tc,
+    const std::vector<int>& selected,
     const std::unordered_map<unsigned long long, std::string>& sid2nogood);
 
   ~NogoodDialog();

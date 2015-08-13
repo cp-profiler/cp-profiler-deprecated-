@@ -35,8 +35,8 @@ using namespace std;
 
 int Data::instance_counter = 0;
 
-#define SSTR( x ) dynamic_cast< std::ostringstream & >( \
-        ( std::ostringstream() << std::dec << x ) ).str()
+// #define SSTR( x ) dynamic_cast< std::ostringstream & >( \
+//         ( std::ostringstream() << std::dec << x ) ).str()
 
 ostream& operator<<(ostream& s, const DbEntry& e) {
     s << "dbEntry: {";
@@ -130,7 +130,7 @@ int Data::handleNodeCallback(message::Node& node) {
     }
 
     if (node.has_info() && node.info().length() > 0) {
-        sid2info[id] = string("sid: ") + SSTR(id) + "\n" + node.info() + "\nnogood: " + node.nogood();
+        sid2info[id] = string("sid: ") + std::to_string(id) + "\n" + node.info() + "\nnogood: " + node.nogood();
     }
     
     /// just so we don't have ugly numbers when not using restarts
@@ -192,6 +192,16 @@ const char* Data::getLabel(unsigned int gid) {
 
 }
 
+unsigned long long Data::gid2sid(unsigned int gid) {
+    QMutexLocker locker(&dataMutex);
+
+    // auto it = gid2entry.find(gid);
+    // if (it != gid2entry.end())
+    //     return it->second->label.c_str();
+    // return "";
+    return gid2entry.at(gid)->sid;
+
+}
 
 unsigned long long Data::getTotalTime(void) {
 

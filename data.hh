@@ -175,6 +175,9 @@ public:
     /// return label by gid (Gist ID)
     const char* getLabel(unsigned int gid);
 
+    /// return solver id by gid (Gist ID)
+    unsigned long long gid2sid(unsigned int gid);
+
     void connectNodeToEntry(unsigned int gid, DbEntry* const entry);
 
 /// ********* GETTERS **********
