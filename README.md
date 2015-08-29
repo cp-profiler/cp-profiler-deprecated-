@@ -37,14 +37,14 @@ Linux/Mac:
 
 3. The solver will be *sending* and the profiler *receiving* and incrementally *drawing* the *search tree* in real time.
 
-Note: Because every new *node* can potentially cause the entire *search tree* layout to be recalculated (and slow down the drawing), it is recomended that ***display refresh rate*** is set to a reasonably high number (>1000), unless real-time drawing is required.
+Note: Because every new *node* can potentially cause the entire *search tree* layout to be recalculated (and slow down the drawing), it is recommended that ***display refresh rate*** is set to a reasonably high number (>1000), unless real-time drawing is required.
 
 
 
 ##### Changing *display refresh rate*
-***Display refresh rate*** determines how many nodes should be recieved between any two consequative updates of the search tree drawing.
+***Display refresh rate*** determines how many nodes should be received between any two consecutive updates of the search tree drawing.
 
-The property is available in *StandaloneGist* -> *Preferences...* submenu (`⌘,` or `ctrl + ,` shortcut).
+The property is available in *StandaloneGist* -> *Preferences...* sub-menu (`⌘,` or `ctr + ,` shortcut).
 
 ### Different ways to display the search
 
