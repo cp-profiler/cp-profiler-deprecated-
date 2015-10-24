@@ -67,7 +67,8 @@ ReceiverThread::run(void) {
         qDebug() << "connected to" << port;
     } catch (std::exception& e) {
         std::cerr << "error connecting to socket: "
-                  << address.toStdString().c_str() << "\n";
+                  << address.toStdString().c_str() << std::endl;
+        std::cerr << '"' << e.what() << '"' << std::endl;
         abort();
     }
 
@@ -84,7 +85,6 @@ ReceiverThread::run(void) {
             continue;
         }
 
-        // Message *msg = reinterpret_cast<Message*>(raw_message.data());
         message::Node msg1;
         msg1.ParseFromArray(raw_message.data(), raw_message.size());
 
