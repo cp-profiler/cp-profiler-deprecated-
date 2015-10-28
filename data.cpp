@@ -143,8 +143,6 @@ int Data::handleNodeCallback(message::Node& node) {
     else
         real_pid = ~0u;
 
-    assert(restart_id == 0);
-
     real_id = (id | ((long long)restart_id << 32));
 
     pushInstance(real_id,
