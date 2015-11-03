@@ -78,12 +78,11 @@ void NogoodDialog::populateTable(const std::vector<int>& selected_nodes) {
 
     unsigned long long sid = _tc.getData()->gid2sid(*it);
 
-    _model->setItem(row, 0, new QStandardItem(QString::number(sid)));
 
     auto ng_item = _sid2nogood.find(sid);
-    qDebug() << "gid: " << *it << " sid: " << sid;
     if (ng_item == _sid2nogood.end()) continue; /// nogood not found
 
+    _model->setItem(row, 0, new QStandardItem(QString::number(sid)));
     _model->setItem(row, 1, new QStandardItem((ng_item->second).c_str()));
     row++;
 
@@ -95,6 +94,5 @@ void NogoodDialog::populateTable(const std::vector<int>& selected_nodes) {
 void NogoodDialog::selectNode(const QModelIndex & index) {
 
   unsigned int sid = index.sibling(index.row(), 0).data().toInt();
-  // qDebug() << "selected nogood sid: " << sid;
   _tc.navigateToNodeBySid(sid); /// assuming that parent is TreeCanvas
 }

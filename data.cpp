@@ -125,7 +125,7 @@ int Data::handleNodeCallback(message::Node& node) {
 
 
     if (node.has_nogood() && node.nogood().length() > 0) {
-        // qDebug() << id << " -> " << node.nogood().c_str();
+        // qDebug() << "(!)" << id << " -> " << node.nogood().c_str();
         sid2nogood[id] = node.nogood();
     }
 
