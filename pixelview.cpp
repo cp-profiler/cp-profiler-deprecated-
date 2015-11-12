@@ -98,8 +98,6 @@ PixelTreeCanvas::PixelTreeCanvas(QWidget* parent, TreeCanvas* tc)
   _nodeCount = tc->stats.solutions + tc->stats.failures
                        + tc->stats.choices + tc->stats.undetermined;
 
-
-
   max_depth = tc->stats.maxDepth;
 
   // if (_tc->getData()->isRestarts()) {
@@ -165,7 +163,7 @@ PixelTreeCanvas::constructTree(void) {
 
   alpha_factor = 100.0 / approx_size;
 
-  exploreNew(root, 1);
+  exploreNext(root, 1);
 
   flush();
 
@@ -287,7 +285,6 @@ PixelTreeCanvas::drawPixelTree(void) {
 
   high_resolution_clock::time_point time_begin = high_resolution_clock::now();
 
-
   constructTree();
 
   high_resolution_clock::time_point time_end = high_resolution_clock::now();
@@ -318,7 +315,7 @@ PixelTreeCanvas::flush(void) {
 }
 
 void
-PixelTreeCanvas::exploreNew(VisualNode* node, unsigned depth) {
+PixelTreeCanvas::exploreNext(VisualNode* node, unsigned depth) {
 
   Data* data = _tc->getData();
   DbEntry* entry = data->getEntry(node->getIndex(*_na));
@@ -331,7 +328,7 @@ PixelTreeCanvas::exploreNew(VisualNode* node, unsigned depth) {
   pixelList[vline_idx].push_back(new PixelData(node_idx, node, depth));
 
   if (!entry) {
-    qDebug() << "entry do not exist\n";
+    qDebug() << "entry does not exist\n";
   } else {
 
     group_size_nonempty++;
@@ -383,7 +380,7 @@ PixelTreeCanvas::exploreNew(VisualNode* node, unsigned depth) {
 
   uint kids = node->getNumberOfChildren();
   for (uint i = 0; i < kids; ++i) {
-    exploreNew(node->getChild(*_na, i), depth + 1);
+    exploreNext(node->getChild(*_na, i), depth + 1);
   }
 
 
@@ -468,6 +465,7 @@ PixelTreeCanvas::drawNodeRate(unsigned l_vline, unsigned r_vline) {
 
   int zero_level = start_y + HIST_HEIGHT + _step;
 
+  // / this is very slow
   for (unsigned i = l_vline; i < r_vline; i++) {
     for (unsigned j = 0; j < _step; j++)
       _image->setPixel(start_x + (i - l_vline) * _step + j,
@@ -487,14 +485,15 @@ PixelTreeCanvas::drawNodeRate(unsigned l_vline, unsigned r_vline) {
     if (i_begin < l_vline) i_begin = l_vline;
     if (i_end   > r_vline) i_end   = r_vline;
 
-    for (unsigned x = i_begin; x < i_end; x++) {
+    /// this is very slow
+    // for (unsigned x = i_begin; x < i_end; x++) {
 
-      for (int v = value; v >= 0; v--) {
-        drawPixel(start_x + (x - l_vline) * _step,
-                  start_y + HIST_HEIGHT - v,
-                  qRgb(40, 40, 150));
-      }
-    }
+    //   for (int v = value; v >= 0; v--) {
+    //     drawPixel(start_x + (x - l_vline) * _step,
+    //               start_y + HIST_HEIGHT - v,
+    //               qRgb(40, 40, 150));
+    //   }
+    // }
   }
 }
 

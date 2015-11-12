@@ -232,7 +232,7 @@ Gist::on_canvas_statusChanged(VisualNode* n, const Statistics& stats,
         // searchAll->setEnabled(false);
         toggleHidden->setEnabled(false);
         hideFailed->setEnabled(false);
-        hideSize->setEnabled(false);
+        // hideSize->setEnabled(false);
         
         // labelBranches->setEnabled(false);
         // labelPath->setEnabled(false);

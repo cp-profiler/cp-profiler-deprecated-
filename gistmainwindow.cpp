@@ -97,7 +97,6 @@ GistMainWindow::GistMainWindow() : aboutGist(this) {
   nodeMenu->addSeparator();
   nodeMenu->addAction(c->toggleHidden);
   nodeMenu->addAction(c->hideFailed);
-  nodeMenu->addAction(c->hideSize);
   nodeMenu->addAction(c->unhideAll);
   nodeMenu->addAction(c->labelBranches);
   nodeMenu->addAction(c->labelPath);
@@ -118,6 +117,7 @@ GistMainWindow::GistMainWindow() : aboutGist(this) {
   QMenu* treeVisMenu = menuBar->addMenu(tr("Tree"));
 
   treeVisMenu->addAction(c->showPixelTree);
+  treeVisMenu->addAction(c->hideSize);
   treeVisMenu->addAction(c->depthAnalysis);
   treeVisMenu->addAction(c->followPath);
 

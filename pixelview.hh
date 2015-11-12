@@ -142,7 +142,7 @@ private:
   /// Pixel Tree
   void constructTree(void);
   void drawPixelTree(void);
-  void exploreNew(VisualNode* node, unsigned depth);
+  void exploreNext(VisualNode* node, unsigned depth);
   void freePixelList(std::vector<std::list<PixelData*>>& pixelList);
 
   void actuallyDraw(void);
