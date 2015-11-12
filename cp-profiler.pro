@@ -42,6 +42,7 @@ SOURCES += main.cpp\
     pixelview.cpp \
     nogood_dialog.cpp \
     node_info_dialog.cpp \
+    depth_analysis.cpp \
     message.pb.cpp \
 
 
@@ -79,6 +80,7 @@ HEADERS  += gistmainwindow.h \
     pixelview.hh \
     nogood_dialog.hh \
     node_info_dialog.hh \
+    depth_analysis.hh \
     message.pb.hh
 
 FORMS    +=

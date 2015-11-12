@@ -424,6 +424,7 @@ Gist::addActions(void) {
     /// TODO: set a shortcut
 
     showPixelTree = new QAction("Pixel Tree View", this);
+    depthAnalysis = new QAction("Depth Analysis", this);
     followPath = new QAction("Follow Path", this);
     
     navUp = new QAction("Up", this);
@@ -569,6 +570,7 @@ Gist::addActions(void) {
     addAction(labelBranches);
     addAction(labelPath);
     addAction(showPixelTree);
+    addAction(depthAnalysis);
     addAction(followPath);
     addAction(analyzeSimilarSubtrees);
     addAction(showNogoods);
@@ -703,6 +705,7 @@ Gist::connectCanvas(TreeCanvas* tc) {
     connect(unhideAll, SIGNAL(triggered()), tc, SLOT(unhideAll()));
     connect(labelPath, SIGNAL(triggered()), tc, SLOT(labelPath()));
     connect(showPixelTree, SIGNAL(triggered()), tc, SLOT(showPixelTree()));
+    connect(depthAnalysis, SIGNAL(triggered()), tc, SLOT(depthAnalysis()));
     connect(followPath, SIGNAL(triggered()), tc, SLOT(followPath()));
     connect(analyzeSimilarSubtrees, SIGNAL(triggered()), tc, SLOT(analyzeSimilarSubtrees()));
     connect(showNogoods, SIGNAL(triggered()), current_tc, SLOT(showNogoods()));

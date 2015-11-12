@@ -36,6 +36,7 @@
 #include "pixelview.hh"
 #include "nogood_dialog.hh"
 #include "node_info_dialog.hh"
+#include "depth_analysis.hh"
 
 #include "data.hh"
 
@@ -390,6 +391,10 @@ Data* TreeCanvas::getData(void) {
   return _data;
 }
 
+unsigned int TreeCanvas::getTreeDepth() {
+  return stats.maxDepth;
+}
+
 void
 TreeCanvas::scaleTree(int scale0, int zoomx, int zoomy) {
     QMutexLocker locker(&layoutMutex);
@@ -510,6 +515,11 @@ TreeCanvas::getNoOfSolvedLeaves(VisualNode& n) {
 void TreeCanvas::showPixelTree(void) {
   PixelTreeDialog* pixelTreeDialog = new PixelTreeDialog(this);
   pixelTreeDialog->show();
+}
+
+void TreeCanvas::depthAnalysis(void) {
+  DepthAnalysisDialog* depthAnalysisDialog = new DepthAnalysisDialog(this, this);
+  depthAnalysisDialog->show();
 }
 
 void TreeCanvas::followPath(void) {

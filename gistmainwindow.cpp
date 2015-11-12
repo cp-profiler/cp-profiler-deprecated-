@@ -118,6 +118,7 @@ GistMainWindow::GistMainWindow() : aboutGist(this) {
   QMenu* treeVisMenu = menuBar->addMenu(tr("Tree"));
 
   treeVisMenu->addAction(c->showPixelTree);
+  treeVisMenu->addAction(c->depthAnalysis);
   treeVisMenu->addAction(c->followPath);
 
   /// *******************************

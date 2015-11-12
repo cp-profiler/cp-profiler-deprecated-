@@ -179,6 +179,9 @@ public:
 
   /// Show Indented Pixel Tree View
   QAction* showPixelTree;
+
+  /// Perform depth analysis on a tree
+  QAction* depthAnalysis;
   /// Follow path
   QAction* followPath;
 

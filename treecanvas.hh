@@ -48,6 +48,7 @@ namespace LayoutConfig {
 
 class TreeCanvas;
 class SimilarShapesWindow;
+
 class TreeBuilder;
 class TreeDialog;
 class ReceiverThread;
@@ -174,8 +175,6 @@ enum class CanvasType {
 class TreeCanvas : public QWidget {
   Q_OBJECT
 
-
-
   friend class ReceiverThread;
   friend class Gist;
   friend class TreeBuilder;
@@ -184,6 +183,7 @@ class TreeCanvas : public QWidget {
   friend class BaseTreeDialog;
   friend class PixelTreeCanvas;
   friend class PixelTreeDialog;
+  friend class DepthAnalysisDialog;
 
 public:
 
@@ -223,6 +223,8 @@ public:
   /// ***** GETTERS *****
 
   Data* getData(void);
+
+  unsigned int getTreeDepth(void);
 
   /// *******************
 
@@ -268,6 +270,9 @@ public Q_SLOTS:
 
   /// Show Indented Pixel Tree View
   void showPixelTree(void);
+
+  /// Perform Depth Analysis on the Tree
+  void depthAnalysis(void);
 
   /// Follow path from root
   void followPath(void);

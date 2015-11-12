@@ -180,6 +180,9 @@ public:
 
     void connectNodeToEntry(unsigned int gid, DbEntry* const entry);
 
+    /// return total number of nodes
+    unsigned int size();
+
 /// ********* GETTERS **********
 
     int id(void) { return _id; }
