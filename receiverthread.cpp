@@ -23,7 +23,8 @@
 #include "globalhelper.hh"
 #include "solver_tree_dialog.hh"
 #include "message.pb.hh"
-#include "third-party/zmq.hpp"
+#include "third-party/nn.hpp"
+#include <nanomsg/pipeline.h>
 
 class SolverTreeDialog;
 
@@ -56,8 +57,7 @@ ReceiverThread::switchCanvas(TreeCanvas* tc) { // not needed actually
 void
 ReceiverThread::run(void) {
 
-    zmq::context_t context(1);
-    zmq::socket_t socket (context, ZMQ_PULL);
+    nn::socket socket (AF_SP, NN_PULL);
 
     QString port  = GlobalParser::value(GlobalParser::port_option());
     QString address = QString("tcp://*:") + port;
@@ -76,19 +76,18 @@ ReceiverThread::run(void) {
 
     while (!_quit) {
 
-        zmq::message_t raw_message;
+        // Possible optimisation: allocate this buffer outside the
+        // loop; currently nanomsg will allocate a new one every time.
+        void *buf = NULL;
+        int bytes = socket.recv(&buf, NN_MSG, NN_DONTWAIT); // non-blocking so I can exit any time
 
-        bool messageReceived = socket.recv (&raw_message, ZMQ_NOBLOCK); /// non-blocking so I can exit any time
-
-        if (!messageReceived) {
+        if (bytes == -1 && errno == EAGAIN) {
             msleep(100);
             continue;
         }
 
         message::Node msg1;
-        msg1.ParseFromArray(raw_message.data(), raw_message.size());
-
-
+        msg1.ParseFromArray(buf, bytes);
 
         switch (msg1.type()) {
             case message::Node::NODE:
