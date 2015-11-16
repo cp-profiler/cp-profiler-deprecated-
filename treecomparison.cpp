@@ -206,12 +206,13 @@ TreeComparison::copyTree(VisualNode* target, TreeCanvas* tc,
         next->nstatus = n->nstatus;
 
         /// point to the source node
-
         unsigned int source_index = n->getIndex(*na_source);
         unsigned int target_index = next->getIndex(*na);
 
-        DbEntry* entry = tc_source->_data->getEntry(source_index);
-        tc->_data->connectNodeToEntry(target_index, entry);
+        if (n->getStatus() != NodeStatus::UNDETERMINED) {
+            DbEntry* entry = tc_source->_data->getEntry(source_index);
+            tc->_data->connectNodeToEntry(target_index, entry);
+        }
 
         next->dirtyUp(*na);
 

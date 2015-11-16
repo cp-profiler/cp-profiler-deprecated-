@@ -221,6 +221,7 @@ void Data::connectNodeToEntry(unsigned int gid, DbEntry* entry) {
 
 inline
 DbEntry* Data::getEntry(unsigned int gid) {
+    // return gid2entry.at(gid);
     return gid2entry[gid];
 }
 
