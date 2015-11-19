@@ -36,9 +36,7 @@ class PixelTreeDialog : public QDialog {
   Q_OBJECT
 
 private:
-  QVBoxLayout layout;
-  QHBoxLayout controlLayout;
-  
+
   QAbstractScrollArea scrollArea;
 
   PixelTreeCanvas* canvas;
@@ -47,7 +45,6 @@ public:
 
   static const int MARGIN = 50;
   static const int DEPTH = 50;
-  
 
   PixelTreeDialog(TreeCanvas* tc);
   ~PixelTreeDialog(void);
@@ -82,7 +79,6 @@ private:
   TreeCanvas*     _tc;
   NodeAllocator*  _na;
   QImage*    _image;
-  QLabel     qlabel;
   QPixmap         pixmap;
 
   QAbstractScrollArea*  _sa;
@@ -136,11 +132,10 @@ private:
 
   /// Pixel Tree
   void constructTree(void);
-  void drawPixelTree(void);
   void exploreNext(VisualNode* node, unsigned depth);
   void freePixelList(std::vector<std::list<PixelData*>>& pixelList);
 
-  void actuallyDraw(void);
+  void drawPixelTree(void);
   void drawHistogram(int idx, float* data, unsigned l_vline, unsigned r_vline, int color);
 
   /// Histograms

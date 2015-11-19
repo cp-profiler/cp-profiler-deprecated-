@@ -36,9 +36,11 @@ PixelTreeDialog::PixelTreeDialog(TreeCanvas* tc)
   /// set Title
   this->setWindowTitle(QString::fromStdString(tc->getData()->getTitle()));
 
-  setLayout(&layout);
-  layout.addWidget(&scrollArea);
-  layout.addLayout(&controlLayout);
+  QVBoxLayout* layout = new QVBoxLayout();
+  QHBoxLayout* controlLayout = new QHBoxLayout();
+  setLayout(layout);
+  layout->addWidget(&scrollArea);
+  layout->addLayout(controlLayout);
 
   /// ***** control panel *****
   QPushButton* scaleUp = new QPushButton(this);
@@ -53,10 +55,10 @@ PixelTreeDialog::PixelTreeDialog(TreeCanvas* tc)
   QSpinBox* compressionSB = new QSpinBox(this);
   compressionSB->setRange(1, 10000);
 
-  controlLayout.addWidget(scaleUp);
-  controlLayout.addWidget(scaleDown);
-  controlLayout.addWidget(compLabel);
-  controlLayout.addWidget(compressionSB);
+  controlLayout->addWidget(scaleDown);
+  controlLayout->addWidget(scaleUp);
+  controlLayout->addWidget(compLabel);
+  controlLayout->addWidget(compressionSB);
 
   /// *************************
 
@@ -111,16 +113,12 @@ PixelTreeCanvas::PixelTreeCanvas(QWidget* parent, TreeCanvas* tc)
   _image = nullptr;
 
   /// scrolling business
-  // _sa->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
-  // _sa->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
+  _sa->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
+  _sa->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
   // _sa->setAutoFillBackground(true);
   
+  constructTree();
   drawPixelTree();
-  actuallyDraw();
-
-  pixmap.fromImage(*_image);
-  qlabel.setPixmap(pixmap);
-  qlabel.show();
 
 }
 
@@ -128,14 +126,17 @@ void
 PixelTreeCanvas::paintEvent(QPaintEvent*) {
   QPainter painter(this);
 
-  actuallyDraw();
-  painter.drawImage(0, 0, *_image);
-  
+  drawPixelTree();
+  /// start at (1;1) to prevent strage artifact
+  painter.drawImage(1, 1, *_image, 0, 0, _sa->viewport()->width(), _sa->viewport()->height());
 }
 
 
 void
 PixelTreeCanvas::constructTree(void) {
+
+  high_resolution_clock::time_point time_begin = high_resolution_clock::now();
+
   /// the depth is max_depth
   /// the width is _nodeCount / approx_size
   freePixelList(pixelList);
@@ -169,6 +170,10 @@ PixelTreeCanvas::constructTree(void) {
 
   flush();
 
+  high_resolution_clock::time_point time_end = high_resolution_clock::now();
+  duration<double> time_span = duration_cast<duration<double>>(time_end - time_begin);
+  std::cout << "Pixel Tree construction took: " << time_span.count() << " seconds." << std::endl;
+
 }
 
 void
@@ -183,7 +188,7 @@ PixelTreeCanvas::freePixelList(std::vector<std::list<PixelData*>>& pixelList) {
 }
 
 void
-PixelTreeCanvas::actuallyDraw() {
+PixelTreeCanvas::drawPixelTree() {
   delete _image;
 
   _sa->horizontalScrollBar()->setRange(0, vlines * _step - _sa->width() + 100);
@@ -283,19 +288,6 @@ PixelTreeCanvas::actuallyDraw() {
 }
 
 void
-PixelTreeCanvas::drawPixelTree(void) {
-
-  high_resolution_clock::time_point time_begin = high_resolution_clock::now();
-
-  constructTree();
-
-  high_resolution_clock::time_point time_end = high_resolution_clock::now();
-  duration<double> time_span = duration_cast<duration<double>>(time_end - time_begin);
-  std::cout << "Pixel Tree construction took: " << time_span.count() << " seconds." << std::endl;
-
-}
-
-void
 PixelTreeCanvas::flush(void) {
 
   if (group_size == 0)
@@ -330,7 +322,7 @@ PixelTreeCanvas::exploreNext(VisualNode* node, unsigned depth) {
   pixelList[vline_idx].push_back(new PixelData(node_idx, node, depth));
 
   if (!entry) {
-    qDebug() << "entry does not exist\n";
+    // qDebug() << "entry does not exist\n";
   } else {
 
     group_size_nonempty++;
@@ -436,8 +428,6 @@ PixelTreeCanvas::drawHistogram(int idx, float* data, unsigned l_vline, unsigned 
                        zero_level, 
                        qRgb(150, 150, 150));
 
-    // qDebug() << "data[" << i << "]: " << data[i];
-
     // if (data[i] < 0) continue;
 
     for (int v = val; v >= 0; v--) {
@@ -445,7 +435,6 @@ PixelTreeCanvas::drawHistogram(int idx, float* data, unsigned l_vline, unsigned 
                 y + HIST_HEIGHT - v,
                 color);
     }
-    
 
   }
 
@@ -503,7 +492,7 @@ void
 PixelTreeCanvas::scaleUp(void) {
   _step++;
   _step_y++;
-  actuallyDraw();
+  drawPixelTree();
   repaint();
 }
 
@@ -512,15 +501,14 @@ PixelTreeCanvas::scaleDown(void) {
   if (_step <= 1) return;
   _step--;
   _step_y--;
-  actuallyDraw();
+  drawPixelTree();
   repaint();
 }
 
 void
 PixelTreeCanvas::compressionChanged(int value) {
-  qDebug() << "compression is set to: " << value;
   approx_size = value;
-  drawPixelTree();
+  constructTree();
   repaint();
 }
 
@@ -553,7 +541,7 @@ PixelTreeCanvas::mousePressEvent(QMouseEvent* me) {
 
   selectNodesfromPT(vline);
 
-  actuallyDraw();
+  drawPixelTree();
   repaint();
 
 }
