@@ -41,11 +41,6 @@ private:
   
   QAbstractScrollArea scrollArea;
 
-  QPushButton scaleUp;
-  QPushButton scaleDown;
-
-  QSpinBox compressionSB;
-  
   PixelTreeCanvas* canvas;
 
 public:

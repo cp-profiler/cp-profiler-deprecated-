@@ -35,33 +35,36 @@ PixelTreeDialog::PixelTreeDialog(TreeCanvas* tc)
 
   /// set Title
   this->setWindowTitle(QString::fromStdString(tc->getData()->getTitle()));
-  qDebug() << "title: " << tc->getData()->getTitle().c_str();
 
   setLayout(&layout);
   layout.addWidget(&scrollArea);
   layout.addLayout(&controlLayout);
 
-  controlLayout.addWidget(&scaleDown);
-  controlLayout.addWidget(&scaleUp);
+  /// ***** control panel *****
+  QPushButton* scaleUp = new QPushButton(this);
+  scaleUp->setText("+");
 
-  scaleUp.setText("+");
-  scaleDown.setText("-");
+  QPushButton* scaleDown = new QPushButton(this);
+  scaleDown->setText("-");
 
   QLabel* compLabel = new QLabel("compression");
   compLabel->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
 
-  controlLayout.addWidget(compLabel);
+  QSpinBox* compressionSB = new QSpinBox(this);
+  compressionSB->setRange(1, 10000);
 
-  controlLayout.addWidget(&compressionSB);
-  compressionSB.setMinimum(1);
-  compressionSB.setMaximum(10000);
+  controlLayout.addWidget(scaleUp);
+  controlLayout.addWidget(scaleDown);
+  controlLayout.addWidget(compLabel);
+  controlLayout.addWidget(compressionSB);
+
+  /// *************************
 
   canvas = new PixelTreeCanvas(&scrollArea, tc);
 
-  connect(&scaleDown, SIGNAL(clicked()), canvas, SLOT(scaleDown()));
-  connect(&scaleUp, SIGNAL(clicked()), canvas, SLOT(scaleUp()));
-
-  QObject::connect(&compressionSB, SIGNAL(valueChanged(int)),
+  connect(scaleDown, SIGNAL(clicked()), canvas, SLOT(scaleDown()));
+  connect(scaleUp, SIGNAL(clicked()), canvas, SLOT(scaleUp()));
+  connect(compressionSB, SIGNAL(valueChanged(int)),
     canvas, SLOT(compressionChanged(int)));
 
 
@@ -108,13 +111,12 @@ PixelTreeCanvas::PixelTreeCanvas(QWidget* parent, TreeCanvas* tc)
   _image = nullptr;
 
   /// scrolling business
-  _sa->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
-  _sa->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
-  _sa->setAutoFillBackground(true);
+  // _sa->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
+  // _sa->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
+  // _sa->setAutoFillBackground(true);
   
   drawPixelTree();
   actuallyDraw();
-
 
   pixmap.fromImage(*_image);
   qlabel.setPixmap(pixmap);
