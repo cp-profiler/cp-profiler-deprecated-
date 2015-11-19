@@ -105,7 +105,7 @@ private:
     const bool _isRestarts;
 
     /// Where most node data is stored, id as it comes from Broker
-    std::vector<DbEntry*> nodes_arr;
+    std::vector<DbEntry> nodes_arr;
 
     /// Mapping from solver Id to array Id (nodes_arr)
     /// can't use vector because sid is too big with threads
@@ -158,7 +158,7 @@ public:
 private:
 
     /// Populate nodes_arr with the data coming from 
-    void pushInstance(unsigned long long sid, DbEntry* entry);
+    void pushInstance(unsigned long long sid, DbEntry entry);
 
     /// Work out node rate for the last (incomplete) interval 
     void flush_node_rate(void);
@@ -197,7 +197,7 @@ public:
 
     DbEntry* getEntry(unsigned int gid);
 
-    unsigned int getGidBySid(unsigned int sid) { return nodes_arr[sid2aid[sid]]->gid; }
+    unsigned int getGidBySid(unsigned int sid) { return nodes_arr[sid2aid[sid]].gid; }
 
 
 /// ****************************
@@ -221,8 +221,10 @@ void Data::connectNodeToEntry(unsigned int gid, DbEntry* entry) {
 
 inline
 DbEntry* Data::getEntry(unsigned int gid) {
-    // return gid2entry.at(gid);
-    return gid2entry[gid];
+    if (gid >= gid2entry.size()) {
+        return gid2entry[gid]; /// all good
+    }
+    return nullptr; /// otherwise
 }
 
 

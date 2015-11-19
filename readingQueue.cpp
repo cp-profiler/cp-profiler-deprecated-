@@ -23,13 +23,13 @@
 #include "data.hh"
 #include <iostream>
 
-ReadingQueue::ReadingQueue(std::vector<DbEntry*>& nodes)
+ReadingQueue::ReadingQueue(std::vector<DbEntry>& nodes)
 : nodes_arr(nodes)
 {
 
 }
 
-DbEntry*
+DbEntry&
 ReadingQueue::next(bool& delayed) {
 
   /// for dubugging
@@ -77,7 +77,7 @@ ReadingQueue::next(bool& delayed) {
     /// at this point there is nonempty queue at it->second
     delayed = true;
     read_delayed = true;
-    return it->second->front();
+    return *it->second->front();
   }
 
 }
@@ -155,8 +155,8 @@ ReadingQueue::update(bool success) {
 }
 
 void
-ReadingQueue::readLater(DbEntry* delayed) {
-  int tid = delayed->thread;
+ReadingQueue::readLater(DbEntry& delayed) {
+  int tid = delayed.thread;
 
   if (delayed_treads.find(tid) == delayed_treads.end()) {
       std::cout << "create delayed_treads[" << tid << "] queue\n";
@@ -165,6 +165,6 @@ ReadingQueue::readLater(DbEntry* delayed) {
 
   /// delayed_treads[tid] exists at this point
   delayed_count++;
-  delayed_treads[tid]->push(delayed);
+  delayed_treads[tid]->push(&delayed);
   // std::cout << "push " << *delayed_treads[tid]->front() << " into delayed_treads[" << tid << "]\n";
 }

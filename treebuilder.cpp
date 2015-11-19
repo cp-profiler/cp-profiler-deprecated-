@@ -122,7 +122,7 @@ bool TreeBuilder::processNode(DbEntry& dbEntry, bool is_delayed) {
     int nalt     = dbEntry.numberOfKids; /// number of kids in current node
     int status   = dbEntry.status;
 
-    std::vector<DbEntry*> &nodes_arr = _data->nodes_arr;
+    std::vector<DbEntry> &nodes_arr = _data->nodes_arr;
     std::unordered_map<unsigned long long, int> &sid2aid = _data->sid2aid;
     auto& gid2entry = _data->gid2entry;
 
@@ -138,14 +138,14 @@ bool TreeBuilder::processNode(DbEntry& dbEntry, bool is_delayed) {
         // qDebug() << "node for parent is not in db yet";
 
         if (!is_delayed)
-            read_queue->readLater(&dbEntry);
+            read_queue->readLater(dbEntry);
 
         return false;
     }
 
     // std::cerr << "sid2aid[pid]: " << pid_it->second << "\n";
     
-    DbEntry& parentEntry = *nodes_arr[pid_it->second];
+    DbEntry& parentEntry = nodes_arr[pid_it->second];
     int parent_gid  = parentEntry.gid; /// parent ID as it is in Node Allocator (Gist)
     
     /// put delayed also if parent node hasn't been processed yet:
@@ -153,7 +153,7 @@ bool TreeBuilder::processNode(DbEntry& dbEntry, bool is_delayed) {
         // qDebug() << "parent arrived, but has not been processed yet";
 
         if (!is_delayed)
-            read_queue->readLater(&dbEntry);
+            read_queue->readLater(dbEntry);
         else
             qDebug() << "node already in the queue";
 
@@ -311,24 +311,14 @@ void TreeBuilder::run(void) {
         }
 
         /// ask queue for an entry, note: is_delayed gets assigned here
-        DbEntry* entry = read_queue->next(is_delayed);
+        DbEntry& entry = read_queue->next(is_delayed);
 
-        bool isRoot = (entry->parent_sid == ~0u) ? true : false;
+        bool isRoot = (entry.parent_sid == ~0u) ? true : false;
 
         /// try to put node into the tree
-        bool success = isRoot ? processRoot(*entry) : processNode(*entry, is_delayed);
+        bool success = isRoot ? processRoot(entry) : processNode(entry, is_delayed);
 
         read_queue->update(success);
-
-        // /// for debug
-        // if (success)
-        //     processed.push_back(entry);
-
-        // std::cout << "processed: ";
-        // for (auto entry = processed.begin(); entry != processed.end(); entry++) {
-        //     std::cout << (*entry)->sid << " ";
-        // }
-        // std::cout << std::endl;
 
         dataMutex.unlock();
 

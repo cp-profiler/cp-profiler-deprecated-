@@ -35,7 +35,7 @@ class ReadingQueue {
 private:
 
   /// nodes from Data
-  std::vector<DbEntry*>& nodes_arr;
+  std::vector<DbEntry>& nodes_arr;
 
   /// nodes delayed, map: thread_id -> queue
   QueueMap delayed_treads;
@@ -55,18 +55,15 @@ private:
   bool read_delayed    = false;
 
 
-// inline DbEntry* nextNormal();
-// inline DbEntry* nextDelayed();
-
   inline QueueMap::iterator nextNonemptyIt(QueueMap::iterator it);
 
 public:
 
 
 
-  ReadingQueue(std::vector<DbEntry*>& nodes);
+  ReadingQueue(std::vector<DbEntry>& nodes);
 
-  DbEntry* next(bool& delayed);
+  DbEntry& next(bool& delayed);
 
   /// whether nodes_arr is processed and all queues are empty
   bool canRead();
@@ -75,7 +72,7 @@ public:
   void update(bool success);
 
   /// put into delayed queue
-  void readLater(DbEntry* delayed);
+  void readLater(DbEntry& delayed);
 
 
 };

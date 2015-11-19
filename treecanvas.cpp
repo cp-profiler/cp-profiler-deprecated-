@@ -73,6 +73,7 @@ TreeCanvas::TreeCanvas(QGridLayout* layout, ReceiverThread* receiver, CanvasType
     _builder = new TreeBuilder(this);
     na = new Node::NodeAllocator(false);
 
+    delete _data;
     _data = new Data(this, na, false); // default data instance
     
     na->allocateRoot();
@@ -151,6 +152,7 @@ TreeCanvas::~TreeCanvas(void) {
         PreorderNodeVisitor<DisposeCursor>(dc).run();
     }
     delete na;
+    delete _data;
 
     delete _builder;
 }
