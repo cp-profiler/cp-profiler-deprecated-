@@ -56,12 +56,11 @@ private:
 
 public:
     DbEntry(unsigned long long id, unsigned long long _p, int _alt, int _kids, char _tid,
-            const char* _label, int _status, unsigned long long _time_stamp,
+            std::string _label, int _status, unsigned long long _time_stamp,
             unsigned long long _node_time, float _domain) :
         sid(id), gid(-1), parent_sid(_p), alt(_alt), numberOfKids(_kids),
         status(_status), label(_label), thread(_tid), depth(-1), time_stamp(_time_stamp), node_time(_node_time),
         domain(_domain) {
-            
     }
 
     friend ostream& operator<<(ostream& s, const DbEntry& e);
@@ -74,7 +73,7 @@ public:
     int alt; // which child by order
     int numberOfKids;
     int status;
-    string label;
+    std::string label;
     char thread;
     int depth;
     unsigned long long time_stamp;
@@ -105,7 +104,7 @@ private:
     const bool _isRestarts;
 
     /// Where most node data is stored, id as it comes from Broker
-    std::vector<DbEntry> nodes_arr;
+    std::vector<DbEntry*> nodes_arr;
 
     /// Mapping from solver Id to array Id (nodes_arr)
     /// can't use vector because sid is too big with threads
@@ -158,7 +157,7 @@ public:
 private:
 
     /// Populate nodes_arr with the data coming from 
-    void pushInstance(unsigned long long sid, DbEntry entry);
+    void pushInstance(unsigned long long sid, DbEntry* entry);
 
     /// Work out node rate for the last (incomplete) interval 
     void flush_node_rate(void);
@@ -173,7 +172,7 @@ public:
     void show_db(void); /// TODO: write to a file
 
     /// return label by gid (Gist ID)
-    const char* getLabel(unsigned int gid);
+    const std::string getLabel(unsigned int gid);
 
     /// return solver id by gid (Gist ID)
     unsigned long long gid2sid(unsigned int gid);
@@ -197,7 +196,7 @@ public:
 
     DbEntry* getEntry(unsigned int gid);
 
-    unsigned int getGidBySid(unsigned int sid) { return nodes_arr[sid2aid[sid]].gid; }
+    unsigned int getGidBySid(unsigned int sid) { return nodes_arr[sid2aid[sid]]->gid; }
 
 
 /// ****************************
@@ -221,7 +220,7 @@ void Data::connectNodeToEntry(unsigned int gid, DbEntry* entry) {
 
 inline
 DbEntry* Data::getEntry(unsigned int gid) {
-    if (gid >= gid2entry.size()) {
+    if (gid < gid2entry.size()) {
         return gid2entry[gid]; /// all good
     }
     return nullptr; /// otherwise

@@ -72,8 +72,8 @@ Data::Data(TreeCanvas* tc, NodeAllocator* na, bool isRestarts)
 void Data::show_db(void) {
     qDebug() << "***** SHOW_DB: *****";
     for (auto it = nodes_arr.cbegin(); it != nodes_arr.end(); it++) {
-            qDebug() << "sid: " << (*it).gid << " p: " << (*it).parent_sid <<
-            " alt: " << (*it).alt << " kids: " << (*it).numberOfKids;
+            qDebug() << "sid: " << (*it)->gid << " p: " << (*it)->parent_sid <<
+            " alt: " << (*it)->alt << " kids: " << (*it)->numberOfKids;
     }
     qDebug() << "***** _________________________ *****";
 }
@@ -83,7 +83,7 @@ void Data::setDoneReceiving(void) {
     QMutexLocker locker(&dataMutex);
 
     _total_nodes = nodes_arr.size();
-    _total_time = nodes_arr.back().time_stamp;
+    _total_time = nodes_arr.back()->time_stamp;
 
     if (_total_time != 0) {
         _time_per_node = _total_time / _total_time;
@@ -145,17 +145,19 @@ int Data::handleNodeCallback(message::Node& node) {
 
     real_id = (id | ((long long)restart_id << 32));
 
+    std::string label = node.label();
+
     pushInstance(real_id,
-        DbEntry(real_id,
-                real_pid,
-                alt,
-                kids,
-                thread,
-                node.label().c_str(),
-                status,
-                node.time(),
-                node.time() - _prev_node_timestamp,
-                domain));
+        new DbEntry(real_id,
+                    real_pid,
+                    alt,
+                    kids,
+                    thread,
+                    label,
+                    status,
+                    node.time(),
+                    node.time() - _prev_node_timestamp,
+                    domain));
 
     _prev_node_timestamp = node.time();
 
@@ -180,12 +182,12 @@ int Data::handleNodeCallback(message::Node& node) {
     return 0;
 }
 
-const char* Data::getLabel(unsigned int gid) {
+const std::string Data::getLabel(unsigned int gid) {
     QMutexLocker locker(&dataMutex);
 
     auto it = gid2entry.find(gid);
     if (it != gid2entry.end())
-        return it->second->label.c_str();
+        return it->second->label;
     return "";
 
 }
@@ -205,17 +207,16 @@ unsigned long long Data::getTotalTime(void) {
 
     if (_isDone)
         return _total_time;
-    return nodes_arr.back().time_stamp;
+    return nodes_arr.back()->time_stamp;
 }
 
 
 Data::~Data(void) {
 
-
-    // for (auto it = nodes_arr.begin(); it != nodes_arr.end();) {
-    //     delete (*it);
-    //     it = nodes_arr.erase(it);
-    // }
+    for (auto it = nodes_arr.begin(); it != nodes_arr.end();) {
+        delete (*it);
+        it = nodes_arr.erase(it);
+    }
 }
 
 /// private methods
@@ -233,7 +234,7 @@ void Data::flush_node_rate(void) {
     // qDebug() << "flushed nr: " << nr << " at node: " << last_interval_nc;
 }
 
-void Data::pushInstance(unsigned long long sid, DbEntry entry) {
+void Data::pushInstance(unsigned long long sid, DbEntry* entry) {
     QMutexLocker locker(&dataMutex);
 
     /// is sid == nodes_arr.size? no, because there are also '-1' nodes (backjumped) that dont get counted

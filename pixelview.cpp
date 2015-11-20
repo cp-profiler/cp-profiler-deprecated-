@@ -165,7 +165,8 @@ PixelTreeCanvas::constructTree(void) {
 
   alpha_factor = 100.0 / approx_size;
 
-  exploreNext(root, 1);
+  // exploreNext(root, 1);
+  traverseTree(root, 1);
 
   flush();
 
@@ -305,6 +306,12 @@ PixelTreeCanvas::flush(void) {
   domain_red_arr[vline_idx] = group_domain_red;
   time_arr[vline_idx]       =  group_time;
 
+}
+
+
+void
+PixelTreeCanvas::traverseTree(VisualNode* node, unsigned depth) {
+  /// 
 }
 
 void

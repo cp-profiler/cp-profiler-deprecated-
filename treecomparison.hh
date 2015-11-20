@@ -53,8 +53,6 @@ private:
   std::vector<std::pair<unsigned int, unsigned int>> _pentSize;
 
 private:
-  QStack<VisualNode*> stack1;
-  QStack<VisualNode*> stack2;
 
   /// The four needed for extracting labels
   NodeAllocator* _na1;
@@ -63,8 +61,7 @@ private:
   Data* _data1;
   Data* _data2;
 
-  /// The stack used while building new_tc
-  QStack<VisualNode*> stack;
+  
 
 private: /// methods
 
