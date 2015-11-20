@@ -118,7 +118,6 @@ PixelTreeCanvas::PixelTreeCanvas(QWidget* parent, TreeCanvas* tc)
   // _sa->setAutoFillBackground(true);
   
   constructTree();
-  drawPixelTree();
 
 }
 
@@ -583,10 +582,10 @@ PixelTreeCanvas::selectNodesfromPT(unsigned vline) {
 
   };
 
+  /// select the last one in case clicked a bit off the boundary
+  vline = (pixelList.size() > vline) ? vline : pixelList.size() - 1;
+
   qDebug() << "selecting vline: " << vline;
-  if (pixelList.size() <= vline) {
-    qDebug() << "no such vline";
-  }
 
   Actions actions(_na, _tc);
   void (Actions::*apply)(VisualNode*);
