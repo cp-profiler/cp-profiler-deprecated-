@@ -82,7 +82,6 @@ PixelTreeDialog::~PixelTreeDialog(void) {
 }
 
 PixelTreeCanvas::~PixelTreeCanvas(void) {
-  freePixelList(pixelList);
   delete _image;
 }
 
@@ -139,20 +138,16 @@ PixelTreeCanvas::constructTree(void) {
 
   /// the depth is max_depth
   /// the width is _nodeCount / approx_size
-  freePixelList(pixelList);
 
+  /// how many of each values after compression
   vlines = ceil((float)_nodeCount / approx_size);
 
-  time_arr.clear();
-  time_arr.resize(vlines);
+  pixelList.clear();      pixelList.resize(vlines);
 
-  domain_arr.clear();
-  domain_arr.resize(vlines);
+  time_arr.clear();       time_arr.resize(vlines);
+  domain_arr.clear();     domain_arr.resize(vlines);
+  domain_red_arr.clear(); domain_red_arr.resize(vlines);
 
-  domain_red_arr.clear();
-  domain_red_arr.resize(vlines);
-
-  pixelList.resize(vlines);
 
   /// get a root
   VisualNode* root = (*_na)[0];
@@ -175,17 +170,6 @@ PixelTreeCanvas::constructTree(void) {
   duration<double> time_span = duration_cast<duration<double>>(time_end - time_begin);
   std::cout << "Pixel Tree construction took: " << time_span.count() << " seconds." << std::endl;
 
-}
-
-void
-PixelTreeCanvas::freePixelList(std::vector<std::list<PixelData*>>& pixelList) {
-  for (auto& l : pixelList) {
-    for (auto& nodeData : l) {
-      delete nodeData;
-    }
-    l.clear();
-  }
-  pixelList.clear();
 }
 
 void
@@ -249,15 +233,15 @@ PixelTreeCanvas::drawPixelTree() {
 
 
         int xpos = (vline  - leftmost_vline) * _step;
-        int ypos = pixel->depth() * _step_y - yoff;
+        int ypos = pixel.depth() * _step_y - yoff;
 
 
-        intencity_arr.at(pixel->depth())++;
+        intencity_arr.at(pixel.depth())++;
 
         /// draw pixel itself:
         if (ypos > 0) {
-          if (!pixel->node()->isSelected()) {
-            int alpha = intencity_arr.at(pixel->depth()) * alpha_factor;
+          if (!pixel.node()->isSelected()) {
+            int alpha = intencity_arr.at(pixel.depth()) * alpha_factor;
             drawPixel(xpos, ypos, QColor::fromHsv(150, 100, 100 - alpha).rgba());
           } else {
             // drawPixel(xpos, ypos, qRgb(255, 0, 0));
@@ -266,7 +250,7 @@ PixelTreeCanvas::drawPixelTree() {
         }
         
         /// draw green vertical line if solved:
-        if (pixel->node()->getStatus() == SOLVED) {
+        if (pixel.node()->getStatus() == SOLVED) {
 
           for (unsigned j = 0; j < pt_height - yoff; j++)
             if (_image->pixel(xpos, j) == qRgb(255, 255, 255))
@@ -332,7 +316,7 @@ PixelTreeCanvas::exploreNext(VisualNode* node, unsigned depth) {
 
   if (vline_idx >= pixelList.size()) return;
 
-  pixelList[vline_idx].push_back(new PixelData(node_idx, node, depth));
+  pixelList[vline_idx].push_back(PixelData(node_idx, node, depth));
 
   if (!entry) {
     // qDebug() << "entry does not exist\n";
@@ -686,7 +670,7 @@ PixelTreeCanvas::selectNodesfromPT(unsigned vline) {
 
   nodes_selected.clear();
 
-  std::list<PixelData*>& vline_list = pixelList[vline];
+  std::list<PixelData>& vline_list = pixelList[vline];
 
   if (vline_list.size() == 1) {
     apply = &Actions::selectOne;
@@ -699,9 +683,9 @@ PixelTreeCanvas::selectNodesfromPT(unsigned vline) {
   }
 
   for (auto& pixel : vline_list) {
-    (actions.*apply)(pixel->node());
-    pixel->node()->setSelected(true);
-    nodes_selected.push_back(pixel->node());
+    (actions.*apply)(pixel.node());
+    pixel.node()->setSelected(true);
+    nodes_selected.push_back(pixel.node());
   }
 
   

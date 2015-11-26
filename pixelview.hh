@@ -123,8 +123,7 @@ private:
 
   std::vector<VisualNode*> nodes_selected;
 
-  /// New Stuff
-  std::vector<std::list<PixelData*>> pixelList;
+  std::vector<std::list<PixelData>> pixelList;
 
   /// Depth analysis data
   DepthAnalysis depthAnalysis;
@@ -141,7 +140,6 @@ private:
   void constructTree(void);
   void exploreNext(VisualNode* node, unsigned depth);
   void traverseTree(VisualNode* node, unsigned depth);
-  void freePixelList(std::vector<std::list<PixelData*>>& pixelList);
 
   void drawPixelTree(void);
   void drawHistogram(int idx, vector<float>& data, unsigned l_vline, unsigned r_vline, int color);
