@@ -22,6 +22,8 @@
 #include "pixelview.hh"
 #include <chrono>
 #include <cmath>
+#include <algorithm> 
+#include <stack>
 
 using namespace std::chrono;
 using std::vector;
@@ -136,9 +138,6 @@ PixelTreeCanvas::constructTree(void) {
 
   high_resolution_clock::time_point time_begin = high_resolution_clock::now();
 
-  /// the depth is max_depth
-  /// the width is _nodeCount / approx_size
-
   /// how many of each values after compression
   vlines = ceil((float)_nodeCount / approx_size);
 
@@ -161,8 +160,8 @@ PixelTreeCanvas::constructTree(void) {
 
   alpha_factor = 100.0 / approx_size;
 
-  exploreNext(root, 1);
-  // traverseTree(root, 1); /// TODO: change to this
+  // traverseTree(root);
+  traverseTreePostOrder(root);
 
   flush();
 
@@ -301,12 +300,76 @@ PixelTreeCanvas::flush(void) {
 
 
 void
-PixelTreeCanvas::traverseTree(VisualNode* node, unsigned depth) {
-  /// 
+PixelTreeCanvas::traverseTree(VisualNode* root) {
+
+  /// 0. prepare a stack for exploration
+  std::stack<VisualNode*> explorationStack;
+  std::stack<unsigned int> depthStack;
+
+  /// 1. push the root node
+  explorationStack.push(root);
+  depthStack.push(1);
+
+  /// 2. traverse the stack
+  while(explorationStack.size() > 0) {
+
+    VisualNode* node   = explorationStack.top(); explorationStack.pop();
+    unsigned int depth = depthStack.top();       depthStack.pop();
+
+    processCurrentNode(node, depth);
+
+    /// 2.1. add the children to the stack
+
+    uint kids = node->getNumberOfChildren();
+    for (uint i = 0; i < kids; ++i) {
+      auto kid = node->getChild(*_na, i);
+      explorationStack.push(kid);
+      depthStack.push(depth + 1);
+    }
+
+  }
 }
 
 void
-PixelTreeCanvas::exploreNext(VisualNode* node, unsigned depth) {
+PixelTreeCanvas::traverseTreePostOrder(VisualNode* root) {
+
+  std::stack<VisualNode*> nodeStack1;
+  std::stack<unsigned int> depthStack1;
+
+  std::stack<VisualNode*> nodeStack2;
+  std::stack<unsigned int> depthStack2;
+
+  nodeStack1.push(root);
+  depthStack1.push(1);
+
+  while (nodeStack1.size() > 0) {
+
+    VisualNode* node = nodeStack1.top(); nodeStack1.pop();
+    unsigned int depth = depthStack1.top(); depthStack1.pop();
+
+    nodeStack2.push(node);
+    depthStack2.push(depth);
+
+    uint kids = node->getNumberOfChildren();
+    for (uint i = 0; i < kids; ++i) {
+      auto kid = node->getChild(*_na, i);
+      nodeStack1.push(kid);
+      depthStack1.push(depth + 1);
+    }
+  }
+
+  while (nodeStack2.size() > 0) {
+
+    VisualNode* node = nodeStack2.top(); nodeStack2.pop();
+    unsigned int depth = depthStack2.top(); depthStack2.pop();
+
+    processCurrentNode(node, depth);
+  }
+}
+
+void PixelTreeCanvas::processCurrentNode(VisualNode* node, unsigned int depth) {
+
+  /// 2.3 apply the action to the next node in a while loop
 
   Data* data = _tc->getData();
   DbEntry* entry = data->getEntry(node->getIndex(*_na));
@@ -314,13 +377,11 @@ PixelTreeCanvas::exploreNext(VisualNode* node, unsigned depth) {
 
   assert(depth <= max_depth);
 
-  if (vline_idx >= pixelList.size()) return;
-
   pixelList[vline_idx].push_back(PixelData(node_idx, node, depth));
 
-  if (!entry) {
-    // qDebug() << "entry does not exist\n";
-  } else {
+  if (vline_idx >= pixelList.size()) return;
+
+  if (entry) {
 
     group_size_nonempty++;
 
@@ -368,13 +429,6 @@ PixelTreeCanvas::exploreNext(VisualNode* node, unsigned depth) {
   }
 
   node_idx++;
-
-  uint kids = node->getNumberOfChildren();
-  for (uint i = 0; i < kids; ++i) {
-    exploreNext(node->getChild(*_na, i), depth + 1);
-  }
-
-
 }
 
 void PixelTreeCanvas::drawGrid(unsigned int xoff, unsigned int yoff) {
@@ -546,13 +600,18 @@ PixelTreeCanvas::drawDepthAnalysisData(unsigned l_vline, unsigned r_vline) {
 
   for (unsigned int depth = 0; depth < da_data.size(); depth++) {
 
-    for (unsigned i = l_vline; i < r_vline; i++) {
+    /// set the limit
+    unsigned int r_limit = std::min(r_vline, static_cast<unsigned int>(da_data[depth].size()));
+
+    for (unsigned i = l_vline; i < r_limit; i++) {
 
       int value = da_data[depth][i];
       int xpos = start_x + (i - l_vline) * _step;
       int ypos = zero_level - value * _step;
 
-      if (value != 0)
+      // qDebug() << "da_data[" << depth << "][" << i << "]: " << value;
+
+      // if (value != 0)
         drawPixel(xpos, ypos, qRgb(depth * 5, 0, 255));
     }
 

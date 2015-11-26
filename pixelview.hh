@@ -138,14 +138,16 @@ private:
 
   /// Pixel Tree
   void constructTree(void);
-  void exploreNext(VisualNode* node, unsigned depth);
-  void traverseTree(VisualNode* node, unsigned depth);
+  void traverseTree(VisualNode* node);
+  void traverseTreePostOrder(VisualNode* node);
 
   void drawPixelTree(void);
   void drawHistogram(int idx, vector<float>& data, unsigned l_vline, unsigned r_vline, int color);
 
 /// xoff and yoff account for scrolling
   void drawGrid(unsigned int xoff, unsigned int yoff);
+
+  void processCurrentNode(VisualNode* node, unsigned int depth);
 
   /// Histograms
   void drawTimeHistogram(unsigned l_vline, unsigned r_vline);
