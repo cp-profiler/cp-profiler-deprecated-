@@ -1,19 +1,12 @@
 #include "depth_analysis.hh"
 #include <QDebug>
 
-DepthAnalysisDialog::DepthAnalysisDialog(TreeCanvas* tc, QWidget* parent)
-  :_tc(tc), _na(tc->na), QDialog(parent) {
-    
-    std::vector<Direction> depth_data = collectDepthData();
-
-    runMSL(depth_data);
+DepthAnalysis::DepthAnalysis(TreeCanvas* tc)
+  :_tc(tc), _na(tc->na) {
+    qDebug() << "DepthAnalysis initialized";
 }
 
-unsigned int DepthAnalysisDialog::getTotalDepth() {
-
-}
-
-std::vector<Direction> DepthAnalysisDialog::collectDepthData() {
+std::vector<Direction> DepthAnalysis::collectDepthData() {
 
   SpaceNode* root = (*_na)[0];
   std::vector<Direction> depth_data;
@@ -24,7 +17,7 @@ std::vector<Direction> DepthAnalysisDialog::collectDepthData() {
   return depth_data;
 }
 
-void DepthAnalysisDialog::traverse(std::vector<Direction>& depth_data, const SpaceNode* const n) {
+void DepthAnalysis::traverse(std::vector<Direction>& depth_data, const SpaceNode* const n) {
   for (unsigned int i = 0; i < n->getNumberOfChildren(); i++) {
     depth_data.push_back(Direction::DOWN);
     traverse(depth_data, n->getChild(*_na, i));
@@ -40,13 +33,21 @@ void DepthAnalysisDialog::traverse(std::vector<Direction>& depth_data, const Spa
   }
 }
 
-void DepthAnalysisDialog::runMSL(const std::vector<Direction>& depth_data) {
+std::vector< std::vector<unsigned int> >
+DepthAnalysis::runMSL() {
+
+  using std::vector;
+
+  vector<Direction> depth_data = collectDepthData();
 
   unsigned int deepest = 0;
   unsigned int curr_level = 1;
   unsigned int total_depth = _tc->getTreeDepth();
-  std::vector<unsigned int> dl_list(total_depth); /// deepest at level
-  std::vector<unsigned int> count_list(total_depth, 0); /// deepest at level
+  vector<unsigned int> dl_list(total_depth); /// deepest at level
+  vector<unsigned int> count_list(total_depth, 0); /// deepest at level
+
+  vector< vector<unsigned int> > count_array(total_depth); /// history of count
+  for (auto v : count_array) { v.reserve(depth_data.size()); }
 
   assert(depth_data[0] == Direction::DOWN); /// otherwise initial curr_level isn't 1
 
@@ -74,7 +75,6 @@ void DepthAnalysisDialog::runMSL(const std::vector<Direction>& depth_data) {
     if (prev == Direction::DOWN && curr == Direction::UP) {
       assert(deepest <= dl_list[curr_level]);
       deepest = curr_level; /// only NAV changes `deepest` and always does so
-
     }
 
     /// USS (Unsuccessful Subspace Search)
@@ -94,5 +94,15 @@ void DepthAnalysisDialog::runMSL(const std::vector<Direction>& depth_data) {
       dl_list[curr_level] = deepest;
     }
 
+    /// copy count_list to count_array (only when leaving a node:
+    if (curr == Direction::UP){
+      for (int d = 0; d < total_depth; d++) {
+        // count_array[d][i] = count_list[d];
+        count_array.at(d).push_back(count_list[d]);
+      }
+    }
+
   }
+
+  return count_array;
 }

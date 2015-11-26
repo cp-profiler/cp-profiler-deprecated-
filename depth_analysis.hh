@@ -7,7 +7,8 @@
 
 enum Direction { DOWN, UP, SOLUTION };
 
-class DepthAnalysisDialog : public QDialog {
+class DepthAnalysis : public QObject {
+  Q_OBJECT
 
 private:
   TreeCanvas* _tc;
@@ -20,14 +21,15 @@ private:
 
   /// returns a vector of 'UPs' and 'DOWNs'
   std::vector<Direction> collectDepthData();
-  unsigned int getTotalDepth();
 
   void traverse(std::vector<Direction>& depth_data, const SpaceNode* const n);
 
-  void runMSL(const std::vector<Direction>& depth_data);
 
 public:
-  DepthAnalysisDialog(TreeCanvas* tc, QWidget* parent);
+  DepthAnalysis(TreeCanvas* tc);
+
+  /// Return a two-dimentional array of counts
+  std::vector< std::vector<unsigned int> > runMSL();
 
 };
 

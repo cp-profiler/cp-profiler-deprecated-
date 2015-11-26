@@ -23,9 +23,12 @@
 #define PIXEL_VIEW_HH
 
 #include "treecanvas.hh"
+#include "depth_analysis.hh"
 #include <QImage>
 #include <list>
 #include <vector>
+
+using std::vector;
 
 
 class PixelTreeCanvas;
@@ -114,14 +117,18 @@ private:
   unsigned vlines; /// width of pixel tree
   unsigned max_depth;
 
-  float* time_arr         = nullptr; // time for each vline
-  float* domain_arr       = nullptr; // domain for each vline
-  float* domain_red_arr   = nullptr; /// domain reduction for each vline
+  vector<float> time_arr; // time for each vline
+  vector<float> domain_arr; // domain for each vline
+  vector<float> domain_red_arr; /// domain reduction for each vline
 
   std::vector<VisualNode*> nodes_selected;
 
   /// New Stuff
   std::vector<std::list<PixelData*>> pixelList;
+
+  /// Depth analysis data
+  DepthAnalysis depthAnalysis;
+  std::vector< std::vector<unsigned int> > da_data;
 
 public:
 
@@ -137,12 +144,16 @@ private:
   void freePixelList(std::vector<std::list<PixelData*>>& pixelList);
 
   void drawPixelTree(void);
-  void drawHistogram(int idx, float* data, unsigned l_vline, unsigned r_vline, int color);
+  void drawHistogram(int idx, vector<float>& data, unsigned l_vline, unsigned r_vline, int color);
+
+/// xoff and yoff account for scrolling
+  void drawGrid(unsigned int xoff, unsigned int yoff);
 
   /// Histograms
   void drawTimeHistogram(unsigned l_vline, unsigned r_vline);
   void drawDomainHistogram(unsigned l_vline, unsigned r_vline);
   void drawDomainReduction(unsigned l_vline, unsigned r_vline);
+  void drawDepthAnalysisData(unsigned l_vline, unsigned r_vline);
 
   /// Node Rate
   void drawNodeRate(unsigned leftmost_vline, unsigned rightmost_vline);

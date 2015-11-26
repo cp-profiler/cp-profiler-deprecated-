@@ -36,7 +36,6 @@
 #include "pixelview.hh"
 #include "nogood_dialog.hh"
 #include "node_info_dialog.hh"
-#include "depth_analysis.hh"
 
 #include "data.hh"
 
@@ -520,8 +519,8 @@ void TreeCanvas::showPixelTree(void) {
 }
 
 void TreeCanvas::depthAnalysis(void) {
-  DepthAnalysisDialog* depthAnalysisDialog = new DepthAnalysisDialog(this, this);
-  depthAnalysisDialog->show();
+  // DepthAnalysis* depthAnalysis = new DepthAnalysis(this, this);
+  qDebug() << "depth analysis is now a part of a PixelTree";
 }
 
 void TreeCanvas::followPath(void) {

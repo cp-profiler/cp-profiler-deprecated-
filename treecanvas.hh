@@ -183,7 +183,7 @@ class TreeCanvas : public QWidget {
   friend class BaseTreeDialog;
   friend class PixelTreeCanvas;
   friend class PixelTreeDialog;
-  friend class DepthAnalysisDialog;
+  friend class DepthAnalysis;
 
 public:
 
