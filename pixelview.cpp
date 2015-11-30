@@ -31,7 +31,7 @@ using std::vector;
 /// ******* PIXEL_TREE_DIALOG ********
 
 PixelTreeDialog::PixelTreeDialog(TreeCanvas* tc)
-  : QDialog(tc)
+  : QDialog(tc), canvas(&scrollArea, *tc)
 {
 
   this->resize(600, 400);
@@ -65,12 +65,12 @@ PixelTreeDialog::PixelTreeDialog(TreeCanvas* tc)
 
   /// *************************
 
-  canvas = new PixelTreeCanvas(&scrollArea, tc);
+  // canvas = new PixelTreeCanvas(&scrollArea, tc);
 
-  connect(scaleDown, SIGNAL(clicked()), canvas, SLOT(scaleDown()));
-  connect(scaleUp, SIGNAL(clicked()), canvas, SLOT(scaleUp()));
+  connect(scaleDown, SIGNAL(clicked()), &canvas, SLOT(scaleDown()));
+  connect(scaleUp, SIGNAL(clicked()), &canvas, SLOT(scaleUp()));
   connect(compressionSB, SIGNAL(valueChanged(int)),
-    canvas, SLOT(compressionChanged(int)));
+    &canvas, SLOT(compressionChanged(int)));
 
 
 
@@ -80,7 +80,7 @@ PixelTreeDialog::PixelTreeDialog(TreeCanvas* tc)
 }
 
 PixelTreeDialog::~PixelTreeDialog(void) {
-  delete canvas;
+  // delete canvas;
 }
 
 PixelTreeCanvas::~PixelTreeCanvas(void) {
@@ -92,17 +92,17 @@ PixelTreeCanvas::~PixelTreeCanvas(void) {
 
 /// ******** PIXEL_TREE_CANVAS ********
 
-PixelTreeCanvas::PixelTreeCanvas(QWidget* parent, TreeCanvas* tc)
-  : QWidget(parent), _tc(tc), _na(tc->na), depthAnalysis(tc)
+PixelTreeCanvas::PixelTreeCanvas(QWidget* parent, TreeCanvas& tc)
+  : QWidget(parent), _tc(tc), _data(*tc.getData()), _na(tc.na), depthAnalysis(tc)
 {
 
   _sa = static_cast<QAbstractScrollArea*>(parentWidget());
   _vScrollBar = _sa->verticalScrollBar();
 
-  _nodeCount = tc->stats.solutions + tc->stats.failures
-                       + tc->stats.choices + tc->stats.undetermined;
+  _nodeCount = tc.stats.solutions + tc.stats.failures
+                       + tc.stats.choices + tc.stats.undetermined;
 
-  max_depth = tc->stats.maxDepth;
+  max_depth = tc.stats.maxDepth;
 
   // if (_tc->getData()->isRestarts()) {
   //   max_depth++; /// consider the first, dummy node
@@ -169,6 +169,142 @@ PixelTreeCanvas::constructTree(void) {
   duration<double> time_span = duration_cast<duration<double>>(time_end - time_begin);
   std::cout << "Pixel Tree construction took: " << time_span.count() << " seconds." << std::endl;
 
+}
+
+void
+PixelTreeCanvas::traverseTree(VisualNode* root) {
+
+  /// 0. prepare a stack for exploration
+  std::stack<VisualNode*> explorationStack;
+  std::stack<unsigned int> depthStack;
+
+  /// 1. push the root node
+  explorationStack.push(root);
+  depthStack.push(1);
+
+  /// 2. traverse the stack
+  while(explorationStack.size() > 0) {
+
+    VisualNode* node   = explorationStack.top(); explorationStack.pop();
+    unsigned int depth = depthStack.top();       depthStack.pop();
+
+    processCurrentNode(node, depth);
+
+    /// 2.1. add the children to the stack
+
+    uint kids = node->getNumberOfChildren();
+    for (uint i = 0; i < kids; ++i) {
+      auto kid = node->getChild(*_na, i);
+      explorationStack.push(kid);
+      depthStack.push(depth + 1);
+    }
+
+  }
+}
+
+void
+PixelTreeCanvas::traverseTreePostOrder(VisualNode* root) {
+
+  std::stack<VisualNode*> nodeStack1;
+  std::stack<unsigned int> depthStack1;
+
+  std::stack<VisualNode*> nodeStack2;
+  std::stack<unsigned int> depthStack2;
+
+  nodeStack1.push(root);
+  depthStack1.push(1);
+
+  while (nodeStack1.size() > 0) {
+
+    VisualNode* node = nodeStack1.top(); nodeStack1.pop();
+    unsigned int depth = depthStack1.top(); depthStack1.pop();
+
+    nodeStack2.push(node);
+    depthStack2.push(depth);
+
+    uint kids = node->getNumberOfChildren();
+    for (uint i = 0; i < kids; ++i) {
+      auto kid = node->getChild(*_na, i);
+      nodeStack1.push(kid);
+      depthStack1.push(depth + 1);
+    }
+  }
+
+  while (nodeStack2.size() > 0) {
+
+    VisualNode* node = nodeStack2.top(); nodeStack2.pop();
+    unsigned int depth = depthStack2.top(); depthStack2.pop();
+
+    processCurrentNode(node, depth);
+  }
+}
+
+/// Needs:
+/// pixelList, vline_idx, max_depth, node_idx, group_size_nonempty
+/// group_domain_red, group_time, group_domain, group_size, approx_size,
+/// time_arr, domain_arr, domain_red_arr
+/// on class scope...
+void PixelTreeCanvas::processCurrentNode(VisualNode* node, unsigned int depth) {
+
+  /// 2.3 apply the action to the next node in a while loop
+
+  DbEntry* entry = _data.getEntry(node->getIndex(*_na));
+  DbEntry* parent = nullptr;
+
+  assert(depth <= max_depth);
+
+  pixelList[vline_idx].push_back(PixelData(node_idx, node, depth));
+
+  if (vline_idx >= pixelList.size()) return;
+
+  if (entry) {
+
+    group_size_nonempty++;
+
+    if (entry->parent_sid != ~0u) {
+      parent = _data.getEntry(node->getParent());
+
+      if (parent) /// need this for restarts
+        group_domain_red += parent->domain - entry->domain;
+    }
+
+    group_time   += entry->node_time;
+    group_domain += entry->domain;
+
+
+  }
+
+  group_size++;
+
+  if (group_size == approx_size) {
+    vline_idx++;
+    group_size = 0;
+
+
+    /// get average domain size for the group
+    if (group_size_nonempty == 0) {
+      group_domain      = -1;
+      group_domain_red  = -1;
+      group_time        = -1;
+    } else {
+      group_domain        = group_domain / group_size_nonempty;
+      group_domain_red    = group_domain_red / group_size_nonempty;
+      
+    }
+
+
+    time_arr[vline_idx]       = group_time;
+    domain_arr[vline_idx]     = group_domain;
+    domain_red_arr[vline_idx] = group_domain_red;
+    
+    group_time   = 0;
+    group_domain = 0;
+    group_domain_red = 0;
+    group_size_nonempty = 0;
+
+  }
+
+  node_idx++;
 }
 
 void
@@ -266,7 +402,7 @@ PixelTreeCanvas::drawPixelTree() {
 
   /// All Histograms
 
-  // drawTimeHistogram(leftmost_vline, rightmost_vline);
+  drawTimeHistogram(leftmost_vline, rightmost_vline);
 
   // drawDomainHistogram(leftmost_vline, rightmost_vline);
 
@@ -296,139 +432,6 @@ PixelTreeCanvas::flush(void) {
   domain_red_arr[vline_idx] = group_domain_red;
   time_arr[vline_idx]       =  group_time;
 
-}
-
-
-void
-PixelTreeCanvas::traverseTree(VisualNode* root) {
-
-  /// 0. prepare a stack for exploration
-  std::stack<VisualNode*> explorationStack;
-  std::stack<unsigned int> depthStack;
-
-  /// 1. push the root node
-  explorationStack.push(root);
-  depthStack.push(1);
-
-  /// 2. traverse the stack
-  while(explorationStack.size() > 0) {
-
-    VisualNode* node   = explorationStack.top(); explorationStack.pop();
-    unsigned int depth = depthStack.top();       depthStack.pop();
-
-    processCurrentNode(node, depth);
-
-    /// 2.1. add the children to the stack
-
-    uint kids = node->getNumberOfChildren();
-    for (uint i = 0; i < kids; ++i) {
-      auto kid = node->getChild(*_na, i);
-      explorationStack.push(kid);
-      depthStack.push(depth + 1);
-    }
-
-  }
-}
-
-void
-PixelTreeCanvas::traverseTreePostOrder(VisualNode* root) {
-
-  std::stack<VisualNode*> nodeStack1;
-  std::stack<unsigned int> depthStack1;
-
-  std::stack<VisualNode*> nodeStack2;
-  std::stack<unsigned int> depthStack2;
-
-  nodeStack1.push(root);
-  depthStack1.push(1);
-
-  while (nodeStack1.size() > 0) {
-
-    VisualNode* node = nodeStack1.top(); nodeStack1.pop();
-    unsigned int depth = depthStack1.top(); depthStack1.pop();
-
-    nodeStack2.push(node);
-    depthStack2.push(depth);
-
-    uint kids = node->getNumberOfChildren();
-    for (uint i = 0; i < kids; ++i) {
-      auto kid = node->getChild(*_na, i);
-      nodeStack1.push(kid);
-      depthStack1.push(depth + 1);
-    }
-  }
-
-  while (nodeStack2.size() > 0) {
-
-    VisualNode* node = nodeStack2.top(); nodeStack2.pop();
-    unsigned int depth = depthStack2.top(); depthStack2.pop();
-
-    processCurrentNode(node, depth);
-  }
-}
-
-void PixelTreeCanvas::processCurrentNode(VisualNode* node, unsigned int depth) {
-
-  /// 2.3 apply the action to the next node in a while loop
-
-  Data* data = _tc->getData();
-  DbEntry* entry = data->getEntry(node->getIndex(*_na));
-  DbEntry* parent = nullptr;
-
-  assert(depth <= max_depth);
-
-  pixelList[vline_idx].push_back(PixelData(node_idx, node, depth));
-
-  if (vline_idx >= pixelList.size()) return;
-
-  if (entry) {
-
-    group_size_nonempty++;
-
-    if (entry->parent_sid != ~0u) {
-      parent = data->getEntry(node->getParent());
-
-      if (parent) /// need this for restarts
-        group_domain_red += parent->domain - entry->domain;
-    }
-
-    group_time   += entry->node_time;
-    group_domain += entry->domain;
-
-
-  }
-
-  group_size++;
-
-  if (group_size == approx_size) {
-    vline_idx++;
-    group_size = 0;
-
-
-    /// get average domain size for the group
-    if (group_size_nonempty == 0) {
-      group_domain      = -1;
-      group_domain_red  = -1;
-      group_time        = -1;
-    } else {
-      group_domain        = group_domain / group_size_nonempty;
-      group_domain_red    = group_domain_red / group_size_nonempty;
-      
-    }
-
-
-    time_arr[vline_idx]       = group_time;
-    domain_arr[vline_idx]     = group_domain;
-    domain_red_arr[vline_idx] = group_domain_red;
-    
-    group_time   = 0;
-    group_domain = 0;
-    group_domain_red = 0;
-    group_size_nonempty = 0;
-
-  }
-
-  node_idx++;
 }
 
 void PixelTreeCanvas::drawGrid(unsigned int xoff, unsigned int yoff) {
@@ -483,7 +486,6 @@ PixelTreeCanvas::drawDomainReduction(unsigned l_vline, unsigned r_vline) {
 void
 PixelTreeCanvas::drawHistogram(int idx, vector<float>& data, unsigned l_vline, unsigned r_vline, int color) {
 
-
   /// coordinates for the top-left corner
   int init_x = 0;
   int yoff = _sa->verticalScrollBar()->value();
@@ -526,9 +528,9 @@ PixelTreeCanvas::drawHistogram(int idx, vector<float>& data, unsigned l_vline, u
 
 void
 PixelTreeCanvas::drawNodeRate(unsigned l_vline, unsigned r_vline) {
-  Data* data = _tc->getData();
-  std::vector<float>& node_rate = data->node_rate;
-  std::vector<int>& nr_intervals = data->nr_intervals;
+
+  std::vector<float>& node_rate = _data.node_rate;
+  std::vector<int>& nr_intervals = _data.nr_intervals;
 
   int start_x = 0;
   int start_y = (pt_height + _step) + MARGIN + 3 * (HIST_HEIGHT + MARGIN + _step);
@@ -684,7 +686,7 @@ PixelTreeCanvas::selectNodesfromPT(unsigned vline) {
 
   private:
     NodeAllocator* _na;
-    TreeCanvas* _tc;
+    TreeCanvas& _tc;
     int node_id;
     
     bool _done;
@@ -692,8 +694,8 @@ PixelTreeCanvas::selectNodesfromPT(unsigned vline) {
   public:
 
     void selectOne(VisualNode* node) {
-      _tc->setCurrentNode(node);
-      _tc->centerCurrentNode();
+      _tc.setCurrentNode(node);
+      _tc.centerCurrentNode();
     }
 
     void selectGroup(VisualNode* node) {
@@ -709,7 +711,7 @@ PixelTreeCanvas::selectNodesfromPT(unsigned vline) {
 
   public:
 
-    Actions(NodeAllocator* na, TreeCanvas* tc)
+    Actions(NodeAllocator* na, TreeCanvas& tc)
     : _na(na), _tc(tc), _done(false) {}
 
   };
@@ -737,7 +739,7 @@ PixelTreeCanvas::selectNodesfromPT(unsigned vline) {
     apply = &Actions::selectGroup;
 
     /// hide everything except root
-    _tc->hideAll();
+    _tc.hideAll();
     (*_na)[0]->setHidden(false);
   }
 
@@ -748,7 +750,7 @@ PixelTreeCanvas::selectNodesfromPT(unsigned vline) {
   }
 
   
-  _tc->update();
+  _tc.update();
 
 }
 

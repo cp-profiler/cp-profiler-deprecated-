@@ -30,30 +30,6 @@
 
 using std::vector;
 
-
-class PixelTreeCanvas;
-
-/// ******* PIXEL_TREE_DIALOG ********
-
-class PixelTreeDialog : public QDialog {
-  Q_OBJECT
-
-private:
-
-  QAbstractScrollArea scrollArea;
-
-  PixelTreeCanvas* canvas;
-
-public:
-
-  static const int MARGIN = 50;
-  static const int DEPTH = 50;
-
-  PixelTreeDialog(TreeCanvas* tc);
-  ~PixelTreeDialog(void);
-};
-
-
 /// ***********************************
 
 class PixelData {
@@ -79,7 +55,8 @@ class PixelTreeCanvas : public QWidget {
   Q_OBJECT
 
 private:
-  TreeCanvas*     _tc;
+  TreeCanvas&     _tc;
+  Data&           _data;
   NodeAllocator*  _na;
   QImage*    _image;
   QPixmap         pixmap;
@@ -168,7 +145,7 @@ private:
   
 
 public:
-  PixelTreeCanvas(QWidget* parent, TreeCanvas* tc);
+  PixelTreeCanvas(QWidget* parent, TreeCanvas& tc);
   ~PixelTreeCanvas(void);
 
 protected:
@@ -180,6 +157,27 @@ public Q_SLOTS:
   void scaleUp(void);
   void scaleDown(void);
   void compressionChanged(int value);
+};
+
+
+/// ******* PIXEL_TREE_DIALOG ********
+
+class PixelTreeDialog : public QDialog {
+  Q_OBJECT
+
+private:
+
+  QAbstractScrollArea scrollArea;
+
+  PixelTreeCanvas canvas;
+
+public:
+
+  static const int MARGIN = 50;
+  static const int DEPTH = 50;
+
+  PixelTreeDialog(TreeCanvas* tc);
+  ~PixelTreeDialog(void);
 };
 
 

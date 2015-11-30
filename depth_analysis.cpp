@@ -1,8 +1,8 @@
 #include "depth_analysis.hh"
 #include <QDebug>
 
-DepthAnalysis::DepthAnalysis(TreeCanvas* tc)
-  :_tc(tc), _na(tc->na) {
+DepthAnalysis::DepthAnalysis(TreeCanvas& tc)
+  :_tc(tc), _na(tc.na) {
     qDebug() << "DepthAnalysis initialized";
 }
 
@@ -10,7 +10,7 @@ std::vector<Direction> DepthAnalysis::collectDepthData() {
 
   SpaceNode* root = (*_na)[0];
   std::vector<Direction> depth_data;
-  depth_data.reserve(_tc->getData()->size());
+  depth_data.reserve(_tc.getData()->size());
 
   traverse(depth_data, root);
 
@@ -42,7 +42,7 @@ DepthAnalysis::runMSL() {
 
   unsigned int deepest = 0;
   unsigned int curr_level = 1;
-  unsigned int total_depth = _tc->getTreeDepth();
+  unsigned int total_depth = _tc.getTreeDepth();
   vector<unsigned int> dl_list(total_depth); /// deepest at level
   vector<unsigned int> count_list(total_depth, 0); /// deepest at level
 

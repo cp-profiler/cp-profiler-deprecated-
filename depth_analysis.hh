@@ -11,7 +11,7 @@ class DepthAnalysis : public QObject {
   Q_OBJECT
 
 private:
-  TreeCanvas* _tc;
+  TreeCanvas& _tc;
   NodeAllocator*  _na;
 
   unsigned int _total_depth;
@@ -26,7 +26,7 @@ private:
 
 
 public:
-  DepthAnalysis(TreeCanvas* tc);
+  DepthAnalysis(TreeCanvas& tc);
 
   /// Return a two-dimentional array of counts
   std::vector< std::vector<unsigned int> > runMSL();
