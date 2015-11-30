@@ -77,7 +77,7 @@ private:
   QHash<T*,QString> labels;
 public:
   /// Constructor
-  NodeAllocatorBase(bool bab);
+  explicit NodeAllocatorBase(bool bab);
   /// Destructor
   ~NodeAllocatorBase(void);
   /// Allocate new node with parent \a p and database id
@@ -176,7 +176,7 @@ public:
 
   /// for multithreaded search (drawing)
   /// thread id
-  char _tid;  // take out of Node class
+  char _tid;  // TODO: take out of Node class; assigned in treebuilder
 
 };
 

@@ -41,7 +41,7 @@ private:
 
 public:
   PixelData(int idx, VisualNode* node, int depth)
-  : _idx(idx), _depth(depth), _node(node) {};
+  : _idx(idx), _depth(depth), _node(node), _selected(false) {};
   inline int idx() { return _idx; }
   inline int depth() { return _depth; }
   inline VisualNode* node() { return _node; }
@@ -176,7 +176,7 @@ public:
   static const int MARGIN = 50;
   static const int DEPTH = 50;
 
-  PixelTreeDialog(TreeCanvas* tc);
+  explicit PixelTreeDialog(TreeCanvas* tc);
   ~PixelTreeDialog(void);
 };
 

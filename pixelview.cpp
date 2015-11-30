@@ -249,7 +249,6 @@ void PixelTreeCanvas::processCurrentNode(VisualNode* node, unsigned int depth) {
   /// 2.3 apply the action to the next node in a while loop
 
   DbEntry* entry = _data.getEntry(node->getIndex(*_na));
-  DbEntry* parent = nullptr;
 
   assert(depth <= max_depth);
 
@@ -262,7 +261,7 @@ void PixelTreeCanvas::processCurrentNode(VisualNode* node, unsigned int depth) {
     group_size_nonempty++;
 
     if (entry->parent_sid != ~0u) {
-      parent = _data.getEntry(node->getParent());
+      DbEntry* parent = _data.getEntry(node->getParent());
 
       if (parent) /// need this for restarts
         group_domain_red += parent->domain - entry->domain;
@@ -687,7 +686,6 @@ PixelTreeCanvas::selectNodesfromPT(unsigned vline) {
   private:
     NodeAllocator* _na;
     TreeCanvas& _tc;
-    int node_id;
     
     bool _done;
 

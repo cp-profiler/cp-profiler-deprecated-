@@ -504,10 +504,10 @@ TreeCanvas::statusChanged(bool finished) {
 }
 
 int
-TreeCanvas::getNoOfSolvedLeaves(VisualNode& n) {
+TreeCanvas::getNoOfSolvedLeaves(VisualNode* n) {
   int count = 0;
 
-  CountSolvedCursor csc(&n, na, count);
+  CountSolvedCursor csc(n, *na, count);
   PreorderNodeVisitor<CountSolvedCursor>(csc).run();
 
   return count;
@@ -649,8 +649,6 @@ TreeCanvas::highlightShape(VisualNode* node) {
 
       targetNode->setHighlighted(true);
 
-      //HighlightCursor hc(targetNode, *na);
-      //PreorderNodeVisitor<HighlightCursor>(hc).run();
     }
       
     HideNotHighlightedCursor hnhc(root,*na);
@@ -884,19 +882,6 @@ TreeCanvas::expandCurrentNode() {
 
   currentNode->dirtyUp(*na);
   update();
-}
-
-  int 
-TreeCanvas::getNoOfSolvedLeaves(VisualNode* node) {
-  int count;
-
-  if (!node->hasSolvedChildren())
-    return 0;
-  return 1;
-  CountSolvedCursor csc(node, *na, count);
-  PreorderNodeVisitor<CountSolvedCursor>(csc).run();
-
-  return count;
 }
 
 void

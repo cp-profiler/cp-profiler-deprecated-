@@ -61,7 +61,7 @@ public:
 
 
 
-  ReadingQueue(std::vector<DbEntry*>& nodes);
+  explicit ReadingQueue(std::vector<DbEntry*>& nodes);
 
   DbEntry* next(bool& delayed);
 

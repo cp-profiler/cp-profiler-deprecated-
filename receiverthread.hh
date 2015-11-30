@@ -36,7 +36,7 @@ class ReceiverThread : public QThread {
 
 public:
 
-  ReceiverThread(QWidget* parent = 0);
+  explicit ReceiverThread(QWidget* parent = 0);
   void switchCanvas(TreeCanvas* tc);
   void receive(TreeCanvas* tc);
 

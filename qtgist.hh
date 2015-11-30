@@ -193,7 +193,7 @@ public:
 public:
   /// Constructor
 //  Gist(Space* root, bool bab, QWidget* parent, const Options& opt);
-  Gist(QWidget* parent);
+  explicit Gist(QWidget* parent);
   /// Destructor
   ~Gist(void);
 

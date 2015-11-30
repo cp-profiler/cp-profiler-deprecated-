@@ -26,7 +26,7 @@ private:
 
 
 public:
-  DepthAnalysis(TreeCanvas& tc);
+  explicit DepthAnalysis(TreeCanvas& tc);
 
   /// Return a two-dimentional array of counts
   std::vector< std::vector<unsigned int> > runMSL();

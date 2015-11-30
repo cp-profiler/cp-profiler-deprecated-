@@ -65,8 +65,6 @@ public:
 
     friend ostream& operator<<(ostream& s, const DbEntry& e);
 
-    DbEntry(): gid(-1) {}
-
     int sid; // solver id
     int gid; // gist id, set to -1 so we don't forget to assign the real value
     unsigned long long parent_sid; // parent id in database 

@@ -43,7 +43,7 @@ private:
 
 
 public:
-  PentListWindow(QWidget* parent);
+  explicit PentListWindow(QWidget* parent);
 };
 
 class CmpTreeDialog : public BaseTreeDialog {
