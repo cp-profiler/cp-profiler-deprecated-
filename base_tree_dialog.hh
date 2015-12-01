@@ -79,7 +79,7 @@ Q_OBJECT
 
     /// **** GETTERS ****
 
-    void setTitle(const std::string& file_name);
+    void setTitle(QString title);
     TreeCanvas* getCanvas(void) { return _tc; }
 
     private Q_SLOTS:

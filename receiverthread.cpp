@@ -95,7 +95,9 @@ ReceiverThread::run(void) {
                 _t->_data->handleNodeCallback(msg1);
                 ++nodeCount;
             break;
-            case message::Node::START: /// TODO: start sending should have model name
+            case message::Node::START:
+            {
+
                 qDebug() << "START RECEIVING";
 
                 // if (msg->restart_id == -1 || msg->restart_id == 0) { // why 1?
@@ -105,21 +107,24 @@ ReceiverThread::run(void) {
                     qDebug() << ">>> restart and continue";
                     break;
                 }
+                /// restart_id either -1 or 0 below this point
 
-                /// restart_id either -1 or 0 below this point:
+                std::time_t time_now = std::time(nullptr);
+                std::string time_str(std::asctime(std::localtime(&time_now)));
+                /// remove newline char in the end of the string
+                QString title((msg1.label() + " (" + time_str.substr(0, time_str.length() - 1)  + ")").c_str());
 
                 /// Check if new canvas needs to be created
                 if (ptr_gist->sndCanvas->isChecked() && ptr_gist->canvas->_isUsed) {
                         emit newCanvasNeeded();
 
                     _t = ptr_gist->getLastCanvas();
-                    ptr_gist->getLastTreeDialog()->setTitle(msg1.label());
+                    ptr_gist->getLastTreeDialog()->setTitle(title);
                     ptr_gist->connectCanvas(_t);
                     qDebug() << "Switched to another canvas";
                 } else {
                     /// set Title through ptr_gist
-                    qDebug() << "here: " << _t->getData()->getTitle().c_str();
-                    ptr_gist->emitChangeMainTitle(msg1.label());
+                    ptr_gist->emitChangeMainTitle(title);
                 }
 
                 if (msg1.restart_id() == -1) {
@@ -137,6 +142,7 @@ ReceiverThread::run(void) {
 
                 _t->getData()->setTitle(msg1.label());
             break;
+            }
             case message::Node::DONE:
                 qDebug() << "received DONE SENDING";
                 updateCanvas();
