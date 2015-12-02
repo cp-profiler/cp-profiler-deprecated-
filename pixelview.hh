@@ -24,15 +24,16 @@
 
 #include "treecanvas.hh"
 #include "depth_analysis.hh"
-#include <QImage>
 #include <list>
 #include <vector>
+
+#include "pixelImage.hh"
 
 using std::vector;
 
 /// ***********************************
 
-class PixelData {
+class PixelItem {
 private:
   int   _idx;
   int   _depth;
@@ -40,11 +41,23 @@ private:
   bool  _selected;
 
 public:
-  PixelData(int idx, VisualNode* node, int depth)
+  PixelItem(int idx, VisualNode* node, int depth)
   : _idx(idx), _depth(depth), _node(node), _selected(false) {};
-  inline int idx() { return _idx; }
-  inline int depth() { return _depth; }
+  inline int idx() const { return _idx; }
+  inline int depth() const { return _depth; }
   inline VisualNode* node() { return _node; }
+};
+
+class PixelData {
+
+public:
+  PixelData() {}
+
+  explicit PixelData(unsigned int node_count) {
+    pixelList.reserve(node_count);
+  }
+  std::vector<PixelItem> pixelList;
+
 };
 
 
@@ -58,7 +71,6 @@ private:
   TreeCanvas&     _tc;
   Data&           _data;
   NodeAllocator*  _na;
-  QImage*    _image;
   QPixmap         pixmap;
 
   QAbstractScrollArea*  _sa;
@@ -100,11 +112,15 @@ private:
 
   std::vector<VisualNode*> nodes_selected;
 
-  std::vector<std::list<PixelData>> pixelList;
+  std::vector<std::list<PixelItem>> pixelList;
 
   /// Depth analysis data
   DepthAnalysis depthAnalysis;
   std::vector< std::vector<unsigned int> > da_data;
+
+  PixelImage pixel_image;
+
+  PixelData pixel_data;
 
 public:
 
@@ -113,18 +129,19 @@ public:
 
 private:
 
-  /// Pixel Tree
-  void constructTree(void);
-  void traverseTree(VisualNode* node);
+  void drawPixelTree(const PixelData& pixel_data);
+
+  void constructPixelTree(); /// Initial Search Tree traversal
+  void compressPixelTree(int value); /// Apply compression (to get vlineData)
+  PixelData traverseTree(VisualNode* node);
   void traverseTreePostOrder(VisualNode* node);
 
-  void drawPixelTree(void);
+  void redrawAll();
   void drawHistogram(int idx, vector<float>& data, unsigned l_vline, unsigned r_vline, int color);
 
-/// xoff and yoff account for scrolling
-  void drawGrid(unsigned int xoff, unsigned int yoff);
-
   void processCurrentNode(VisualNode* node, unsigned int depth);
+  /// TODO: remove
+  void processCurrentNode_old(VisualNode* node, unsigned int depth);
 
   /// Histograms
   void drawTimeHistogram(unsigned l_vline, unsigned r_vline);
@@ -137,8 +154,6 @@ private:
 
   void flush(void); /// make a final group
 
-  /// auxiliary methods
-  inline void drawPixel(int x, int y, int color);
 
   /// select nodes that correspond to selected vline in pixel tree
   void selectNodesfromPT(unsigned vline);

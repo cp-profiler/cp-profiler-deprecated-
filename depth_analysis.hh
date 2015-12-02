@@ -33,4 +33,4 @@ public:
 
 };
 
-#endif DEPTH_ANALYSIS_HH
+#endif
