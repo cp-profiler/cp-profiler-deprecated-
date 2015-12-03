@@ -120,6 +120,8 @@ PixelTreeCanvas::PixelTreeCanvas(QWidget* parent, TreeCanvas& tc)
   _sa->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
   // _sa->setAutoFillBackground(true);
 
+  connect (_sa->horizontalScrollBar(), SIGNAL(valueChanged (int)), this, SLOT(sliderChanged(int)));
+
   da_data = depthAnalysis.runMSL();
   
   constructPixelTree();
@@ -132,11 +134,8 @@ void
 PixelTreeCanvas::paintEvent(QPaintEvent*) {
   QPainter painter(this);
 
-  int xoff = _sa->horizontalScrollBar()->value();
-  int yoff = _sa->verticalScrollBar()->value();
-
   /// start at (1;1) to prevent strage artifact
-  painter.drawImage(1, 1, pixel_image.image(), xoff, 0, xoff + _sa->viewport()->width(), _sa->viewport()->height());
+  painter.drawImage(1, 1, pixel_image.image(), 0, 0, _sa->viewport()->width(), _sa->viewport()->height());
 }
 
 void
@@ -350,10 +349,23 @@ void PixelTreeCanvas::processCurrentNode(VisualNode* node, unsigned int depth) {
 void
 PixelTreeCanvas::drawPixelTree(const PixelData& pixel_data) {
 
-  for (int vline = 0; vline < pixel_data.compressed_list.size(); vline++) {
+  int xoff = _sa->horizontalScrollBar()->value(); // values should be in scaled pixels
+  int yoff = _sa->verticalScrollBar()->value();
+
+  int img_width = pixel_image.image().width();
+  int img_height = pixel_image.image().height();
+
+  for (int vline = xoff; vline < pixel_data.compressed_list.size(); vline++) {
+
+    if (vline > img_width) continue;
+
     for (const auto& pixel_item : pixel_data.compressed_list[vline]) {
 
-      pixel_image.drawPixel(vline, pixel_item->depth(), PixelImage::PIXEL_COLOR::BLACK);
+      auto x = vline - xoff;
+      auto y = pixel_item->depth() - yoff;
+      if (y > img_height || y < 0) continue;
+
+      pixel_image.drawPixel(x, y, PixelImage::PIXEL_COLOR::BLACK);
     }
   }
 
@@ -363,10 +375,12 @@ PixelTreeCanvas::drawPixelTree(const PixelData& pixel_data) {
 void
 PixelTreeCanvas::redrawAll() {
 
+  pixel_image.clear();
+
   unsigned scale = pixel_image.scale();
 
-  _sa->horizontalScrollBar()->setRange(0, vlines * scale - _sa->width() + 100);
-  _sa->verticalScrollBar()->setRange(0, max_depth * scale +
+  _sa->horizontalScrollBar()->setRange(0, vlines - _sa->width() / scale + 100);
+  _sa->verticalScrollBar()->setRange(0, max_depth +
     5 * (HIST_HEIGHT + MARGIN) - _sa->height()); // 4 histograms
 
   int xoff = _sa->horizontalScrollBar()->value();
@@ -397,11 +411,11 @@ PixelTreeCanvas::redrawAll() {
                    HIST_HEIGHT  + /// Depth Analysis
                    MARGIN;
 
-  pixel_image.resize(img_width, img_height);
+  // pixel_image.resize(img_width, img_height);
 
   this->resize(pixel_image.image().width(), pixel_image.image().height());
 
-  // pixel_image.drawGrid(xoff, yoff);
+  pixel_image.drawGrid(xoff, yoff);
 
   // unsigned leftmost_vline = leftmost_x / _step;
   // unsigned rightmost_vline = rightmost_x / _step;
@@ -665,13 +679,22 @@ PixelTreeCanvas::scaleDown(void) {
 void
 PixelTreeCanvas::resizeCanvas(void) {
   // pixel_image
-  qDebug() << "new width: " << _sa->viewport()->width();
-  qDebug() << "new height: " << _sa->viewport()->height();
+
+  auto width = _sa->viewport()->width();
+  auto height =  _sa->viewport()->height();
+  pixel_image.resize(width, height);
+  redrawAll();
 }
 
 void
 PixelTreeCanvas::compressionChanged(int value) {
   compressPixelTree(value);
+  redrawAll();
+}
+
+void
+PixelTreeCanvas::sliderChanged(int) {
+
   redrawAll();
 }
 

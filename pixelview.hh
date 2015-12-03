@@ -170,6 +170,7 @@ public Q_SLOTS:
   void scaleDown(void);
   void compressionChanged(int value);
   void resizeCanvas(void);
+  void sliderChanged(int value);
 };
 
 
