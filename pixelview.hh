@@ -29,7 +29,7 @@
 
 #include "pixelImage.hh"
 
-using std::vector;
+using std::vector; using std::list;
 
 /// ***********************************
 
@@ -54,9 +54,10 @@ public:
   PixelData() {}
 
   explicit PixelData(unsigned int node_count) {
-    pixelList.reserve(node_count);
+    pixel_list.reserve(node_count);
   }
-  std::vector<PixelItem> pixelList;
+  vector<PixelItem> pixel_list;
+  vector<list<PixelItem*>> compressed_list;
 
 };
 
@@ -80,9 +81,7 @@ private:
   uint _nodeCount;
 
   /// Pixel Tree settings (changed through GUI)
-    
-  unsigned _step = 2; // size of a 'pixel' in pixels
-  unsigned _step_y = 2; // size of a 'pixel' in pixels
+
   unsigned approx_size = 1; // how many nodes per vertical line
 
   // int hist_height = 50;
@@ -112,8 +111,6 @@ private:
 
   std::vector<VisualNode*> nodes_selected;
 
-  std::vector<std::list<PixelItem>> pixelList;
-
   /// Depth analysis data
   DepthAnalysis depthAnalysis;
   std::vector< std::vector<unsigned int> > da_data;
@@ -132,7 +129,8 @@ private:
   void drawPixelTree(const PixelData& pixel_data);
 
   void constructPixelTree(); /// Initial Search Tree traversal
-  void compressPixelTree(int value); /// Apply compression (to get vlineData)
+  /// Apply compression (to get vlineData)
+  void compressPixelTree(int value);
   PixelData traverseTree(VisualNode* node);
   void traverseTreePostOrder(VisualNode* node);
 
@@ -141,7 +139,7 @@ private:
 
   void processCurrentNode(VisualNode* node, unsigned int depth);
   /// TODO: remove
-  void processCurrentNode_old(VisualNode* node, unsigned int depth);
+  // void processCurrentNode_old(VisualNode* node, unsigned int depth);
 
   /// Histograms
   void drawTimeHistogram(unsigned l_vline, unsigned r_vline);
@@ -165,13 +163,13 @@ public:
 
 protected:
   void paintEvent(QPaintEvent* event);
-
   void mousePressEvent(QMouseEvent* me);
 
 public Q_SLOTS:
   void scaleUp(void);
   void scaleDown(void);
   void compressionChanged(int value);
+  void resizeCanvas(void);
 };
 
 
@@ -186,6 +184,10 @@ private:
 
   PixelTreeCanvas canvas;
 
+Q_SIGNALS:
+
+  void windowResized(void);
+
 public:
 
   static const int MARGIN = 50;
@@ -193,6 +195,9 @@ public:
 
   explicit PixelTreeDialog(TreeCanvas* tc);
   ~PixelTreeDialog(void);
+
+protected:
+  void resizeEvent(QResizeEvent * re);
 };
 
 

@@ -26,7 +26,7 @@
 #include <stack>
 
 using namespace std::chrono;
-using std::vector;
+using std::vector; using std::list;
 
 /// ******* PIXEL_TREE_DIALOG ********
 
@@ -72,7 +72,7 @@ PixelTreeDialog::PixelTreeDialog(TreeCanvas* tc)
   connect(compressionSB, SIGNAL(valueChanged(int)),
     &canvas, SLOT(compressionChanged(int)));
 
-
+  connect(this, SIGNAL(windowResized()), &canvas, SLOT(resizeCanvas()));
 
   setAttribute(Qt::WA_QuitOnClose, true);
   setAttribute(Qt::WA_DeleteOnClose, true);
@@ -82,6 +82,12 @@ PixelTreeDialog::PixelTreeDialog(TreeCanvas* tc)
 PixelTreeDialog::~PixelTreeDialog(void) {
   // delete canvas;
 }
+
+void
+PixelTreeDialog::resizeEvent(QResizeEvent * re) {
+  emit windowResized();
+}
+
 
 PixelTreeCanvas::~PixelTreeCanvas(void) {
 
@@ -118,6 +124,7 @@ PixelTreeCanvas::PixelTreeCanvas(QWidget* parent, TreeCanvas& tc)
   
   constructPixelTree();
   compressPixelTree(1);
+  redrawAll();
 
 }
 
@@ -125,9 +132,11 @@ void
 PixelTreeCanvas::paintEvent(QPaintEvent*) {
   QPainter painter(this);
 
-  redrawAll();
+  int xoff = _sa->horizontalScrollBar()->value();
+  int yoff = _sa->verticalScrollBar()->value();
+
   /// start at (1;1) to prevent strage artifact
-  painter.drawImage(1, 1, pixel_image.image(), 0, 0, _sa->viewport()->width(), _sa->viewport()->height());
+  painter.drawImage(1, 1, pixel_image.image(), xoff, 0, xoff + _sa->viewport()->width(), _sa->viewport()->height());
 }
 
 void
@@ -137,8 +146,6 @@ PixelTreeCanvas::constructPixelTree(void) {
 
   /// how many of each values after compression
   vlines = ceil((float)_nodeCount / approx_size);
-
-  pixelList.clear();      pixelList.resize(vlines);
 
   time_arr.clear();       time_arr.resize(vlines);
   domain_arr.clear();     domain_arr.resize(vlines);
@@ -169,8 +176,19 @@ PixelTreeCanvas::constructPixelTree(void) {
 }
 
 void
-PixelTreeCanvas::compressPixelTree(int value) {
+PixelTreeCanvas::compressPixelTree(int compression) {
   /// take pixel_data and create vlineData
+
+  int vlines = ceil(static_cast<float>(pixel_data.pixel_list.size()) / compression);
+
+  auto& compressed_list = pixel_data.compressed_list;
+
+  compressed_list = vector<list<PixelItem*>>(vlines, list<PixelItem*>());
+
+  for (unsigned int pixel_id = 0; pixel_id < pixel_data.pixel_list.size(); pixel_id++) {
+    unsigned int vline_id = pixel_id / compression;
+    compressed_list[vline_id].push_back(&pixel_data.pixel_list[pixel_id]);
+  }
 }
 
 PixelData
@@ -196,7 +214,7 @@ PixelTreeCanvas::traverseTree(VisualNode* root) {
     {
       DbEntry* entry = _data.getEntry(node->getIndex(*_na));
       /// TODO: find out if I need node_idx here
-      pixelData.pixelList.emplace_back(PixelItem(0, node, depth));
+      pixelData.pixel_list.emplace_back(PixelItem(0, node, depth));
 
     }
 
@@ -262,67 +280,67 @@ void PixelTreeCanvas::processCurrentNode(VisualNode* node, unsigned int depth) {
 /// group_domain_red, group_time, group_domain, group_size, approx_size,
 /// time_arr, domain_arr, domain_red_arr
 /// on class scope...
-void PixelTreeCanvas::processCurrentNode_old(VisualNode* node, unsigned int depth) {
+// void PixelTreeCanvas::processCurrentNode_old(VisualNode* node, unsigned int depth) {
 
-  /// 2.3 apply the action to the next node in a while loop
+//   /// 2.3 apply the action to the next node in a while loop
 
-  DbEntry* entry = _data.getEntry(node->getIndex(*_na));
+//   DbEntry* entry = _data.getEntry(node->getIndex(*_na));
 
-  assert(depth <= max_depth);
+//   assert(depth <= max_depth);
 
-  pixelList[vline_idx].push_back(PixelItem(node_idx, node, depth));
+//   pixelList[vline_idx].push_back(PixelItem(node_idx, node, depth));
 
-  if (vline_idx >= pixelList.size()) return;
+//   if (vline_idx >= pixelList.size()) return;
 
-  if (entry) {
+//   if (entry) {
 
-    group_size_nonempty++;
+//     group_size_nonempty++;
 
-    if (entry->parent_sid != ~0u) {
-      DbEntry* parent = _data.getEntry(node->getParent());
+//     if (entry->parent_sid != ~0u) {
+//       DbEntry* parent = _data.getEntry(node->getParent());
 
-      if (parent) /// need this for restarts
-        group_domain_red += parent->domain - entry->domain;
-    }
+//       if (parent) /// need this for restarts
+//         group_domain_red += parent->domain - entry->domain;
+//     }
 
-    group_time   += entry->node_time;
-    group_domain += entry->domain;
-
-
-  }
-
-  group_size++;
-
-  if (group_size == approx_size) {
-    vline_idx++;
-    group_size = 0;
+//     group_time   += entry->node_time;
+//     group_domain += entry->domain;
 
 
-    /// get average domain size for the group
-    if (group_size_nonempty == 0) {
-      group_domain      = -1;
-      group_domain_red  = -1;
-      group_time        = -1;
-    } else {
-      group_domain        = group_domain / group_size_nonempty;
-      group_domain_red    = group_domain_red / group_size_nonempty;
+//   }
+
+//   group_size++;
+
+//   if (group_size == approx_size) {
+//     vline_idx++;
+//     group_size = 0;
+
+
+//     /// get average domain size for the group
+//     if (group_size_nonempty == 0) {
+//       group_domain      = -1;
+//       group_domain_red  = -1;
+//       group_time        = -1;
+//     } else {
+//       group_domain        = group_domain / group_size_nonempty;
+//       group_domain_red    = group_domain_red / group_size_nonempty;
       
-    }
+//     }
 
 
-    time_arr[vline_idx]       = group_time;
-    domain_arr[vline_idx]     = group_domain;
-    domain_red_arr[vline_idx] = group_domain_red;
+//     time_arr[vline_idx]       = group_time;
+//     domain_arr[vline_idx]     = group_domain;
+//     domain_red_arr[vline_idx] = group_domain_red;
     
-    group_time   = 0;
-    group_domain = 0;
-    group_domain_red = 0;
-    group_size_nonempty = 0;
+//     group_time   = 0;
+//     group_domain = 0;
+//     group_domain_red = 0;
+//     group_size_nonempty = 0;
 
-  }
+//   }
 
-  node_idx++;
-}
+//   node_idx++;
+// }
 
 
 /// TODO:
@@ -331,23 +349,25 @@ void PixelTreeCanvas::processCurrentNode_old(VisualNode* node, unsigned int dept
 /// 3. show solutions
 void
 PixelTreeCanvas::drawPixelTree(const PixelData& pixel_data) {
-  
-  for (int i = 0; i < pixel_data.pixelList.size(); i++) {
 
-    const PixelItem& pixel = pixel_data.pixelList[i];
+  for (int vline = 0; vline < pixel_data.compressed_list.size(); vline++) {
+    for (const auto& pixel_item : pixel_data.compressed_list[vline]) {
 
-    pixel_image.drawPixel(i, pixel.depth(), qRgb(255, 0, 255));
+      pixel_image.drawPixel(vline, pixel_item->depth(), PixelImage::PIXEL_COLOR::BLACK);
+    }
   }
-}
 
+}
 
 /// Make sure no redundant work is done
 void
 PixelTreeCanvas::redrawAll() {
 
-  _sa->horizontalScrollBar()->setRange(0, vlines * _step - _sa->width() + 100);
-  _sa->verticalScrollBar()->setRange(0, max_depth * _step +
-    5 * (HIST_HEIGHT + MARGIN + _step) - _sa->height()); // 4 histograms
+  unsigned scale = pixel_image.scale();
+
+  _sa->horizontalScrollBar()->setRange(0, vlines * scale - _sa->width() + 100);
+  _sa->verticalScrollBar()->setRange(0, max_depth * scale +
+    5 * (HIST_HEIGHT + MARGIN) - _sa->height()); // 4 histograms
 
   int xoff = _sa->horizontalScrollBar()->value();
   int yoff = _sa->verticalScrollBar()->value();
@@ -355,39 +375,36 @@ PixelTreeCanvas::redrawAll() {
   unsigned int leftmost_x = xoff;
   unsigned int rightmost_x = xoff + _sa->width();
 
-  pt_height = max_depth * _step_y;
+  pt_height = max_depth * scale;
 
-  qDebug() << "pixelList.size(): " << pixelList.size();
-
-  if (rightmost_x > pixelList.size() * _step) {
-    rightmost_x = pixelList.size() * _step;
+  if (rightmost_x > pixel_data.pixel_list.size() * scale) {
+    rightmost_x = pixel_data.pixel_list.size() * scale;
   }
 
-  int img_width = pixel_data.pixelList.size(); // not scaled
+  int img_width = pixel_data.compressed_list.size(); // not scaled
 
   int img_height = MARGIN + 
-                   pt_height + _step +
+                   pt_height  +
                    MARGIN +
-                   HIST_HEIGHT + _step + /// Time Histogram
+                   HIST_HEIGHT  + /// Time Histogram
                    MARGIN +
-                   HIST_HEIGHT + _step + /// Domain Histogram
+                   HIST_HEIGHT  + /// Domain Histogram
                    MARGIN +
-                   HIST_HEIGHT + _step + /// Domain Reduction Histogram
+                   HIST_HEIGHT + /// Domain Reduction Histogram
                    MARGIN +
-                   HIST_HEIGHT + _step + /// Node Rate Histogram
+                   HIST_HEIGHT  + /// Node Rate Histogram
                    MARGIN +
-                   HIST_HEIGHT + _step + /// Depth Analysis
+                   HIST_HEIGHT  + /// Depth Analysis
                    MARGIN;
 
   pixel_image.resize(img_width, img_height);
-  // pixel_image.init()
 
   this->resize(pixel_image.image().width(), pixel_image.image().height());
 
-  pixel_image.drawGrid(xoff, yoff);
+  // pixel_image.drawGrid(xoff, yoff);
 
-  unsigned leftmost_vline = leftmost_x / _step;
-  unsigned rightmost_vline = rightmost_x / _step;
+  // unsigned leftmost_vline = leftmost_x / _step;
+  // unsigned rightmost_vline = rightmost_x / _step;
 
   std::vector<int> intencity_arr(max_depth + 1, 0);
 
@@ -450,6 +467,8 @@ PixelTreeCanvas::redrawAll() {
 
   // drawDepthAnalysisData(image, leftmost_vline, rightmost_vline);
 
+  repaint();
+
 }
 
 void
@@ -496,7 +515,7 @@ PixelTreeCanvas::drawHistogram(int idx, vector<float>& data, unsigned l_vline, u
   /// coordinates for the top-left corner
   int init_x = 0;
   int yoff = _sa->verticalScrollBar()->value();
-  int y = (pt_height + _step) + MARGIN + idx * (HIST_HEIGHT + MARGIN + _step) - yoff;
+  int y = (pt_height) + MARGIN + idx * (HIST_HEIGHT + MARGIN) - yoff;
 
   /// work out maximum value
   int max_value = 0;
@@ -509,7 +528,7 @@ PixelTreeCanvas::drawHistogram(int idx, vector<float>& data, unsigned l_vline, u
 
   float coeff = (float)HIST_HEIGHT / max_value;
 
-  int zero_level = y + HIST_HEIGHT + _step;
+  int zero_level = y + HIST_HEIGHT;
 
   for (unsigned i = l_vline; i < r_vline; i++) {
     int val = data[i] * coeff;
@@ -523,7 +542,7 @@ PixelTreeCanvas::drawHistogram(int idx, vector<float>& data, unsigned l_vline, u
     // if (data[i] < 0) continue;
 
     for (int v = val; v >= 0; v--) {
-      pixel_image.drawPixel(init_x + (i - l_vline) * _step,
+      pixel_image.drawPixel(init_x + (i - l_vline),
                 y + HIST_HEIGHT - v,
                 color);
     }
@@ -540,13 +559,13 @@ PixelTreeCanvas::drawNodeRate(unsigned l_vline, unsigned r_vline) {
   std::vector<int>& nr_intervals = _data.nr_intervals;
 
   int start_x = 0;
-  int start_y = (pt_height + _step) + MARGIN + 3 * (HIST_HEIGHT + MARGIN + _step);
+  int start_y = (pt_height) + MARGIN + 3 * (HIST_HEIGHT + MARGIN );
 
   float max_node_rate = *std::max_element(node_rate.begin(), node_rate.end());
 
   float coeff = (float)HIST_HEIGHT / max_node_rate;
 
-  int zero_level = start_y + HIST_HEIGHT + _step;
+  int zero_level = start_y + HIST_HEIGHT;
 
   // // / this is very slow
   // for (unsigned i = l_vline; i < r_vline; i++) {
@@ -584,10 +603,10 @@ void
 PixelTreeCanvas::drawDepthAnalysisData(unsigned l_vline, unsigned r_vline) {
 
   int start_x = 0;
-  int start_y = (pt_height + _step) + MARGIN + 4 * (HIST_HEIGHT + MARGIN + _step);
+  int start_y = (pt_height) + MARGIN + 4 * (HIST_HEIGHT + MARGIN);
 
   /// add step twice because we want the line to be at the bottom
-  int zero_level = start_y + HIST_HEIGHT + _step + _step;
+  int zero_level = start_y + HIST_HEIGHT;
 
 
   /// zero level line
@@ -615,8 +634,8 @@ PixelTreeCanvas::drawDepthAnalysisData(unsigned l_vline, unsigned r_vline) {
     for (unsigned i = l_vline; i < r_limit; i++) {
 
       int value = da_data[depth][i];
-      int xpos = start_x + (i - l_vline) * _step;
-      int ypos = zero_level - value * _step;
+      int xpos = start_x + (i - l_vline);
+      int ypos = zero_level - value;
 
       // qDebug() << "da_data[" << depth << "][" << i << "]: " << value;
 
@@ -630,25 +649,30 @@ PixelTreeCanvas::drawDepthAnalysisData(unsigned l_vline, unsigned r_vline) {
 
 void
 PixelTreeCanvas::scaleUp(void) {
-  // _step++;
-  // _step_y++;
+
   pixel_image.scaleUp();
-  repaint();
+  redrawAll();
+  
 }
 
 void
 PixelTreeCanvas::scaleDown(void) {
-  
-  // _step--;
-  // _step_y--;
+
   pixel_image.scaleDown();
-  repaint();
+  redrawAll();
+}
+
+void
+PixelTreeCanvas::resizeCanvas(void) {
+  // pixel_image
+  qDebug() << "new width: " << _sa->viewport()->width();
+  qDebug() << "new height: " << _sa->viewport()->height();
 }
 
 void
 PixelTreeCanvas::compressionChanged(int value) {
   compressPixelTree(value);
-  repaint();
+  redrawAll();
 }
 
 void
@@ -665,11 +689,10 @@ PixelTreeCanvas::mousePressEvent(QMouseEvent* me) {
 
   // which node?
 
-  unsigned vline = x / _step;
+  unsigned vline = x / pixel_image.scale();
 
   selectNodesfromPT(vline);
-
-  repaint();
+  redrawAll();
 
 }
 
@@ -709,41 +732,41 @@ PixelTreeCanvas::selectNodesfromPT(unsigned vline) {
 
   };
 
-  /// select the last one in case clicked a bit off the boundary
-  vline = (pixelList.size() > vline) ? vline : pixelList.size() - 1;
+  // /// select the last one in case clicked a bit off the boundary
+  // vline = (pixelList.size() > vline) ? vline : pixelList.size() - 1;
 
-  qDebug() << "selecting vline: " << vline;
+  // qDebug() << "selecting vline: " << vline;
 
-  Actions actions(_na, _tc);
-  void (Actions::*apply)(VisualNode*);
+  // Actions actions(_na, _tc);
+  // void (Actions::*apply)(VisualNode*);
 
-  /// unset currently selected nodes
-  for (auto& node : nodes_selected) {
-    node->setSelected(false);
-  }
+  // /// unset currently selected nodes
+  // for (auto& node : nodes_selected) {
+  //   node->setSelected(false);
+  // }
 
-  nodes_selected.clear();
+  // nodes_selected.clear();
 
-  std::list<PixelItem>& vline_list = pixelList[vline];
+  // std::list<PixelItem>& vline_list = pixelList[vline];
 
-  if (vline_list.size() == 1) {
-    apply = &Actions::selectOne;
-  } else {
-    apply = &Actions::selectGroup;
+  // if (vline_list.size() == 1) {
+  //   apply = &Actions::selectOne;
+  // } else {
+  //   apply = &Actions::selectGroup;
 
-    /// hide everything except root
-    _tc.hideAll();
-    (*_na)[0]->setHidden(false);
-  }
+  //   /// hide everything except root
+  //   _tc.hideAll();
+  //   (*_na)[0]->setHidden(false);
+  // }
 
-  for (auto& pixel : vline_list) {
-    (actions.*apply)(pixel.node());
-    pixel.node()->setSelected(true);
-    nodes_selected.push_back(pixel.node());
-  }
+  // for (auto& pixel : vline_list) {
+  //   (actions.*apply)(pixel.node());
+  //   pixel.node()->setSelected(true);
+  //   nodes_selected.push_back(pixel.node());
+  // }
 
   
-  _tc.update();
+  // _tc.update();
 
 }
 
