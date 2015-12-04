@@ -145,7 +145,7 @@ private:
   void drawTimeHistogram(unsigned l_vline, unsigned r_vline);
   void drawDomainHistogram(unsigned l_vline, unsigned r_vline);
   void drawDomainReduction(unsigned l_vline, unsigned r_vline);
-  void drawDepthAnalysisData(unsigned l_vline, unsigned r_vline);
+  void drawDepthAnalysisData();
 
   /// Node Rate
   void drawNodeRate(unsigned leftmost_vline, unsigned rightmost_vline);
