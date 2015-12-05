@@ -137,6 +137,8 @@ private:
   void redrawAll();
   void drawHistogram(int idx, vector<float>& data, unsigned l_vline, unsigned r_vline, int color);
 
+  void drawSolutionLine();
+
   void processCurrentNode(VisualNode* node, unsigned int depth);
   /// TODO: remove
   // void processCurrentNode_old(VisualNode* node, unsigned int depth);

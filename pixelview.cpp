@@ -220,8 +220,8 @@ PixelTreeCanvas::traverseTree(VisualNode* root) {
 
     /// 2.1. add the children to the stack
 
-    uint kids = node->getNumberOfChildren();
-    for (uint i = 0; i < kids; ++i) {
+    int kids = node->getNumberOfChildren();
+    for (int i = kids - 1; i >= 0; --i) {
       auto kid = node->getChild(*_na, i);
       explorationStack.push(kid);
       depthStack.push(depth + 1);
@@ -356,17 +356,40 @@ PixelTreeCanvas::drawPixelTree(const PixelData& pixel_data) {
   auto img_width = pixel_image.image().width();
   auto img_height = pixel_image.image().height();
 
-  for (int vline = xoff; vline < pixel_data.compressed_list.size(); vline++) {
+  const auto& vline_data = pixel_data.compressed_list;
+
+  /// TODO: 2. Draw vertical lines from solutions
+
+  for (auto vline = xoff; vline < vline_data.size(); vline++) {
 
     auto x = vline - xoff;
-    if (x > img_width) break;
+    if (x > img_width) break; /// out of image boundary
 
-    for (const auto& pixel_item : pixel_data.compressed_list[vline]) {
+    /// Draw green vertical line for solutions
+    for (const auto& pixel_item : vline_data[vline]) {
+      if (pixel_item->node()->getStatus() == SOLVED) {
+        for (unsigned y = 0; y < max_depth - yoff; y++) {
+          pixel_image.drawPixel(x, y, qRgb(0, 255, 0));
+        }
+      }
+    }
 
-      auto y = pixel_item->depth() - yoff;
-      if (y > img_height || y < 0) continue;
+    auto pixel_count = vline_data[vline].size();
 
-      pixel_image.drawPixel(x, y, PixelImage::PIXEL_COLOR::BLACK);
+    std::vector<int> intencity_vec(max_depth + 1, 0);
+
+    /// fill the intencity vector
+    for (const auto& pixel_item : vline_data[vline]) {
+      intencity_vec.at(pixel_item->depth())++;
+    }
+
+    for (auto depth = 0; depth < intencity_vec.size(); depth++) {
+      if (intencity_vec[depth] == 0) continue; /// no pixel at that depth
+      auto y = depth - yoff;
+      if (y > img_height || y < 0) continue; /// out of image boundary
+      // pixel_image.drawPixel(x, y, PixelImage::PIXEL_COLOR::BLACK_ALPHA);
+      int value = 100 - 100 * static_cast<float>(intencity_vec[depth]) / pixel_count;
+      pixel_image.drawPixel(x, y, QColor::fromHsv(0, 0, value).rgba());
     }
   }
 
@@ -378,13 +401,12 @@ PixelTreeCanvas::redrawAll() {
 
   pixel_image.clear();
 
-  unsigned scale = pixel_image.scale();
+  auto scale = pixel_image.scale();
   auto img_width = pixel_image.image().width();
 
   auto vlines = pixel_data.compressed_list.size();
 
   _sa->horizontalScrollBar()->setRange(0, vlines - img_width / scale + 20);
-  qDebug() << "vlines: " << vlines;
   _sa->verticalScrollBar()->setRange(0, max_depth +
     5 * (HIST_HEIGHT + MARGIN) - _sa->height()); // 4 histograms
 
@@ -394,7 +416,7 @@ PixelTreeCanvas::redrawAll() {
   unsigned int leftmost_x = xoff;
   unsigned int rightmost_x = xoff + _sa->width();
 
-  pt_height = max_depth * scale;
+  pt_height = max_depth;
 
   if (rightmost_x > pixel_data.pixel_list.size() * scale) {
     rightmost_x = pixel_data.pixel_list.size() * scale;
@@ -406,8 +428,6 @@ PixelTreeCanvas::redrawAll() {
 
   // unsigned leftmost_vline = leftmost_x / _step;
   // unsigned rightmost_vline = rightmost_x / _step;
-
-  std::vector<int> intencity_arr(max_depth + 1, 0);
 
   int node_idx = 0;
 
@@ -603,48 +623,47 @@ PixelTreeCanvas::drawNodeRate(unsigned l_vline, unsigned r_vline) {
 void
 PixelTreeCanvas::drawDepthAnalysisData() {
 
-  // int start_x = 0;
-  // int start_y = (pt_height) + MARGIN + 4 * (HIST_HEIGHT + MARGIN);
+  int start_x = 0;
+  int start_y = (pt_height) + MARGIN;
 
   // /// add step twice because we want the line to be at the bottom
-  // int zero_level = start_y + HIST_HEIGHT;
+  int zero_level = start_y + HIST_HEIGHT;
 
 
-  // /// zero level line
+  /// zero level line
 
-  // // for (unsigned i = l_vline; i < r_vline; i++) {
-  // //   for (unsigned j = 0; j < _step; j++) {
+  // for (unsigned i = l_vline; i < r_vline; i++) {
+  //   for (unsigned j = 0; j < _step; j++) {
 
-  //     // image.setPixel(start_x + (i - l_vline) * _step + j,
-  //     //                  zero_level, 
-  //     //                  qRgb(150, 150, 150));
+  //     image.setPixel(start_x + (i - l_vline) * _step + j,
+  //                      zero_level, 
+  //                      qRgb(150, 150, 150));
 
 
-  // //   }
-  // // }
-
-  // qDebug() << "da_data[0].size(): " << da_data[0].size();
-
-  // /// actual data
-
-  // for (unsigned int depth = 0; depth < da_data.size(); depth++) {
-
-  //   /// set the limit
-  //   unsigned int r_limit = std::min(r_vline, static_cast<unsigned int>(da_data[depth].size()));
-
-  //   for (unsigned i = l_vline; i < r_limit; i++) {
-
-  //     int value = da_data[depth][i];
-  //     int xpos = start_x + (i - l_vline);
-  //     int ypos = zero_level - value;
-
-  //     // qDebug() << "da_data[" << depth << "][" << i << "]: " << value;
-
-  //     // if (value != 0)
-  //       pixel_image.drawPixel(xpos, ypos, qRgb(depth * 5, 0, 255));
   //   }
-
   // }
+
+  auto xoff = _sa->horizontalScrollBar()->value(); // values should be in scaled pixels
+  auto yoff = _sa->verticalScrollBar()->value();
+
+  auto img_width = pixel_image.image().width();
+  auto img_height = pixel_image.image().height();
+
+  /// *** Actual Data ***
+  /// for each depth level:
+  for (auto depth = 0; depth < da_data.size(); depth++) {
+
+    for (auto vline = xoff; vline < da_data[depth].size(); vline++) {
+
+      int value = da_data[depth][vline];
+      auto x = vline - xoff;
+      auto y = zero_level - value - yoff;
+
+      // if (value != 0)
+      pixel_image.drawPixel(x, y, qRgb(depth * 5, 0, 255));
+    }
+
+  }
 
 }
 
@@ -681,18 +700,17 @@ PixelTreeCanvas::compressionChanged(int value) {
 
 void
 PixelTreeCanvas::sliderChanged(int value) {
-  qDebug() << "slider changed: " << value;
   redrawAll();
 }
 
 void
-PixelTreeCanvas::mousePressEvent(QMouseEvent* me) {
+PixelTreeCanvas::mousePressEvent(QMouseEvent* event) {
 
-  int xoff = _sa->horizontalScrollBar()->value();
-  int yoff = _sa->verticalScrollBar()->value();
+  auto xoff = _sa->horizontalScrollBar()->value();
+  auto yoff = _sa->verticalScrollBar()->value();
 
-  unsigned x = me->x() + xoff;
-  unsigned y = me->y() + yoff;
+  auto x = event->x() + xoff;
+  auto y = event->y() + yoff;
 
   /// check boundaries:
   if (y > pt_height) return;
