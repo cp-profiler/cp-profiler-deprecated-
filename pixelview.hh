@@ -46,6 +46,7 @@ public:
   inline int idx() const { return _idx; }
   inline int depth() const { return _depth; }
   inline VisualNode* node() { return _node; }
+  inline bool isSelected() { return _selected; }
 };
 
 class PixelData {
@@ -90,13 +91,9 @@ private:
   /// temp stuff for a Pixel Tree
   int   node_idx;
   int   x;
-  float   group_time;
-  float   group_domain; // average of domain size of nodes in a group
-  float   group_domain_red;
-  unsigned   group_size; // current size of the group
+
   unsigned   vline_idx;  // same as x when _step = 1
   float alpha_factor;
-  int   group_size_nonempty; // for calculating average
 
   unsigned pt_height;
   unsigned pt_width;

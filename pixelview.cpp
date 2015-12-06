@@ -158,10 +158,6 @@ PixelTreeCanvas::constructPixelTree(void) {
 
   vline_idx    = 0;
   node_idx     = 0;
-  group_size   = 0;
-  group_domain = 0;
-  group_domain_red    = 0;
-  group_size_nonempty = 0;
 
   alpha_factor = 100.0 / approx_size;
 
@@ -222,7 +218,6 @@ PixelTreeCanvas::compressDepthAnalysis(int compression) {
     if (group_count > 0) {
       unsigned int vline_id = data_length / compression;
       da_data_compressed[depth][vline_id] = group_value / group_count;
-      qDebug() << "flushed for vline: " << vline_id << " with size: " << group_count;
     }
   }
 }
@@ -246,7 +241,6 @@ PixelTreeCanvas::traverseTree(VisualNode* root) {
     VisualNode* node   = explorationStack.top(); explorationStack.pop();
     unsigned int depth = depthStack.top();       depthStack.pop();
 
-    // processCurrentNode(node, depth);
     {
       DbEntry* entry = _data.getEntry(node->getIndex(*_na));
       /// TODO: find out if I need node_idx here
@@ -311,78 +305,8 @@ void PixelTreeCanvas::processCurrentNode(VisualNode* node, unsigned int depth) {
   DbEntry* entry = _data.getEntry(node->getIndex(*_na));
 }
 
-/// Needs:
-/// pixelList, vline_idx, max_depth, node_idx, group_size_nonempty
-/// group_domain_red, group_time, group_domain, group_size, approx_size,
-/// time_arr, domain_arr, domain_red_arr
-/// on class scope...
-// void PixelTreeCanvas::processCurrentNode_old(VisualNode* node, unsigned int depth) {
-
-//   /// 2.3 apply the action to the next node in a while loop
-
-//   DbEntry* entry = _data.getEntry(node->getIndex(*_na));
-
-//   assert(depth <= max_depth);
-
-//   pixelList[vline_idx].push_back(PixelItem(node_idx, node, depth));
-
-//   if (vline_idx >= pixelList.size()) return;
-
-//   if (entry) {
-
-//     group_size_nonempty++;
-
-//     if (entry->parent_sid != ~0u) {
-//       DbEntry* parent = _data.getEntry(node->getParent());
-
-//       if (parent) /// need this for restarts
-//         group_domain_red += parent->domain - entry->domain;
-//     }
-
-//     group_time   += entry->node_time;
-//     group_domain += entry->domain;
-
-
-//   }
-
-//   group_size++;
-
-//   if (group_size == approx_size) {
-//     vline_idx++;
-//     group_size = 0;
-
-
-//     /// get average domain size for the group
-//     if (group_size_nonempty == 0) {
-//       group_domain      = -1;
-//       group_domain_red  = -1;
-//       group_time        = -1;
-//     } else {
-//       group_domain        = group_domain / group_size_nonempty;
-//       group_domain_red    = group_domain_red / group_size_nonempty;
-      
-//     }
-
-
-//     time_arr[vline_idx]       = group_time;
-//     domain_arr[vline_idx]     = group_domain;
-//     domain_red_arr[vline_idx] = group_domain_red;
-    
-//     group_time   = 0;
-//     group_domain = 0;
-//     group_domain_red = 0;
-//     group_size_nonempty = 0;
-
-//   }
-
-//   node_idx++;
-// }
-
-
 /// TODO:
-/// 1. be able to compress
-/// 2. show selected differently
-/// 3. show solutions
+/// - be able to select
 void
 PixelTreeCanvas::drawPixelTree(const PixelData& pixel_data) {
 
@@ -394,7 +318,7 @@ PixelTreeCanvas::drawPixelTree(const PixelData& pixel_data) {
 
   const auto& vline_data = pixel_data.compressed_list;
 
-  /// TODO: 2. Draw vertical lines from solutions
+  /// Draw vertical lines for solutions
 
   for (auto vline = xoff; vline < vline_data.size(); vline++) {
 
@@ -409,6 +333,9 @@ PixelTreeCanvas::drawPixelTree(const PixelData& pixel_data) {
         }
       }
     }
+
+
+    auto isSelected = vline_data[vline].front()->node()->isSelected();
 
     auto pixel_count = vline_data[vline].size();
 
@@ -425,7 +352,10 @@ PixelTreeCanvas::drawPixelTree(const PixelData& pixel_data) {
       if (y > img_height || y < 0) continue; /// out of image boundary
       // pixel_image.drawPixel(x, y, PixelImage::PIXEL_COLOR::BLACK_ALPHA);
       int value = 100 - 100 * static_cast<float>(intencity_vec[depth]) / pixel_count;
-      pixel_image.drawPixel(x, y, QColor::fromHsv(0, 0, value).rgba());
+      if (!isSelected)
+        pixel_image.drawPixel(x, y, QColor::fromHsv(0, 0, value).rgba());
+      else
+        pixel_image.drawPixel(x, y, QColor::fromHsv(300, 255, 255).rgba());
     }
   }
 
@@ -442,7 +372,7 @@ PixelTreeCanvas::redrawAll() {
 
   auto vlines = pixel_data.compressed_list.size();
 
-  _sa->horizontalScrollBar()->setRange(0, vlines - img_width / scale + 20);
+  // _sa->horizontalScrollBar()->setRange(0, vlines - img_width / scale + 20);
   _sa->verticalScrollBar()->setRange(0, max_depth +
     5 * (HIST_HEIGHT + MARGIN) - _sa->height()); // 4 histograms
 
@@ -727,15 +657,12 @@ PixelTreeCanvas::mousePressEvent(QMouseEvent* event) {
   auto xoff = _sa->horizontalScrollBar()->value();
   auto yoff = _sa->verticalScrollBar()->value();
 
-  auto x = event->x() + xoff;
+  auto vline = event->x() / pixel_image.scale() + xoff;
   auto y = event->y() + yoff;
 
   /// check boundaries:
-  if (y > pt_height) return;
+  // if (y > pt_height) return;
 
-  // which node?
-
-  unsigned vline = x / pixel_image.scale();
 
   selectNodesfromPT(vline);
   redrawAll();
@@ -784,38 +711,40 @@ PixelTreeCanvas::selectNodesfromPT(unsigned vline) {
   // /// select the last one in case clicked a bit off the boundary
   // vline = (pixelList.size() > vline) ? vline : pixelList.size() - 1;
 
+  if (vline >= pixel_data.compressed_list.size()) return;
+
   // qDebug() << "selecting vline: " << vline;
 
-  // Actions actions(_na, _tc);
-  // void (Actions::*apply)(VisualNode*);
+  Actions actions(_na, _tc);
+  void (Actions::*apply)(VisualNode*);
 
   // /// unset currently selected nodes
-  // for (auto& node : nodes_selected) {
-  //   node->setSelected(false);
-  // }
+  for (auto& node : nodes_selected) {
+    node->setSelected(false);
+  }
 
-  // nodes_selected.clear();
+  nodes_selected.clear();
 
-  // std::list<PixelItem>& vline_list = pixelList[vline];
+  auto vline_list = pixel_data.compressed_list[vline];
 
-  // if (vline_list.size() == 1) {
-  //   apply = &Actions::selectOne;
-  // } else {
-  //   apply = &Actions::selectGroup;
+  if (vline_list.size() == 1) {
+    apply = &Actions::selectOne;
+  } else {
+    apply = &Actions::selectGroup;
 
-  //   /// hide everything except root
-  //   _tc.hideAll();
-  //   (*_na)[0]->setHidden(false);
-  // }
+    /// hide everything except root
+    _tc.hideAll();
+    (*_na)[0]->setHidden(false);
+  }
 
-  // for (auto& pixel : vline_list) {
-  //   (actions.*apply)(pixel.node());
-  //   pixel.node()->setSelected(true);
-  //   nodes_selected.push_back(pixel.node());
-  // }
+  for (auto& pixel : vline_list) {
+    (actions.*apply)(pixel->node());
+    pixel->node()->setSelected(true);
+    nodes_selected.push_back(pixel->node());
+  }
 
   
-  // _tc.update();
+  _tc.update();
 
 }
 
