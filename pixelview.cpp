@@ -127,6 +127,7 @@ PixelTreeCanvas::PixelTreeCanvas(QWidget* parent, TreeCanvas& tc)
   
   constructPixelTree();
   compressPixelTree(1);
+  compressDepthAnalysis(1);
   redrawAll();
 
 }
@@ -188,6 +189,36 @@ PixelTreeCanvas::compressPixelTree(int compression) {
   for (unsigned int pixel_id = 0; pixel_id < pixel_data.pixel_list.size(); pixel_id++) {
     unsigned int vline_id = pixel_id / compression;
     compressed_list[vline_id].push_back(&pixel_data.pixel_list[pixel_id]);
+  }
+}
+
+void
+PixelTreeCanvas::compressDepthAnalysis(int compression) {
+
+  auto data_length = da_data.at(0).size();
+  auto vlines = ceil(data_length / compression);
+
+  da_data_compressed = vector<vector<unsigned int> >(max_depth, vector<unsigned int>(vlines));
+
+  /// for every depth level
+  for (auto depth = 0; depth < da_data.size(); depth++) {
+
+    auto group_count = 0;
+    auto group_value = 0;
+
+    for (auto i = 0; i < data_length; i++) {
+
+      group_count++;
+      group_value += da_data[depth][i];
+
+      if (group_count == compression) {
+        unsigned int vline_id = i / compression;
+        da_data_compressed[depth][vline_id] = group_value / compression;
+        group_count = 0;
+        group_value = 0;
+      }
+
+    }
   }
 }
 
@@ -651,16 +682,18 @@ PixelTreeCanvas::drawDepthAnalysisData() {
 
   /// *** Actual Data ***
   /// for each depth level:
-  for (auto depth = 0; depth < da_data.size(); depth++) {
+  for (auto depth = 0; depth < da_data_compressed.size(); depth++) {
 
-    for (auto vline = xoff; vline < da_data[depth].size(); vline++) {
+    for (auto vline = xoff; vline < da_data_compressed[depth].size(); vline++) {
 
-      int value = da_data[depth][vline];
+      auto value = da_data_compressed[depth][vline];
       auto x = vline - xoff;
       auto y = zero_level - value - yoff;
 
-      // if (value != 0)
-      pixel_image.drawPixel(x, y, qRgb(depth * 5, 0, 255));
+      int color_value = 200 - 200 * static_cast<float>(depth) / max_depth;
+
+      if (value != 0)
+      pixel_image.drawPixel(x, y,  QColor::fromHsv(180, 180, color_value).rgba());
     }
 
   }
@@ -695,6 +728,7 @@ PixelTreeCanvas::resizeCanvas(void) {
 void
 PixelTreeCanvas::compressionChanged(int value) {
   compressPixelTree(value);
+  compressDepthAnalysis(value);
   redrawAll();
 }
 

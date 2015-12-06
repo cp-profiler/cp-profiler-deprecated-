@@ -114,6 +114,7 @@ private:
   /// Depth analysis data
   DepthAnalysis depthAnalysis;
   std::vector< std::vector<unsigned int> > da_data;
+  std::vector< std::vector<unsigned int> > da_data_compressed;
 
   PixelImage pixel_image;
 
@@ -131,6 +132,7 @@ private:
   void constructPixelTree(); /// Initial Search Tree traversal
   /// Apply compression (to get vlineData)
   void compressPixelTree(int value);
+  void compressDepthAnalysis(int value);
   PixelData traverseTree(VisualNode* node);
   void traverseTreePostOrder(VisualNode* node);
 
