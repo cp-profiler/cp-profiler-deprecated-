@@ -168,8 +168,6 @@ PixelTreeCanvas::constructPixelTree(void) {
   pixel_data = traverseTree(root);
   // traverseTreePostOrder(root);
 
-  flush();
-
   high_resolution_clock::time_point time_end = high_resolution_clock::now();
   duration<double> time_span = duration_cast<duration<double>>(time_end - time_begin);
   std::cout << "Pixel Tree construction took: " << time_span.count() << " seconds." << std::endl;
@@ -213,11 +211,18 @@ PixelTreeCanvas::compressDepthAnalysis(int compression) {
 
       if (group_count == compression) {
         unsigned int vline_id = i / compression;
-        da_data_compressed[depth][vline_id] = group_value / compression;
+        da_data_compressed[depth][vline_id] = group_value / group_count;
         group_count = 0;
         group_value = 0;
       }
 
+    }
+
+    /// deal with the last (not full) group
+    if (group_count > 0) {
+      unsigned int vline_id = data_length / compression;
+      da_data_compressed[depth][vline_id] = group_value / group_count;
+      qDebug() << "flushed for vline: " << vline_id << " with size: " << group_count;
     }
   }
 }
@@ -523,27 +528,6 @@ PixelTreeCanvas::redrawAll() {
 
 }
 
-void
-PixelTreeCanvas::flush(void) {
-
-  if (group_size == 0)
-    return;
-
-  if (group_size_nonempty == 0) {
-    group_domain      = -1;
-    group_domain_red  = -1;
-    group_time        = -1;
-  } else {
-    group_domain        = group_domain / group_size_nonempty;
-    group_domain_red    = group_domain_red / group_size_nonempty;
-  }
-
-  domain_arr[vline_idx]     = group_domain;
-  domain_red_arr[vline_idx] = group_domain_red;
-  time_arr[vline_idx]       =  group_time;
-
-}
-
 /// Draw time histogram underneath the pixel tree
 void
 PixelTreeCanvas::drawTimeHistogram(unsigned l_vline, unsigned r_vline) {
@@ -793,6 +777,9 @@ PixelTreeCanvas::selectNodesfromPT(unsigned vline) {
     : _na(na), _tc(tc), _done(false) {}
 
   };
+
+
+  /// TODO: Add clickability
 
   // /// select the last one in case clicked a bit off the boundary
   // vline = (pixelList.size() > vline) ? vline : pixelList.size() - 1;

@@ -154,9 +154,6 @@ private:
   /// Node Rate
   void drawNodeRate(unsigned leftmost_vline, unsigned rightmost_vline);
 
-  void flush(void); /// make a final group
-
-
   /// select nodes that correspond to selected vline in pixel tree
   void selectNodesfromPT(unsigned vline);
   
