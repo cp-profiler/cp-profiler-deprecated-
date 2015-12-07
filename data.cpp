@@ -25,8 +25,6 @@
 #include <QString>
 #include <ctime>
 
-#include "third-party/zmq.hpp"
-
 #include "visualnode.hh"
 #include "data.hh"
 #include "message.pb.hh"
