@@ -129,7 +129,10 @@ PixelTreeCanvas::PixelTreeCanvas(QWidget* parent, TreeCanvas& tc)
   compressPixelTree(1);
   compressDepthAnalysis(da_data_compressed, 1);
   compressTimeHistogram(time_arr, 1);
-  domain_arr = compressDomainHistogram(1);
+  compressDomainHistogram(domain_arr, 1);
+  gatherVarData();
+  compressVarData(var_decisions_compressed, 1);
+
   redrawAll();
 
 }
@@ -161,8 +164,8 @@ PixelTreeCanvas::constructPixelTree(void) {
 
   alpha_factor = 100.0 / approx_size;
 
-  pixel_data = traverseTree(root);
-  // pixel_data = traverseTreePostOrder(root);
+  // pixel_data = traverseTree(root);
+  pixel_data = traverseTreePostOrder(root);
 
   high_resolution_clock::time_point time_end = high_resolution_clock::now();
   duration<double> time_span = duration_cast<duration<double>>(time_end - time_begin);
@@ -191,7 +194,7 @@ PixelTreeCanvas::compressDepthAnalysis
 (std::vector< std::vector<unsigned int> >& da_data_compressed, int compression) {
 
   auto data_length = da_data.at(0).size();
-  auto vlines = ceil(data_length / compression);
+  auto vlines = ceil((float)data_length / compression);
 
   // da_data_compressed = vector<vector<unsigned int> >(max_depth, vector<unsigned int>(vlines));
   da_data_compressed.clear();
@@ -221,7 +224,7 @@ PixelTreeCanvas::compressDepthAnalysis
 
     /// deal with the last (not full) group
     if (group_count > 0) {
-      unsigned int vline_id = data_length / compression;
+      auto vline_id = ceil((float)data_length / compression) - 1;
       da_data_compressed[depth][vline_id] = group_value / group_count;
     }
   }
@@ -243,6 +246,7 @@ PixelTreeCanvas::compressTimeHistogram(vector<float>& compressed, int compressio
   for (auto i = 0; i < pixel_list.size(); i++) {
     group_count++;
 
+    /// TODO: ignore UNDET nodes (crashes otherwise)
     auto value = _data.getEntry(pixel_list[i].node()->getIndex(*_na))->node_time;
     group_value += value;
 
@@ -263,14 +267,15 @@ PixelTreeCanvas::compressTimeHistogram(vector<float>& compressed, int compressio
 
 
 /// TODO: try to avoid code duplication
-vector<float>
-PixelTreeCanvas::compressDomainHistogram(int compression) {
+void
+PixelTreeCanvas::compressDomainHistogram(vector<float>& compressed, int compression) {
 
   auto pixel_list = pixel_data.pixel_list;
   auto data_length = pixel_list.size();
   auto vlines = ceil(data_length / compression);
 
-  vector<float> compressed(vlines);
+  if (compressed.size() > 0) compressed.clear();
+  compressed.resize(vlines);
 
   auto group_count = 0;
   auto group_value = 0.0f;
@@ -293,8 +298,83 @@ PixelTreeCanvas::compressDomainHistogram(int compression) {
     unsigned int vline_id = data_length / compression;
     compressed[vline_id] = group_value / group_count;
   }
+}
 
-  return compressed;
+void
+PixelTreeCanvas::compressVarData(vector<vector<int> >& compressed, int compression) {
+  auto data_length = var_decisions.size();
+  auto vlines = ceil(data_length / compression);
+
+  if (compressed.size() > 0) compressed.clear();
+  compressed.resize(vlines);
+
+  auto group_count = 0;
+  auto vline = 0;
+
+  compressed.at(0).resize(compression);
+
+  for (auto i = 0; i < var_decisions.size(); i++) {
+    group_count++;
+
+    compressed.at(vline).at(group_count - 1) = var_decisions[i];
+
+    if (group_count == compression) {
+      vline++;
+      if (vline >= vlines) return;
+      compressed.at(vline).resize(compression);
+      group_count = 0;
+    }
+  }
+
+}
+
+void
+PixelTreeCanvas::gatherVarData() {
+
+  auto data_length = pixel_data.pixel_list.size();
+  var_decisions.reserve(data_length);
+
+  for (auto& pixel : pixel_data.pixel_list) {
+    auto label = _data.getLabel(pixel.node()->getIndex(*_na)); /// 1. get label
+    // qDebug() << "label: " << label.c_str();
+
+    if (label == "") { qDebug() << "empty label"; }
+
+    /// 2. get variable name
+    auto found = label.find(' ');
+
+    string var = "";
+    if (found!=std::string::npos)
+      var = label.substr(0, found);
+    // qDebug() << "var: " << var.c_str();
+
+    /// 3. check if we already know the variable
+
+    auto var_id = -1;
+
+    for (auto i = 0; i < vars.size(); i++) {
+      if (vars[i] == var) {
+        var_id = i;
+        break;
+      }
+    }
+
+    if (var_id == -1) { /// no such variable 
+      qDebug() << "no such variable (" << var.c_str() << ")";
+      vars.push_back(var);
+      var_id = vars.size() - 1;
+    } else {
+      qDebug() << "variable found (" << var.c_str() << ")";
+    }
+
+    /// rememeber decision variables
+    var_decisions.push_back(var_id);
+  }
+}
+
+void
+PixelTreeCanvas::compressVarData() {
+
 }
 
 PixelData
@@ -479,8 +559,43 @@ PixelTreeCanvas::redrawAll() {
 
   drawDepthAnalysisData();
 
+  drawVarData();
+
   repaint();
 
+}
+
+void
+PixelTreeCanvas::drawVarData() {
+
+  auto xoff = _sa->horizontalScrollBar()->value();
+  auto yoff = _sa->verticalScrollBar()->value();
+
+  auto img_width = pixel_image.image().width();
+  auto img_height = pixel_image.image().height();
+
+  auto scale = pixel_image.scale();
+
+  int zero_level = max_depth + 4 * ceil((HIST_HEIGHT + MARGIN) / scale);
+  pixel_image.drawHorizontalLine(zero_level);
+
+  for (auto vline = 0; vline < var_decisions_compressed.size(); vline++) {
+    for (auto i = 0; i < var_decisions_compressed.at(vline).size(); i++) {
+
+      auto var_id = var_decisions_compressed[vline][i];
+
+      auto x = vline - xoff;
+      auto y = zero_level - var_id - yoff;
+
+      if (x > img_width) break;
+      if (y > img_width || y < 0) continue;
+
+      auto color_value = ceil(var_id * 255 / vars.size());
+
+      pixel_image.drawPixel(x, y, QColor::fromHsv(color_value, 200, 255).rgba());
+
+    }
+  }
 }
 
 /// Draw time histogram underneath the pixel tree
@@ -503,7 +618,6 @@ PixelTreeCanvas::drawDomainReduction(unsigned l_vline, unsigned r_vline) {
 void
 PixelTreeCanvas::drawHistogram(int idx, vector<float>& data, int color) {
 
-  /// coordinates for the top-left corner
   auto xoff = _sa->horizontalScrollBar()->value();
   auto yoff = _sa->verticalScrollBar()->value();
 
@@ -659,7 +773,8 @@ PixelTreeCanvas::compressionChanged(int value) {
   compressPixelTree(value);
   compressDepthAnalysis(da_data_compressed, value);
   compressTimeHistogram(time_arr, value);
-  // domain_arr = compressDomainHistogram(value);
+  compressDomainHistogram(domain_arr, value);
+  compressVarData(var_decisions_compressed, value);
   redrawAll();
 }
 

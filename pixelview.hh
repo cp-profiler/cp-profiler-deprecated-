@@ -105,7 +105,11 @@ private:
   vector<float> domain_arr; // domain for each vline
   vector<float> domain_red_arr; /// domain reduction for each vline
 
+  vector<string> vars;
+
   std::vector<VisualNode*> nodes_selected;
+  vector<int> var_decisions;
+  vector<vector<int>> var_decisions_compressed;
 
   /// Depth analysis data
   DepthAnalysis depthAnalysis;
@@ -125,12 +129,15 @@ private:
 
   void drawPixelTree(const PixelData& pixel_data);
 
+  void gatherVarData();
+  void compressVarData();
+
   void constructPixelTree(); /// Initial Search Tree traversal
   /// Apply compression (to get vlineData)
   void compressPixelTree(int value);
   void compressDepthAnalysis(std::vector< std::vector<unsigned int> >& data, int value);
   void compressTimeHistogram(vector<float>&, int value);
-  vector<float> compressDomainHistogram(int value);
+  void compressDomainHistogram(vector<float>&, int value);
   PixelData traverseTree(VisualNode* node);
   PixelData traverseTreePostOrder(VisualNode* node);
 
@@ -144,6 +151,10 @@ private:
   void drawDomainHistogram(int id);
   void drawDomainReduction(unsigned l_vline, unsigned r_vline);
   void drawDepthAnalysisData();
+
+  /// Decision variables
+  void compressVarData(vector<vector<int> >&, int value);
+  void drawVarData();
 
   /// Node Rate
   void drawNodeRate(unsigned leftmost_vline, unsigned rightmost_vline);
