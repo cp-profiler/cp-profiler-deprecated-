@@ -189,7 +189,7 @@ const std::string Data::getLabel(unsigned int gid) {
     QMutexLocker locker(&dataMutex);
 
     auto it = gid2entry.find(gid);
-    if (it != gid2entry.end())
+    if (it != gid2entry.end() && it->second != nullptr)
         return it->second->label;
     return "";
 

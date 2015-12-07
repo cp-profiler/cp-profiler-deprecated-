@@ -247,7 +247,8 @@ PixelTreeCanvas::compressTimeHistogram(vector<float>& compressed, int compressio
     group_count++;
 
     /// TODO: ignore UNDET nodes (crashes otherwise)
-    auto value = _data.getEntry(pixel_list[i].node()->getIndex(*_na))->node_time;
+    auto entry = _data.getEntry(pixel_list[i].node()->getIndex(*_na));
+    auto value = (entry == nullptr) ? 0 : entry->node_time;
     group_value += value;
 
     if (group_count == compression) {
@@ -283,7 +284,8 @@ PixelTreeCanvas::compressDomainHistogram(vector<float>& compressed, int compress
   for (auto i = 0; i < pixel_list.size(); i++) {
     group_count++;
 
-    auto value = _data.getEntry(pixel_list[i].node()->getIndex(*_na))->domain;
+    auto entry = _data.getEntry(pixel_list[i].node()->getIndex(*_na));
+    auto value = (entry == nullptr) ? 0 : entry->domain;
     group_value += value;
 
     if (group_count == compression) {
@@ -372,11 +374,6 @@ PixelTreeCanvas::gatherVarData() {
   }
 }
 
-void
-PixelTreeCanvas::compressVarData() {
-
-}
-
 PixelData
 PixelTreeCanvas::traverseTree(VisualNode* root) {
 
@@ -398,7 +395,6 @@ PixelTreeCanvas::traverseTree(VisualNode* root) {
 
     {
       DbEntry* entry = _data.getEntry(node->getIndex(*_na));
-      /// TODO: find out if I need node_idx here
       pixelData.pixel_list.emplace_back(PixelItem(0, node, depth));
 
     }
@@ -836,8 +832,6 @@ PixelTreeCanvas::selectNodesfromPT(unsigned vline) {
 
   };
 
-
-  /// TODO: Add clickability
 
   // /// select the last one in case clicked a bit off the boundary
   // vline = (pixelList.size() > vline) ? vline : pixelList.size() - 1;

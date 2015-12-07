@@ -129,8 +129,9 @@ private:
 
   void drawPixelTree(const PixelData& pixel_data);
 
+  /// Decision variables
   void gatherVarData();
-  void compressVarData();
+  void compressVarData(vector<vector<int> >&, int value);
 
   void constructPixelTree(); /// Initial Search Tree traversal
   /// Apply compression (to get vlineData)
@@ -152,8 +153,7 @@ private:
   void drawDomainReduction(unsigned l_vline, unsigned r_vline);
   void drawDepthAnalysisData();
 
-  /// Decision variables
-  void compressVarData(vector<vector<int> >&, int value);
+  
   void drawVarData();
 
   /// Node Rate
