@@ -95,7 +95,6 @@ private:
   unsigned   vline_idx;  // same as x when _step = 1
   float alpha_factor;
 
-  unsigned pt_height;
   unsigned pt_width;
 
   /// Stuff specific for a particular pixel tree
@@ -119,8 +118,8 @@ private:
 
 public:
 
-  static const int HIST_HEIGHT = 50;
-  static const int MARGIN = 10;
+  static const int HIST_HEIGHT = 80;
+  static const int MARGIN = 30;
 
 private:
 
@@ -129,22 +128,20 @@ private:
   void constructPixelTree(); /// Initial Search Tree traversal
   /// Apply compression (to get vlineData)
   void compressPixelTree(int value);
-  void compressDepthAnalysis(int value);
+  void compressDepthAnalysis(std::vector< std::vector<unsigned int> >& data, int value);
+  void compressTimeHistogram(vector<float>&, int value);
+  vector<float> compressDomainHistogram(int value);
   PixelData traverseTree(VisualNode* node);
-  void traverseTreePostOrder(VisualNode* node);
+  PixelData traverseTreePostOrder(VisualNode* node);
 
   void redrawAll();
-  void drawHistogram(int idx, vector<float>& data, unsigned l_vline, unsigned r_vline, int color);
+  void drawHistogram(int idx, vector<float>& data, int color);
 
   void drawSolutionLine();
 
-  void processCurrentNode(VisualNode* node, unsigned int depth);
-  /// TODO: remove
-  // void processCurrentNode_old(VisualNode* node, unsigned int depth);
-
   /// Histograms
-  void drawTimeHistogram(unsigned l_vline, unsigned r_vline);
-  void drawDomainHistogram(unsigned l_vline, unsigned r_vline);
+  void drawTimeHistogram(int id);
+  void drawDomainHistogram(int id);
   void drawDomainReduction(unsigned l_vline, unsigned r_vline);
   void drawDepthAnalysisData();
 

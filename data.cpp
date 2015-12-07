@@ -58,6 +58,7 @@ Data::Data(TreeCanvas* tc, NodeAllocator* na, bool isRestarts)
     _time_per_node = -1; // unassigned
 
     begin_time = system_clock::now();
+    current_time = begin_time;
     last_interval_time = begin_time;
     last_interval_nc = 0;
 
@@ -101,7 +102,12 @@ int Data::handleNodeCallback(message::Node& node) {
 
     unsigned long long real_id, real_pid;
 
+    auto prev_node_time = current_time;
     current_time = system_clock::now();
+
+    auto node_time = duration_cast<microseconds>(current_time - prev_node_time).count();
+
+    if (nodes_arr.size() == 0) node_time = 0; /// ignore the first node
 
     int id = node.sid();
     int pid = node.pid();
@@ -143,6 +149,7 @@ int Data::handleNodeCallback(message::Node& node) {
 
     std::string label = node.label();
 
+
     pushInstance(real_id,
         new DbEntry(real_id,
                     real_pid,
@@ -152,7 +159,7 @@ int Data::handleNodeCallback(message::Node& node) {
                     label,
                     status,
                     node.time(),
-                    node.time() - _prev_node_timestamp,
+                    node_time,
                     domain));
 
     _prev_node_timestamp = node.time();
@@ -191,10 +198,6 @@ const std::string Data::getLabel(unsigned int gid) {
 unsigned long long Data::gid2sid(unsigned int gid) {
     QMutexLocker locker(&dataMutex);
 
-    // auto it = gid2entry.find(gid);
-    // if (it != gid2entry.end())
-    //     return it->second->label.c_str();
-    // return "";
     return gid2entry.at(gid)->sid;
 
 }
