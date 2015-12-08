@@ -198,7 +198,11 @@ const std::string Data::getLabel(unsigned int gid) {
 unsigned long long Data::gid2sid(unsigned int gid) {
     QMutexLocker locker(&dataMutex);
 
-    return gid2entry.at(gid)->sid;
+    /// not for any gid there is entry (TODO: there should be a 'default' one)
+    auto it = gid2entry.find(gid);
+    if (it != gid2entry.end())
+        return gid2entry.at(gid)->sid;
+    return -1;
 
 }
 

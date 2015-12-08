@@ -108,8 +108,11 @@ private:
   vector<string> vars;
 
   std::vector<VisualNode*> nodes_selected;
+
   vector<int> var_decisions;
   vector<vector<int>> var_decisions_compressed;
+
+  vector<int> nogood_counts;
 
   /// Depth analysis data
   DepthAnalysis depthAnalysis;
@@ -132,6 +135,9 @@ private:
   /// Decision variables
   void gatherVarData();
   void compressVarData(vector<vector<int> >&, int value);
+
+  void gatherNogoodData();
+  void drawNogoodData();
 
   void constructPixelTree(); /// Initial Search Tree traversal
   /// Apply compression (to get vlineData)

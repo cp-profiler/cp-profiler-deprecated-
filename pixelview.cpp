@@ -132,6 +132,7 @@ PixelTreeCanvas::PixelTreeCanvas(QWidget* parent, TreeCanvas& tc)
   compressDomainHistogram(domain_arr, 1);
   gatherVarData();
   compressVarData(var_decisions_compressed, 1);
+  gatherNogoodData();
 
   redrawAll();
 
@@ -340,7 +341,7 @@ PixelTreeCanvas::gatherVarData() {
     auto label = _data.getLabel(pixel.node()->getIndex(*_na)); /// 1. get label
     // qDebug() << "label: " << label.c_str();
 
-    if (label == "") { qDebug() << "empty label"; }
+    // if (label == "") { qDebug() << "empty label"; }
 
     /// 2. get variable name
     auto found = label.find(' ');
@@ -362,15 +363,45 @@ PixelTreeCanvas::gatherVarData() {
     }
 
     if (var_id == -1) { /// no such variable 
-      qDebug() << "no such variable (" << var.c_str() << ")";
+      // qDebug() << "no such variable (" << var.c_str() << ")";
       vars.push_back(var);
       var_id = vars.size() - 1;
     } else {
-      qDebug() << "variable found (" << var.c_str() << ")";
+      // qDebug() << "variable found (" << var.c_str() << ")";
     }
 
     /// rememeber decision variables
     var_decisions.push_back(var_id);
+  }
+}
+
+void
+PixelTreeCanvas::gatherNogoodData() {
+  auto data_length = pixel_data.pixel_list.size();
+  nogood_counts.resize(data_length);
+
+  auto sid2nogood = _data.getNogoods();
+
+  for (auto i = 0; i < data_length; i++) {
+    auto node = pixel_data.pixel_list[i].node();
+    auto it = sid2nogood.find(node->getIndex(*_na));
+    if (it != sid2nogood.end()) {
+      auto nogood = it->second;
+      qDebug() << "nogood: " << nogood.c_str();
+      /// work out var length
+      auto count = 0;
+      auto pos = nogood.find(' ');
+      while(pos != string::npos)
+      {
+          count++;
+          pos = nogood.find(' ', pos + 1);
+      }
+      count -= 1; /// because in chuffed nogoods start "out_learnt (interpreted): ..."
+      qDebug() << "nogood count: " << count;
+      nogood_counts[i] = count;
+    } else {
+      nogood_counts[i] = 0; /// no nogood found
+    }
   }
 }
 
@@ -556,6 +587,7 @@ PixelTreeCanvas::redrawAll() {
   drawDepthAnalysisData();
 
   drawVarData();
+  drawNogoodData();
 
   repaint();
 
@@ -591,6 +623,32 @@ PixelTreeCanvas::drawVarData() {
       pixel_image.drawPixel(x, y, QColor::fromHsv(color_value, 200, 255).rgba());
 
     }
+  }
+}
+
+void
+PixelTreeCanvas::drawNogoodData() {
+  auto xoff = _sa->horizontalScrollBar()->value();
+  auto yoff = _sa->verticalScrollBar()->value();
+
+  auto img_width = pixel_image.image().width();
+  auto img_height = pixel_image.image().height();
+
+  auto scale = pixel_image.scale();
+
+  int zero_level = max_depth + 5 * ceil((HIST_HEIGHT + MARGIN) / scale);
+  pixel_image.drawHorizontalLine(zero_level);
+
+  for (auto vline = 0; vline < nogood_counts.size(); vline++) {
+    auto value = nogood_counts[vline];
+
+    auto x = vline - xoff;
+    auto y = zero_level - value - yoff;
+
+    if (x > img_width) break;
+    if (y > img_width || y < 0) continue;
+
+    pixel_image.drawPixel(x, y, QColor::fromHsv(180, 200, 255).rgba());
   }
 }
 
