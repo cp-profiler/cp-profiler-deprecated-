@@ -47,18 +47,34 @@ public:
   inline int depth() const { return _depth; }
   inline VisualNode* node() { return _node; }
   inline bool isSelected() { return _selected; }
+  void setSelected(bool value) {
+    _node->setSelected(value);
+    _selected = value;
+  }
 };
 
 class PixelData {
 
+private:
+  int compression_;
+
 public:
   PixelData() {}
 
-  explicit PixelData(unsigned int node_count) {
+  explicit PixelData(unsigned int node_count): compression_(1) {
     pixel_list.reserve(node_count);
   }
+
+  void setCompression(int compression) {
+    compression_ = compression;
+  }
+
+  int compression() const { return compression_; }
+
   vector<PixelItem> pixel_list;
+
   vector<list<PixelItem*>> compressed_list;
+
 
 };
 
@@ -107,7 +123,7 @@ private:
 
   vector<string> vars;
 
-  std::vector<VisualNode*> nodes_selected;
+  std::vector<PixelItem*> pixels_selected;
 
   vector<int> var_decisions;
   vector<vector<int>> var_decisions_compressed;

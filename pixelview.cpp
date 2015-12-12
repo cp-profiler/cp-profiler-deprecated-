@@ -176,19 +176,21 @@ PixelTreeCanvas::constructPixelTree(void) {
 }
 
 void
-PixelTreeCanvas::compressPixelTree(int compression) {
+PixelTreeCanvas::compressPixelTree(int value) {
   /// take pixel_data and create vlineData
 
-  int vlines = ceil(static_cast<float>(pixel_data.pixel_list.size()) / compression);
+  int vlines = ceil(static_cast<float>(pixel_data.pixel_list.size()) / value);
 
   auto& compressed_list = pixel_data.compressed_list;
 
   compressed_list = vector<list<PixelItem*>>(vlines, list<PixelItem*>());
 
   for (unsigned int pixel_id = 0; pixel_id < pixel_data.pixel_list.size(); pixel_id++) {
-    unsigned int vline_id = pixel_id / compression;
+    unsigned int vline_id = pixel_id / value;
     compressed_list[vline_id].push_back(&pixel_data.pixel_list[pixel_id]);
   }
+
+  pixel_data.setCompression(value);
 }
 
 void
@@ -532,47 +534,59 @@ PixelTreeCanvas::drawPixelTree(const PixelData& pixel_data) {
   auto img_width = pixel_image.image().width();
   auto img_height = pixel_image.image().height();
 
-  const auto& vline_data = pixel_data.compressed_list;
+  const int compr = pixel_data.compression();
+  const auto& pixel_list = pixel_data.pixel_list;
 
-  /// Draw vertical lines for solutions
+  // which pixel to start with:
+  auto start = xoff * compr;
 
-  for (auto vline = xoff; vline < vline_data.size(); vline++) {
-
-    auto x = vline - xoff;
+  /// check for solutions first (we do not want solutions on top of nodes)
+  for (auto pixel_id = start; pixel_id < pixel_list.size(); pixel_id++) {
+    auto x = (pixel_id - start) / compr;
     if (x > img_width) break; /// out of image boundary
 
-    /// Draw green vertical line for solutions
-    for (const auto& pixel_item : vline_data[vline]) {
-      if (pixel_item->node()->getStatus() == SOLVED) {
-        for (unsigned y = 0; y < max_depth - yoff; y++) {
-          pixel_image.drawPixel(x, y, qRgb(0, 255, 0));
-        }
+    auto pixelItem =  pixel_list[pixel_id];
+    if (pixelItem.node()->getStatus() == SOLVED) {
+      for (unsigned y = 0; y < max_depth - yoff; y++) {
+        pixel_image.drawPixel(x, y, qRgb(0, 255, 0));
       }
     }
+  }
 
+  std::vector<int> intensity_vec(max_depth + 1, 0);
 
-    auto isSelected = vline_data[vline].front()->node()->isSelected();
+  for (auto pixel_id = start; pixel_id < pixel_list.size(); pixel_id++) {
+    auto x = (pixel_id - start) / compr;
+    if (x > img_width) break; /// out of image boundary
 
-    auto pixel_count = vline_data[vline].size();
+    /// work out y coordinate
+    auto pixelItem =  pixel_list[pixel_id];
+    auto depth = pixelItem.depth();
 
-    std::vector<int> intencity_vec(max_depth + 1, 0);
+    intensity_vec.at(depth)++; // populate intensity vector
 
-    /// fill the intencity vector
-    for (const auto& pixel_item : vline_data[vline]) {
-      intencity_vec.at(pixel_item->depth())++;
+    bool is_vline_end = (pixel_id % compr == compr - 1) || (pixel_id == pixel_list.size() - 1);
+
+    if (is_vline_end) {
+      // draw from intensity vector:
+      for (auto depth = 0; depth < intensity_vec.size(); depth++) {
+        if (intensity_vec[depth] == 0) continue; /// no pixel at that depth
+
+        auto y = depth - yoff;
+
+        int value = 100 - 100 * static_cast<float>(intensity_vec[depth]) / compr;
+
+        auto isSelected = pixelItem.isSelected();
+
+        if (!isSelected)
+          pixel_image.drawPixel(x, y, QColor::fromHsv(0, 0, value).rgba());
+        else
+          pixel_image.drawPixel(x, y, QColor::fromHsv(300, 255, 255).rgba());
+      }
+
+      std::fill(intensity_vec.begin(), intensity_vec.end(), 0);
     }
 
-    for (auto depth = 0; depth < intencity_vec.size(); depth++) {
-      if (intencity_vec[depth] == 0) continue; /// no pixel at that depth
-      auto y = depth - yoff;
-      if (y > img_height || y < 0) continue; /// out of image boundary
-      // pixel_image.drawPixel(x, y, PixelImage::PIXEL_COLOR::BLACK_ALPHA);
-      int value = 100 - 100 * static_cast<float>(intencity_vec[depth]) / pixel_count;
-      if (!isSelected)
-        pixel_image.drawPixel(x, y, QColor::fromHsv(0, 0, value).rgba());
-      else
-        pixel_image.drawPixel(x, y, QColor::fromHsv(300, 255, 255).rgba());
-    }
   }
 
 }
@@ -928,43 +942,43 @@ PixelTreeCanvas::selectNodesfromPT(unsigned vline) {
 
   };
 
-
-  // /// select the last one in case clicked a bit off the boundary
-  // vline = (pixelList.size() > vline) ? vline : pixelList.size() - 1;
-
-  if (vline >= pixel_data.compressed_list.size()) return;
-
-  // qDebug() << "selecting vline: " << vline;
+  auto compr = pixel_data.compression();
+  auto start = vline * compr;
+  auto end = (vline + 1) * compr; /// not including
 
   Actions actions(_na, _tc);
   void (Actions::*apply)(VisualNode*);
 
-  // /// unset currently selected nodes
-  for (auto& node : nodes_selected) {
-    node->setSelected(false);
-  }
-
-  nodes_selected.clear();
-
-  auto vline_list = pixel_data.compressed_list[vline];
-
-  if (vline_list.size() == 1) {
+  if (compr == 1) {
     apply = &Actions::selectOne;
   } else {
     apply = &Actions::selectGroup;
-
     /// hide everything except root
     _tc.hideAll();
     (*_na)[0]->setHidden(false);
   }
 
-  for (auto& pixel : vline_list) {
-    (actions.*apply)(pixel->node());
-    pixel->node()->setSelected(true);
-    nodes_selected.push_back(pixel->node());
+  /// select nodes in interval [ start; end )
+
+  // /// unset currently selected nodes
+  for (auto& pixel : pixels_selected) {
+    pixel->setSelected(false);
   }
 
-  
+  pixels_selected.clear();
+
+
+
+  auto& pixel_list = pixel_data.pixel_list;
+
+  for (auto id = start; id < end && id < pixel_list.size(); id++) {
+    auto& pixelItem = pixel_list[id];
+    auto node = pixelItem.node();
+    (actions.*apply)(node);
+    pixelItem.setSelected(true);
+    pixels_selected.push_back(&pixelItem);
+  }
+
   _tc.update();
 
 }
