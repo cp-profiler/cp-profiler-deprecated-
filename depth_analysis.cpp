@@ -44,7 +44,7 @@ DepthAnalysis::runMSL() {
   unsigned int curr_level = 1;
   unsigned int total_depth = _tc.getTreeDepth();
   vector<unsigned int> dl_list(total_depth); /// deepest at level
-  vector<unsigned int> count_list(total_depth, 0); /// deepest at level
+  vector<unsigned int> count_list(total_depth, 0);
 
   vector< vector<unsigned int> > count_array(total_depth); /// history of count
   for (auto v : count_array) { v.reserve(depth_data.size()); }
@@ -94,7 +94,7 @@ DepthAnalysis::runMSL() {
       dl_list[curr_level] = deepest;
     }
 
-    /// copy count_list to count_array (only when leaving a node:
+    /// copy count_list to count_array (only when leaving a node):
     if (curr == Direction::UP){
       for (int d = 0; d < total_depth; d++) {
         // count_array[d][i] = count_list[d];

@@ -133,6 +133,7 @@ PixelTreeCanvas::PixelTreeCanvas(QWidget* parent, TreeCanvas& tc)
   gatherVarData();
   compressVarData(var_decisions_compressed, 1);
   gatherNogoodData();
+  compressNogoodData(1);
 
   redrawAll();
 
@@ -387,7 +388,7 @@ PixelTreeCanvas::gatherNogoodData() {
     auto it = sid2nogood.find(node->getIndex(*_na));
     if (it != sid2nogood.end()) {
       auto nogood = it->second;
-      qDebug() << "nogood: " << nogood.c_str();
+      // qDebug() << "nogood: " << nogood.c_str();
       /// work out var length
       auto count = 0;
       auto pos = nogood.find(' ');
@@ -402,6 +403,39 @@ PixelTreeCanvas::gatherNogoodData() {
     } else {
       nogood_counts[i] = 0; /// no nogood found
     }
+  }
+}
+
+void
+PixelTreeCanvas::compressNogoodData(int compression) {
+
+  auto data_length = nogood_counts.size();
+  auto vlines = ceil(data_length / compression);
+
+  nogood_counts_compressed.clear();
+  nogood_counts_compressed.resize(vlines);
+
+  auto group_count = 0;
+  auto group_value = 0.0f;
+
+  for (auto i = 0; i < nogood_counts.size(); i++) {
+    group_count++;
+
+    /// TODO: ignore UNDET nodes (crashes otherwise)
+    auto value = nogood_counts[i];
+    group_value += value;
+
+    if (group_count == compression) {
+      unsigned int vline_id = i / compression;
+      nogood_counts_compressed[vline_id] = group_value / group_count;
+      group_count = 0; group_value = 0;
+    }
+  }
+
+  /// deal with the last (not full) group
+  if (group_count > 0) {
+    unsigned int vline_id = data_length / compression;
+    nogood_counts_compressed[vline_id] = group_value / group_count;
   }
 }
 
@@ -576,9 +610,9 @@ PixelTreeCanvas::redrawAll() {
 
   /// All Histograms
 
-  drawTimeHistogram(2);
+  drawTimeHistogram(4);
 
-  drawDomainHistogram(3);
+  drawDomainHistogram(5);
 
   // drawDomainReduction(image, leftmost_vline, rightmost_vline);
 
@@ -604,7 +638,7 @@ PixelTreeCanvas::drawVarData() {
 
   auto scale = pixel_image.scale();
 
-  int zero_level = max_depth + 4 * ceil((HIST_HEIGHT + MARGIN) / scale);
+  int zero_level = max_depth + 6 * ceil((HIST_HEIGHT + MARGIN) / scale);
   pixel_image.drawHorizontalLine(zero_level);
 
   for (auto vline = 0; vline < var_decisions_compressed.size(); vline++) {
@@ -639,14 +673,16 @@ PixelTreeCanvas::drawNogoodData() {
   int zero_level = max_depth + 5 * ceil((HIST_HEIGHT + MARGIN) / scale);
   pixel_image.drawHorizontalLine(zero_level);
 
-  for (auto vline = 0; vline < nogood_counts.size(); vline++) {
-    auto value = nogood_counts[vline];
+  for (auto vline = 0; vline < nogood_counts_compressed.size(); vline++) {
+    auto value = nogood_counts_compressed[vline];
 
     auto x = vline - xoff;
     auto y = zero_level - value - yoff;
 
     if (x > img_width) break;
     if (y > img_width || y < 0) continue;
+
+    /// TODO: normalize
 
     pixel_image.drawPixel(x, y, QColor::fromHsv(180, 200, 255).rgba());
   }
@@ -756,7 +792,7 @@ PixelTreeCanvas::drawDepthAnalysisData() {
 
   auto scale = pixel_image.scale();
 
-  int zero_level = max_depth + 1 * ceil((HIST_HEIGHT + MARGIN) / scale);
+  int zero_level = max_depth + 3 * ceil((HIST_HEIGHT + MARGIN) / scale);
 
   pixel_image.drawHorizontalLine(zero_level);
 
@@ -784,6 +820,7 @@ PixelTreeCanvas::drawDepthAnalysisData() {
     for (auto vline = xoff; vline < da_data_compressed[depth].size(); vline++) {
 
       auto value = da_data_compressed[depth][vline];
+      // qDebug() << "depth: " << depth << " value: " << value;
       auto x = vline - xoff;
       auto y = zero_level - value - yoff;
 
@@ -829,6 +866,7 @@ PixelTreeCanvas::compressionChanged(int value) {
   compressTimeHistogram(time_arr, value);
   compressDomainHistogram(domain_arr, value);
   compressVarData(var_decisions_compressed, value);
+  compressNogoodData(value);
   redrawAll();
 }
 

@@ -113,6 +113,7 @@ private:
   vector<vector<int>> var_decisions_compressed;
 
   vector<int> nogood_counts;
+  vector<int> nogood_counts_compressed;
 
   /// Depth analysis data
   DepthAnalysis depthAnalysis;
@@ -137,6 +138,7 @@ private:
   void compressVarData(vector<vector<int> >&, int value);
 
   void gatherNogoodData();
+  void compressNogoodData(int value);
   void drawNogoodData();
 
   void constructPixelTree(); /// Initial Search Tree traversal
