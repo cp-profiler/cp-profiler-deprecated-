@@ -73,9 +73,6 @@ public:
 
   vector<PixelItem> pixel_list;
 
-  vector<list<PixelItem*>> compressed_list;
-
-
 };
 
 
@@ -194,6 +191,7 @@ public:
 protected:
   void paintEvent(QPaintEvent* event);
   void mousePressEvent(QMouseEvent* me);
+  void mouseMoveEvent(QMouseEvent* me);
 
 public Q_SLOTS:
   void scaleUp(void);

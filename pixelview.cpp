@@ -120,6 +120,8 @@ PixelTreeCanvas::PixelTreeCanvas(QWidget* parent, TreeCanvas& tc)
   _sa->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
   // _sa->setAutoFillBackground(true);
 
+  setMouseTracking(true);
+
   connect (_sa->horizontalScrollBar(), SIGNAL(valueChanged (int)), this, SLOT(sliderChanged(int)));
   connect (_sa->verticalScrollBar(), SIGNAL(valueChanged (int)), this, SLOT(sliderChanged(int)));
 
@@ -144,7 +146,8 @@ PixelTreeCanvas::paintEvent(QPaintEvent*) {
   QPainter painter(this);
 
   /// start at (1;1) to prevent strage artifact
-  painter.drawImage(1, 1, pixel_image.image(), 0, 0, _sa->viewport()->width(), _sa->viewport()->height());
+  if (pixel_image.image() == nullptr) return;
+  painter.drawImage(1, 1, *pixel_image.image(), 0, 0, _sa->viewport()->width(), _sa->viewport()->height());
 }
 
 void
@@ -179,16 +182,16 @@ void
 PixelTreeCanvas::compressPixelTree(int value) {
   /// take pixel_data and create vlineData
 
-  int vlines = ceil(static_cast<float>(pixel_data.pixel_list.size()) / value);
+  // int vlines = ceil(static_cast<float>(pixel_data.pixel_list.size()) / value);
 
-  auto& compressed_list = pixel_data.compressed_list;
+  // auto& compressed_list = pixel_data.compressed_list;
 
-  compressed_list = vector<list<PixelItem*>>(vlines, list<PixelItem*>());
+  // compressed_list = vector<list<PixelItem*>>(vlines, list<PixelItem*>());
 
-  for (unsigned int pixel_id = 0; pixel_id < pixel_data.pixel_list.size(); pixel_id++) {
-    unsigned int vline_id = pixel_id / value;
-    compressed_list[vline_id].push_back(&pixel_data.pixel_list[pixel_id]);
-  }
+  // for (unsigned int pixel_id = 0; pixel_id < pixel_data.pixel_list.size(); pixel_id++) {
+  //   unsigned int vline_id = pixel_id / value;
+  //   compressed_list[vline_id].push_back(&pixel_data.pixel_list[pixel_id]);
+  // }
 
   pixel_data.setCompression(value);
 }
@@ -531,8 +534,8 @@ PixelTreeCanvas::drawPixelTree(const PixelData& pixel_data) {
   auto xoff = _sa->horizontalScrollBar()->value(); // values should be in scaled pixels
   auto yoff = _sa->verticalScrollBar()->value();
 
-  auto img_width = pixel_image.image().width();
-  auto img_height = pixel_image.image().height();
+  auto img_width = pixel_image.width();
+  auto img_height = pixel_image.height();
 
   const int compr = pixel_data.compression();
   const auto& pixel_list = pixel_data.pixel_list;
@@ -598,11 +601,13 @@ PixelTreeCanvas::redrawAll() {
   pixel_image.clear();
 
   auto scale = pixel_image.scale();
-  auto img_width = pixel_image.image().width();
+  auto img_width = pixel_image.width();
 
-  auto vlines = pixel_data.compressed_list.size();
+  const auto& pixel_list = pixel_data.pixel_list;
 
-  // _sa->horizontalScrollBar()->setRange(0, vlines - img_width / scale + 20);
+  auto vlines = ceil((float)pixel_list.size() / pixel_data.compression());
+
+  _sa->horizontalScrollBar()->setRange(0, vlines - img_width / scale + 20);
   _sa->verticalScrollBar()->setRange(0, max_depth +
     5 * (HIST_HEIGHT + MARGIN) - _sa->height()); // 4 histograms
 
@@ -612,11 +617,11 @@ PixelTreeCanvas::redrawAll() {
   unsigned int leftmost_x = xoff;
   unsigned int rightmost_x = xoff + _sa->width();
 
-  if (rightmost_x > pixel_data.pixel_list.size() * scale) {
-    rightmost_x = pixel_data.pixel_list.size() * scale;
+  if (rightmost_x > pixel_list.size() * scale) {
+    rightmost_x = pixel_list.size() * scale;
   }
 
-  this->resize(pixel_image.image().width(), pixel_image.image().height());
+  this->resize(pixel_image.width(), pixel_image.height());
 
   pixel_image.drawGrid(xoff, yoff);
 
@@ -637,6 +642,8 @@ PixelTreeCanvas::redrawAll() {
   drawVarData();
   drawNogoodData();
 
+  pixel_image.update();
+
   repaint();
 
 }
@@ -647,8 +654,8 @@ PixelTreeCanvas::drawVarData() {
   auto xoff = _sa->horizontalScrollBar()->value();
   auto yoff = _sa->verticalScrollBar()->value();
 
-  auto img_width = pixel_image.image().width();
-  auto img_height = pixel_image.image().height();
+  auto img_width = pixel_image.width();
+  auto img_height = pixel_image.height();
 
   auto scale = pixel_image.scale();
 
@@ -679,8 +686,8 @@ PixelTreeCanvas::drawNogoodData() {
   auto xoff = _sa->horizontalScrollBar()->value();
   auto yoff = _sa->verticalScrollBar()->value();
 
-  auto img_width = pixel_image.image().width();
-  auto img_height = pixel_image.image().height();
+  auto img_width = pixel_image.width();
+  auto img_height = pixel_image.height();
 
   auto scale = pixel_image.scale();
 
@@ -725,8 +732,8 @@ PixelTreeCanvas::drawHistogram(int idx, vector<float>& data, int color) {
   auto xoff = _sa->horizontalScrollBar()->value();
   auto yoff = _sa->verticalScrollBar()->value();
 
-  auto img_width = pixel_image.image().width();
-  auto img_height = pixel_image.image().height();
+  auto img_width = pixel_image.width();
+  auto img_height = pixel_image.height();
 
   /// work out maximum value
   int max_value = *max_element(std::begin(data), std::end(data));
@@ -813,8 +820,8 @@ PixelTreeCanvas::drawDepthAnalysisData() {
   auto xoff = _sa->horizontalScrollBar()->value(); // values should be in scaled pixels
   auto yoff = _sa->verticalScrollBar()->value();
 
-  auto img_width = pixel_image.image().width();
-  auto img_height = pixel_image.image().height();
+  auto img_width = pixel_image.width();
+  auto img_height = pixel_image.height();
 
   /// TODO: allow any height
 
@@ -904,6 +911,24 @@ PixelTreeCanvas::mousePressEvent(QMouseEvent* event) {
   selectNodesfromPT(vline);
   redrawAll();
 
+}
+
+void
+PixelTreeCanvas::mouseMoveEvent(QMouseEvent* event) {
+
+  auto xoff = _sa->horizontalScrollBar()->value();
+  auto yoff = _sa->verticalScrollBar()->value();
+
+  auto vline = event->x() / pixel_image.scale() + xoff;
+  auto y = event->y() + yoff;
+
+
+  // selectNodesfromPT(vline);
+  /// TODO: find a way to get away without redrawing everything
+  // pixel_image.drawMouseGuidelines(vline, 5);
+  // redrawAll();
+
+  // qDebug() << "mouse move: x: " << event->x() << " y: " << event->y();
 }
 
 void
