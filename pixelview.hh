@@ -92,27 +92,17 @@ private:
   QScrollBar*           _vScrollBar;
 
   /// Constants for a particular execution
-  uint _nodeCount;
+  unsigned _nodeCount;
 
   /// Pixel Tree settings (changed through GUI)
 
   unsigned approx_size = 1; // how many nodes per vertical line
 
-  // int hist_height = 50;
-  // int margin = 10;
-
-  /// temp stuff for a Pixel Tree
-  int   node_idx;
-  int   x;
-
   unsigned   vline_idx;  // same as x when _step = 1
-  float alpha_factor;
-
-  unsigned pt_width;
 
   /// Stuff specific for a particular pixel tree
   unsigned vlines; /// width of pixel tree
-  unsigned max_depth;
+  unsigned tree_depth;
 
   vector<float> time_arr; // time for each vline
   vector<float> domain_arr; // domain for each vline
@@ -120,7 +110,7 @@ private:
 
   vector<string> vars;
 
-  std::vector<PixelItem*> pixels_selected;
+  std::vector<PixelItem*> pixels_selected; // to know which pixels to deselect
 
   vector<int> var_decisions;
   vector<vector<int>> var_decisions_compressed;
@@ -130,12 +120,19 @@ private:
 
   /// Depth analysis data
   DepthAnalysis depthAnalysis;
-  std::vector< std::vector<unsigned int> > da_data;
-  std::vector< std::vector<unsigned int> > da_data_compressed;
+  std::vector< std::vector<unsigned> > da_data;
+  std::vector< std::vector<unsigned> > da_data_compressed;
 
   PixelImage pixel_image;
 
   PixelData pixel_data;
+
+  bool show_time_histogram = true;
+  bool show_domain_histogram = true;
+  bool show_decision_vars_histogram = true;
+  bool show_depth_analysis_histogram = true;
+
+  unsigned current_image_height; /// in 'squares'
 
 public:
 
@@ -164,13 +161,13 @@ private:
   PixelData traverseTreePostOrder(VisualNode* node);
 
   void redrawAll();
-  void drawHistogram(int idx, vector<float>& data, int color);
+  void drawHistogram(vector<float>& data, int color);
 
   void drawSolutionLine();
 
   /// Histograms
-  void drawTimeHistogram(int id);
-  void drawDomainHistogram(int id);
+  void drawTimeHistogram();
+  void drawDomainHistogram();
   void drawDomainReduction(unsigned l_vline, unsigned r_vline);
   void drawDepthAnalysisData();
 
@@ -199,6 +196,11 @@ public Q_SLOTS:
   void compressionChanged(int value);
   void resizeCanvas(void);
   void sliderChanged(int value);
+
+  void toggleTimeHistogram(int state);
+  void toggleDomainsHistogram(int state);
+  void toggleVarsHistogram(int state);
+  void toggleDepthAnalysisHistogram(int state);
 };
 
 
@@ -210,6 +212,11 @@ class PixelTreeDialog : public QDialog {
 private:
 
   QAbstractScrollArea scrollArea;
+
+  QCheckBox* time_cb;
+  QCheckBox* domains_cb;
+  QCheckBox* decision_vars_cb;
+  QCheckBox* depth_analysis_cb;
 
   PixelTreeCanvas canvas;
 
