@@ -6,3 +6,5 @@ gist.sublime-project
 gist.sublime-workspace
 *.txt
 build/
+*~
+/cp-profiler.pro.user

@@ -79,7 +79,6 @@ signals:
 protected:
   void run(void);
 
-    int nodeCount;
     QByteArray* buffer;
     QTcpSocket* tcpSocket;
     int size;
@@ -100,7 +99,6 @@ class ReceiverWorker : public QObject {
     Q_OBJECT
 public:
     ReceiverWorker(QTcpSocket* socket, Execution* execution) : execution(execution), tcpSocket(socket) {
-        nodeCount = 0;
         size = 0;
     }
 signals:
@@ -109,7 +107,6 @@ signals:
 private:
     Execution* execution;
     QByteArray buffer;
-    int nodeCount;
     int size;
     QTcpSocket* tcpSocket;
 public slots:
