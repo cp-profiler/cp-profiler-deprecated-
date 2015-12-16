@@ -25,9 +25,9 @@
 
 #include <utility> // pair
 
-CmpTreeDialog::CmpTreeDialog(ReceiverThread* receiver, const CanvasType& type, Gist* gist,
+CmpTreeDialog::CmpTreeDialog(Execution* execution, const CanvasType& type, Gist* gist,
                              TreeCanvas* tc1, TreeCanvas* tc2)
-: BaseTreeDialog(receiver, type, gist),
+    : BaseTreeDialog(execution, type, gist),
 _comparison{new TreeComparison()}, analysisMenu{nullptr}, pentListWindow{this} {
 
   hbl->addWidget(new NodeWidget(MERGING));

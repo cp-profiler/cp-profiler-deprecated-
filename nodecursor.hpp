@@ -134,6 +134,7 @@ inline void
 HideFailedCursor::processCurrentNode(void) {
 
     VisualNode* n = node();
+    // std::cerr << "HideFailedCursor::processCurrentNode: " << n->getStatus() << " " << n->hasSolvedChildren() << " " << n->getNoOfOpenChildren(na) << "\n";
     if (n->getStatus() == BRANCH &&
             !n->hasSolvedChildren() &&
             n->getNoOfOpenChildren(na) == 0) {
@@ -467,7 +468,7 @@ BranchLabelCursor::processCurrentNode(void) {
             VisualNode* p = n->getParent(_na);
             if (p) {
                 int gid = n->getIndex(_na);
-                std::string l = _tc.getData()->getLabel(gid);
+                std::string l = _tc.getLabel(gid);
                 _na.setLabel(n,QString(l.c_str()));
 //                if (n->getNumberOfChildren() < 1 &&
 //                        alternative() == p->getNumberOfChildren()-1)

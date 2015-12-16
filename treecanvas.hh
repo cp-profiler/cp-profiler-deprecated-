@@ -33,6 +33,7 @@
 #include "visualnode.hh"
 #include "treebuilder.hh"
 #include "zoomToFitIcon.hpp"
+#include "execution.hh"
 
 /// \brief Parameters for the tree layout
 namespace LayoutConfig {
@@ -51,7 +52,6 @@ class SimilarShapesWindow;
 
 class TreeBuilder;
 class TreeDialog;
-class ReceiverThread;
 
 /// *********************
 /// SIMILAR SUBTREES
@@ -175,7 +175,6 @@ enum class CanvasType {
 class TreeCanvas : public QWidget {
   Q_OBJECT
 
-  friend class ReceiverThread;
   friend class Gist;
   friend class TreeBuilder;
   friend class ShapeCanvas;
@@ -193,6 +192,15 @@ public:
 
   const CanvasType canvasType;
 
+    const char* getLabel(unsigned int gid) {
+        return execution->getLabel(gid);
+    }
+    unsigned long long getTotalTime() { return execution->getTotalTime(); }
+    string getTitle() { return execution->getTitle(); }
+    DbEntry* getEntry(unsigned int gid) { return execution->getEntry(gid); }
+
+    Execution* getExecution() { return execution; }
+
 private:
 
   /// ****** INTERFACE STUFF *********
@@ -203,11 +211,13 @@ private:
   static int counter;
 
   /// Pointer to Data Object
-  Data* _data = nullptr;
+  // Data* _data = nullptr;
 
   TreeBuilder* _builder;
 
-  ReceiverThread* ptr_receiver;
+    Execution* execution;
+
+    int nodeCount = 0;
 
 public Q_SLOTS:
 
@@ -216,7 +226,7 @@ public Q_SLOTS:
 
 public:
   /// Constructor
-  TreeCanvas(QGridLayout* layout, ReceiverThread* receiver, CanvasType type, QWidget* parent);
+    TreeCanvas(Execution* execution, QGridLayout* layout, CanvasType type, QWidget* parent);
   /// Destructor
   ~TreeCanvas(void);
 
@@ -468,7 +478,11 @@ public:
   /// traverse every node and set hidden
   void hideAll(void);
 
+
+
 public Q_SLOTS:
+  void maybeUpdateCanvas(void);
+  void updateCanvas(void);
   /// Update display
   void update(void);
   /// React to scroll events

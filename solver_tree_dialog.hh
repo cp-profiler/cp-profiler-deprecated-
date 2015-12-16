@@ -24,6 +24,7 @@
 
 #include <QStatusBar>
 #include "base_tree_dialog.hh"
+#include "execution.hh"
 
 class Gist;
 class ReceiverThread;
@@ -42,7 +43,7 @@ private:
 
 public:
 
-  SolverTreeDialog(ReceiverThread* receiver, const CanvasType type, Gist* gist);
+    SolverTreeDialog(Execution* execution, const CanvasType type, Gist* gist);
 
   ~SolverTreeDialog();
 

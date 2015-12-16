@@ -152,7 +152,7 @@ private:
   /// Book-keeping of open children
   void closeChild(const NodeAllocator& na,
                   bool hadFailures, bool hadSolutions);
-protected:
+public:
   /// Set status to \a s
   void setStatus(NodeStatus s);
 public:

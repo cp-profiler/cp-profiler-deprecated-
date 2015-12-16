@@ -27,26 +27,29 @@
 #include "solver_tree_dialog.hh"
 #include "cmp_tree_dialog.hh"
 
+#include "message.pb.hh"
+#include "execution.hh"
 
-void
-Gist::createNewCanvas(void) {
 
-    qDebug() << "!!! about to create a new canvas";
+// void
+// Gist::createNewCanvas(void) {
 
-    SolverTreeDialog* td = new SolverTreeDialog(receiver, CanvasType::REGULAR, this);
-    _td_vec.push_back(td);
+//     qDebug() << "!!! about to create a new canvas";
 
-}
+//     SolverTreeDialog* td = new SolverTreeDialog(CanvasType::REGULAR, this);
+//     _td_vec.push_back(td);
 
-void 
-Gist::initiateComparison(void) {
+// }
 
-    if (_td_vec.size() == 0) return;
+// void 
+// Gist::initiateComparison(void) {
 
-    /// will be destroyed with Gist
-    new CmpTreeDialog(receiver, CanvasType::MERGED, this,
-                      canvas, _td_vec[0]->getCanvas());
-}
+//     if (_td_vec.size() == 0) return;
+
+//     /// will be destroyed with Gist
+//     new CmpTreeDialog(CanvasType::MERGED, this,
+//                       canvas, _td_vec[0]->getCanvas());
+// }
 
 void
 Gist::initInterface(void) {
@@ -66,14 +69,12 @@ Gist::initInterface(void) {
     setLayout(layout);
 }
 
-Gist::Gist(QWidget* parent) : QWidget(parent) {
+Gist::Gist(Execution* execution, QWidget* parent) : QWidget(parent), execution(execution) {
 
     initInterface();
     addActions();
 
-    receiver = new ReceiverThread(this);
-
-    canvas = new TreeCanvas(layout, receiver, CanvasType::REGULAR, scrollArea->viewport());
+    canvas = new TreeCanvas(execution, layout, CanvasType::REGULAR, scrollArea->viewport());
     canvas->setPalette(*myPalette);
     canvas->setObjectName("canvas");
 
@@ -83,7 +84,9 @@ Gist::Gist(QWidget* parent) : QWidget(parent) {
     
     connectCanvas(canvas);
 
-    connect(initComparison, SIGNAL(triggered()), this, SLOT(initiateComparison()));
+    connect(execution, SIGNAL(newNode()), current_tc, SLOT(maybeUpdateCanvas()));
+
+    // connect(initComparison, SIGNAL(triggered()), this, SLOT(initiateComparison()));
 
     connect(scrollArea->horizontalScrollBar(), SIGNAL(valueChanged(int)),
             canvas, SLOT(scroll(void)));
@@ -95,13 +98,13 @@ Gist::Gist(QWidget* parent) : QWidget(parent) {
 
 
     // create new TreeCanvas when receiver gets new data
-    connect(receiver, SIGNAL(newCanvasNeeded()), this, SLOT(createNewCanvas(void)),
-       Qt::BlockingQueuedConnection);
+    // connect(receiver, SIGNAL(newCanvasNeeded()), this, SLOT(createNewCanvas(void)),
+    //    Qt::BlockingQueuedConnection);
 
 
     nodeStatInspector = new NodeStatInspector(this);
 
-    receiver->receive(canvas);
+    // receiver->receive(canvas);
     canvas->show();
 
     resize(500, 400);
@@ -683,9 +686,9 @@ Gist::connectCanvas(TreeCanvas* tc) {
     current_tc = tc;
 
     /// TODO: these 2 should not be here
-    connect(receiver, SIGNAL(startReceiving(void)),
+    connect(execution, SIGNAL(startReceiving(void)),
             tc->_builder, SLOT(startBuilding(void)));
-    connect(receiver, SIGNAL(doneReceiving(void)),
+    connect(execution, SIGNAL(doneReceiving(void)),
             tc->_builder, SLOT(setDoneReceiving(void)));
     connect(expand, SIGNAL(triggered()), tc, SLOT(expandCurrentNode()));
     connect(stop, SIGNAL(triggered()), tc, SLOT(stopSearch()));

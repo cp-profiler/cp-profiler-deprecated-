@@ -32,7 +32,6 @@
 
 #include "treecanvas.hh"
 #include "treebuilder.hh"
-#include "receiverthread.hh"
 #include "pixelview.hh"
 #include "nogood_dialog.hh"
 #include "node_info_dialog.hh"
@@ -46,7 +45,7 @@
 
 int TreeCanvas::counter = 0;
 
-TreeCanvas::TreeCanvas(QGridLayout* layout, ReceiverThread* receiver, CanvasType type, QWidget* parent)
+TreeCanvas::TreeCanvas(Execution* execution, QGridLayout* layout, CanvasType type, QWidget* parent)
     : QWidget(parent)
     , canvasType(type)
     , mutex(QMutex::Recursive)
@@ -61,6 +60,7 @@ TreeCanvas::TreeCanvas(QGridLayout* layout, ReceiverThread* receiver, CanvasType
     , layoutDoneTimerId(0)
     , shapesWindow(parent,  this)
     , shapesMap(CompareShapes(*this))
+    , execution(execution)
 {
     QMutexLocker locker(&mutex);
 
@@ -69,17 +69,17 @@ TreeCanvas::TreeCanvas(QGridLayout* layout, ReceiverThread* receiver, CanvasType
 
     _isUsed = false;
 
-    ptr_receiver = receiver;
     _builder = new TreeBuilder(this);
     na = new Node::NodeAllocator(false);
 
-    _data = new Data(this, na, false); // default data instance
+    // _data = new Data(this, na, false); // default data instance
     
     na->allocateRoot();
 
     root = (*na)[0];
     currentNode = root;
     root->setMarked(true);
+    root->setStatus(BRANCH);
     
     scale = LayoutConfig::defScale / 100.0;
 
@@ -104,14 +104,14 @@ TreeCanvas::TreeCanvas(QGridLayout* layout, ReceiverThread* receiver, CanvasType
     connect(_builder, SIGNAL(doneBuilding(bool)), this, SLOT(finalizeCanvas(void)));
     connect(_builder, SIGNAL(doneBuilding(bool)), this, SLOT(statusChanged(bool)));
 
-    connect(ptr_receiver, SIGNAL(update(int,int,int)), this,
-            SLOT(layoutDone(int,int,int)));
+    // connect(ptr_receiver, SIGNAL(update(int,int,int)), this,
+    //         SLOT(layoutDone(int,int,int)));
 
     // connect(ptr_receiver, SIGNAL(statusChanged(bool)), this,
     //         SLOT(statusChanged(bool)));
 
-    connect(ptr_receiver, SIGNAL(receivedNodes(bool)), this,
-            SLOT(statusChanged(bool)));
+    // connect(ptr_receiver, SIGNAL(receivedNodes(bool)), this,
+    //         SLOT(statusChanged(bool)));
 
     connect(&scrollTimeLine, SIGNAL(frameChanged(int)),
             this, SLOT(scroll(int)));
@@ -387,9 +387,9 @@ ShapeCanvas::scroll(void) {
 ///***********************
 
 
-Data* TreeCanvas::getData(void) {
-  return _data;
-}
+// Data* TreeCanvas::getData(void) {
+//   return _data;
+// }
 
 unsigned int TreeCanvas::getTreeDepth() {
   return stats.maxDepth;
@@ -443,7 +443,9 @@ void
 TreeCanvas::update(void) {
     QMutexLocker locker(&mutex);
     layoutMutex.lock();
+    std::cerr << "TreeCanvas::update\n";
     if (root != NULL) {
+        std::cerr << "root->layout\n";
         root->layout(*na);
         BoundingBox bb = root->getBoundingBox();
 
@@ -594,7 +596,7 @@ TreeCanvas::showNogoods(void) {
   GetIndexesCursor gic(currentNode, *na, selected);
   PreorderNodeVisitor<GetIndexesCursor>(gic).run();
 
-  NogoodDialog* ngdialog = new NogoodDialog(this, *this, selected, _data->getNogoods());
+  NogoodDialog* ngdialog = new NogoodDialog(this, *this, selected, execution->getNogoods());
 
   ngdialog->show();
 }
@@ -602,8 +604,8 @@ TreeCanvas::showNogoods(void) {
 void
 TreeCanvas::showNodeInfo(void) {
   int gid = currentNode->getIndex(*na);
-  unsigned int sid = _data->getEntry(gid)->sid;
-  std::unordered_map<unsigned long long, string>& sid2info = _data->getInfo();
+  unsigned int sid = execution->getEntry(gid)->sid;
+  std::unordered_map<unsigned long long, string>& sid2info = execution->getInfo();
   const string& info_str = sid2info[sid];
 
   NodeInfoDialog* nidialog = new NodeInfoDialog(this, info_str);
@@ -945,11 +947,11 @@ TreeCanvas::reset(bool isRestarts) {
         emit removedBookmark(i);
     bookmarks.clear();
 
-    delete _data;
-    _data = new Data(this, na, isRestarts);
+    // delete _data;
+    // _data = new Data(this, na, isRestarts);
 
-    _builder->reset(_data, na);
-    ptr_receiver->receive(this);
+    _builder->reset(execution, na);
+    // ptr_receiver->receive(this);
 
     _isUsed = false;
 
@@ -1379,14 +1381,15 @@ TreeCanvas::finish(void) {
     stopSearchFlag = true;
     finishedFlag = true;
 
-    return !ptr_receiver->isRunning();
+    // return !ptr_receiver->isRunning();
+    return false;
 }
 
 void
 TreeCanvas::finalizeCanvas(void) {
   _isUsed = true;
   disconnect(_builder, SIGNAL(doneBuilding(bool)), this, SLOT(statusChanged(bool)));
-  ptr_receiver->updateCanvas();
+  // ptr_receiver->updateCanvas();
 }
 
 void
@@ -1412,7 +1415,7 @@ TreeCanvas::setCurrentNode(VisualNode* n, bool finished, bool update) {
 void
 TreeCanvas::navigateToNodeBySid(unsigned int sid) {
   QMutexLocker locker(&mutex);
-  unsigned int gid = _data->getGidBySid(sid);
+  unsigned int gid = execution->getGidBySid(sid);
   VisualNode* node = (*na)[gid];
 
   setCurrentNode(node, true, true);
@@ -1499,4 +1502,92 @@ TreeCanvas::getMoveDuringSearch(void) {
 void
 TreeCanvas::setMoveDuringSearch(bool b) {
     moveDuringSearch = b;
+}
+
+// Call thes when there is a new node, and the canvas will update if
+// the refresh rate says that it should.
+void
+TreeCanvas::maybeUpdateCanvas(void) {
+    nodeCount++;
+    if (nodeCount >= refresh) {
+        nodeCount = 0;
+        updateCanvas();
+    }
+}
+
+void
+TreeCanvas::updateCanvas(void) {
+
+    // qDebug() << "update Canvas" << _t->_id;
+
+    std::cerr << "TreeCanvas::updateCanvas\n";
+    
+        // if (_t->refresh > 0 && nodeCount >= _t->refresh) {
+            // currentNode->dirtyUp(*na);
+            statusChanged(false);
+            //            updateCanvas();
+
+        //     // emit statusChanged(false);
+        //     emit receivedNodes(false);
+        //     nodeCount = 0;
+        //     if (_t->refreshPause > 0)
+        //       msleep(_t->refreshPause);
+        // }
+
+    layoutMutex.lock();
+
+    if (root == NULL) return;
+
+    if (autoHideFailed) {
+        std::cerr << "autoHideFailed is true\n";
+        root->hideFailed(*na, true);
+    }
+
+    for (VisualNode* n = currentNode; n != NULL; n=n->getParent(*na)) {
+        if (n->isHidden()) {
+            currentNode->setMarked(false);
+            currentNode = n;
+            currentNode->setMarked(true);
+            break;
+        }
+    }
+
+
+    root->layout(*na);
+    BoundingBox bb = root->getBoundingBox();
+
+    int w = static_cast<int>((bb.right-bb.left+Layout::extent)*scale);
+    int h = static_cast<int>(2*Layout::extent+
+                             root->getShape()->depth()
+                             *Layout::dist_y*scale);
+    xtrans = -bb.left+(Layout::extent / 2);
+
+    int scale0 = static_cast<int>(scale*100);
+    if (autoZoom) {
+        QWidget* p = parentWidget();
+        if (p) {
+            double newXScale =
+                    static_cast<double>(p->width()) / (bb.right - bb.left +
+                                                       Layout::extent);
+            double newYScale =
+                    static_cast<double>(p->height()) /
+                    (root->getShape()->depth() * Layout::dist_y + 2*Layout::extent);
+
+            scale0 = static_cast<int>(std::min(newXScale, newYScale)*100);
+            if (scale0<LayoutConfig::minScale)
+                scale0 = LayoutConfig::minScale;
+            if (scale0>LayoutConfig::maxAutoZoomScale)
+                scale0 = LayoutConfig::maxAutoZoomScale;
+            double scale = (static_cast<double>(scale0)) / 100.0;
+
+            w = static_cast<int>((bb.right-bb.left+Layout::extent)*scale);
+            h = static_cast<int>(2*Layout::extent+
+                                 root->getShape()->depth()*Layout::dist_y*scale);
+        }
+    }
+
+    layoutMutex.unlock();
+    update();
+    layoutDone(w,h,scale0);
+    // emit update(w,h,scale0);
 }

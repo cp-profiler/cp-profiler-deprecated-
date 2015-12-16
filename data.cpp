@@ -33,8 +33,10 @@ using namespace std;
 
 int Data::instance_counter = 0;
 
-// #define SSTR( x ) dynamic_cast< std::ostringstream & >( \
-//         ( std::ostringstream() << std::dec << x ) ).str()
+/*
+#define SSTR( x ) dynamic_cast< std::ostringstream & >( \
+        ( std::ostringstream() << std::dec << x ) ).str()
+*/
 
 ostream& operator<<(ostream& s, const DbEntry& e) {
     s << "dbEntry: {";
@@ -48,8 +50,8 @@ ostream& operator<<(ostream& s, const DbEntry& e) {
 }
 
 
-Data::Data(TreeCanvas* tc, NodeAllocator* na, bool isRestarts)
- : _tc(tc), _id(_tc->_id), _na(na), _isRestarts(isRestarts) {
+Data::Data(NodeAllocator* na, bool isRestarts)
+ : _na(na), _isRestarts(isRestarts) {
 
     _isDone = false;
     _prev_node_timestamp = 0;
@@ -59,10 +61,10 @@ Data::Data(TreeCanvas* tc, NodeAllocator* na, bool isRestarts)
     last_interval_time = begin_time;
     last_interval_nc = 0;
 
-    if (_tc->canvasType == CanvasType::MERGED) {
-        _isDone = true;
-        _total_time = 0;
-    }
+    // if (_tc->canvasType == CanvasType::MERGED) {
+    //     _isDone = true;
+    //     _total_time = 0;
+    // }
 
 }
 
@@ -114,12 +116,12 @@ int Data::handleNodeCallback(message::Node& node) {
     char thread = node.thread_id();
     float domain = node.domain_size();
 
-    // qDebug() << "Received node: \t" << id << " " << pid << " "
-    //                 << alt << " " << kids << " " << status << " wid: "
-    //                 << (int)thread << " restart: " << restart_id
-    //                 << "time: " << node.time()
-    //                 << "label: " << node.label().c_str()
-    //                 << "nogood: " << node.nogood().c_str();
+    qDebug() << "Received node: \t" << id << " " << pid << " "
+                    << alt << " " << kids << " " << status << " wid: "
+                    << (int)thread << " restart: " << restart_id
+                    << "time: " << node.time()
+                    << "label: " << node.label().c_str()
+                    << "nogood: " << node.nogood().c_str();
 
 
     if (node.has_nogood() && node.nogood().length() > 0) {

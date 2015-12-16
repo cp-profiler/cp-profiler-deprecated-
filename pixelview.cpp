@@ -34,8 +34,8 @@ PixelTreeDialog::PixelTreeDialog(TreeCanvas* tc)
   this->resize(600, 400);
 
   /// set Title
-  this->setWindowTitle(QString::fromStdString(tc->getData()->getTitle()));
-  qDebug() << "title: " << tc->getData()->getTitle().c_str();
+  this->setWindowTitle(QString::fromStdString(tc->getTitle()));
+  qDebug() << "title: " << tc->getTitle().c_str();
 
   setLayout(&layout);
   layout.addWidget(&scrollArea);
@@ -140,6 +140,7 @@ PixelTreeCanvas::constructTree(void) {
 
   vlines = ceil((float)_nodeCount / approx_size);
 
+  std::cerr << "vlines: " << vlines << "\n";
   delete [] time_arr;
   time_arr = new float[vlines]; //  TODO: "Uninitialised value was created by a heap allocation"
 
@@ -270,13 +271,13 @@ PixelTreeCanvas::actuallyDraw() {
 
   /// All Histograms
 
-  drawTimeHistogram(leftmost_vline, rightmost_vline);
+  // drawTimeHistogram(leftmost_vline, rightmost_vline);
 
-  drawDomainHistogram(leftmost_vline, rightmost_vline);
+  // drawDomainHistogram(leftmost_vline, rightmost_vline);
 
-  drawDomainReduction(leftmost_vline, rightmost_vline);
+  // drawDomainReduction(leftmost_vline, rightmost_vline);
 
-  drawNodeRate(leftmost_vline, rightmost_vline);
+  // drawNodeRate(leftmost_vline, rightmost_vline);
   
 }
 
@@ -317,8 +318,8 @@ PixelTreeCanvas::flush(void) {
 void
 PixelTreeCanvas::exploreNext(VisualNode* node, unsigned depth) {
 
-  Data* data = _tc->getData();
-  DbEntry* entry = data->getEntry(node->getIndex(*_na));
+    //  Data* data = _tc->getData();
+  DbEntry* entry = _tc->getEntry(node->getIndex(*_na));
   DbEntry* parent = nullptr;
 
   assert(depth <= max_depth);
@@ -328,13 +329,13 @@ PixelTreeCanvas::exploreNext(VisualNode* node, unsigned depth) {
   pixelList[vline_idx].push_back(new PixelData(node_idx, node, depth));
 
   if (!entry) {
-    qDebug() << "entry does not exist\n";
+      // qDebug() << "entry (idx " << node->getIndex(*_na) << ") does not exist";
   } else {
 
     group_size_nonempty++;
 
     if (entry->parent_sid != ~0u) {
-      parent = data->getEntry(node->getParent());
+      parent = _tc->getEntry(node->getParent());
 
       if (parent) /// need this for restarts
         group_domain_red += parent->domain - entry->domain;
@@ -349,10 +350,6 @@ PixelTreeCanvas::exploreNext(VisualNode* node, unsigned depth) {
   group_size++;
 
   if (group_size == approx_size) {
-    vline_idx++;
-    group_size = 0;
-
-
     /// get average domain size for the group
     if (group_size_nonempty == 0) {
       group_domain      = -1;
@@ -369,6 +366,10 @@ PixelTreeCanvas::exploreNext(VisualNode* node, unsigned depth) {
     domain_arr[vline_idx]     = group_domain;
     domain_red_arr[vline_idx] = group_domain_red;
     
+    vline_idx++;
+    std::cerr << "increased vline_idx to " << vline_idx << " where vlines is " << vlines << "\n";
+
+    group_size = 0;
     group_time   = 0;
     group_domain = 0;
     group_domain_red = 0;
@@ -452,7 +453,7 @@ PixelTreeCanvas::drawHistogram(int idx, float* data, unsigned l_vline, unsigned 
 
 void
 PixelTreeCanvas::drawNodeRate(unsigned l_vline, unsigned r_vline) {
-  Data* data = _tc->getData();
+    Data* data = _tc->getExecution()->getData();
   std::vector<float>& node_rate = data->node_rate;
   std::vector<int>& nr_intervals = data->nr_intervals;
 

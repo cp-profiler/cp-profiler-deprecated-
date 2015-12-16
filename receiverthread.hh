@@ -23,49 +23,99 @@
 #define receiver_THREAD_HH
 
 #include <QThread>
+#include <QObject>
+#include <QTcpSocket>
+#include <iostream>
 
-#include "qtgist.hh"
-#include "treecanvas.hh"
+#include "message.pb.hh"
 
-class Gist;
+class Execution;
 
 class ReceiverThread : public QThread {
   Q_OBJECT
 
-  friend Gist;
+  // friend Gist;
 
 public:
 
-  ReceiverThread(QWidget* parent = 0);
-  void switchCanvas(TreeCanvas* tc);
-  void receive(TreeCanvas* tc);
+    ReceiverThread(int socketDescriptor, Execution* execution, QObject* parent = 0);
+  // void switchCanvas(TreeCanvas* tc);
+  // void receive(TreeCanvas* tc);
 
 
-private:
-  TreeCanvas* _t;
-  Gist* ptr_gist;
+    //private:
+  // TreeCanvas* _t;
+  // Gist* ptr_gist;
 
-  volatile bool _quit;
+    // Execution* execution;
 
-public Q_SLOTS:
-  void updateCanvas(void); /// TODO: should be moved to TreeCanvas
-  void stopThread(void);
+//   volatile bool _quit;
 
-Q_SIGNALS:
-  void update(int w, int h, int scale0);
+  int socketDescriptor;
+
+    ~ReceiverThread() {
+        std::cerr << "Receiver thread " << this << " being destroyed\n";
+    }
+
+// public Q_SLOTS:
+//   void updateCanvas(void); /// TODO: should be moved to TreeCanvas
+//   void stopThread(void);
+
+signals:
+  // void update(int w, int h, int scale0);
   void startReceiving(void);
   void doneReceiving(void);
-  void statusChanged(bool);
-  void newCanvasNeeded(void);
+  // void statusChanged(bool);
+  // void newCanvasNeeded(void);
+
   /// Emit when receives new nodes to update Status Bar
-  void receivedNodes(bool finished);
+  // void receivedNodes(bool finished);
+
+    // void newNode(message::Node& node);
+
+// private slots:
+//     void readyRead();
 
 protected:
   void run(void);
-  
 
-
+    int nodeCount;
+    QByteArray* buffer;
+    QTcpSocket* tcpSocket;
+    int size;
+    Execution* execution;
 };
+
+
+
+
+inline
+quint32 ArrayToInt(const QByteArray& ba) {
+    const char* p = ba.data();
+    return *(reinterpret_cast<const quint32*>(p));
+}
+
+
+class ReceiverWorker : public QObject {
+    Q_OBJECT
+public:
+    ReceiverWorker(QTcpSocket* socket, Execution* execution) : execution(execution), tcpSocket(socket) {
+        nodeCount = 0;
+        size = 0;
+    }
+signals:
+    void startReceiving(void);
+    void doneReceiving(void);
+private:
+    Execution* execution;
+    QByteArray buffer;
+    int nodeCount;
+    int size;
+    QTcpSocket* tcpSocket;
+public slots:
+    void doRead();
+};
+
 
 #endif
 

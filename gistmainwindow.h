@@ -84,12 +84,12 @@ protected Q_SLOTS:
   void changeTitle(const char* file_name);
 public:
   /// Constructor
-  GistMainWindow();
+  GistMainWindow(Execution* execution, QWidget* parent);
 
   Gist* getGist(void) { return c; }
 protected:
   /// Close Gist
-  void closeEvent(QCloseEvent* event);
+  /* void closeEvent(QCloseEvent* event); */
 };
 
 #endif // MAINWINDOW_H

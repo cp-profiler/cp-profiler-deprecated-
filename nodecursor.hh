@@ -40,6 +40,7 @@
 
 #include "visualnode.hh"
 #include "data.hh"
+#include "treecanvas.hh"
 
 #include <vector>
 #include <QTextStream>

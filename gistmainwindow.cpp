@@ -49,10 +49,12 @@ AboutGist::AboutGist(QWidget* parent) : QDialog(parent) {
 
 
 
-GistMainWindow::GistMainWindow() : aboutGist(this) {
-  c = new Gist(this);
+GistMainWindow::GistMainWindow(Execution* execution, QWidget* parent) : QMainWindow(parent), aboutGist(this) {
+    c = new Gist(execution, this);
   setCentralWidget(c);
   setWindowTitle(tr("Gist"));
+
+  
 
 //  Logos logos;
 //  QPixmap myPic;
@@ -174,24 +176,24 @@ GistMainWindow::GistMainWindow() : aboutGist(this) {
   connect(c, SIGNAL(changeMainTitle(const std::string&)),
           this, SLOT(changeTitle(const std::string&)));
 
-  connect(this, SIGNAL(stopReceiver()), c->getReceiver(), SLOT(stopThread()));
+  // connect(this, SIGNAL(stopReceiver()), c->getReceiver(), SLOT(stopThread()));
 
   preferences(true);
   show();
   c->reset->trigger();
 }
 
-void
-GistMainWindow::closeEvent(QCloseEvent* event) {
+// void
+// GistMainWindow::closeEvent(QCloseEvent* event) {
 
-  emit stopReceiver();
-  c->getReceiver()->wait();
+//   emit stopReceiver();
+//   // c->getReceiver()->wait();
 
-  if (c->finish())
-    event->accept();
-  else 
-    event->ignore();
-}
+//   if (c->finish())
+//     event->accept();
+//   else 
+//     event->ignore();
+// }
 
 void
 GistMainWindow::statusChanged(const Statistics& stats, bool finished) {
@@ -204,7 +206,7 @@ GistMainWindow::statusChanged(const Statistics& stats, bool finished) {
 
     /// add total time to 'Done' label
     QString t;
-    unsigned long long totalTime = c->getCanvas()->getData()->getTotalTime();
+    unsigned long long totalTime = c->getExecution()->getData()->getTotalTime();
     float seconds = totalTime / 1000000.0;
     t.setNum(seconds);
     statusBar()->showMessage("Done in " + t + "s");

@@ -31,9 +31,12 @@
 #include <iostream>
 #include <string>
 
-#include "treebuilder.hh"
-#include "treecanvas.hh"
+#include <QDebug>
+
+// #include "treebuilder.hh"
+// #include "treecanvas.hh"
 #include "node.hh"
+#include "visualnode.hh"
 
 typedef NodeAllocatorBase<VisualNode> NodeAllocator;
 
@@ -85,18 +88,18 @@ public:
 class Data : public QObject {
 Q_OBJECT
 
-friend class TreeBuilder;
-friend class PixelTreeCanvas;
+// friend class TreeBuilder;
+// friend class PixelTreeCanvas;
 
 /// step for node rate counter (in microseconds)
 static const int NODE_RATE_STEP = 1000;
 
-private:
+public:
     /// counts instances of Data
     static int instance_counter;
 
-    const TreeCanvas* _tc; /// TreeCanvas instance it belongs to
-    const int _id; /// Id of the TreeCanvas instance it belongs to
+    // const TreeCanvas* _tc; /// TreeCanvas instance it belongs to
+    // const int _id; /// Id of the TreeCanvas instance it belongs to
 
     /// TODO: do I even need NodeAllocator in Data?
     const NodeAllocator* _na; /// Node allocator of _tc
@@ -137,6 +140,7 @@ private:
 
     /// How many nodes received within each NODE_RATE_STEP interval
     std::vector<float> node_rate;
+
     /// On which node each interval starts
     std::vector<int> nr_intervals;
 
@@ -165,7 +169,7 @@ private:
     
 public:
 
-    Data(TreeCanvas* tc, NodeAllocator* na, bool isRestarts);
+    Data(NodeAllocator* na, bool isRestarts);
     ~Data(void);
 
     int handleNodeCallback(message::Node& node);
@@ -185,7 +189,7 @@ public:
 
 /// ********* GETTERS **********
 
-    int id(void) { return _id; }
+    // int id(void) { return _id; }
 
     bool isDone(void) { return _isDone; }
     bool isRestarts(void) { return _isRestarts; }

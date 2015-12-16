@@ -76,7 +76,7 @@ void NogoodDialog::populateTable(const std::vector<int>& selected_nodes) {
   int row = 0;
   for (auto it = selected_nodes.begin(); it != selected_nodes.end(); it++) {
 
-    unsigned long long sid = _tc.getData()->gid2sid(*it);
+      unsigned long long sid = _tc.getExecution()->getData()->gid2sid(*it);
 
 
     auto ng_item = _sid2nogood.find(sid);

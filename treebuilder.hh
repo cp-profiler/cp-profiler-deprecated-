@@ -29,6 +29,7 @@
 #include "data.hh"
 #include "treecanvas.hh"
 #include "readingQueue.hh"
+#include "execution.hh"
 
 typedef NodeAllocatorBase<VisualNode> NodeAllocator;
 
@@ -62,7 +63,7 @@ private:
 public:
     TreeBuilder(TreeCanvas* tc, QObject *parent = 0);
     ~TreeBuilder();
-    void reset(Data* data, NodeAllocator *na);
+    void reset(Execution* execution, NodeAllocator *na);
 
 Q_SIGNALS:
 	void doneBuilding(bool finished);

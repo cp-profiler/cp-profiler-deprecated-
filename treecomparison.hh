@@ -23,6 +23,7 @@
 #define TREE_COMPARISON
 
 #include "treecanvas.hh"
+#include "data.hh"
 
 #include <QStack>
 #include <vector>

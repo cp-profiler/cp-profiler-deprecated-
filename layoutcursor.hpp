@@ -49,7 +49,9 @@ LayoutCursor::LayoutCursor(VisualNode* theNode,
 inline void
 LayoutCursor::processCurrentNode(void) {
     VisualNode* currentNode = node();
+    // std::cerr << "LayoutCursor visiting node " << currentNode << "\n";
     if (currentNode->isDirty()) {
+        // std::cerr << "LayoutCurser: node is dirty\n";
         if (currentNode->isHidden()) {
             // do nothing
         } else if (false && currentNode->getNumberOfChildren() < 1) { /// TODO: ask Guido

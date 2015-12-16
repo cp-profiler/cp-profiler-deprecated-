@@ -17,7 +17,7 @@ std::vector<Direction> DepthAnalysisDialog::collectDepthData() {
 
   SpaceNode* root = (*_na)[0];
   std::vector<Direction> depth_data;
-  depth_data.reserve(_tc->getData()->size());
+  depth_data.reserve(_tc->getExecution()->getData()->size());
 
   traverse(depth_data, root);
 

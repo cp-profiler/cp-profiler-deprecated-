@@ -54,14 +54,14 @@ void TreeBuilder::setDoneReceiving() {
     _data->setDoneReceiving();
 }
 
-void TreeBuilder::reset(Data* data, NodeAllocator* na) {
+void TreeBuilder::reset(Execution* execution, NodeAllocator* na) {
 
     /// old _data and _na are deleted by this point
-	_data = data;
+    _data = execution->getData();
 	_na = na;
 
     delete read_queue;
-    read_queue = new ReadingQueue(data->nodes_arr);
+    read_queue = new ReadingQueue(_data->nodes_arr);
 
     nodesCreated = 1;
     lastRead = 0;
@@ -260,6 +260,8 @@ bool TreeBuilder::processNode(DbEntry& dbEntry, bool is_delayed) {
                     assert(status != SOLVED);
                 break;
             }
+        node.changedStatus(*_na);
+        node.dirtyUp(*_na);
         } else {
             // qDebug() << "Ignoring a node: " << ignored_entries.size();
             // assert(status == SKIPPED);

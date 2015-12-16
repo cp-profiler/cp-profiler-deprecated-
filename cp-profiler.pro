@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui
+QT       += core gui network
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets printsupport
 
@@ -19,8 +19,8 @@ CONFIG += c++11
 #CONFIG += -std=c++0x
 
 SOURCES += main.cpp\
-        gistmainwindow.cpp \
-        globalhelper.cpp \
+    globalhelper.cpp \
+    gistmainwindow.cpp \
     heap.cpp \
     nodewidget.cpp \
     drawingcursor.cpp \
@@ -34,21 +34,20 @@ SOURCES += main.cpp\
     data.cpp \
     base_tree_dialog.cpp \
     solver_tree_dialog.cpp \
-    cmp_tree_dialog.cpp \
     receiverthread.cpp \
     treebuilder.cpp \
     readingQueue.cpp \
-    treecomparison.cpp \
     pixelview.cpp \
     nogood_dialog.cpp \
     node_info_dialog.cpp \
     depth_analysis.cpp \
     message.pb.cpp \
+    profiler-conductor.cpp \
+    profiler-tcp-server.cpp
 
-
-HEADERS  += gistmainwindow.h \
-    globalhelper.hh \
+HEADERS  += globalhelper.hh \
     qtgist.hh \
+    gistmainwindow.h \
     treecanvas.hh \
     visualnode.hh \
     spacenode.hh \
@@ -72,16 +71,17 @@ HEADERS  += gistmainwindow.h \
     data.hh \
     base_tree_dialog.hh \
     solver_tree_dialog.hh \
-    cmp_tree_dialog.hh \
     receiverthread.hh \
     treebuilder.hh \
     readingQueue.hh \
-    treecomparison.hh \
     pixelview.hh \
     nogood_dialog.hh \
     node_info_dialog.hh \
     depth_analysis.hh \
-    message.pb.hh
+    message.pb.hh \
+    profiler-conductor.hh \
+    profiler-tcp-server.hh \
+    execution.hh
 
 FORMS    +=
 

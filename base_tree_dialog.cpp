@@ -23,7 +23,7 @@
 #include "nodewidget.hh"
 #include "treecanvas.hh"
 
-BaseTreeDialog::BaseTreeDialog(ReceiverThread* receiver, const CanvasType type, Gist* gist) :
+BaseTreeDialog::BaseTreeDialog(Execution* execution, const CanvasType type, Gist* gist) :
   QDialog(gist), ptr_gist(gist), menuBar{nullptr}, nodeMenu{nullptr} {
 
   layout = new QGridLayout(this);
@@ -40,7 +40,7 @@ BaseTreeDialog::BaseTreeDialog(ReceiverThread* receiver, const CanvasType type, 
 
 
   // data is created here
-  _tc = new TreeCanvas(layout, receiver, type, scrollArea->viewport());
+  _tc = new TreeCanvas(execution, layout, type, scrollArea->viewport());
 
   layout->addWidget(scrollArea, 0, 0, 1, 1);
   layout->addWidget(_tc->scaleBar, 0, 1, Qt::AlignHCenter);
@@ -123,7 +123,7 @@ BaseTreeDialog::statusChangedShared(bool finished) {
   if (finished) {
     /// add total time to 'Done' label
     QString t;
-    unsigned long long totalTime = _tc->getData()->getTotalTime();
+    unsigned long long totalTime = _tc->getTotalTime();
 
     const int MILLION = 1000000;
     float seconds = (float)totalTime / MILLION; /// microseconds to seconds

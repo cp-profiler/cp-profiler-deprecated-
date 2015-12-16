@@ -20,6 +20,7 @@
 
 #include "gistmainwindow.h"
 #include "globalhelper.hh"
+#include "profiler-conductor.hh"
 #include <QApplication>
 
 int main(int argc, char *argv[])
@@ -39,11 +40,13 @@ int main(int argc, char *argv[])
       return 0;
     }
 
-    GistMainWindow w;
+    ProfilerConductor w;
+    
+    // GistMainWindow w;
     w.show();
 
-    QObject::connect(&a, SIGNAL(focusChanged(QWidget*,QWidget*)),
-                      w.getGist(), SLOT(onFocusChanged(QWidget*,QWidget*)));
+    // QObject::connect(&a, SIGNAL(focusChanged(QWidget*,QWidget*)),
+    //                   w.getGist(), SLOT(onFocusChanged(QWidget*,QWidget*)));
 
     return a.exec();
     

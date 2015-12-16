@@ -23,6 +23,7 @@
 
 #include <QTableWidget>
 #include "base_tree_dialog.hh"
+#include "execution.hh"
 
 class Gist;
 class TreeComparison;
@@ -76,7 +77,7 @@ private:
 
 public:
 
-  CmpTreeDialog(ReceiverThread* receiver, const CanvasType& type, Gist* gist,
+    CmpTreeDialog(Execution* execution, const CanvasType& type, Gist* gist,
                 TreeCanvas *tc1, TreeCanvas *tc2);
   ~CmpTreeDialog();
 

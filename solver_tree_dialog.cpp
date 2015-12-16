@@ -20,9 +20,10 @@
  */
 #include "solver_tree_dialog.hh"
 #include "nodewidget.hh"
+#include "execution.hh"
 
-SolverTreeDialog::SolverTreeDialog(ReceiverThread* receiver, const CanvasType type, Gist* gist)
-: BaseTreeDialog(receiver, type, gist)
+SolverTreeDialog::SolverTreeDialog(Execution* execution, const CanvasType type, Gist* gist)
+    : BaseTreeDialog(execution, type, gist)
 {
 
 

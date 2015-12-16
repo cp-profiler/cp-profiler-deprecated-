@@ -46,8 +46,6 @@ using std::vector;
 class Gist : public QWidget {
   Q_OBJECT
 
-  friend ReceiverThread;
-
   /// **************** INTERFACE *******************
 
   QAbstractScrollArea* scrollArea;
@@ -57,12 +55,12 @@ class Gist : public QWidget {
   /// tree dialogs for additional solver runs
   vector<SolverTreeDialog*> _td_vec;
 
+public:
+    Execution* getExecution() { return execution; }
+
 
   /// **************** MY STUFF ********************
 private:
-
-  /// Checks for new nodes
-  ReceiverThread* receiver;
 
   /// Points to the active canvas
   TreeCanvas* current_tc = nullptr;
@@ -84,6 +82,8 @@ private:
 
   /// connect the signals as well as disconnect current_tc
   void connectCanvas(TreeCanvas* tc);
+
+    Execution* execution;
 
 public:
 
@@ -193,7 +193,7 @@ public:
 public:
   /// Constructor
 //  Gist(Space* root, bool bab, QWidget* parent, const Options& opt);
-  Gist(QWidget* parent);
+    Gist(Execution* execution, QWidget* parent);
   /// Destructor
   ~Gist(void);
 
@@ -238,7 +238,6 @@ public:
 
   /// ***** GETTERS *****
   TreeCanvas* getCanvas(void) { return canvas; }
-  ReceiverThread* getReceiver(void) { return receiver; }
 
   /// returns canvas from td_vec (additional canvases)
   TreeCanvas* getLastCanvas(void);
@@ -258,9 +257,9 @@ Q_SIGNALS:
 
 private Q_SLOTS:
   /// Create new TreeCanvas based on comparison
-  void initiateComparison(void);
+  // void initiateComparison(void);
   /// Create new TreeCanvas if already have one
-  void createNewCanvas(void);
+  // void createNewCanvas(void);
   /// Create new TreeCanvas if already have one
   void prepareNewCanvas(void); // TODO: get rid of this one
   /// Displays the context menu for a node

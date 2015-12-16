@@ -25,8 +25,9 @@
 #include <QDialog>
 #include <QLayout>
 
+#include "execution.hh"
+
 class Gist;
-class ReceiverThread;
 class QAbstractScrollArea;
 class QStatusBar;
 class QMenuBar;
@@ -74,7 +75,7 @@ Q_OBJECT
 
   public:
 
-    BaseTreeDialog(ReceiverThread* receiver, const CanvasType type, Gist* gist);
+    BaseTreeDialog(Execution* execution, const CanvasType type, Gist* gist);
     ~BaseTreeDialog();
 
     /// **** GETTERS ****
