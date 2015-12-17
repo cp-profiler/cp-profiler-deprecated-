@@ -101,6 +101,7 @@ TreeCanvas::TreeCanvas(Execution* execution, QGridLayout* layout, CanvasType typ
 
     connect(this, SIGNAL(autoZoomChanged(bool)), autoZoomButton, SLOT(setChecked(bool)));
 
+    connect(_builder, SIGNAL(addedNode()), this, SLOT(maybeUpdateCanvas()));
     connect(_builder, SIGNAL(doneBuilding(bool)), this, SLOT(finalizeCanvas(void)));
     connect(_builder, SIGNAL(doneBuilding(bool)), this, SLOT(statusChanged(bool)));
 
@@ -951,13 +952,14 @@ TreeCanvas::reset(bool isRestarts) {
     // _data = new Data(this, na, isRestarts);
 
     _builder->reset(execution, na);
+    _builder->start();
     // ptr_receiver->receive(this);
 
     _isUsed = false;
 
     emit statusChanged(currentNode, stats, false);
 
-    update();
+    updateCanvas();
 }
 
 void
@@ -1278,6 +1280,7 @@ TreeCanvas::resizeToOuter(void) {
 
 void
 TreeCanvas::paintEvent(QPaintEvent* event) {
+    std::cerr << "TreeCanvas::paintEvent\n";
     QMutexLocker locker(&layoutMutex);
     QPainter painter(this);
     painter.setRenderHint(QPainter::Antialiasing);

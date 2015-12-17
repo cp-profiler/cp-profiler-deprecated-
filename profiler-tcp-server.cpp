@@ -17,8 +17,8 @@ void ProfilerTcpServer::incomingConnection(qintptr socketDescriptor) {
 
     _parent->newExecution(execution);
     
-    GistMainWindow* g = new GistMainWindow(execution, _parent);
-    g->show();
+    // GistMainWindow* g = new GistMainWindow(execution, _parent);
+    // g->show();
 
     connect(receiver, SIGNAL(finished()), receiver, SLOT(deleteLater()));
     receiver->start();

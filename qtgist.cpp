@@ -84,7 +84,7 @@ Gist::Gist(Execution* execution, QWidget* parent) : QWidget(parent), execution(e
     
     connectCanvas(canvas);
 
-    connect(execution, SIGNAL(newNode()), current_tc, SLOT(maybeUpdateCanvas()));
+    // connect(execution, SIGNAL(newNode()), current_tc, SLOT(maybeUpdateCanvas()));
 
     // connect(initComparison, SIGNAL(triggered()), this, SLOT(initiateComparison()));
 
@@ -686,10 +686,10 @@ Gist::connectCanvas(TreeCanvas* tc) {
     current_tc = tc;
 
     /// TODO: these 2 should not be here
-    connect(execution, SIGNAL(startReceiving(void)),
-            tc->_builder, SLOT(startBuilding(void)));
-    connect(execution, SIGNAL(doneReceiving(void)),
-            tc->_builder, SLOT(setDoneReceiving(void)));
+    // connect(execution, SIGNAL(startReceiving(void)),
+    //         tc->_builder, SLOT(startBuilding(void)));
+    // connect(execution, SIGNAL(doneReceiving(void)),
+    //         tc->_builder, SLOT(setDoneReceiving(void)));
     connect(expand, SIGNAL(triggered()), tc, SLOT(expandCurrentNode()));
     connect(stop, SIGNAL(triggered()), tc, SLOT(stopSearch()));
     connect(reset, SIGNAL(triggered()), tc, SLOT(reset()));

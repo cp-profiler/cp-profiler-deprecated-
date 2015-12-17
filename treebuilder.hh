@@ -67,6 +67,7 @@ public:
 
 Q_SIGNALS:
 	void doneBuilding(bool finished);
+    void addedNode(void);
 
 public Q_SLOTS:
     void startBuilding(void);

@@ -328,7 +328,10 @@ DrawingCursor::drawShape(int myx, int myy, VisualNode* node){
     painter.setPen(Qt::NoPen);
 
     Shape* shape = node->getShape();
-    if (shape == NULL) return; // this is wrong
+    if (shape == NULL) {
+        std::cerr << "WARNING: node has no shape\n";
+        return; // this is wrong
+    }
     int depth = shape->depth();
     QPointF *points = new QPointF[depth * 2];
 

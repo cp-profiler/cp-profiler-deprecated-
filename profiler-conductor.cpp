@@ -1,42 +1,55 @@
 #include "profiler-conductor.hh"
 #include "receiverthread.hh"
 #include "profiler-tcp-server.hh"
+#include "gistmainwindow.h"
 
+#include <QPushButton>
 #include <QVBoxLayout>
 
-ProfilerConductor::ProfilerConductor() {
-    this->setMinimumHeight(320);
-    this->setMinimumWidth(320);
-    // QVBoxLayout *layout = new QVBoxLayout;
-
-    executionList = new QListWidget(this);
+ProfilerConductor::ProfilerConductor()
+    : QMainWindow()
+{
     
-    // // The list widget contains all the received executions.
-    // executionListModel = new ExecutionListModel;
-    
-    // QListView* executionList = new QListView(this);
-    executionList->setMinimumHeight(300);
-    executionList->setMinimumWidth(300);
-    // executionList->setModel(executionListModel);
-    // layout->addWidget(executionList);
+    // this->setMinimumHeight(320);
+    // this->setMinimumWidth(320);
 
-    // this->setLayout(layout);
+    QWidget* centralWidget = new QWidget(this);
+    setCentralWidget(centralWidget);
+    
+    executionList = new QListWidget;
+
+    QPushButton* gistButton = new QPushButton("show tree");
+    connect(gistButton, SIGNAL(clicked(bool)), this, SLOT(gistButtonClicked(bool)));
+
+    QVBoxLayout* layout = new QVBoxLayout;
+    layout->addWidget(executionList);
+    layout->addWidget(gistButton);
+    centralWidget->setLayout(layout);
 
     // Listen for new executions.
     ProfilerTcpServer* listener = new ProfilerTcpServer(this);
     listener->listen(QHostAddress::Any, 6565);
 }
 
+class ExecutionListItem : public QListWidgetItem {
+public:
+    ExecutionListItem(Execution* execution, QListWidget* parent, int type = Type)
+        : QListWidgetItem(parent, type),
+          execution_(execution),
+          gistWindow_(NULL)
+    {}
+
+    Execution* execution_;
+    GistMainWindow* gistWindow_;
+};
+
 void
 ProfilerConductor::newExecution(Execution* execution) {
-    // ExecutionListItem *newItem = new ExecutionListItem(execution, executionList);
-    QListWidgetItem *newItem = new QListWidgetItem(executionList);
+    ExecutionListItem *newItem = new ExecutionListItem(execution, executionList);
     newItem->setText("some execution");
     executionList->addItem(newItem);
     executions << execution;
 
-    // executionListModel->addExecution(execution);
-    
     connect(execution, SIGNAL(newNode()), this, SLOT(updateList()));
 }
 
@@ -47,14 +60,19 @@ ProfilerConductor::updateList(void) {
     }
 }
 
-// void ProfilerConductor::newSolverConnection() {
-//     // This new connection gets its own thread.
-//     ReceiverThread* receiver = new ReceiverThread(this);
-
-//     Gist *gist = new Gist(this, receiver);
-//     gist->show();
+void
+ProfilerConductor::gistButtonClicked(bool checked) {
+    (void)checked;
     
-// }
-
-
-    
+    QList <QListWidgetItem*> selected = executionList->selectedItems();
+    for (int i = 0 ; i < selected.size() ; i++) {
+        ExecutionListItem* item = static_cast<ExecutionListItem*>(selected[i]);
+        GistMainWindow* g = item->gistWindow_;
+        if (g == NULL) {
+            g = new GistMainWindow(item->execution_, this);
+            item->gistWindow_ = g;
+        }
+        g->show();
+        g->activateWindow();
+    }
+}

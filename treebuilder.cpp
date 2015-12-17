@@ -68,6 +68,7 @@ void TreeBuilder::reset(Execution* execution, NodeAllocator* na) {
 }
 
 bool TreeBuilder::processRoot(DbEntry& dbEntry) {
+    std::cerr << "TreeBuilder::processRoot (" << dbEntry << ")\n";
 
     QMutexLocker locker(layout_mutex);
 
@@ -111,10 +112,13 @@ bool TreeBuilder::processRoot(DbEntry& dbEntry) {
     root->changedStatus(*_na);
     root->dirtyUp(*_na);
 
+    emit addedNode();
+
     return true;
 }
 
 bool TreeBuilder::processNode(DbEntry& dbEntry, bool is_delayed) {
+    std::cerr << "TreeBuilder::processNode (" << dbEntry << ")\n";
     QMutexLocker locker(layout_mutex);
 
     unsigned long long pid = dbEntry.parent_sid; /// parent ID as it comes from Solver
@@ -233,6 +237,8 @@ bool TreeBuilder::processNode(DbEntry& dbEntry, bool is_delayed) {
 
         node.changedStatus(*_na);
         node.dirtyUp(*_na);
+        emit addedNode();
+        std::cerr << "TreeBuilder::processNode, normal case\n";
     } else {
         /// Not normal cases:
         /// 1. Branch Node or Failed node into Skipped
@@ -262,6 +268,8 @@ bool TreeBuilder::processNode(DbEntry& dbEntry, bool is_delayed) {
             }
         node.changedStatus(*_na);
         node.dirtyUp(*_na);
+        emit addedNode();
+        std::cerr << "TreeBuilder::processNode, not-normal case\n";
         } else {
             // qDebug() << "Ignoring a node: " << ignored_entries.size();
             // assert(status == SKIPPED);
@@ -280,6 +288,8 @@ bool TreeBuilder::processNode(DbEntry& dbEntry, bool is_delayed) {
 void TreeBuilder::run(void) {
 
     using std::cout; using std::cerr;
+
+    std::cerr << "TreeBuilder::run\n";
     
     clock_t beginClock, endClock;
     double beginTime, endTime;
