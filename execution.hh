@@ -19,7 +19,7 @@ public:
     inline std::unordered_map<unsigned long long, string>& getInfo(void) { return _data->getInfo(); }
     DbEntry* getEntry(unsigned int gid) { return _data->getEntry(gid); }
     unsigned int getGidBySid(unsigned int sid) { return _data->getGidBySid(sid); }
-    const char* getLabel(unsigned int gid) { return _data->getLabel(gid); }
+    std::string getLabel(unsigned int gid) { return _data->getLabel(gid); }
     unsigned long long getTotalTime() { return _data->getTotalTime(); }
     string getTitle() { return _data->getTitle(); }
 

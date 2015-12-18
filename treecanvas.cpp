@@ -151,7 +151,6 @@ TreeCanvas::~TreeCanvas(void) {
         PreorderNodeVisitor<DisposeCursor>(dc).run();
     }
     delete na;
-    delete _data;
 
     delete _builder;
 }

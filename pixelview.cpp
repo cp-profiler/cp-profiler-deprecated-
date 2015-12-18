@@ -37,7 +37,7 @@ PixelTreeDialog::PixelTreeDialog(TreeCanvas* tc)
   this->resize(600, 400);
 
   /// set Title
-  this->setWindowTitle(QString::fromStdString(tc->getData()->getTitle()));
+  this->setWindowTitle(QString::fromStdString(tc->getExecution()->getData()->getTitle()));
 
   QVBoxLayout* layout = new QVBoxLayout();
   QHBoxLayout* controlLayout = new QHBoxLayout();
@@ -125,7 +125,7 @@ PixelTreeCanvas::~PixelTreeCanvas(void) {
 /// ******** PIXEL_TREE_CANVAS ********
 
 PixelTreeCanvas::PixelTreeCanvas(QWidget* parent, TreeCanvas& tc)
-  : QWidget(parent), _tc(tc), _data(*tc.getData()), _na(tc.na), depthAnalysis(tc)
+    : QWidget(parent), _tc(tc), _data(*tc.getExecution()->getData()), _na(tc.na), depthAnalysis(tc)
 {
 
   _sa = static_cast<QAbstractScrollArea*>(parentWidget());

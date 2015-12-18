@@ -192,7 +192,7 @@ public:
 
   const CanvasType canvasType;
 
-    const char* getLabel(unsigned int gid) {
+    std::string getLabel(unsigned int gid) {
         return execution->getLabel(gid);
     }
     unsigned long long getTotalTime() { return execution->getTotalTime(); }
@@ -232,7 +232,7 @@ public:
 
   /// ***** GETTERS *****
 
-  Data* getData(void);
+  // Data* getData(void);
 
   unsigned int getTreeDepth(void);
 
