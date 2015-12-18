@@ -58,6 +58,7 @@ Data::Data(NodeAllocator* na, bool isRestarts)
     _time_per_node = -1; // unassigned
 
     begin_time = system_clock::now();
+    current_time = begin_time;
     last_interval_time = begin_time;
     last_interval_nc = 0;
 
@@ -93,10 +94,6 @@ void Data::setDoneReceiving(void) {
 
     flush_node_rate();
 
-    // qDebug() << "Elements in nodes_arr: " << nodes_arr.size();
-
-    // qDebug() << "Size of 'nodes_arr' (bytes): " << nodes_arr.size() * sizeof(DbEntry);
-
     _isDone = true;
 
 }
@@ -105,7 +102,12 @@ int Data::handleNodeCallback(message::Node& node) {
 
     unsigned long long real_id, real_pid;
 
+    auto prev_node_time = current_time;
     current_time = system_clock::now();
+
+    auto node_time = duration_cast<microseconds>(current_time - prev_node_time).count();
+
+    if (nodes_arr.size() == 0) node_time = 0; /// ignore the first node
 
     int id = node.sid();
     int pid = node.pid();
@@ -145,16 +147,19 @@ int Data::handleNodeCallback(message::Node& node) {
 
     real_id = (id | ((long long)restart_id << 32));
 
+    std::string label = node.label();
+
+
     pushInstance(real_id,
         new DbEntry(real_id,
                     real_pid,
                     alt,
                     kids,
                     thread,
-                    node.label().c_str(),
+                    label,
                     status,
                     node.time(),
-                    node.time() - _prev_node_timestamp,
+                    node_time,
                     domain));
 
     _prev_node_timestamp = node.time();
@@ -180,12 +185,12 @@ int Data::handleNodeCallback(message::Node& node) {
     return 0;
 }
 
-const char* Data::getLabel(unsigned int gid) {
+const std::string Data::getLabel(unsigned int gid) {
     QMutexLocker locker(&dataMutex);
 
     auto it = gid2entry.find(gid);
-    if (it != gid2entry.end())
-        return it->second->label.c_str();
+    if (it != gid2entry.end() && it->second != nullptr)
+        return it->second->label;
     return "";
 
 }
@@ -193,11 +198,11 @@ const char* Data::getLabel(unsigned int gid) {
 unsigned long long Data::gid2sid(unsigned int gid) {
     QMutexLocker locker(&dataMutex);
 
-    // auto it = gid2entry.find(gid);
-    // if (it != gid2entry.end())
-    //     return it->second->label.c_str();
-    // return "";
-    return gid2entry.at(gid)->sid;
+    /// not for any gid there is entry (TODO: there should be a 'default' one)
+    auto it = gid2entry.find(gid);
+    if (it != gid2entry.end())
+        return gid2entry.at(gid)->sid;
+    return -1;
 
 }
 
@@ -210,7 +215,6 @@ unsigned long long Data::getTotalTime(void) {
 
 
 Data::~Data(void) {
-
 
     for (auto it = nodes_arr.begin(); it != nodes_arr.end();) {
         delete (*it);

@@ -35,7 +35,6 @@
 #include "pixelview.hh"
 #include "nogood_dialog.hh"
 #include "node_info_dialog.hh"
-#include "depth_analysis.hh"
 
 #include "data.hh"
 
@@ -152,6 +151,7 @@ TreeCanvas::~TreeCanvas(void) {
         PreorderNodeVisitor<DisposeCursor>(dc).run();
     }
     delete na;
+    delete _data;
 
     delete _builder;
 }
@@ -506,10 +506,10 @@ TreeCanvas::statusChanged(bool finished) {
 }
 
 int
-TreeCanvas::getNoOfSolvedLeaves(VisualNode& n) {
+TreeCanvas::getNoOfSolvedLeaves(VisualNode* n) {
   int count = 0;
 
-  CountSolvedCursor csc(&n, na, count);
+  CountSolvedCursor csc(n, *na, count);
   PreorderNodeVisitor<CountSolvedCursor>(csc).run();
 
   return count;
@@ -521,8 +521,8 @@ void TreeCanvas::showPixelTree(void) {
 }
 
 void TreeCanvas::depthAnalysis(void) {
-  DepthAnalysisDialog* depthAnalysisDialog = new DepthAnalysisDialog(this, this);
-  depthAnalysisDialog->show();
+  // DepthAnalysis* depthAnalysis = new DepthAnalysis(this, this);
+  qDebug() << "depth analysis is now a part of a PixelTree";
 }
 
 void TreeCanvas::followPath(void) {
@@ -651,8 +651,6 @@ TreeCanvas::highlightShape(VisualNode* node) {
 
       targetNode->setHighlighted(true);
 
-      //HighlightCursor hc(targetNode, *na);
-      //PreorderNodeVisitor<HighlightCursor>(hc).run();
     }
       
     HideNotHighlightedCursor hnhc(root,*na);
@@ -886,19 +884,6 @@ TreeCanvas::expandCurrentNode() {
 
   currentNode->dirtyUp(*na);
   update();
-}
-
-  int 
-TreeCanvas::getNoOfSolvedLeaves(VisualNode* node) {
-  int count;
-
-  if (!node->hasSolvedChildren())
-    return 0;
-  return 1;
-  CountSolvedCursor csc(node, *na, count);
-  PreorderNodeVisitor<CountSolvedCursor>(csc).run();
-
-  return count;
 }
 
 void

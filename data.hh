@@ -59,17 +59,14 @@ private:
 
 public:
     DbEntry(unsigned long long id, unsigned long long _p, int _alt, int _kids, char _tid,
-            const char* _label, int _status, unsigned long long _time_stamp,
+            std::string _label, int _status, unsigned long long _time_stamp,
             unsigned long long _node_time, float _domain) :
         sid(id), gid(-1), parent_sid(_p), alt(_alt), numberOfKids(_kids),
         status(_status), label(_label), thread(_tid), depth(-1), time_stamp(_time_stamp), node_time(_node_time),
         domain(_domain) {
-            
     }
 
     friend ostream& operator<<(ostream& s, const DbEntry& e);
-
-    DbEntry(): gid(-1) {}
 
     int sid; // solver id
     int gid; // gist id, set to -1 so we don't forget to assign the real value
@@ -77,7 +74,7 @@ public:
     int alt; // which child by order
     int numberOfKids;
     int status;
-    string label;
+    std::string label;
     char thread;
     int depth;
     unsigned long long time_stamp;
@@ -177,7 +174,7 @@ public:
     void show_db(void); /// TODO: write to a file
 
     /// return label by gid (Gist ID)
-    const char* getLabel(unsigned int gid);
+    const std::string getLabel(unsigned int gid);
 
     /// return solver id by gid (Gist ID)
     unsigned long long gid2sid(unsigned int gid);
@@ -225,8 +222,10 @@ void Data::connectNodeToEntry(unsigned int gid, DbEntry* entry) {
 
 inline
 DbEntry* Data::getEntry(unsigned int gid) {
-    // return gid2entry.at(gid);
-    return gid2entry[gid];
+    if (gid < gid2entry.size()) {
+        return gid2entry[gid]; /// all good
+    }
+    return nullptr; /// otherwise
 }
 
 

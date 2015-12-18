@@ -26,8 +26,14 @@
 int main(int argc, char *argv[])
 {
 
+    #ifdef QT_OPENGL_SUPPORT
+        QGL::setPreferredPaintEngine(QPaintEngine::OpenGL);
+    #endif
+
     QApplication a(argc, argv);
-    
+
+    qDebug() << "scroll bar size: " << a.style()->pixelMetric(QStyle::PM_ScrollBarExtent);
+
     QCoreApplication::setApplicationName("cpprof");
     QCoreApplication::setApplicationVersion("0.1");
 

@@ -23,45 +23,17 @@
 #define PIXEL_VIEW_HH
 
 #include "treecanvas.hh"
-#include <QImage>
+#include "depth_analysis.hh"
 #include <list>
 #include <vector>
 
+#include "pixelImage.hh"
 
-class PixelTreeCanvas;
-
-/// ******* PIXEL_TREE_DIALOG ********
-
-class PixelTreeDialog : public QDialog {
-  Q_OBJECT
-
-private:
-  QVBoxLayout layout;
-  QHBoxLayout controlLayout;
-  
-  QAbstractScrollArea scrollArea;
-
-  QPushButton scaleUp;
-  QPushButton scaleDown;
-
-  QSpinBox compressionSB;
-  
-  PixelTreeCanvas* canvas;
-
-public:
-
-  static const int MARGIN = 50;
-  static const int DEPTH = 50;
-  
-
-  PixelTreeDialog(TreeCanvas* tc);
-  ~PixelTreeDialog(void);
-};
-
+using std::vector; using std::list;
 
 /// ***********************************
 
-class PixelData {
+class PixelItem {
 private:
   int   _idx;
   int   _depth;
@@ -69,11 +41,38 @@ private:
   bool  _selected;
 
 public:
-  PixelData(int idx, VisualNode* node, int depth)
-  : _idx(idx), _depth(depth), _node(node) {};
-  inline int idx() { return _idx; }
-  inline int depth() { return _depth; }
+  PixelItem(int idx, VisualNode* node, int depth)
+  : _idx(idx), _depth(depth), _node(node), _selected(false) {};
+  inline int idx() const { return _idx; }
+  inline int depth() const { return _depth; }
   inline VisualNode* node() { return _node; }
+  inline bool isSelected() { return _selected; }
+  void setSelected(bool value) {
+    _node->setSelected(value);
+    _selected = value;
+  }
+};
+
+class PixelData {
+
+private:
+  int compression_;
+
+public:
+  PixelData() {}
+
+  explicit PixelData(unsigned int node_count): compression_(1) {
+    pixel_list.reserve(node_count);
+  }
+
+  void setCompression(int compression) {
+    compression_ = compression;
+  }
+
+  int compression() const { return compression_; }
+
+  vector<PixelItem> pixel_list;
+
 };
 
 
@@ -84,100 +83,157 @@ class PixelTreeCanvas : public QWidget {
   Q_OBJECT
 
 private:
-  TreeCanvas*     _tc;
+  TreeCanvas&     _tc;
+  Data&           _data;
   NodeAllocator*  _na;
-  QImage*    _image;
-  QLabel     qlabel;
   QPixmap         pixmap;
 
   QAbstractScrollArea*  _sa;
   QScrollBar*           _vScrollBar;
 
   /// Constants for a particular execution
-  uint _nodeCount;
+  unsigned _nodeCount;
 
   /// Pixel Tree settings (changed through GUI)
-    
-  unsigned _step = 2; // size of a 'pixel' in pixels
-  unsigned _step_y = 2; // size of a 'pixel' in pixels
+
   unsigned approx_size = 1; // how many nodes per vertical line
 
-  // int hist_height = 50;
-  // int margin = 10;
-
-  /// temp stuff for a Pixel Tree
-  int   node_idx;
-  int   x;
-  float   group_time;
-  float   group_domain; // average of domain size of nodes in a group
-  float   group_domain_red;
-  unsigned   group_size; // current size of the group
   unsigned   vline_idx;  // same as x when _step = 1
-  float alpha_factor;
-  int   group_size_nonempty; // for calculating average
-
-  unsigned pt_height;
-  unsigned pt_width;
 
   /// Stuff specific for a particular pixel tree
   unsigned vlines; /// width of pixel tree
-  unsigned max_depth;
+  unsigned tree_depth;
 
-  float* time_arr         = nullptr; // time for each vline
-  float* domain_arr       = nullptr; // domain for each vline
-  float* domain_red_arr   = nullptr; /// domain reduction for each vline
+  vector<float> time_arr; // time for each vline
+  vector<float> domain_arr; // domain for each vline
+  vector<float> domain_red_arr; /// domain reduction for each vline
 
-  std::vector<VisualNode*> nodes_selected;
+  vector<string> vars;
 
-  /// New Stuff
-  std::vector<std::list<PixelData*>> pixelList;
+  std::vector<PixelItem*> pixels_selected; // to know which pixels to deselect
+
+  vector<int> var_decisions;
+  vector<vector<int>> var_decisions_compressed;
+
+  vector<int> nogood_counts;
+  vector<int> nogood_counts_compressed;
+
+  /// Depth analysis data
+  DepthAnalysis depthAnalysis;
+  std::vector< std::vector<unsigned> > da_data;
+  std::vector< std::vector<unsigned> > da_data_compressed;
+
+  PixelImage pixel_image;
+
+  PixelData pixel_data;
+
+  bool show_time_histogram = true;
+  bool show_domain_histogram = true;
+  bool show_decision_vars_histogram = true;
+  bool show_depth_analysis_histogram = true;
+
+  unsigned current_image_height; /// in 'squares'
 
 public:
 
-  static const int HIST_HEIGHT = 50;
-  static const int MARGIN = 10;
+  static const int HIST_HEIGHT = 80;
+  static const int MARGIN = 30;
 
 private:
 
-  /// Pixel Tree
-  void constructTree(void);
-  void drawPixelTree(void);
-  void exploreNext(VisualNode* node, unsigned depth);
-  void freePixelList(std::vector<std::list<PixelData*>>& pixelList);
+  void drawPixelTree(const PixelData& pixel_data);
 
-  void actuallyDraw(void);
-  void drawHistogram(int idx, float* data, unsigned l_vline, unsigned r_vline, int color);
+  /// Decision variables
+  void gatherVarData();
+  void compressVarData(vector<vector<int> >&, int value);
+
+  void gatherNogoodData();
+  void compressNogoodData(int value);
+  void drawNogoodData();
+
+  void constructPixelTree(); /// Initial Search Tree traversal
+  /// Apply compression (to get vlineData)
+  void compressPixelTree(int value);
+  void compressDepthAnalysis(std::vector< std::vector<unsigned int> >& data, int value);
+  void compressTimeHistogram(vector<float>&, int value);
+  void compressDomainHistogram(vector<float>&, int value);
+  PixelData traverseTree(VisualNode* node);
+  PixelData traverseTreePostOrder(VisualNode* node);
+
+  void redrawAll();
+  void drawHistogram(vector<float>& data, int color);
+
+  void drawSolutionLine();
 
   /// Histograms
-  void drawTimeHistogram(unsigned l_vline, unsigned r_vline);
-  void drawDomainHistogram(unsigned l_vline, unsigned r_vline);
+  void drawTimeHistogram();
+  void drawDomainHistogram();
   void drawDomainReduction(unsigned l_vline, unsigned r_vline);
+  void drawDepthAnalysisData();
+
+  
+  void drawVarData();
 
   /// Node Rate
   void drawNodeRate(unsigned leftmost_vline, unsigned rightmost_vline);
-
-  void flush(void); /// make a final group
-
-  /// auxiliary methods
-  inline void drawPixel(int x, int y, int color);
 
   /// select nodes that correspond to selected vline in pixel tree
   void selectNodesfromPT(unsigned vline);
   
 
 public:
-  PixelTreeCanvas(QWidget* parent, TreeCanvas* tc);
+  PixelTreeCanvas(QWidget* parent, TreeCanvas& tc);
   ~PixelTreeCanvas(void);
 
 protected:
   void paintEvent(QPaintEvent* event);
-
   void mousePressEvent(QMouseEvent* me);
+  void mouseMoveEvent(QMouseEvent* me);
 
 public Q_SLOTS:
   void scaleUp(void);
   void scaleDown(void);
   void compressionChanged(int value);
+  void resizeCanvas(void);
+  void sliderChanged(int value);
+
+  void toggleTimeHistogram(int state);
+  void toggleDomainsHistogram(int state);
+  void toggleVarsHistogram(int state);
+  void toggleDepthAnalysisHistogram(int state);
+};
+
+
+/// ******* PIXEL_TREE_DIALOG ********
+
+class PixelTreeDialog : public QDialog {
+  Q_OBJECT
+
+private:
+
+  QAbstractScrollArea scrollArea;
+
+  QCheckBox* time_cb;
+  QCheckBox* domains_cb;
+  QCheckBox* decision_vars_cb;
+  QCheckBox* depth_analysis_cb;
+
+  PixelTreeCanvas canvas;
+
+Q_SIGNALS:
+
+  void windowResized(void);
+
+public:
+
+  static const int MARGIN = 50;
+  static const int DEPTH = 50;
+
+  explicit PixelTreeDialog(TreeCanvas* tc);
+  ~PixelTreeDialog(void);
+
+protected:
+  void resizeEvent(QResizeEvent * re);
 };
 
 

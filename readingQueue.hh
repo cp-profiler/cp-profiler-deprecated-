@@ -55,16 +55,13 @@ private:
   bool read_delayed    = false;
 
 
-// inline DbEntry* nextNormal();
-// inline DbEntry* nextDelayed();
-
   inline QueueMap::iterator nextNonemptyIt(QueueMap::iterator it);
 
 public:
 
 
 
-  ReadingQueue(std::vector<DbEntry*>& nodes);
+  explicit ReadingQueue(std::vector<DbEntry*>& nodes);
 
   DbEntry* next(bool& delayed);
 

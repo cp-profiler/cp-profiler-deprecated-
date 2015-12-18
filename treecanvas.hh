@@ -99,7 +99,7 @@ public:
 
 class Filters {
 public:
-  Filters(TreeCanvas* tc);
+  explicit Filters(TreeCanvas* tc);
   void setMinDepth(unsigned int);
   void setMinCount(unsigned int);
   bool apply(const ShapeI& s);
@@ -162,7 +162,7 @@ struct CompareShapes {
 private:
   TreeCanvas& _tc;
 public:
-  CompareShapes(TreeCanvas& tc);
+  explicit CompareShapes(TreeCanvas& tc);
   bool operator()(const ShapeI& s1, const ShapeI& s2) const;
 };
 
@@ -182,7 +182,7 @@ class TreeCanvas : public QWidget {
   friend class BaseTreeDialog;
   friend class PixelTreeCanvas;
   friend class PixelTreeDialog;
-  friend class DepthAnalysisDialog;
+  friend class DepthAnalysis;
 
 public:
 
@@ -238,10 +238,8 @@ public:
 
   /// *******************
 
-  int getNoOfSolvedLeaves(VisualNode& n);  // TODO: duplicate?
   /// Return number of solved children in the node
-  int getNoOfSolvedLeaves(VisualNode* node);
-  
+  int getNoOfSolvedLeaves(VisualNode* n);
 
 public Q_SLOTS: 
   /// Set scale factor to \a scale0

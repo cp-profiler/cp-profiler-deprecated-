@@ -34,7 +34,7 @@ class QStandardItemModel;
 class MyProxyModel: public QSortFilterProxyModel
 {
 public:
-  MyProxyModel(QWidget* parent) : QSortFilterProxyModel(parent) {}
+  explicit MyProxyModel(QWidget* parent) : QSortFilterProxyModel(parent) {}
 
 protected:
   bool lessThan ( const QModelIndex & left, const QModelIndex & right ) const {

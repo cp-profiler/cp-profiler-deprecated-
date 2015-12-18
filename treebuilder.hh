@@ -50,10 +50,8 @@ private:
     int nodesCreated;
 
     std::vector<DbEntry*> ignored_entries;
-    std::vector<DbEntry*> processed;
-    
 
-    ReadingQueue* read_queue;
+    ReadingQueue* read_queue; /// TODO: init on stack
 
 private:
 

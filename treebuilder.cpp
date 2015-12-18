@@ -332,16 +332,6 @@ void TreeBuilder::run(void) {
 
         read_queue->update(success);
 
-        // /// for debug
-        // if (success)
-        //     processed.push_back(entry);
-
-        // std::cout << "processed: ";
-        // for (auto entry = processed.begin(); entry != processed.end(); entry++) {
-        //     std::cout << (*entry)->sid << " ";
-        // }
-        // std::cout << std::endl;
-
         dataMutex.unlock();
 
     }

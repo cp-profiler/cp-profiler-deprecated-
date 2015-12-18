@@ -27,6 +27,13 @@ TreeComparison::TreeComparison(void) {}
 
 void
 TreeComparison::compare(TreeCanvas* t1, TreeCanvas* t2, TreeCanvas* new_tc) {
+
+    /// For source trees
+    QStack<VisualNode*> stack1;
+    QStack<VisualNode*> stack2;
+    /// The stack used while building new_tc
+    QStack<VisualNode*> stack;
+
     Node::NodeAllocator* na1 = t1->na;
     Node::NodeAllocator* na2 = t2->na;
     VisualNode* root1 = (*na1)[0];
@@ -67,14 +74,14 @@ TreeComparison::compare(TreeCanvas* t1, TreeCanvas* t2, TreeCanvas* new_tc) {
             for (unsigned int i = 0; i < kids; i++) {
 
                 int child_gid = node1->getChild(i);
-                const char* label = _ex1->getLabel(child_gid);
+                std::string label = _ex1->getLabel(child_gid);
 
                 /// check if label starts with "[i]"
 
-                if (strncmp(label, "[i]", 3) == 0){
+                if (label.compare(0, 3, "[i]") == 0) {
                     implied_child = i;
                     break;
-                    qDebug() << "found implied: " << label;
+                    qDebug() << "found implied: " << label.c_str();
                 }
             }
 
@@ -95,14 +102,14 @@ TreeComparison::compare(TreeCanvas* t1, TreeCanvas* t2, TreeCanvas* new_tc) {
             for (unsigned int i = 0; i < kids; i++) {
 
                 int child_gid = node2->getChild(i);
-                const char* label = _ex2->getLabel(child_gid);
+                std::string label = _ex2->getLabel(child_gid);
 
                 /// check if label starts with "[i]"
 
-                if (strncmp(label, "[i]", 3) == 0){
+                if (label.compare(0, 3, "[i]") == 0){
                     implied_child = i;
                     break;
-                    qDebug() << "found implied: " << label;
+                    qDebug() << "found implied: " << label.c_str();
                 }
             }
 
@@ -244,16 +251,10 @@ TreeComparison::copmareNodes(VisualNode* n1, VisualNode* n2) {
         int id1 = n1->getChild(i);
         int id2 = n2->getChild(i);
 
-        if (
-            strcmp(
-                _ex1->getLabel(id1),
-                _ex2->getLabel(id2)
-            ) != 0
-        ) {
+        if (_ex1->getLabel(id1).compare(_ex2->getLabel(id2)) != 0) {
             return false;
         }
 
-        
     }
 
     return true;

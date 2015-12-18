@@ -193,7 +193,11 @@ public:
 public:
   /// Constructor
 //  Gist(Space* root, bool bab, QWidget* parent, const Options& opt);
-    Gist(Execution* execution, QWidget* parent);
+
+    // Gist(Execution* execution, QWidget* parent);
+
+    explicit Gist(Execution* execution, QWidget* parent);
+
   /// Destructor
   ~Gist(void);
 
@@ -233,7 +237,7 @@ public:
   void resizeEvent(QResizeEvent*);
 
   /// Receiver calles this when name is obtained
-  void emitChangeMainTitle(const std::string& file_name);
+  void emitChangeMainTitle(QString file_name);
 
 
   /// ***** GETTERS *****
@@ -252,7 +256,7 @@ Q_SIGNALS:
   void solution(int);
 
   /// Notify MainWindow about fzn file name
-  void changeMainTitle(const std::string& file_name);
+  void changeMainTitle(QString file_name);
 
 
 private Q_SLOTS:

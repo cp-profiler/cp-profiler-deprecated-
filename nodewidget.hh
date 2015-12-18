@@ -42,7 +42,7 @@
 /// \brief Small node drawings for the status bar
 class NodeWidget : public QWidget {
 public:
-  NodeWidget(NodeStatus s);
+  explicit NodeWidget(NodeStatus s);
 protected:
   NodeStatus status;
   void paintEvent(QPaintEvent*);

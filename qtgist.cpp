@@ -319,7 +319,7 @@ Gist::on_canvas_statusChanged(VisualNode* n, const Statistics& stats,
 }
 
 void
-Gist::emitChangeMainTitle(const std::string& file_name) {
+Gist::emitChangeMainTitle(QString file_name) {
     emit changeMainTitle(file_name);
 }
 

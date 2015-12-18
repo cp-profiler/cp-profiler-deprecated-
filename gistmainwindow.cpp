@@ -52,7 +52,7 @@ AboutGist::AboutGist(QWidget* parent) : QDialog(parent) {
 GistMainWindow::GistMainWindow(Execution* execution, QWidget* parent) : QMainWindow(parent), aboutGist(this) {
     c = new Gist(execution, this);
   setCentralWidget(c);
-  setWindowTitle(tr("Gist"));
+  setWindowTitle(tr("CP-Profiler"));
 
   
 
@@ -173,8 +173,8 @@ GistMainWindow::GistMainWindow(Execution* execution, QWidget* parent) : QMainWin
   connect(c,SIGNAL(statusChanged(const Statistics&,bool)),
           this,SLOT(statusChanged(const Statistics&,bool)));
 
-  connect(c, SIGNAL(changeMainTitle(const std::string&)),
-          this, SLOT(changeTitle(const std::string&)));
+  connect(c, SIGNAL(changeMainTitle(QString)),
+          this, SLOT(changeTitle(QString)));
 
   // connect(this, SIGNAL(stopReceiver()), c->getReceiver(), SLOT(stopThread()));
 
@@ -258,7 +258,7 @@ GistMainWindow::populateBookmarks(void) {
 }
 
 void
-GistMainWindow::changeTitle(const char* file_name) {
-  QString title(file_name);
-  this->setWindowTitle(title);
+GistMainWindow::changeTitle(QString file_name) {
+  qDebug() << "changing title to: " << file_name;
+  this->setWindowTitle(file_name);
 }
