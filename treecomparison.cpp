@@ -31,6 +31,8 @@ TreeComparison::compare(TreeCanvas* t1, TreeCanvas* t2, TreeCanvas* new_tc) {
     Node::NodeAllocator* na2 = t2->na;
     VisualNode* root1 = (*na1)[0];
     VisualNode* root2 = (*na2)[0];
+    Execution* execution1 = t1->execution;
+    Execution* execution2 = t2->execution;
 
     VisualNode* next;
 
@@ -44,7 +46,7 @@ TreeComparison::compare(TreeCanvas* t1, TreeCanvas* t2, TreeCanvas* new_tc) {
 
     Node::NodeAllocator* na = new_tc->na;
 
-    TreeComparison::setSource(na1, na2, t1->_data, t2->_data);
+    TreeComparison::setSource(na1, na2, execution1, execution2);
 
     while (stack1.size() > 0) {
         VisualNode* node1 = stack1.pop();
@@ -65,7 +67,7 @@ TreeComparison::compare(TreeCanvas* t1, TreeCanvas* t2, TreeCanvas* new_tc) {
             for (unsigned int i = 0; i < kids; i++) {
 
                 int child_gid = node1->getChild(i);
-                const char* label = _data1->getLabel(child_gid);
+                const char* label = _ex1->getLabel(child_gid);
 
                 /// check if label starts with "[i]"
 
@@ -93,7 +95,7 @@ TreeComparison::compare(TreeCanvas* t1, TreeCanvas* t2, TreeCanvas* new_tc) {
             for (unsigned int i = 0; i < kids; i++) {
 
                 int child_gid = node2->getChild(i);
-                const char* label = _data2->getLabel(child_gid);
+                const char* label = _ex2->getLabel(child_gid);
 
                 /// check if label starts with "[i]"
 
@@ -142,8 +144,8 @@ TreeComparison::compare(TreeCanvas* t1, TreeCanvas* t2, TreeCanvas* new_tc) {
             unsigned int source_index = node2->getIndex(*na2);
             unsigned int target_index = next->getIndex(*na);
 
-            DbEntry* entry = t2->_data->getEntry(source_index);
-            new_tc->_data->connectNodeToEntry(target_index, entry);
+            DbEntry* entry = _ex2->getEntry(source_index);
+            new_tc->getExecution()->getData()->connectNodeToEntry(target_index, entry);
 
             for (unsigned int i = 0; i < kids; ++i) {
                 stack.push(next->getChild(*na, kids - i - 1));
@@ -210,8 +212,8 @@ TreeComparison::copyTree(VisualNode* target, TreeCanvas* tc,
         unsigned int target_index = next->getIndex(*na);
 
         if (n->getStatus() != NodeStatus::UNDETERMINED) {
-            DbEntry* entry = tc_source->_data->getEntry(source_index);
-            tc->_data->connectNodeToEntry(target_index, entry);
+            DbEntry* entry = tc_source->getExecution()->getData()->getEntry(source_index);
+            tc->getExecution()->getData()->connectNodeToEntry(target_index, entry);
         }
 
         next->dirtyUp(*na);
@@ -244,8 +246,8 @@ TreeComparison::copmareNodes(VisualNode* n1, VisualNode* n2) {
 
         if (
             strcmp(
-                _data1->getLabel(id1),
-                _data2->getLabel(id2)
+                _ex1->getLabel(id1),
+                _ex2->getLabel(id2)
             ) != 0
         ) {
             return false;
@@ -259,11 +261,11 @@ TreeComparison::copmareNodes(VisualNode* n1, VisualNode* n2) {
 
 void
 TreeComparison::setSource(NodeAllocator* na1, NodeAllocator* na2,
-                          Data* data1, Data* data2) {
+                          Execution* ex1, Execution* ex2) {
     _na1 = na1;
     _na2 = na2;
-    _data1 = data1;
-    _data2 = data2;
+    _ex1 = ex1;
+    _ex2 = ex2;
 }
 
 int

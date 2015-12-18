@@ -33,11 +33,12 @@ SOURCES += main.cpp\
     node.cpp \
     data.cpp \
     base_tree_dialog.cpp \
-    solver_tree_dialog.cpp \
+    cmp_tree_dialog.cpp \
     receiverthread.cpp \
     treebuilder.cpp \
     readingQueue.cpp \
     pixelview.cpp \
+    treecomparison.cpp \
     nogood_dialog.cpp \
     node_info_dialog.cpp \
     depth_analysis.cpp \
@@ -70,11 +71,12 @@ HEADERS  += globalhelper.hh \
     zoomToFitIcon.hpp \
     data.hh \
     base_tree_dialog.hh \
-    solver_tree_dialog.hh \
+    cmp_tree_dialog.hh \
     receiverthread.hh \
     treebuilder.hh \
     readingQueue.hh \
     pixelview.hh \
+    treecomparison.hh \
     nogood_dialog.hh \
     node_info_dialog.hh \
     depth_analysis.hh \

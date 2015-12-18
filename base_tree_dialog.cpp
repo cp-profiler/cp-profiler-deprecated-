@@ -23,8 +23,9 @@
 #include "nodewidget.hh"
 #include "treecanvas.hh"
 
-BaseTreeDialog::BaseTreeDialog(Execution* execution, const CanvasType type, Gist* gist) :
-  QDialog(gist), ptr_gist(gist), menuBar{nullptr}, nodeMenu{nullptr} {
+BaseTreeDialog::BaseTreeDialog(Execution* execution, const CanvasType type) : //, Gist* gist) :
+    //  QDialog(gist), ptr_gist(gist), menuBar{nullptr}, nodeMenu{nullptr} {
+  QDialog(NULL), menuBar{nullptr}, nodeMenu{nullptr} {
 
   layout = new QGridLayout(this);
   nc_layout = new QVBoxLayout();
@@ -92,24 +93,24 @@ BaseTreeDialog::buildMenu(void) {
 
   nodeMenu = menuBar->addMenu(tr("&Node"));
 
-  nodeMenu->addAction(ptr_gist->labelBranches);
-  nodeMenu->addAction(ptr_gist->labelPath);
-  nodeMenu->addAction(ptr_gist->navUp);
-  nodeMenu->addAction(ptr_gist->navDown);
-  nodeMenu->addAction(ptr_gist->navLeft);
-  nodeMenu->addAction(ptr_gist->navRight);
-  nodeMenu->addAction(ptr_gist->navRoot);
+  // nodeMenu->addAction(ptr_gist->labelBranches);
+  // nodeMenu->addAction(ptr_gist->labelPath);
+  // nodeMenu->addAction(ptr_gist->navUp);
+  // nodeMenu->addAction(ptr_gist->navDown);
+  // nodeMenu->addAction(ptr_gist->navLeft);
+  // nodeMenu->addAction(ptr_gist->navRight);
+  // nodeMenu->addAction(ptr_gist->navRoot);
 
-  nodeMenu->addAction(ptr_gist->hideFailed);
-  nodeMenu->addAction(ptr_gist->unhideAll);
+  // nodeMenu->addAction(ptr_gist->hideFailed);
+  // nodeMenu->addAction(ptr_gist->unhideAll);
 
 }
 
 void
 BaseTreeDialog::connectSignals(void) {
 
-  connect(_tc, SIGNAL(statusChanged(VisualNode*, const Statistics&, bool)),
-          this, SLOT(statusChanged(VisualNode*, const Statistics&, bool)));
+  // connect(_tc, SIGNAL(statusChanged(VisualNode*, const Statistics&, bool)),
+  //         this, SLOT(statusChanged(VisualNode*, const Statistics&, bool)));
 
   connect(scrollArea->horizontalScrollBar(), SIGNAL(valueChanged(int)),
             _tc, SLOT(scroll(void)));

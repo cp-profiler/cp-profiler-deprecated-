@@ -13,6 +13,7 @@ private:
     QList<Execution*> executions;
 private slots:
     void gistButtonClicked(bool checked);
+    void compareButtonClicked(bool checked);
 public:
     ProfilerConductor();
     void newExecution(Execution* execution);

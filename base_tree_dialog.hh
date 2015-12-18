@@ -75,7 +75,7 @@ Q_OBJECT
 
   public:
 
-    BaseTreeDialog(Execution* execution, const CanvasType type, Gist* gist);
+    BaseTreeDialog(Execution* execution, const CanvasType type);//, Gist* gist);
     ~BaseTreeDialog();
 
     /// **** GETTERS ****

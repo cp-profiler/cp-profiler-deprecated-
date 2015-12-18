@@ -25,9 +25,9 @@
 
 #include <utility> // pair
 
-CmpTreeDialog::CmpTreeDialog(Execution* execution, const CanvasType& type, Gist* gist,
+CmpTreeDialog::CmpTreeDialog(Execution* execution, const CanvasType& type, //Gist* gist,
                              TreeCanvas* tc1, TreeCanvas* tc2)
-    : BaseTreeDialog(execution, type, gist),
+    : BaseTreeDialog(execution, type), //, gist),
 _comparison{new TreeComparison()}, analysisMenu{nullptr}, pentListWindow{this} {
 
   hbl->addWidget(new NodeWidget(MERGING));
@@ -51,7 +51,7 @@ _comparison{new TreeComparison()}, analysisMenu{nullptr}, pentListWindow{this} {
   _comparison->compare(tc1, tc2, _tc);
 
   mergedLabel->setNum(_comparison->get_no_pentagons());
-  statusChangedShared(true);
+  // statusChangedShared(true);
 
 }
 
