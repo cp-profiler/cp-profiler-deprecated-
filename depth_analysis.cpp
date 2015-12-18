@@ -3,7 +3,6 @@
 
 DepthAnalysis::DepthAnalysis(TreeCanvas& tc)
   :_tc(tc), _na(tc.na) {
-    qDebug() << "DepthAnalysis initialized";
 }
 
 std::vector<Direction> DepthAnalysis::collectDepthData() {
@@ -65,6 +64,8 @@ DepthAnalysis::runMSL() {
       continue;
     }
 
+    auto prev_level = curr_level;
+
     /// update current level value
     if (curr == Direction::DOWN)
       curr_level++;
@@ -73,8 +74,8 @@ DepthAnalysis::runMSL() {
 
     /// NAV backtrack (No Assigned Value)
     if (prev == Direction::DOWN && curr == Direction::UP) {
-      assert(deepest <= dl_list[curr_level]);
-      deepest = curr_level; /// only NAV changes `deepest` and always does so
+      assert(deepest <= dl_list[prev_level]);
+      deepest = prev_level; /// only NAV changes `deepest` and always does so
     }
 
     /// USS (Unsuccessful Subspace Search)
@@ -90,8 +91,12 @@ DepthAnalysis::runMSL() {
 
     /// SAV (Successfully Assigned Values)
     if (prev == Direction::UP && curr == Direction::UP) {
-      count_list[curr_level] = 0;
-      dl_list[curr_level] = deepest;
+      assert(deepest <= dl_list[prev_level]);
+      if (deepest < dl_list[prev_level]) {
+        count_list[prev_level] = 0;
+        dl_list[prev_level] = deepest;
+      }
+      
     }
 
     /// copy count_list to count_array (only when leaving a node):

@@ -866,14 +866,17 @@ PixelTreeCanvas::drawDepthAnalysisData() {
   auto img_width = pixel_image.width();
   auto img_height = pixel_image.height();
 
-  auto max_vector = std::max_element(da_data_compressed.begin(), da_data_compressed.end(),
-    [](vector<unsigned>& lhs, vector<unsigned>& rhs) {
-      auto lhs_max =  *std::max_element(lhs.begin(), lhs.end());
-      auto rhs_max =  *std::max_element(rhs.begin(), rhs.end());
-      return lhs_max < rhs_max;
-  });
+  auto max_value = [this]() {
+    auto data = this->da_data_compressed;
+    auto max_vector = std::max_element(data.begin(), data.end(),
+      [](vector<unsigned>& lhs, vector<unsigned>& rhs) {
+        auto lhs_max =  *std::max_element(lhs.begin(), lhs.end());
+        auto rhs_max =  *std::max_element(rhs.begin(), rhs.end());
+        return lhs_max < rhs_max;
+    });
 
-  auto max_value = *std::max_element(max_vector->begin(), max_vector->end());
+    return *std::max_element(max_vector->begin(), max_vector->end());
+  }();
 
   int zero_level = current_image_height + max_value;
 
