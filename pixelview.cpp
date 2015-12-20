@@ -656,7 +656,7 @@ PixelTreeCanvas::redrawAll() {
 
   if (show_time_histogram) drawTimeHistogram();
 
-  if (show_domain_histogram) drawDomainHistogram();
+  // if (show_domain_histogram) drawDomainHistogram();
 
   // drawDomainReduction(image, leftmost_vline, rightmost_vline);
 
@@ -780,7 +780,7 @@ PixelTreeCanvas::drawHistogram(vector<float>& data, int color) {
   int max_value = *max_element(std::begin(data), std::end(data));
 
   if (max_value <= 0) { /// no data for this histogram
-    qDebug() << "(!) no data for the time histogram";
+    // qDebug() << "(!) no data for this histogram";
     return;
   }
 
@@ -800,7 +800,8 @@ PixelTreeCanvas::drawHistogram(vector<float>& data, int color) {
     auto x = vline - xoff;
     auto y = zero_level - val - yoff;
 
-    if (x > img_width) break;
+    if (x < 0) continue;
+    if (x > img_width) break; /// note: true (breaks) if x < 0
     if (y > img_width || y < 0) continue;
 
     pixel_image.drawPixel(x, y, color);
