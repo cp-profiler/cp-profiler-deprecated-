@@ -142,6 +142,10 @@ TreeCanvas::TreeCanvas(Execution* execution, QGridLayout* layout, CanvasType typ
 
     update();
 
+    updateTimer = new QTimer(this);
+    updateTimer->setSingleShot(true);
+    connect(updateTimer, SIGNAL(timeout()), this, SLOT(updateViaTimer()));
+
     qDebug() << "treecanvas " << _id << " constructed";
 }
 
@@ -1491,7 +1495,7 @@ TreeCanvas::setMoveDuringSearch(bool b) {
     moveDuringSearch = b;
 }
 
-// Call thes when there is a new node, and the canvas will update if
+// Call this when there is a new node, and the canvas will update if
 // the refresh rate says that it should.
 void
 TreeCanvas::maybeUpdateCanvas(void) {
@@ -1499,7 +1503,17 @@ TreeCanvas::maybeUpdateCanvas(void) {
     if (nodeCount >= refresh) {
         nodeCount = 0;
         updateCanvas();
+    } else {
+        // Didn't update this time: set/update timer to update in
+        // 100ms.
+        updateTimer->start(100);
     }
+}
+
+void
+TreeCanvas::updateViaTimer(void) {
+    nodeCount = 0;
+    updateCanvas();
 }
 
 void

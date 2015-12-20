@@ -218,6 +218,7 @@ private:
     Execution* execution;
 
     int nodeCount = 0;
+    QTimer* updateTimer;
 
 public Q_SLOTS:
 
@@ -500,6 +501,8 @@ private Q_SLOTS:
   void exportNodePDF(VisualNode* n);
   /// Scroll to \a i percent of the target
   void scroll(int i);
+
+  void updateViaTimer(void);
 };
 
 #endif // TREECANVAS_HH
