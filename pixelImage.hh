@@ -32,6 +32,7 @@ class PixelImage {
 private:
 
   std::vector<unsigned char> buffer_;
+  std::vector<unsigned char> background_buffer_;
   // std::unique_ptr<QImage> image_;
   QImage* image_;
 
@@ -56,7 +57,7 @@ public:
   void drawMouseGuidelines(unsigned vline, unsigned depth);
 
   /// xoff and yoff account for scrolling
-  void drawGrid(int xoff, int yoff);
+  void drawGrid();
 
   void resize(int width, int height);
   void scaleUp();

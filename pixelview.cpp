@@ -650,8 +650,6 @@ PixelTreeCanvas::redrawAll() {
 
   this->resize(pixel_image.width(), pixel_image.height());
 
-  pixel_image.drawGrid(xoff, yoff);
-
   drawPixelTree(pixel_data);
 
   /// All Histograms
