@@ -43,6 +43,7 @@ SOURCES += main.cpp\
     node_info_dialog.cpp \
     depth_analysis.cpp \
     pixelImage.cpp \
+    maybeCaller.cpp \
     message.pb.cpp \
     profiler-conductor.cpp \
     profiler-tcp-server.cpp
@@ -85,7 +86,8 @@ HEADERS  += globalhelper.hh \
     profiler-conductor.hh \
     profiler-tcp-server.hh \
     execution.hh \
-    pixelImage.hh
+    pixelImage.hh \
+    maybeCaller.hh
 
 FORMS    +=
 

@@ -21,6 +21,7 @@
 
 #include "pixelview.hh"
 #include <chrono>
+#include <thread>
 #include <cmath>
 #include <algorithm> 
 #include <stack>
@@ -426,7 +427,7 @@ PixelTreeCanvas::gatherNogoodData() {
           pos = nogood.find(' ', pos + 1);
       }
       count -= 1; /// because in chuffed nogoods start "out_learnt (interpreted): ..."
-      qDebug() << "nogood count: " << count;
+
       nogood_counts[i] = count;
     } else {
       nogood_counts[i] = 0; /// no nogood found
@@ -943,8 +944,9 @@ PixelTreeCanvas::compressionChanged(int value) {
 }
 
 void
-PixelTreeCanvas::sliderChanged(int value) {
-  redrawAll();
+PixelTreeCanvas::sliderChanged(int) {
+
+  maybeCaller.call([this]() { redrawAll(); });
 }
 
 void

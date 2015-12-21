@@ -24,6 +24,7 @@
 
 #include "treecanvas.hh"
 #include "depth_analysis.hh"
+#include "maybeCaller.hh"
 #include <list>
 #include <vector>
 
@@ -133,6 +134,8 @@ private:
   bool show_depth_analysis_histogram = true;
 
   unsigned current_image_height; /// in 'squares'
+
+  MaybeCaller maybeCaller;
 
 public:
 
