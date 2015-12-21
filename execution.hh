@@ -25,6 +25,7 @@ public:
 
     string getDescription() {
         std::stringstream ss;
+        /// TODO: also print model name (from _data->getTitle() -- comes with the first node)
         ss << "an execution with " << _data->size() << " nodes";
         return ss.str();
     }
@@ -45,7 +46,7 @@ private:
     Data* _data;
 public Q_SLOTS:
     void handleNewNode(message::Node& node) {
-        std::cerr << "execution::newNode\n";
+        // std::cerr << "execution::newNode\n";
         _data->handleNodeCallback(node);
         //
         emit newNode();

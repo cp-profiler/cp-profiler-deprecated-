@@ -118,12 +118,12 @@ int Data::handleNodeCallback(message::Node& node) {
     char thread = node.thread_id();
     float domain = node.domain_size();
 
-    qDebug() << "Received node: \t" << id << " " << pid << " "
-                    << alt << " " << kids << " " << status << " wid: "
-                    << (int)thread << " restart: " << restart_id
-                    << "time: " << node.time()
-                    << "label: " << node.label().c_str()
-                    << "nogood: " << node.nogood().c_str();
+    // qDebug() << "Received node: \t" << id << " " << pid << " "
+    //                 << alt << " " << kids << " " << status << " wid: "
+    //                 << (int)thread << " restart: " << restart_id
+    //                 << "time: " << node.time()
+    //                 << "label: " << node.label().c_str()
+    //                 << "nogood: " << node.nogood().c_str();
 
 
     if (node.has_nogood() && node.nogood().length() > 0) {
