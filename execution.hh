@@ -12,7 +12,6 @@ public:
         NodeAllocator* na = new NodeAllocator(false);
         _data = new Data(na, true);
 
-        
     }
 
     inline const std::unordered_map<unsigned long long, string>& getNogoods(void) { return _data->getNogoods(); }
@@ -36,8 +35,6 @@ public:
     }
 
 
-
-    
 signals:
     void newNode();
     void startReceiving();
@@ -48,7 +45,7 @@ public Q_SLOTS:
     void handleNewNode(message::Node& node) {
         // std::cerr << "execution::newNode\n";
         _data->handleNodeCallback(node);
-        //
+
         emit newNode();
     }
 };

@@ -103,7 +103,7 @@ private:
 
   /// Stuff specific for a particular pixel tree
   unsigned vlines; /// width of pixel tree
-  unsigned tree_depth;
+  int tree_depth;
 
   vector<float> time_arr; // time for each vline
   vector<float> domain_arr; // domain for each vline
@@ -171,7 +171,7 @@ private:
   /// Histograms
   void drawTimeHistogram();
   void drawDomainHistogram();
-  void drawDomainReduction(unsigned l_vline, unsigned r_vline);
+  void drawDomainReduction();
   void drawDepthAnalysisData();
 
   
