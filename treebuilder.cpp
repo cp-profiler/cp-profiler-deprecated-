@@ -269,7 +269,7 @@ bool TreeBuilder::processNode(DbEntry& dbEntry, bool is_delayed) {
         node.changedStatus(*_na);
         node.dirtyUp(*_na);
         emit addedNode();
-        std::cerr << "TreeBuilder::processNode, not-normal case\n";
+        // std::cerr << "TreeBuilder::processNode, not-normal case\n";
         } else {
             // qDebug() << "Ignoring a node: " << ignored_entries.size();
             // assert(status == SKIPPED);

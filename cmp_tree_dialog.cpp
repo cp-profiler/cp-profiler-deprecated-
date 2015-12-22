@@ -42,6 +42,9 @@ _comparison{new TreeComparison()}, analysisMenu{nullptr}, pentListWindow{this} {
   connect(_navFirstPentagon, SIGNAL(triggered()), this, SLOT(navFirstPentagon()));
   connect(_navNextPentagon, SIGNAL(triggered()), this, SLOT(navNextPentagon()));
   connect(_navPrevPentagon, SIGNAL(triggered()), this, SLOT(navPrevPentagon()));
+  connect(_labelBranches, SIGNAL(triggered()), _tc, SLOT(labelBranches()));
+
+  nodeMenu->addAction(_labelBranches);
 
   analysisMenu = menuBar->addMenu(tr("&Analysis"));
   analysisMenu->addAction(_showPentagonHist);
@@ -68,9 +71,14 @@ CmpTreeDialog::addActions(void) {
 
   _showPentagonHist = new QAction("Pentagon list", this);
 
+  _labelBranches = new QAction("Label/clear branches", this);
+  _labelBranches->setShortcut(QKeySequence("L"));
+  _labelBranches->setShortcutContext(Qt::WidgetShortcut);
+
   addAction(_navFirstPentagon);
   addAction(_navNextPentagon);
   addAction(_navPrevPentagon);
+  addAction(_labelBranches);
 }
 
 CmpTreeDialog::~CmpTreeDialog(void) {

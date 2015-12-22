@@ -56,7 +56,7 @@ ProfilerConductor::newExecution(Execution* execution) {
     executionList->addItem(newItem);
     executions << execution;
 
-    connect(execution, SIGNAL(newNode()), this, SLOT(updateList()));
+    // connect(execution, SIGNAL(newNode()), this, SLOT(updateList()));
 }
 
 void

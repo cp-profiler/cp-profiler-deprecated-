@@ -477,7 +477,7 @@ Gist::addActions(void) {
     
     labelBranches = new QAction("Label/clear branches", this);
     labelBranches->setShortcut(QKeySequence("L"));
-    labelBranches->setShortcutContext(Qt::ApplicationShortcut);
+    labelBranches->setShortcutContext(Qt::WidgetWithChildrenShortcut);
     
     labelPath = new QAction("Label/clear path", this);
     labelPath->setShortcut(QKeySequence("Shift+L"));

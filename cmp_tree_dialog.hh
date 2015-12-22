@@ -68,6 +68,8 @@ private:
   QAction* _navPrevPentagon;
   /// Show pentagon histogram
   QAction* _showPentagonHist;
+  /// Label/clear branches
+  QAction* _labelBranches;
 
   /// ***********************
 
