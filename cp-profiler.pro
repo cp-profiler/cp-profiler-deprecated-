@@ -91,9 +91,12 @@ HEADERS  += globalhelper.hh \
 
 FORMS    +=
 
-win32:CONFIG(release, debug|release): LIBS += -L$$PWD/../../../../../../../usr/local/lib/release/ -lnanomsg
-else:win32:CONFIG(debug, debug|release): LIBS += -L$$PWD/../../../../../../../usr/local/lib/debug/ -lnanomsg
-else:unix: LIBS += -L$$PWD/../../../../../../usr/local/lib/ -lnanomsg -ldl
+win32:CONFIG(release, debug|release): LIBS += -L$$PWD/../../../../../../../usr/local/lib/release/
+else:win32:CONFIG(debug, debug|release): LIBS += -L$$PWD/../../../../../../../usr/local/lib/debug/
+else:unix: LIBS += -L$$PWD/../../../../../../usr/local/lib/ -ldl
 
-LIBS += `pkg-config --cflags --libs protobuf` -lprotobuf
+# LIBS += `pkg-config --cflags --libs protobuf` -lprotobuf
+
+CONFIG += link_pkgconfig
+PKGCONFIG += protobuf
 
