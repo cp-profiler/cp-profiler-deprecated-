@@ -1512,6 +1512,7 @@ TreeCanvas::maybeUpdateCanvas(void) {
 
 void
 TreeCanvas::updateViaTimer(void) {
+    qDebug() << "update via timer";
     nodeCount = 0;
     updateCanvas();
 }

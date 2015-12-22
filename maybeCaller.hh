@@ -21,18 +21,27 @@
 
 #include <functional>
 #include <chrono>
+#include <QTimer>
 
 #ifndef MAYBE_CALL_HH
 #define MAYBE_CALL_HH
 
 
-class MaybeCaller {
-
+class MaybeCaller : public QObject {
+Q_OBJECT
 private:
 
   const int MIN_ELAPSED = 16; /// milliseconds
 
   std::chrono::system_clock::time_point last_call_time;
+
+  QTimer updateTimer;
+
+  std::function<void (void)> delayed_fn;
+
+  private Q_SLOTS:
+
+  void callViaTimer();
 
 public:
 
