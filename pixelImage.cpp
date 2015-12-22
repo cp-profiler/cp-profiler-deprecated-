@@ -31,10 +31,15 @@ void
 PixelImage::resize(int width, int height) {
 
   buffer_.clear();
+  background_buffer_.clear();
+
   buffer_.resize(4 * width * height);
+  background_buffer_.resize(4 * width * height);
 
   width_ = width;
   height_ = height;
+
+  drawGrid();
 
   clear();
 
@@ -44,6 +49,9 @@ void
 PixelImage::clear() {
 
   std::fill(buffer_.begin(), buffer_.end(), 255);
+
+  /// initialize buffer with background (grid)
+  buffer_ = background_buffer_;
 }
 
 void
@@ -112,7 +120,10 @@ PixelImage::drawMouseGuidelines(unsigned x, unsigned y) {
 
 /// TODO: drawGrid only when resized / rescaled
 void
-PixelImage::drawGrid(int xoff, int yoff) {
+PixelImage::drawGrid() {
+
+  std::fill(background_buffer_.begin(), background_buffer_.end(), 255);
+
   /// draw cells 5 squares wide
   int gap =  1;
   int gap_size = gap * step_; /// actual gap size in pixels
@@ -124,7 +135,7 @@ PixelImage::drawGrid(int xoff, int yoff) {
     for (unsigned int i = 0; i < width_ - step_; i++) {
 
       for (unsigned k = 0; k < step_; k++)
-        setPixel(buffer_, i + k, j, PixelImage::PIXEL_COLOR::GRID);
+        setPixel(background_buffer_, i + k, j, PixelImage::PIXEL_COLOR::GRID);
     }
   }
 
@@ -135,7 +146,7 @@ PixelImage::drawGrid(int xoff, int yoff) {
     for (unsigned int j = 0; j < height_ - step_; j++) {
 
       for (unsigned k = 0; k < step_; k++)
-        setPixel(buffer_, i, j + k, PixelImage::PIXEL_COLOR::GRID);
+        setPixel(background_buffer_, i, j + k, PixelImage::PIXEL_COLOR::GRID);
 
     }
   }
@@ -145,11 +156,15 @@ void
 PixelImage::scaleDown() {
   if (step_ <= 1) return;
   step_--;
+
+  drawGrid();
 }
 
 void
 PixelImage::scaleUp() {
   step_++;
+
+  drawGrid();
 }
 
 const QImage*

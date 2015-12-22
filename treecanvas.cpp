@@ -447,9 +447,9 @@ void
 TreeCanvas::update(void) {
     QMutexLocker locker(&mutex);
     layoutMutex.lock();
-    std::cerr << "TreeCanvas::update\n";
+    // std::cerr << "TreeCanvas::update\n";
     if (root != NULL) {
-        std::cerr << "root->layout\n";
+        // std::cerr << "root->layout\n";
         root->layout(*na);
         BoundingBox bb = root->getBoundingBox();
 
@@ -1268,7 +1268,7 @@ TreeCanvas::resizeToOuter(void) {
 
 void
 TreeCanvas::paintEvent(QPaintEvent* event) {
-    std::cerr << "TreeCanvas::paintEvent\n";
+    // std::cerr << "TreeCanvas::paintEvent\n";
     QMutexLocker locker(&layoutMutex);
     QPainter painter(this);
     painter.setRenderHint(QPainter::Antialiasing);
@@ -1521,7 +1521,7 @@ TreeCanvas::updateCanvas(void) {
 
     // qDebug() << "update Canvas" << _t->_id;
 
-    std::cerr << "TreeCanvas::updateCanvas\n";
+    // std::cerr << "TreeCanvas::updateCanvas\n";
     
         // if (_t->refresh > 0 && nodeCount >= _t->refresh) {
             // currentNode->dirtyUp(*na);
@@ -1540,7 +1540,7 @@ TreeCanvas::updateCanvas(void) {
     if (root == NULL) return;
 
     if (autoHideFailed) {
-        std::cerr << "autoHideFailed is true\n";
+        // std::cerr << "autoHideFailed is true\n";
         root->hideFailed(*na, true);
     }
 

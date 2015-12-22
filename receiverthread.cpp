@@ -87,7 +87,7 @@ ReceiverWorker::doRead()
                 message::Node msg1;
                 msg1.ParseFromArray(data, msgsize);
 
-                std::cerr << "message type: " << msg1.type() << "\n";
+                // std::cerr << "message type: " << msg1.type() << "\n";
 
                 switch (msg1.type()) {
                 case message::Node::NODE:
