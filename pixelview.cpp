@@ -35,7 +35,7 @@ PixelTreeDialog::PixelTreeDialog(TreeCanvas* tc)
   : QDialog(tc), canvas(&scrollArea, *tc)
 {
 
-  this->resize(600, 400);
+  this->resize(INIT_WIDTH, INIT_HEIGHT);
 
   /// set Title
   this->setWindowTitle(QString::fromStdString(tc->getExecution()->getData()->getTitle()));
@@ -174,7 +174,6 @@ PixelTreeCanvas::PixelTreeCanvas(QWidget* parent, TreeCanvas& tc)
 void
 PixelTreeCanvas::paintEvent(QPaintEvent*) {
   QPainter painter(this);
-
   /// start at (1;1) to prevent strage artifact
   if (pixel_image.image() == nullptr) return;
   painter.drawImage(1, 1, *pixel_image.image(), 0, 0, _sa->viewport()->width(), _sa->viewport()->height());
@@ -190,14 +189,11 @@ PixelTreeCanvas::constructPixelTree(void) {
 
   domain_red_arr.clear(); domain_red_arr.resize(vlines);
 
-
   /// get a root
   VisualNode* root = (*_na)[0];
 
-  vline_idx    = 0;
-
-  // pixel_data = traverseTree(root);
-  pixel_data = traverseTreePostOrder(root);
+  pixel_data = traverseTree(root);
+  // pixel_data = traverseTreePostOrder(root);
 
   high_resolution_clock::time_point time_end = high_resolution_clock::now();
   duration<double> time_span = duration_cast<duration<double>>(time_end - time_begin);
@@ -207,18 +203,6 @@ PixelTreeCanvas::constructPixelTree(void) {
 
 void
 PixelTreeCanvas::compressPixelTree(int value) {
-  /// take pixel_data and create vlineData
-
-  // int vlines = ceil(static_cast<float>(pixel_data.pixel_list.size()) / value);
-
-  // auto& compressed_list = pixel_data.compressed_list;
-
-  // compressed_list = vector<list<PixelItem*>>(vlines, list<PixelItem*>());
-
-  // for (unsigned int pixel_id = 0; pixel_id < pixel_data.pixel_list.size(); pixel_id++) {
-  //   unsigned int vline_id = pixel_id / value;
-  //   compressed_list[vline_id].push_back(&pixel_data.pixel_list[pixel_id]);
-  // }
 
   pixel_data.setCompression(value);
 }
@@ -659,7 +643,7 @@ PixelTreeCanvas::redrawAll() {
 
   pixel_image.update();
 
-  _sa->verticalScrollBar()->setRange(0, 500 + current_image_height - _sa->viewport()->height() / scale);
+  _sa->verticalScrollBar()->setRange(0, current_image_height - _sa->viewport()->height() / scale);
 
   repaint();
 

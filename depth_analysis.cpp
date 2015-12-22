@@ -17,7 +17,7 @@ std::vector<Direction> DepthAnalysis::collectDepthData() {
 }
 
 void DepthAnalysis::traverse(std::vector<Direction>& depth_data, const SpaceNode* const n) {
-  for (unsigned int i = 0; i < n->getNumberOfChildren(); i++) {
+  for (unsigned i = 0; i < n->getNumberOfChildren(); i++) {
     depth_data.push_back(Direction::DOWN);
     traverse(depth_data, n->getChild(*_na, i));
   }
@@ -31,6 +31,7 @@ void DepthAnalysis::traverse(std::vector<Direction>& depth_data, const SpaceNode
     depth_data.push_back(Direction::UP);
   }
 }
+
 
 std::vector< std::vector<unsigned int> >
 DepthAnalysis::runMSL() {

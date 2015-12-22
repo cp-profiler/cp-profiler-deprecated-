@@ -229,8 +229,8 @@ Q_SIGNALS:
 
 public:
 
-  static const int MARGIN = 50;
-  static const int DEPTH = 50;
+  static const int INIT_WIDTH = 600;
+  static const int INIT_HEIGHT = 400;
 
   explicit PixelTreeDialog(TreeCanvas* tc);
   ~PixelTreeDialog(void);
