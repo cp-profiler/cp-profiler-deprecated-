@@ -205,7 +205,7 @@ public:
 
 /// ********* SETTERS **********
 
-    void setTitle(string title) { _title = title; qDebug() << "sent: " << _title.c_str();}
+    void setTitle(string title) { _title = title; } // qDebug() << "sent: " << _title.c_str();}
 
 /// ****************************
 

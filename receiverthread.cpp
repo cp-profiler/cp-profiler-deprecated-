@@ -101,6 +101,7 @@ ReceiverWorker::doRead()
                         break;
                     }
 
+                    execution->start(msg1.label());
                     emit startReceiving();
 
                     break;

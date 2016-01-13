@@ -25,13 +25,18 @@ public:
     string getDescription() {
         std::stringstream ss;
         /// TODO: also print model name (from _data->getTitle() -- comes with the first node)
-        ss << "an execution with " << _data->size() << " nodes";
+        // ss << "an execution with " << _data->size() << " nodes";
+        ss << "an execution named " << getTitle();
         return ss.str();
     }
 
 
     Data* getData() {
         return _data;
+    }
+
+    void start(std::string label) {
+        _data->setTitle(label);
     }
 
 
