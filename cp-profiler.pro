@@ -47,7 +47,8 @@ SOURCES += main.cpp\
     message.pb.cpp \
     profiler-conductor.cpp \
     profiler-tcp-server.cpp \
-    ml-stats.cpp
+    ml-stats.cpp \
+    cpprofiler\analysis\backjumps.cpp
 
 HEADERS  += globalhelper.hh \
     qtgist.hh \
@@ -89,7 +90,8 @@ HEADERS  += globalhelper.hh \
     execution.hh \
     pixelImage.hh \
     maybeCaller.hh \
-    ml-stats.hh
+    ml-stats.hh \
+    cpprofiler\analysis\backjumps.hh
 
 FORMS    +=
 

@@ -280,9 +280,6 @@ public Q_SLOTS:
   /// Show Indented Pixel Tree View
   void showPixelTree(void);
 
-  /// Perform Depth Analysis on the Tree
-  void depthAnalysis(void);
-
   /// Follow path from root
   void followPath(void);
 

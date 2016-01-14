@@ -525,11 +525,6 @@ void TreeCanvas::showPixelTree(void) {
   pixelTreeDialog->show();
 }
 
-void TreeCanvas::depthAnalysis(void) {
-  // DepthAnalysis* depthAnalysis = new DepthAnalysis(this, this);
-  qDebug() << "depth analysis is now a part of a PixelTree";
-}
-
 void TreeCanvas::followPath(void) {
   QMutexLocker locker(&mutex);
   bool ok;

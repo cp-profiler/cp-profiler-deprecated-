@@ -20,12 +20,14 @@
  */
 
 #include "pixelview.hh"
+#include "cpprofiler/analysis/backjumps.hh"
 #include <chrono>
 #include <thread>
 #include <cmath>
 #include <algorithm> 
 #include <stack>
 
+using namespace cpprofiler;
 using namespace std::chrono;
 using std::vector; using std::list;
 
@@ -168,6 +170,9 @@ PixelTreeCanvas::PixelTreeCanvas(QWidget* parent, TreeCanvas& tc)
   resizeCanvas();
 
   // redrawAll();
+
+  cpprofiler::analysis::Backjumps bj;
+  bj.findBackjumps((*_na)[0], *_na);
 
 }
 
