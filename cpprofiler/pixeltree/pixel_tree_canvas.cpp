@@ -19,116 +19,20 @@
  *
  */
 
-#include "pixelview.hh"
-#include "cpprofiler/analysis/backjumps.hh"
-#include <chrono>
-#include <thread>
-#include <cmath>
-#include <algorithm> 
 #include <stack>
 
-using namespace cpprofiler;
-using namespace std::chrono;
-using std::vector; using std::list;
+#include "pixel_tree_canvas.hh"
+#include "cpprofiler/analysis/backjumps.hh"
 
-/// ******* PIXEL_TREE_DIALOG ********
-
-PixelTreeDialog::PixelTreeDialog(TreeCanvas* tc)
-  : QDialog(tc), canvas(&scrollArea, *tc)
-{
-
-  this->resize(INIT_WIDTH, INIT_HEIGHT);
-
-  /// set Title
-  this->setWindowTitle(QString::fromStdString(tc->getExecution()->getData()->getTitle()));
-
-  QVBoxLayout* layout = new QVBoxLayout();
-  QHBoxLayout* controlLayout = new QHBoxLayout();
-  setLayout(layout);
-  layout->addWidget(&scrollArea);
-  layout->addLayout(controlLayout);
-
-  /// ***** control panel *****
-  QPushButton* scaleUp = new QPushButton(this);
-  scaleUp->setText("+");
-
-  QPushButton* scaleDown = new QPushButton(this);
-  scaleDown->setText("-");
-
-  QLabel* compLabel = new QLabel("compression");
-  compLabel->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
-
-  QSpinBox* compressionSB = new QSpinBox(this);
-  compressionSB->setRange(1, 10000);
-
-  controlLayout->addWidget(scaleDown);
-  controlLayout->addWidget(scaleUp);
-  controlLayout->addWidget(compLabel);
-  controlLayout->addWidget(compressionSB);
-
-  QCheckBox* time_cb = new QCheckBox(this);
-  time_cb->setText("time");
-  time_cb->setCheckState(Qt::Checked);
-  controlLayout->addWidget(time_cb);
-  connect(time_cb, SIGNAL(stateChanged(int)), &canvas, SLOT(toggleTimeHistogram(int)));
-
-  QCheckBox* domains_cb = new QCheckBox(this);
-  domains_cb->setText("domains");
-  domains_cb->setCheckState(Qt::Checked);
-  controlLayout->addWidget(domains_cb);
-  connect(domains_cb, SIGNAL(stateChanged(int)), &canvas, SLOT(toggleDomainsHistogram(int)));
-
-  QCheckBox* depth_analysis_cb = new QCheckBox(this);
-  depth_analysis_cb->setText("depth analysis");
-  depth_analysis_cb->setCheckState(Qt::Checked);
-  controlLayout->addWidget(depth_analysis_cb);
-  connect(depth_analysis_cb, SIGNAL(stateChanged(int)), &canvas, SLOT(toggleDepthAnalysisHistogram(int)));
-
-  QCheckBox* decision_vars_cb = new QCheckBox(this);
-  decision_vars_cb->setText("vars");
-  decision_vars_cb->setCheckState(Qt::Checked);
-  controlLayout->addWidget(decision_vars_cb);
-  connect(decision_vars_cb, SIGNAL(stateChanged(int)), &canvas, SLOT(toggleVarsHistogram(int)));
-
-  /// *************************
-
-  // canvas = new PixelTreeCanvas(&scrollArea, tc);
-
-  connect(scaleDown, SIGNAL(clicked()), &canvas, SLOT(scaleDown()));
-  connect(scaleUp, SIGNAL(clicked()), &canvas, SLOT(scaleUp()));
-  connect(compressionSB, SIGNAL(valueChanged(int)),
-    &canvas, SLOT(compressionChanged(int)));
-
-  connect(this, SIGNAL(windowResized()), &canvas, SLOT(resizeCanvas()));
-
-
-
-  setAttribute(Qt::WA_QuitOnClose, true);
-  setAttribute(Qt::WA_DeleteOnClose, true);
-
-}
-
-PixelTreeDialog::~PixelTreeDialog(void) {
-  // delete canvas;
-}
-
-void
-PixelTreeDialog::resizeEvent(QResizeEvent*) {
-  emit windowResized();
-}
-
-
-PixelTreeCanvas::~PixelTreeCanvas(void) {
-
-}
-
-/// ***********************************
+using namespace cpprofiler::pixeltree;
+// using namespace std::chrono;
+// using std::vector; using std::list;
 
 
 /// ******** PIXEL_TREE_CANVAS ********
 
 PixelTreeCanvas::PixelTreeCanvas(QWidget* parent, TreeCanvas& tc)
-    : QWidget(parent), _tc(tc), _data(*tc.getExecution()->getData()), _na(tc.na), depthAnalysis(tc)
+    : QWidget(parent), _tc(tc), _data(*tc.getExecution()->getData()), _na(tc.get_na()), depthAnalysis(tc)
 {
 
 
@@ -136,10 +40,10 @@ PixelTreeCanvas::PixelTreeCanvas(QWidget* parent, TreeCanvas& tc)
   _sa = static_cast<QAbstractScrollArea*>(parentWidget());
   _vScrollBar = _sa->verticalScrollBar();
 
-  _nodeCount = tc.stats.solutions + tc.stats.failures
-                       + tc.stats.choices + tc.stats.undetermined;
+  _nodeCount = tc.get_stats().solutions + tc.get_stats().failures
+                       + tc.get_stats().choices + tc.get_stats().undetermined;
 
-  tree_depth = tc.stats.maxDepth;
+  tree_depth = tc.get_stats().maxDepth;
 
   // if (_tc->getData()->isRestarts()) {
   //   tree_depth++; /// consider the first, dummy node
@@ -171,7 +75,7 @@ PixelTreeCanvas::PixelTreeCanvas(QWidget* parent, TreeCanvas& tc)
 
   // redrawAll();
 
-  cpprofiler::analysis::Backjumps bj;
+  typename cpprofiler::analysis::Backjumps bj;
   bj.findBackjumps((*_na)[0], *_na);
 
 }
@@ -903,7 +807,6 @@ PixelTreeCanvas::scaleDown(void) {
 
 void
 PixelTreeCanvas::resizeCanvas(void) {
-  // pixel_image
 
   auto width = _sa->viewport()->width();
   auto height =  _sa->viewport()->height();
@@ -1065,5 +968,3 @@ PixelTreeCanvas::selectNodesfromPT(unsigned vline) {
   _tc.update();
 
 }
-
-/// ***********************************

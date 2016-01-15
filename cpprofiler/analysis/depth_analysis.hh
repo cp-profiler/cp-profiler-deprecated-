@@ -3,12 +3,22 @@
 
 #include <QDialog>
 #include <vector>
-#include "treecanvas.hh"
 
-enum Direction { DOWN, UP, SOLUTION };
+class TreeCanvas;
+template<class T> class NodeAllocatorBase;
+class VisualNode;
+class SpaceNode;
+
+typedef NodeAllocatorBase<VisualNode> NodeAllocator;
+
+enum class Direction { DOWN, UP, SOLUTION };
+
+
+namespace cpprofiler { namespace analysis {
 
 class DepthAnalysis : public QObject {
   Q_OBJECT
+
 
 private:
   TreeCanvas& _tc;
@@ -32,5 +42,8 @@ public:
   std::vector< std::vector<unsigned int> > runMSL();
 
 };
+
+}}
+
 
 #endif // DEPTH_ANALYSIS_HH

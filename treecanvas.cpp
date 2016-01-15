@@ -32,7 +32,7 @@
 
 #include "treecanvas.hh"
 #include "treebuilder.hh"
-#include "pixelview.hh"
+#include "cpprofiler/pixeltree/pixel_tree_dialog.hh"
 #include "nogood_dialog.hh"
 #include "node_info_dialog.hh"
 
@@ -521,7 +521,8 @@ TreeCanvas::getNoOfSolvedLeaves(VisualNode* n) {
 }
 
 void TreeCanvas::showPixelTree(void) {
-  PixelTreeDialog* pixelTreeDialog = new PixelTreeDialog(this);
+  using cpprofiler::pixeltree::PixelTreeDialog;
+  auto pixelTreeDialog = new PixelTreeDialog(this);
   pixelTreeDialog->show();
 }
 

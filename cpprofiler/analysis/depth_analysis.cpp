@@ -1,8 +1,11 @@
-#include "depth_analysis.hh"
+#include "cpprofiler/analysis/depth_analysis.hh"
 #include <QDebug>
+#include "treecanvas.hh"
+
+using namespace cpprofiler::analysis;
 
 DepthAnalysis::DepthAnalysis(TreeCanvas& tc)
-  :_tc(tc), _na(tc.na) {
+  :_tc(tc), _na(tc.get_na()) {
 }
 
 std::vector<Direction> DepthAnalysis::collectDepthData() {

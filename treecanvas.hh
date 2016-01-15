@@ -175,14 +175,12 @@ enum class CanvasType {
 class TreeCanvas : public QWidget {
   Q_OBJECT
 
+  /// TODO: try to reduce the number of these
   friend class Gist;
   friend class TreeBuilder;
   friend class ShapeCanvas;
   friend class TreeComparison;
   friend class BaseTreeDialog;
-  friend class PixelTreeCanvas;
-  friend class PixelTreeDialog;
-  friend class DepthAnalysis;
 
 public:
 
@@ -198,6 +196,9 @@ public:
     unsigned long long getTotalTime() { return execution->getTotalTime(); }
     string getTitle() { return execution->getTitle(); }
     DbEntry* getEntry(unsigned int gid) { return execution->getEntry(gid); }
+
+    NodeAllocator* get_na() { return na; }
+    const Statistics& get_stats() { return stats; }
 
     Execution* getExecution() { return execution; }
 

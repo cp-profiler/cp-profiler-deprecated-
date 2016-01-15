@@ -37,18 +37,20 @@ SOURCES += main.cpp\
     receiverthread.cpp \
     treebuilder.cpp \
     readingQueue.cpp \
-    pixelview.cpp \
     treecomparison.cpp \
     nogood_dialog.cpp \
     node_info_dialog.cpp \
-    depth_analysis.cpp \
     pixelImage.cpp \
     maybeCaller.cpp \
     message.pb.cpp \
     profiler-conductor.cpp \
     profiler-tcp-server.cpp \
     ml-stats.cpp \
-    cpprofiler\analysis\backjumps.cpp
+    cpprofiler\analysis\backjumps.cpp \
+    cpprofiler\pixeltree\pixel_tree_dialog.cpp \
+    cpprofiler\pixeltree\pixel_tree_canvas.cpp \
+    cpprofiler\analysis\backjumps.cpp \
+    cpprofiler\analysis\depth_analysis.cpp \
 
 HEADERS  += globalhelper.hh \
     qtgist.hh \
@@ -79,11 +81,9 @@ HEADERS  += globalhelper.hh \
     receiverthread.hh \
     treebuilder.hh \
     readingQueue.hh \
-    pixelview.hh \
     treecomparison.hh \
     nogood_dialog.hh \
     node_info_dialog.hh \
-    depth_analysis.hh \
     message.pb.hh \
     profiler-conductor.hh \
     profiler-tcp-server.hh \
@@ -91,7 +91,13 @@ HEADERS  += globalhelper.hh \
     pixelImage.hh \
     maybeCaller.hh \
     ml-stats.hh \
-    cpprofiler\analysis\backjumps.hh
+    cpprofiler\analysis\backjumps.hh \
+    cpprofiler\pixeltree\pixel_data.hh \
+    cpprofiler\pixeltree\pixel_tree_dialog.hh \
+    cpprofiler\pixeltree\pixel_tree_canvas.hh \
+    cpprofiler\pixeltree\pixel_item.hh \
+    cpprofiler\analysis\backjumps.hh \
+    cpprofiler\analysis\depth_analysis.hh \
 
 FORMS    +=
 
