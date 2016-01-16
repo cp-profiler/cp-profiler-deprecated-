@@ -76,7 +76,9 @@ PixelTreeCanvas::PixelTreeCanvas(QWidget* parent, TreeCanvas& tc)
   // redrawAll();
 
   typename cpprofiler::analysis::Backjumps bj;
-  bj.findBackjumps((*_na)[0], *_na);
+  auto bj_data = bj.findBackjumps((*_na)[0], *_na);
+
+  qDebug() << "bj_data.size(): " << bj_data.size();
 
 }
 
@@ -173,7 +175,6 @@ PixelTreeCanvas::compressTimeHistogram(vector<float>& compressed, int compressio
   for (unsigned i = 0; i < pixel_list.size(); i++) {
     group_count++;
 
-    /// TODO: ignore UNDET nodes (crashes otherwise)
     auto entry = _data.getEntry(pixel_list[i].node()->getIndex(*_na));
     auto value = (entry == nullptr) ? 0 : entry->node_time;
     group_value += value;

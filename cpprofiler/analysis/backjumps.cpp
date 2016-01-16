@@ -28,36 +28,42 @@ using std::cout;
 
 Backjumps::Backjumps() {}
 
-void Backjumps::findBackjumps(VisualNode* root, const VisualNode::NodeAllocator& na) {
+const std::unordered_map<uint, BackjumpItem>
+Backjumps::findBackjumps(VisualNode* root, const VisualNode::NodeAllocator& na) {
 
-  BackjumpsCursor bj_cursor(root, na);
+  std::unordered_map<uint, BackjumpItem> bj_data;
+
+  BackjumpsCursor bj_cursor(root, na, bj_data);
   PreorderNodeVisitor<BackjumpsCursor> visitor(bj_cursor);
 
   visitor.run();
 
+  return bj_data;
+
 }
 
 BackjumpsCursor::BackjumpsCursor(VisualNode* root,
-  const VisualNode::NodeAllocator& na)
-  : NodeCursor<VisualNode>(root,na) {
+  const VisualNode::NodeAllocator& na,
+  std::unordered_map<uint, BackjumpItem>& bj_data)
+  : NodeCursor<VisualNode>(root,na), bj_data(bj_data) {
 
 }
 
 void
-BackjumpsCursor::moveDownwards(void) {
+BackjumpsCursor::moveDownwards() {
     ++cur_level;
     NodeCursor<VisualNode>::moveDownwards();
 }
 
 
 void
-BackjumpsCursor::moveUpwards(void) {
+BackjumpsCursor::moveUpwards() {
     --cur_level;
     NodeCursor<VisualNode>::moveUpwards();
 }
 
 void
-BackjumpsCursor::processCurrentNode(void) {
+BackjumpsCursor::processCurrentNode() {
   auto n = node();
   auto status = n->getStatus();
 
@@ -72,6 +78,7 @@ BackjumpsCursor::processCurrentNode(void) {
     if (!is_backjumping) { 
       /// Backjump starts (form the last failure node)
       is_backjumping = true;
+      bj_item.level_from = last_failure_level;
       cout << "Backjump from level: " << last_failure_level;
     }
 
@@ -81,6 +88,9 @@ BackjumpsCursor::processCurrentNode(void) {
       is_backjumping = false;
       /// One level above a non-skipped node (branch node)
       cout << " to: " << cur_level - 1 << " skipping: " << skipped_count << std::endl;
+      bj_item.level_to = cur_level - 1;
+      bj_item.nodes_skipped = skipped_count;
+      bj_data[n->getIndex(na)] = bj_item;
       skipped_count = 0;
     }
 
