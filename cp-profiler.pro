@@ -46,7 +46,8 @@ SOURCES += main.cpp\
     maybeCaller.cpp \
     message.pb.cpp \
     profiler-conductor.cpp \
-    profiler-tcp-server.cpp
+    profiler-tcp-server.cpp \
+    ml-stats.cpp
 
 HEADERS  += globalhelper.hh \
     qtgist.hh \
@@ -87,7 +88,8 @@ HEADERS  += globalhelper.hh \
     profiler-tcp-server.hh \
     execution.hh \
     pixelImage.hh \
-    maybeCaller.hh
+    maybeCaller.hh \
+    ml-stats.hh
 
 FORMS    +=
 

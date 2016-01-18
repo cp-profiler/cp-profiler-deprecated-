@@ -295,6 +295,9 @@ public Q_SLOTS:
   /// Show node info
   void showNodeInfo(void);
 
+  /// Collect ML stats
+  void collectMLStats(void);
+
   /// calls when clicking right mouse button on a shape
   void highlightShape(VisualNode* node);
 

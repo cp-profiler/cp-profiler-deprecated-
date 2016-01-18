@@ -150,6 +150,8 @@ public:
   QAction* showNogoods;
   /// Show node info
   QAction* showNodeInfo;
+  /// Collect ML stats
+  QAction* collectMLStats;
   /// Zoom tree to fit window
   QAction* zoomToFit;
   /// Center on current node

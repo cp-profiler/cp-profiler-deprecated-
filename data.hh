@@ -222,10 +222,12 @@ void Data::connectNodeToEntry(unsigned int gid, DbEntry* entry) {
 
 inline
 DbEntry* Data::getEntry(unsigned int gid) {
-    if (gid < gid2entry.size()) {
-        return gid2entry[gid]; /// all good
+    std::unordered_map<unsigned int, DbEntry*>::iterator it = gid2entry.find(gid);
+    if (it != gid2entry.end()) {
+        return gid2entry[gid];
+    } else {
+        return nullptr;
     }
-    return nullptr; /// otherwise
 }
 
 

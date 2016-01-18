@@ -42,6 +42,8 @@
 #include "visualnode.hh"
 #include "drawingcursor.hh"
 
+#include "ml-stats.hh"
+
 int TreeCanvas::counter = 0;
 
 TreeCanvas::TreeCanvas(Execution* execution, QGridLayout* layout, CanvasType type, QWidget* parent)
@@ -614,6 +616,11 @@ TreeCanvas::showNodeInfo(void) {
 
   NodeInfoDialog* nidialog = new NodeInfoDialog(this, info_str);
   nidialog->show();
+}
+
+void
+TreeCanvas::collectMLStats(void) {
+  ::collectMLStats(currentNode, *na, execution);
 }
 
 void
