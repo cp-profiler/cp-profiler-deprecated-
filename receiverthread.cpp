@@ -65,27 +65,30 @@ ReceiverThread::run(void) {
 void
 ReceiverWorker::doRead()
 {
+    QByteArray data;
     while (tcpSocket->bytesAvailable() > 0) {
         // Read all data on the socket into a local buffer.
         buffer.append(tcpSocket->readAll());
 
+        // This counts how far into "buffer" we are.
+        int bytes_read = 0;
+
         // While we have enough data in the buffer to process the next
         // header or body
-        while ((size == 0 && buffer.size() >= 4) || (size > 0 && buffer.size() >= size)) {
+        while ( (size == 0 && buffer.size() >= bytes_read + 4)
+             || (size > 0  && buffer.size() >= bytes_read + size)) {
             // Read the header (which contains the size of the body)
-            if (size == 0 && buffer.size() >= 4) {
-                size = ArrayToInt(buffer.mid(0,4));
-                buffer.remove(0,4);
+            if (size == 0 && buffer.size() >= bytes_read + 4) {
+                size = ArrayToInt(buffer.mid(bytes_read, 4));
+                bytes_read += 4;
             }
             // Read the body
-            if (size > 0 && buffer.size() >= size) {
-                QByteArray data = buffer.mid(0,size);
-                buffer.remove(0, size);
-                int msgsize = size;
-                size = 0;
-
+            if (size > 0 && buffer.size() >= bytes_read + size) {
                 message::Node msg1;
-                msg1.ParseFromArray(data, msgsize);
+                msg1.ParseFromArray(buffer.data() + bytes_read, size);
+                bytes_read += size;
+
+                size = 0;
 
                 // std::cerr << "message type: " << msg1.type() << "\n";
 
@@ -112,5 +115,8 @@ ReceiverWorker::doRead()
                 }
             }
         }
+
+        // Discard from the buffer the part we have read.
+        buffer.remove(0, bytes_read);
     }
 }
