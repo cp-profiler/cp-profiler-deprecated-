@@ -51,12 +51,14 @@ public:
 
 void
 ProfilerConductor::newExecution(Execution* execution) {
+    qDebug() << "(maxim): new execution";
     ExecutionListItem *newItem = new ExecutionListItem(execution, executionList);
     newItem->setText("some execution");
+    // newItem->setSelected(true);
     executionList->addItem(newItem);
     executions << execution;
 
-    // connect(execution, SIGNAL(newNode()), this, SLOT(updateList()));
+    connect(execution, SIGNAL(titleKnown()), this, SLOT(updateList()));
 }
 
 void

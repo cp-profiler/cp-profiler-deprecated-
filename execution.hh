@@ -37,11 +37,13 @@ public:
 
     void start(std::string label) {
         _data->setTitle(label);
+        emit titleKnown();
     }
 
 
 signals:
     void newNode();
+    void titleKnown();
     void startReceiving();
     void doneReceiving();
 private:

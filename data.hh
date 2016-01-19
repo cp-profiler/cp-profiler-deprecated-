@@ -173,8 +173,9 @@ public:
 
     void show_db(void); /// TODO: write to a file
 
+    /// TODO(maxim): Do I want a reference here?
     /// return label by gid (Gist ID)
-    const std::string getLabel(unsigned int gid);
+    std::string getLabel(unsigned int gid);
 
     /// return solver id by gid (Gist ID)
     unsigned long long gid2sid(unsigned int gid);

@@ -33,11 +33,6 @@ using namespace std;
 
 int Data::instance_counter = 0;
 
-/*
-#define SSTR( x ) dynamic_cast< std::ostringstream & >( \
-        ( std::ostringstream() << std::dec << x ) ).str()
-*/
-
 ostream& operator<<(ostream& s, const DbEntry& e) {
     s << "dbEntry: {";
     s << " sid: " << e.sid;
@@ -185,7 +180,7 @@ int Data::handleNodeCallback(message::Node& node) {
     return 0;
 }
 
-const std::string Data::getLabel(unsigned int gid) {
+std::string Data::getLabel(unsigned int gid) {
     QMutexLocker locker(&dataMutex);
 
     auto it = gid2entry.find(gid);
@@ -240,7 +235,8 @@ void Data::flush_node_rate(void) {
 void Data::pushInstance(unsigned long long sid, DbEntry* entry) {
     QMutexLocker locker(&dataMutex);
 
-    /// is sid == nodes_arr.size? no, because there are also '-1' nodes (backjumped) that dont get counted
+    /// Note(maxim): `sid` != `nodes_arr.size`, because there are also
+    /// '-1' nodes (backjumped) that dont get counted
     nodes_arr.push_back(entry);
 
     sid2aid[sid] = nodes_arr.size() - 1;

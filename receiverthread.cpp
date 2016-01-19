@@ -97,7 +97,7 @@ ReceiverWorker::doRead()
                     execution->handleNewNode(msg1);
                     break;
                 case message::Node::START: /// TODO: start sending should have model name
-                    qDebug() << "START RECEIVING";
+                    qDebug() << "START RECEIVING: " << msg1.label().c_str();
                     
                     if (msg1.restart_id() != -1 && msg1.restart_id() != 0) {
                         qDebug() << ">>> restart and continue";
