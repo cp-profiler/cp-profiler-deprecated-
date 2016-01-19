@@ -28,6 +28,7 @@
 #include <string>
 
 #include "cpprofiler/analysis/depth_analysis.hh"
+#include "cpprofiler/analysis/backjumps.hh"
 #include "pixel_data.hh"
 
 class Data;
@@ -43,10 +44,15 @@ class SpaceNode;
 
 typedef NodeAllocatorBase<VisualNode> NodeAllocator;
 
+namespace cpprofiler { namespace analysis {
+  class BackjumpItem;
+}}
 
 namespace cpprofiler { namespace pixeltree {
 
 using cpprofiler::analysis::DepthAnalysis;
+using cpprofiler::analysis::BackjumpItem;
+using cpprofiler::analysis::BackjumpData;
 
 class PixelTreeCanvas : public QWidget {
   Q_OBJECT
@@ -92,6 +98,9 @@ private:
   std::vector< std::vector<unsigned> > da_data;
   std::vector< std::vector<unsigned> > da_data_compressed;
 
+  /// Backjumps analysis data
+  BackjumpData bj_data;
+
   PixelImage pixel_image;
 
   PixelData pixel_data;
@@ -100,6 +109,7 @@ private:
   bool show_domain_histogram = true;
   bool show_decision_vars_histogram = true;
   bool show_depth_analysis_histogram = true;
+  bool show_bj_analysis_histogram = true;
 
   unsigned current_image_height; /// in 'squares'
 
@@ -141,6 +151,7 @@ private:
   void drawDomainHistogram();
   void drawDomainReduction();
   void drawDepthAnalysisData();
+  void drawBjData();
 
   
   void drawVarData();

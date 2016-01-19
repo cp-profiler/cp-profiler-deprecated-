@@ -29,6 +29,12 @@ using namespace cpprofiler::pixeltree;
 // using std::vector; using std::list;
 
 
+static std::pair<int, int>
+getPixelBoundaries(int vline, int compression) {
+  return std::make_pair(vline * compression, (vline + 1) * compression);
+}
+
+
 /// ******** PIXEL_TREE_CANVAS ********
 
 PixelTreeCanvas::PixelTreeCanvas(QWidget* parent, TreeCanvas& tc)
@@ -61,6 +67,9 @@ PixelTreeCanvas::PixelTreeCanvas(QWidget* parent, TreeCanvas& tc)
   connect (_sa->verticalScrollBar(), SIGNAL(valueChanged (int)), this, SLOT(sliderChanged(int)));
 
   da_data = depthAnalysis.runMSL();
+
+  typename cpprofiler::analysis::Backjumps bj;
+  bj_data = bj.findBackjumps((*_na)[0], *_na);
   
   constructPixelTree();
   compressPixelTree(1);
@@ -74,11 +83,6 @@ PixelTreeCanvas::PixelTreeCanvas(QWidget* parent, TreeCanvas& tc)
   resizeCanvas();
 
   // redrawAll();
-
-  typename cpprofiler::analysis::Backjumps bj;
-  auto bj_data = bj.findBackjumps((*_na)[0], *_na);
-
-  qDebug() << "bj_data.size(): " << bj_data.size();
 
 }
 
@@ -549,6 +553,8 @@ PixelTreeCanvas::redrawAll() {
   if (show_depth_analysis_histogram) drawDepthAnalysisData();
 
   if (show_decision_vars_histogram) drawVarData();
+
+  if (show_bj_analysis_histogram) drawBjData();
   // drawNogoodData();
 
   pixel_image.update();
@@ -734,6 +740,85 @@ PixelTreeCanvas::drawNodeRate(unsigned l_vline, unsigned r_vline) {
 }
 
 void
+PixelTreeCanvas::drawBjData() {
+
+  auto scale = pixel_image.scale();
+
+  auto xoff = _sa->horizontalScrollBar()->value();
+  auto yoff = _sa->verticalScrollBar()->value();
+
+  int img_width = pixel_image.width() / scale;
+  int img_height = pixel_image.height() / scale;
+
+  auto max_value = bj_data.max_from;
+  float coeff = (static_cast<float>(HIST_HEIGHT) / scale) / (max_value + 1);
+
+  int zero_level = current_image_height + coeff * (max_value + 1) - yoff;
+
+  pixel_image.drawHorizontalLine(current_image_height - yoff);
+  pixel_image.drawHorizontalLine(zero_level);
+
+  const auto compr = pixel_data.compression();
+  const auto start = xoff;
+  const auto end = std::ceil((float)vlines / compr);
+
+  /// TODO(maxim): break if out of canvas' boundary
+  for (auto vline = xoff; vline < end; ++vline) {
+
+    /// TODO(maxim): get a list of nodes if compressed tree
+    /// from `start` (including) to `start + compr` (not including)
+    std::vector<BackjumpItem*> bj_items; /// items on this vline
+
+    auto boundaries = getPixelBoundaries(vline, compr);
+    auto first_id = boundaries.first;
+    auto last_id = std::min(boundaries.second, (int)pixel_data.pixel_list.size());
+
+    for (auto id = first_id; id < last_id; ++id ) {
+      auto gid = pixel_data.pixel_list[id].node()->getIndex(*_na);
+      auto bj_item = bj_data.bj_map.find(gid);
+      if (bj_item != bj_data.bj_map.end()) {
+        bj_items.push_back(&bj_item->second);
+      }
+    }
+
+    
+    if (bj_items.size() > 0) {
+
+      auto average_from = std::accumulate(
+        bj_items.begin(), bj_items.end(), 0,
+        [](int sum, BackjumpItem* bj_item){
+          return sum + bj_item->level_from;
+        }
+      ) / bj_items.size();
+
+      auto average_to = std::accumulate(
+        bj_items.begin(), bj_items.end(), 0,
+        [](int sum, BackjumpItem* bj_item){
+          return sum + bj_item->level_to;
+        }
+      ) / bj_items.size();
+
+      auto average_skipped = std::accumulate(
+        bj_items.begin(), bj_items.end(), 0,
+        [](int sum, BackjumpItem* bj_item){
+          return sum + bj_item->nodes_skipped;
+        }
+      ) / bj_items.size();
+
+
+      auto x = vline - xoff;
+      auto y_from = zero_level - coeff * average_from;
+      auto y_to = zero_level - coeff * average_to;
+      auto y_skipped = zero_level - coeff * average_skipped;
+
+      pixel_image.drawPixel(x, y_from,  qRgb(170, 0, 0));
+      pixel_image.drawPixel(x, y_to,  qRgb(0, 170, 0));
+      pixel_image.drawPixel(x, y_skipped,  qRgb(0, 0, 170));
+    }
+  }
+}
+
+void
 PixelTreeCanvas::drawDepthAnalysisData() {
 
   auto scale = pixel_image.scale();
@@ -744,7 +829,7 @@ PixelTreeCanvas::drawDepthAnalysisData() {
   int img_width = pixel_image.width() / scale;
   int img_height = pixel_image.height() / scale;
 
-  auto max_value = [this]() {
+  auto max_value = [this](){
     auto data = this->da_data_compressed;
     auto max_vector = std::max_element(data.begin(), data.end(),
       [](vector<unsigned>& lhs, vector<unsigned>& rhs) {
@@ -929,14 +1014,14 @@ PixelTreeCanvas::selectNodesfromPT(unsigned vline) {
 
   };
 
-  auto compr = pixel_data.compression();
-  auto start = vline * compr;
-  auto end = (vline + 1) * compr; /// not including
+  auto boundaries = getPixelBoundaries(vline, pixel_data.compression());
+  auto start = boundaries.first;
+  auto end = boundaries.second; /// not including
 
   Actions actions(_na, _tc);
   void (Actions::*apply)(VisualNode*);
 
-  if (compr == 1) {
+  if (pixel_data.compression() == 1) {
     apply = &Actions::selectOne;
   } else {
     apply = &Actions::selectGroup;

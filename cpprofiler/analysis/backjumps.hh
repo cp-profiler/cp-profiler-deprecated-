@@ -34,12 +34,19 @@ namespace cpprofiler { namespace analysis {
     int nodes_skipped;
   };
 
+  struct BackjumpData {
+    std::unordered_map<uint, BackjumpItem> bj_map;
+    int max_from = 0;
+    int max_to = 0;
+    int max_skipped = 0;
+  };
+
   class Backjumps
   {
   public:
     Backjumps();
 
-    const std::unordered_map<uint, BackjumpItem>
+    const BackjumpData
       findBackjumps(VisualNode* root, const VisualNode::NodeAllocator& na);
   };
 
@@ -53,18 +60,18 @@ namespace cpprofiler { namespace analysis {
     int last_failure_level = 0; /// can be a solution as well (for the purpose of bj)
     bool is_backjumping = false; /// whether the cursor on a backjumped part of the tree
     int skipped_count = 0; /// counts how many skipped nodes for every bj
-
+    int bj_gid = 0; /// gid of a node the current backjump started from
     /// temp bj_item to be copied into the map after having been constructed
     BackjumpItem bj_item;
 
-    /// map from gid to backjump item
-    std::unordered_map<uint, BackjumpItem>& bj_data;
+    /// contains a map from gid to backjump item
+    BackjumpData& bj_data;
 
   public:
 
       BackjumpsCursor(VisualNode* theNode,
                        const VisualNode::NodeAllocator& na,
-                       std::unordered_map<uint, BackjumpItem>& bj_data);
+                       BackjumpData& bj_data);
 
       void processCurrentNode();
       void moveDownwards();

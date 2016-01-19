@@ -23,15 +23,18 @@
 
 #include <iostream>
 
+/// TODO(maxim): fix backjump histogram going out of vertical boundary when zooming in
+
 using namespace cpprofiler::analysis;
 using std::cout;
 
 Backjumps::Backjumps() {}
 
-const std::unordered_map<uint, BackjumpItem>
+const BackjumpData
 Backjumps::findBackjumps(VisualNode* root, const VisualNode::NodeAllocator& na) {
 
-  std::unordered_map<uint, BackjumpItem> bj_data;
+  // std::unordered_map<uint, BackjumpItem> bj_data;
+  BackjumpData bj_data;
 
   BackjumpsCursor bj_cursor(root, na, bj_data);
   PreorderNodeVisitor<BackjumpsCursor> visitor(bj_cursor);
@@ -44,7 +47,7 @@ Backjumps::findBackjumps(VisualNode* root, const VisualNode::NodeAllocator& na) 
 
 BackjumpsCursor::BackjumpsCursor(VisualNode* root,
   const VisualNode::NodeAllocator& na,
-  std::unordered_map<uint, BackjumpItem>& bj_data)
+  BackjumpData& bj_data)
   : NodeCursor<VisualNode>(root,na), bj_data(bj_data) {
 
 }
@@ -67,10 +70,6 @@ BackjumpsCursor::processCurrentNode() {
   auto n = node();
   auto status = n->getStatus();
 
-  if (status == NodeStatus::FAILED || status == NodeStatus::SOLVED) {
-    last_failure_level = cur_level;
-  }
-
   if (status == NodeStatus::SKIPPED) {
 
     ++skipped_count;
@@ -79,6 +78,7 @@ BackjumpsCursor::processCurrentNode() {
       /// Backjump starts (form the last failure node)
       is_backjumping = true;
       bj_item.level_from = last_failure_level;
+      bj_data.max_from = std::max(bj_data.max_from, bj_item.level_from);
       cout << "Backjump from level: " << last_failure_level;
     }
 
@@ -90,10 +90,19 @@ BackjumpsCursor::processCurrentNode() {
       cout << " to: " << cur_level - 1 << " skipping: " << skipped_count << std::endl;
       bj_item.level_to = cur_level - 1;
       bj_item.nodes_skipped = skipped_count;
-      bj_data[n->getIndex(na)] = bj_item;
+
+      bj_data.max_to = std::max(bj_data.max_to, bj_item.level_to);
+      bj_data.max_skipped = std::max(bj_data.max_skipped, bj_item.nodes_skipped);
+
+      bj_data.bj_map[bj_gid] = bj_item;
       skipped_count = 0;
     }
 
+  }
+
+  if (status == NodeStatus::FAILED || status == NodeStatus::SOLVED) {
+    last_failure_level = cur_level;
+    bj_gid = n->getIndex(na); /// this node can potentially initiate a backjump
   }
 
 }
