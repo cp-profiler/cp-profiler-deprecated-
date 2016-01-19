@@ -49,12 +49,7 @@ SOURCES += main.cpp\
     cpprofiler\analysis\backjumps.cpp \
     cpprofiler\pixeltree\pixel_tree_dialog.cpp \
     cpprofiler\pixeltree\pixel_tree_canvas.cpp \
-    cpprofiler\analysis\backjumps.cpp \
     cpprofiler\analysis\depth_analysis.cpp \
-    cpprofiler/analysis/backjumps.cpp \
-    cpprofiler/analysis/depth_analysis.cpp \
-    cpprofiler/pixeltree/pixel_tree_canvas.cpp \
-    cpprofiler/pixeltree/pixel_tree_dialog.cpp \
 
 HEADERS  += globalhelper.hh \
     qtgist.hh \
@@ -95,19 +90,12 @@ HEADERS  += globalhelper.hh \
     pixelImage.hh \
     maybeCaller.hh \
     ml-stats.hh \
-    cpprofiler\analysis\backjumps.hh \
-    cpprofiler\pixeltree\pixel_data.hh \
-    cpprofiler\pixeltree\pixel_tree_dialog.hh \
-    cpprofiler\pixeltree\pixel_tree_canvas.hh \
-    cpprofiler\pixeltree\pixel_item.hh \
-    cpprofiler\analysis\backjumps.hh \
-    cpprofiler\analysis\depth_analysis.hh \
     cpprofiler/analysis/backjumps.hh \
-    cpprofiler/analysis/depth_analysis.hh \
     cpprofiler/pixeltree/pixel_data.hh \
-    cpprofiler/pixeltree/pixel_item.hh \
-    cpprofiler/pixeltree/pixel_tree_canvas.hh \
     cpprofiler/pixeltree/pixel_tree_dialog.hh \
+    cpprofiler/pixeltree/pixel_tree_canvas.hh \
+    cpprofiler/pixeltree/pixel_item.hh \
+    cpprofiler/analysis/depth_analysis.hh \
 
 FORMS    +=
 

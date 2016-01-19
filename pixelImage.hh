@@ -52,6 +52,7 @@ public:
   void drawPixel(int x, int y, QRgb color);
 
   // draw horizontal line (for zero level on histograms)
+  // 1 pixel tall, on the bottom-most row of pixels: ______
   void drawHorizontalLine(int y);
   
   void drawMouseGuidelines(unsigned vline, unsigned depth);

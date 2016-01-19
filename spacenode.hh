@@ -78,6 +78,8 @@ public:
   /// Constructor
   Statistics(void)
     : solutions(0), failures(0), choices(0), undetermined(1), maxDepth(0) {}
+
+  int allNodes() const { return solutions + failures + choices + undetermined; }
 };
 
 class SpaceNode;

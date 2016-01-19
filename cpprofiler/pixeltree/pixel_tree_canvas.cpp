@@ -34,6 +34,16 @@ getPixelBoundaries(int vline, int compression) {
   return std::make_pair(vline * compression, (vline + 1) * compression);
 }
 
+/// TODO(maxim): abstract away xoff and yoff
+/// TODO(maxim): make adding new histograms/data easier
+/// TODO(maxim): fix histograms going outside their boundaries
+/// TODO(maxim): use correct height for the content
+/// TODO(maxim): add option to display backjump data
+/// TODO(maxim): enable labels when hover over some histogram regions (like depth analysis)
+/// TODO(maxim): improve pixel tree selection: fix subtrees not uncollapsing
+///                                            enable multiple column selection (range)
+/// TODO(maxim): find out why restarts hightlight subtrees as if it was parallel execution
+
 
 /// ******** PIXEL_TREE_CANVAS ********
 
@@ -41,34 +51,32 @@ PixelTreeCanvas::PixelTreeCanvas(QWidget* parent, TreeCanvas& tc)
     : QWidget(parent), _tc(tc), _data(*tc.getExecution()->getData()), _na(tc.get_na()), depthAnalysis(tc)
 {
 
-
+  using cpprofiler::analysis::Backjumps;
 
   _sa = static_cast<QAbstractScrollArea*>(parentWidget());
-  _vScrollBar = _sa->verticalScrollBar();
 
-  _nodeCount = tc.get_stats().solutions + tc.get_stats().failures
-                       + tc.get_stats().choices + tc.get_stats().undetermined;
+  _nodeCount = tc.get_stats().allNodes();
 
   tree_depth = tc.get_stats().maxDepth;
 
+  /// TODO(maxim): do I still need to do this? (check if tree depth is correct)
   // if (_tc->getData()->isRestarts()) {
   //   tree_depth++; /// consider the first, dummy node
   //   _nodeCount++;
   // }
 
-  /// scrolling business
   _sa->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
   _sa->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
-  // _sa->setAutoFillBackground(true);
 
   setMouseTracking(true);
 
   connect (_sa->horizontalScrollBar(), SIGNAL(valueChanged (int)), this, SLOT(sliderChanged(int)));
   connect (_sa->verticalScrollBar(), SIGNAL(valueChanged (int)), this, SLOT(sliderChanged(int)));
 
+  /// TODO(maxim): only run when asked for the first time?
   da_data = depthAnalysis.runMSL();
 
-  typename cpprofiler::analysis::Backjumps bj;
+  Backjumps bj;
   bj_data = bj.findBackjumps((*_na)[0], *_na);
   
   constructPixelTree();
@@ -81,42 +89,33 @@ PixelTreeCanvas::PixelTreeCanvas(QWidget* parent, TreeCanvas& tc)
   gatherNogoodData();
   compressNogoodData(1);
   resizeCanvas();
-
-  // redrawAll();
-
 }
 
 void
 PixelTreeCanvas::paintEvent(QPaintEvent*) {
   QPainter painter(this);
-  /// start at (1;1) to prevent strage artifact
   if (pixel_image.image() == nullptr) return;
-  painter.drawImage(1, 1, *pixel_image.image(), 0, 0, _sa->viewport()->width(), _sa->viewport()->height());
+  painter.drawImage(0, 0, *pixel_image.image(), 0, 0, _sa->viewport()->width(), _sa->viewport()->height());
 }
 
 void
 PixelTreeCanvas::constructPixelTree(void) {
 
-  high_resolution_clock::time_point time_begin = high_resolution_clock::now();
-
-  /// how many of each values after compression
-  vlines = ceil((float)_nodeCount / approx_size);
-
-  domain_red_arr.clear(); domain_red_arr.resize(vlines);
+  auto time_begin = high_resolution_clock::now();
 
   /// get a root
-  VisualNode* root = (*_na)[0];
-
+  auto root = (*_na)[0];
   pixel_data = traverseTree(root);
   // pixel_data = traverseTreePostOrder(root);
 
-  high_resolution_clock::time_point time_end = high_resolution_clock::now();
-  duration<double> time_span = duration_cast<duration<double>>(time_end - time_begin);
+  auto time_end = high_resolution_clock::now();
+  auto time_span = duration_cast<duration<double>>(time_end - time_begin);
   std::cout << "Pixel Tree construction took: " << time_span.count() << " seconds." << std::endl;
 
 }
 
-void
+/// TODO(maxim) find out whether I need this method
+void 
 PixelTreeCanvas::compressPixelTree(int value) {
 
   pixel_data.setCompression(value);
@@ -200,6 +199,7 @@ PixelTreeCanvas::compressTimeHistogram(vector<float>& compressed, int compressio
 
 
 /// TODO: try to avoid code duplication
+/// TODO(maxim): give a better name
 void
 PixelTreeCanvas::compressDomainHistogram(vector<float>& compressed, int compression) {
 
@@ -207,13 +207,13 @@ PixelTreeCanvas::compressDomainHistogram(vector<float>& compressed, int compress
   auto data_length = pixel_list.size();
   auto vlines = ceil(data_length / compression);
 
-  if (compressed.size() > 0) compressed.clear();
+  compressed.clear();
   compressed.resize(vlines);
 
   auto group_count = 0;
   auto group_value = 0.0f;
 
-  for (unsigned i = 0; i < pixel_list.size(); i++) {
+  for (auto i = 0; i < pixel_list.size(); i++) {
     group_count++;
 
     auto entry = _data.getEntry(pixel_list[i].node()->getIndex(*_na));
@@ -221,7 +221,7 @@ PixelTreeCanvas::compressDomainHistogram(vector<float>& compressed, int compress
     group_value += value;
 
     if (group_count == compression) {
-      unsigned int vline_id = i / compression;
+      auto vline_id = i / compression;
       compressed[vline_id] = group_value / group_count;
       group_count = 0; group_value = 0;
     }
@@ -229,7 +229,7 @@ PixelTreeCanvas::compressDomainHistogram(vector<float>& compressed, int compress
 
   /// deal with the last (not full) group
   if (group_count > 0) {
-    unsigned int vline_id = data_length / compression;
+    auto vline_id = data_length / compression;
     compressed[vline_id] = group_value / group_count;
   }
 }
@@ -448,11 +448,12 @@ PixelTreeCanvas::traverseTreePostOrder(VisualNode* root) {
 void
 PixelTreeCanvas::drawPixelTree(const PixelData& pixel_data) {
 
-  auto xoff = _sa->horizontalScrollBar()->value(); // values should be in scaled pixels
+  auto xoff = _sa->horizontalScrollBar()->value();
   auto yoff = _sa->verticalScrollBar()->value();
 
   auto scale = pixel_image.scale();
 
+  // / TODO(maxim): is `img_width` is the only reason I need `scale` in this class?
   int img_width = pixel_image.width() / scale;
 
   const int compr = pixel_data.compression();
@@ -760,7 +761,7 @@ PixelTreeCanvas::drawBjData() {
 
   const auto compr = pixel_data.compression();
   const auto start = xoff;
-  const auto end = std::ceil((float)vlines / compr);
+  const auto end = std::ceil((float)_nodeCount / compr);
 
   /// TODO(maxim): break if out of canvas' boundary
   for (auto vline = xoff; vline < end; ++vline) {

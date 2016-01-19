@@ -64,7 +64,6 @@ private:
   QPixmap         pixmap;
 
   QAbstractScrollArea*  _sa;
-  QScrollBar*           _vScrollBar;
 
   /// Constants for a particular execution
   unsigned _nodeCount;
@@ -76,7 +75,7 @@ private:
   unsigned   vline_idx;  // same as x when _step = 1
 
   /// Stuff specific for a particular pixel tree
-  unsigned vlines; /// width of pixel tree
+  // unsigned vlines; /// width of pixel tree
   int tree_depth;
 
   std::vector<float> time_arr; // time for each vline
