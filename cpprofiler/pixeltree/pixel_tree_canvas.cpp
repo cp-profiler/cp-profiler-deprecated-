@@ -34,7 +34,6 @@ getPixelBoundaries(int vline, int compression) {
   return std::make_pair(vline * compression, (vline + 1) * compression);
 }
 
-/// TODO(maxim): abstract away xoff and yoff
 /// TODO(maxim): make adding new histograms/data easier
 /// TODO(maxim): fix histograms going outside their boundaries
 /// TODO(maxim): use correct height for the content
@@ -84,7 +83,7 @@ PixelTreeCanvas::PixelTreeCanvas(QWidget* parent, TreeCanvas& tc)
   compressPixelTree(1);
   compressDepthAnalysis(da_data_compressed, 1);
   compressTimeHistogram(time_arr, 1);
-  compressDomainHistogram(domain_arr, 1);
+  getDomainDataCompressed(domain_arr, 1);
   gatherVarData();
   compressVarData(var_decisions_compressed, 1);
   gatherNogoodData();
@@ -111,11 +110,11 @@ PixelTreeCanvas::constructPixelTree(void) {
 
   auto time_end = high_resolution_clock::now();
   auto time_span = duration_cast<duration<double>>(time_end - time_begin);
-  std::cout << "Pixel Tree construction took: " << time_span.count() << " seconds." << std::endl;
+  std::cout << "constructPixelTree: " << time_span.count() << " seconds." << std::endl;
 
 }
 
-/// TODO(maxim) find out whether I need this method
+/// This sets compression that will be used during the drawing
 void 
 PixelTreeCanvas::compressPixelTree(int value) {
 
@@ -198,13 +197,13 @@ PixelTreeCanvas::compressTimeHistogram(vector<float>& compressed, int compressio
 
 }
 
-
 /// TODO: try to avoid code duplication
-/// TODO(maxim): give a better name
 void
-PixelTreeCanvas::compressDomainHistogram(vector<float>& compressed, int compression) {
+PixelTreeCanvas::getDomainDataCompressed(vector<float>& compressed, int compression) {
 
-  auto pixel_list = pixel_data.pixel_list;
+  auto time_begin = high_resolution_clock::now();
+
+  auto& pixel_list = pixel_data.pixel_list;
   auto data_length = pixel_list.size();
   auto vlines = ceil(data_length / compression);
 
@@ -233,6 +232,10 @@ PixelTreeCanvas::compressDomainHistogram(vector<float>& compressed, int compress
     auto vline_id = data_length / compression;
     compressed[vline_id] = group_value / group_count;
   }
+
+  auto time_end = high_resolution_clock::now();
+  auto time_span = duration_cast<duration<double>>(time_end - time_begin);
+  std::cout << "getDomainDataCompressed: " << time_span.count() << " seconds." << std::endl;
 }
 
 void
@@ -265,6 +268,8 @@ PixelTreeCanvas::compressVarData(vector<vector<int> >& compressed, int compressi
 
 void
 PixelTreeCanvas::gatherVarData() {
+
+  auto time_begin = high_resolution_clock::now();
 
   auto data_length = pixel_data.pixel_list.size();
   var_decisions.reserve(data_length);
@@ -305,6 +310,10 @@ PixelTreeCanvas::gatherVarData() {
     /// rememeber decision variables
     var_decisions.push_back(var_id);
   }
+
+  auto time_end = high_resolution_clock::now();
+  auto time_span = duration_cast<duration<double>>(time_end - time_begin);
+  std::cout << "gatherVarData: " << time_span.count() << " seconds." << std::endl;
 }
 
 void
@@ -545,7 +554,13 @@ PixelTreeCanvas::redrawAll() {
 
   // drawNodeRate(image, leftmost_vline, rightmost_vline);
 
+
+  auto time_begin = high_resolution_clock::now();
   if (show_depth_analysis_histogram) drawDepthAnalysisData();
+  auto time_end = high_resolution_clock::now();
+  auto time_span = duration_cast<duration<double>>(time_end - time_begin);
+  // std::cout << "drawDepthAnalysisData: " << time_span.count() << " seconds." << std::endl;
+
 
   if (show_decision_vars_histogram) drawVarData();
 
@@ -809,21 +824,24 @@ PixelTreeCanvas::drawDepthAnalysisData() {
   auto xoff = _sa->horizontalScrollBar()->value(); // values should be in scaled pixels
   auto yoff = _sa->verticalScrollBar()->value();
 
-  int img_height = pixel_image.height();
+  /// only calculate this once
+  if (da_data_max == 0) {
+    da_data_max = [this](){
+      auto data = this->da_data_compressed;
+      auto max_vector = std::max_element(data.begin(), data.end(),
+        [](vector<unsigned>& lhs, vector<unsigned>& rhs) {
+          auto lhs_max =  *std::max_element(lhs.begin(), lhs.end());
+          auto rhs_max =  *std::max_element(rhs.begin(), rhs.end());
+          return lhs_max < rhs_max;
+      });
 
-  auto max_value = [this](){
-    auto data = this->da_data_compressed;
-    auto max_vector = std::max_element(data.begin(), data.end(),
-      [](vector<unsigned>& lhs, vector<unsigned>& rhs) {
-        auto lhs_max =  *std::max_element(lhs.begin(), lhs.end());
-        auto rhs_max =  *std::max_element(rhs.begin(), rhs.end());
-        return lhs_max < rhs_max;
-    });
+      return *std::max_element(max_vector->begin(), max_vector->end());
+    }();
+  }
 
-    return *std::max_element(max_vector->begin(), max_vector->end());
-  }();
+  const int max_value = da_data_max;
 
-  float coeff = HIST_HEIGHT / (max_value + 1);
+  const float coeff = static_cast<float>(HIST_HEIGHT) / (max_value + 1);
 
   int zero_level = current_image_height + coeff * max_value - yoff;
 
@@ -836,14 +854,12 @@ PixelTreeCanvas::drawDepthAnalysisData() {
     for (auto vline = xoff; vline < int(da_data_compressed[depth].size()); vline++) {
 
       auto value = da_data_compressed[depth][vline];
-      if (value > max_value) max_value = value;
-      // qDebug() << "depth: " << depth << " value: " << value;
+
       auto x = vline - xoff;
       auto y = zero_level - coeff * value;
 
-      if (x < 0) continue;
       if (x > pixel_image.width()) break; /// note: true (breaks) if x < 0
-      if (y > img_height || y < 0) continue;
+      if (y > pixel_image.height() || y < 0) continue;
 
       int color_value = 200 - 200 * static_cast<float>(depth) / tree_depth;
 
@@ -854,7 +870,6 @@ PixelTreeCanvas::drawDepthAnalysisData() {
   }
 
   current_image_height += coeff * max_value + MARGIN;
-
 
 }
 
@@ -888,7 +903,7 @@ PixelTreeCanvas::compressionChanged(int value) {
   compressPixelTree(value);
   compressDepthAnalysis(da_data_compressed, value);
   compressTimeHistogram(time_arr, value);
-  compressDomainHistogram(domain_arr, value);
+  getDomainDataCompressed(domain_arr, value);
   compressVarData(var_decisions_compressed, value);
   compressNogoodData(value);
   redrawAll();

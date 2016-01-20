@@ -11,14 +11,13 @@ class SpaceNode;
 
 typedef NodeAllocatorBase<VisualNode> NodeAllocator;
 
-enum class Direction { DOWN, UP, SOLUTION };
-
 
 namespace cpprofiler { namespace analysis {
 
+enum class Direction { DOWN, UP, SOLUTION };
+
 class DepthAnalysis : public QObject {
   Q_OBJECT
-
 
 private:
   TreeCanvas& _tc;
@@ -46,4 +45,4 @@ public:
 }}
 
 
-#endif // DEPTH_ANALYSIS_HH
+#endif

@@ -94,6 +94,7 @@ private:
 
   /// Depth analysis data
   DepthAnalysis depthAnalysis;
+  int da_data_max = 0; // to be assigned
   std::vector< std::vector<unsigned> > da_data;
   std::vector< std::vector<unsigned> > da_data_compressed;
 
@@ -136,7 +137,7 @@ private:
   void compressPixelTree(int value);
   void compressDepthAnalysis(std::vector< std::vector<unsigned int> >& data, int value);
   void compressTimeHistogram(std::vector<float>&, int value);
-  void compressDomainHistogram(std::vector<float>&, int value);
+  void getDomainDataCompressed(std::vector<float>&, int value);
   PixelData traverseTree(VisualNode* node);
   PixelData traverseTreePostOrder(VisualNode* node);
 
