@@ -116,8 +116,8 @@ private:
 
 public:
 
-  static const int HIST_HEIGHT = 80;
-  static const int MARGIN = 30;
+  static const int HIST_HEIGHT = 20; // in fake pixels
+  static const int MARGIN = 2; // in fake pixels
 
 private:
 

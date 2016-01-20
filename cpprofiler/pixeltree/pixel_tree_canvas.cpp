@@ -26,7 +26,7 @@
 
 using namespace cpprofiler::pixeltree;
 // using namespace std::chrono;
-// using std::vector; using std::list;
+using std::vector; using std::list;
 
 
 static std::pair<int, int>
@@ -43,6 +43,7 @@ getPixelBoundaries(int vline, int compression) {
 /// TODO(maxim): improve pixel tree selection: fix subtrees not uncollapsing
 ///                                            enable multiple column selection (range)
 /// TODO(maxim): find out why restarts hightlight subtrees as if it was parallel execution
+/// TODO(maxim): we could store some more informaiton about the execution (solver name etc)
 
 
 /// ******** PIXEL_TREE_CANVAS ********
@@ -451,10 +452,7 @@ PixelTreeCanvas::drawPixelTree(const PixelData& pixel_data) {
   auto xoff = _sa->horizontalScrollBar()->value();
   auto yoff = _sa->verticalScrollBar()->value();
 
-  auto scale = pixel_image.scale();
-
-  // / TODO(maxim): is `img_width` is the only reason I need `scale` in this class?
-  int img_width = pixel_image.width() / scale;
+  int img_width = pixel_image.width();
 
   const int compr = pixel_data.compression();
   const auto& pixel_list = pixel_data.pixel_list;
@@ -515,7 +513,8 @@ PixelTreeCanvas::drawPixelTree(const PixelData& pixel_data) {
   }
 
   pixel_image.drawHorizontalLine(tree_depth - yoff);
-  current_image_height += tree_depth + ceil(static_cast<float>(MARGIN) / pixel_image.scale());
+
+  current_image_height += tree_depth + MARGIN;
 
 }
 
@@ -525,19 +524,14 @@ PixelTreeCanvas::redrawAll() {
 
   pixel_image.clear();
 
+  /// TODO(maxim): this should probably also be in the pixelImage class
   current_image_height = 0;
-
-  auto scale = pixel_image.scale();
-  int img_width = pixel_image.width();
 
   const auto& pixel_list = pixel_data.pixel_list;
 
   auto vlines = ceil((float)pixel_list.size() / pixel_data.compression());
 
-  _sa->horizontalScrollBar()->setRange(0, vlines - img_width / scale + 20);
-
-  /// TODO: ????
-  this->resize(pixel_image.width(), pixel_image.height());
+  _sa->horizontalScrollBar()->setRange(0, vlines - pixel_image.width() + 20);
 
   drawPixelTree(pixel_data);
 
@@ -560,7 +554,7 @@ PixelTreeCanvas::redrawAll() {
 
   pixel_image.update();
 
-  _sa->verticalScrollBar()->setRange(0, current_image_height - _sa->viewport()->height() / scale);
+  _sa->verticalScrollBar()->setRange(0, current_image_height - _sa->viewport()->height() / pixel_image.scale());
 
   repaint();
 
@@ -574,9 +568,6 @@ PixelTreeCanvas::drawVarData() {
   auto xoff = _sa->horizontalScrollBar()->value();
   auto yoff = _sa->verticalScrollBar()->value();
 
-  auto scale = pixel_image.scale();
-  int img_width = pixel_image.width() / scale;
-
   pixel_image.drawHorizontalLine(current_image_height - yoff);
   int zero_level = current_image_height + vars.size() - yoff;
   pixel_image.drawHorizontalLine(zero_level);
@@ -589,8 +580,8 @@ PixelTreeCanvas::drawVarData() {
       auto x = vline - xoff;
       auto y = zero_level - var_id;
 
-      if (x > img_width) break;
-      if (y > img_width || y < 0) continue;
+      if (x > pixel_image.width()) break;
+      if (y > pixel_image.width() || y < 0) continue;
 
       auto color_value = ceil(var_id * 255 / vars.size());
 
@@ -599,7 +590,7 @@ PixelTreeCanvas::drawVarData() {
     }
   }
 
-  current_image_height += vars.size() + ceil(static_cast<float>(MARGIN) / pixel_image.scale());
+  current_image_height += vars.size() + MARGIN;
 }
 
 void
@@ -607,10 +598,7 @@ PixelTreeCanvas::drawNogoodData() {
   auto xoff = _sa->horizontalScrollBar()->value();
   auto yoff = _sa->verticalScrollBar()->value();
 
-  auto scale = pixel_image.scale();
-  int img_width = pixel_image.width() / scale;
-  int img_height = pixel_image.height() / scale;
-
+  int img_height = pixel_image.height();
 
   auto max_value = *std::max(nogood_counts_compressed.begin(), nogood_counts_compressed.end());
 
@@ -624,7 +612,7 @@ PixelTreeCanvas::drawNogoodData() {
     auto x = vline - xoff;
     auto y = zero_level - value;
 
-    if (x > img_width) break;
+    if (x > pixel_image.width()) break;
     if (y > img_height || y < 0) continue;
 
     /// TODO: normalize
@@ -634,7 +622,7 @@ PixelTreeCanvas::drawNogoodData() {
 
   
 
-  current_image_height += max_value + ceil(static_cast<float>(MARGIN) / pixel_image.scale());
+  current_image_height += max_value + MARGIN;
 }
 
 /// Draw time histogram underneath the pixel tree
@@ -660,10 +648,7 @@ PixelTreeCanvas::drawHistogram(vector<float>& data, int color) {
   auto xoff = _sa->horizontalScrollBar()->value();
   auto yoff = _sa->verticalScrollBar()->value();
 
-  auto scale = pixel_image.scale();
-
-  int img_width = pixel_image.width() / scale;
-  int img_height = pixel_image.height() / scale;
+  int img_height = pixel_image.height();
 
   /// work out maximum value
   int max_value = *max_element(std::begin(data), std::end(data));
@@ -674,11 +659,11 @@ PixelTreeCanvas::drawHistogram(vector<float>& data, int color) {
   }
 
 
-  float coeff = (static_cast<float>(HIST_HEIGHT) / scale) / (max_value + 1);
+  float coeff = HIST_HEIGHT / (max_value + 1);
 
   pixel_image.drawHorizontalLine(current_image_height - yoff);
 
-  auto zero_level = current_image_height + ceil((float)HIST_HEIGHT / scale) - yoff;
+  auto zero_level = current_image_height + (float)HIST_HEIGHT  - yoff;
 
   pixel_image.drawHorizontalLine(zero_level);
 
@@ -689,7 +674,7 @@ PixelTreeCanvas::drawHistogram(vector<float>& data, int color) {
     auto y = zero_level - val;
 
     if (x < 0) continue;
-    if (x > img_width) break; /// note: true (breaks) if x < 0
+    if (x > pixel_image.width()) break; /// note: true (breaks) if x < 0
     if (y > img_height || y < 0) continue;
 
     pixel_image.drawPixel(x, y, color);
@@ -697,7 +682,7 @@ PixelTreeCanvas::drawHistogram(vector<float>& data, int color) {
 
   }
 
-  current_image_height += ceil(static_cast<float>(HIST_HEIGHT + MARGIN) / pixel_image.scale());
+  current_image_height += HIST_HEIGHT + MARGIN;
 }
 
 void
@@ -743,16 +728,15 @@ PixelTreeCanvas::drawNodeRate(unsigned l_vline, unsigned r_vline) {
 void
 PixelTreeCanvas::drawBjData() {
 
-  auto scale = pixel_image.scale();
-
   auto xoff = _sa->horizontalScrollBar()->value();
   auto yoff = _sa->verticalScrollBar()->value();
 
-  int img_width = pixel_image.width() / scale;
-  int img_height = pixel_image.height() / scale;
+  /// TODO(maxim): check boundaries for this histogram
+  int img_width = pixel_image.width();
+  int img_height = pixel_image.height();
 
   auto max_value = bj_data.max_from;
-  float coeff = (static_cast<float>(HIST_HEIGHT) / scale) / (max_value + 1);
+  float coeff = HIST_HEIGHT / (max_value + 1);
 
   int zero_level = current_image_height + coeff * (max_value + 1) - yoff;
 
@@ -822,13 +806,10 @@ PixelTreeCanvas::drawBjData() {
 void
 PixelTreeCanvas::drawDepthAnalysisData() {
 
-  auto scale = pixel_image.scale();
-
   auto xoff = _sa->horizontalScrollBar()->value(); // values should be in scaled pixels
   auto yoff = _sa->verticalScrollBar()->value();
 
-  int img_width = pixel_image.width() / scale;
-  int img_height = pixel_image.height() / scale;
+  int img_height = pixel_image.height();
 
   auto max_value = [this](){
     auto data = this->da_data_compressed;
@@ -842,7 +823,7 @@ PixelTreeCanvas::drawDepthAnalysisData() {
     return *std::max_element(max_vector->begin(), max_vector->end());
   }();
 
-  float coeff = (static_cast<float>(HIST_HEIGHT) / scale) / (max_value + 1);
+  float coeff = HIST_HEIGHT / (max_value + 1);
 
   int zero_level = current_image_height + coeff * max_value - yoff;
 
@@ -861,7 +842,7 @@ PixelTreeCanvas::drawDepthAnalysisData() {
       auto y = zero_level - coeff * value;
 
       if (x < 0) continue;
-      if (x > img_width) break; /// note: true (breaks) if x < 0
+      if (x > pixel_image.width()) break; /// note: true (breaks) if x < 0
       if (y > img_height || y < 0) continue;
 
       int color_value = 200 - 200 * static_cast<float>(depth) / tree_depth;
@@ -872,7 +853,7 @@ PixelTreeCanvas::drawDepthAnalysisData() {
 
   }
 
-  current_image_height += coeff * max_value + ceil(static_cast<float>(MARGIN)/pixel_image.scale());
+  current_image_height += coeff * max_value + MARGIN;
 
 
 }
@@ -898,6 +879,7 @@ PixelTreeCanvas::resizeCanvas(void) {
   auto width = _sa->viewport()->width();
   auto height =  _sa->viewport()->height();
   pixel_image.resize(width, height);
+  this->resize(width, width);
   redrawAll();
 }
 
@@ -982,6 +964,7 @@ PixelTreeCanvas::mouseMoveEvent(QMouseEvent* event) {
 void
 PixelTreeCanvas::selectNodesfromPT(unsigned vline) {
 
+/// TODO(maxim): use Lambdas instead
   struct Actions {
 
   private:

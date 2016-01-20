@@ -59,13 +59,13 @@ PixelImage::drawPixel(int x, int y, QRgb color) {
   if (y < 0)
     return; /// TODO: fix later
 
-  int x0 = x * step_;
-  int y0 = y * step_;
+  int x0 = x * scale_;
+  int y0 = y * scale_;
 
-  for (unsigned i = 0; i < step_; i++) {
+  for (unsigned i = 0; i < scale_; i++) {
     auto x = x0 + i;
     if (x >= width_) break;
-    for (unsigned j = 0; j < step_; j++) {
+    for (unsigned j = 0; j < scale_; j++) {
       auto y = y0 + j;
       if (y >= height_) break;
       setPixel(buffer_, x, y, color);
@@ -104,7 +104,7 @@ PixelImage::drawHorizontalLine(int y) {
 void
 PixelImage::drawHorizontalLine(std::vector<unsigned char>& buffer, int y) {
 
-  y = y * step_ + step_;
+  y = y * scale_ + scale_;
 
   if (y < 0 || y > height_) return;
 
@@ -126,15 +126,15 @@ PixelImage::drawGrid() {
 
   /// draw cells 5 squares wide
   int gap =  1;
-  int gap_size = gap * step_; /// actual gap size in pixels
+  int gap_size = gap * scale_; /// actual gap size in pixels
 
   /// horizontal lines on level == j
   for (unsigned int j = gap_size; j < height_; j += gap_size) {
 
     /// one line
-    for (unsigned int i = 0; i < width_ - step_; i++) {
+    for (unsigned int i = 0; i < width_ - scale_; i++) {
 
-      for (unsigned k = 0; k < step_; k++)
+      for (unsigned k = 0; k < scale_; k++)
         setPixel(background_buffer_, i + k, j, PixelImage::PIXEL_COLOR::GRID);
     }
   }
@@ -143,9 +143,9 @@ PixelImage::drawGrid() {
   for (unsigned int i = gap_size; i < width_; i += gap_size) {
 
     /// one line
-    for (unsigned int j = 0; j < height_ - step_; j++) {
+    for (unsigned int j = 0; j < height_ - scale_; j++) {
 
-      for (unsigned k = 0; k < step_; k++)
+      for (unsigned k = 0; k < scale_; k++)
         setPixel(background_buffer_, i, j + k, PixelImage::PIXEL_COLOR::GRID);
 
     }
@@ -154,15 +154,15 @@ PixelImage::drawGrid() {
 
 void
 PixelImage::scaleDown() {
-  if (step_ <= 1) return;
-  step_--;
+  if (scale_ <= 1) return;
+  scale_--;
 
   drawGrid();
 }
 
 void
 PixelImage::scaleUp() {
-  step_++;
+  scale_++;
 
   drawGrid();
 }
@@ -172,12 +172,7 @@ PixelImage::image() {
   return image_;
 }
 
-unsigned
-PixelImage::scale() const {
-  return step_;
-}
 
 PixelImage::~PixelImage() {
   delete image_;
-  // delete[] buffer_;
 }

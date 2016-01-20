@@ -39,9 +39,11 @@ private:
   unsigned int width_;
   unsigned int height_;
 
+  // int content_height_; // the sum of heights of the pt and histograms
+
   QImage::Format image_format;
 
-  unsigned step_ = 4; // size of a 'pixel' in pixels
+  unsigned scale_ = 4; // size of a 'pixel' in pixels
 
   void setPixel(std::vector<unsigned char>& buffer, int x, int y, QRgb color);
   void drawHorizontalLine(std::vector<unsigned char>& buffer, int y);
@@ -67,15 +69,20 @@ public:
   void update(); /// updates image_ from buffer_
   void clear(); /// fills the image with (white) color
 
+  // void resetContentHeight() { content_height_ = 0; }
+  // void addToContentHeight(int fake_pixels) { content_height_ += fake_pixels }
+
   PixelImage(const PixelImage&) = delete;
   ~PixelImage();
 
   ///***** Getters *****
-  unsigned int width() { return width_; }
-  unsigned int height() { return height_; }
+  unsigned int width_in_pixels() { return width_; }
+  unsigned int width() { return width_ / scale_; }
+  unsigned int height_in_pixels() { return height_; }
+  unsigned int height() { return height_ / scale_; }
 
   const QImage* image();
-  unsigned scale() const;
+  unsigned scale() const { return scale_; };
 
   enum PIXEL_COLOR {
     BLACK = qRgb(0, 0, 0),
