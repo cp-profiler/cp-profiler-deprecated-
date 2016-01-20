@@ -33,8 +33,6 @@
 
 namespace cpprofiler { namespace pixeltree {
 
-using std::vector; using std::list;
-
 /// ***********************************
 
 class PixelData {
@@ -55,7 +53,7 @@ public:
 
   int compression() const { return compression_; }
 
-  vector<PixelItem> pixel_list;
+  std::vector<PixelItem> pixel_list;
 
 };
 

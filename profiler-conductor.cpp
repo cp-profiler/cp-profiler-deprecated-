@@ -54,7 +54,7 @@ ProfilerConductor::newExecution(Execution* execution) {
     qDebug() << "(maxim): new execution";
     ExecutionListItem *newItem = new ExecutionListItem(execution, executionList);
     newItem->setText("some execution");
-    // newItem->setSelected(true);
+    newItem->setSelected(true);
     executionList->addItem(newItem);
     executions << execution;
 
