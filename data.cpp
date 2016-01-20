@@ -127,7 +127,7 @@ int Data::handleNodeCallback(message::Node& node) {
     }
 
     if (node.has_info() && node.info().length() > 0) {
-        sid2info[id] = string("sid: ") + std::to_string(id) + "\n" + node.info() + "\nnogood: " + node.nogood();
+        sid2info[id] = string("sid: ") + std::to_string(id) + "\n" + node.info();
     }
     
     /// just so we don't have ugly numbers when not using restarts
