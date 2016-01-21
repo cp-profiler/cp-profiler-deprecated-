@@ -981,50 +981,33 @@ void
 PixelTreeCanvas::selectNodesfromPT(unsigned vline) {
 
 /// TODO(maxim): use Lambdas instead
-  struct Actions {
-
-  private:
-    NodeAllocator* _na;
-    TreeCanvas& _tc;
-    
-    bool _done;
-
-  public:
-
-    void selectOne(VisualNode* node) {
-      _tc.setCurrentNode(node);
-      _tc.centerCurrentNode();
-    }
-
-    void selectGroup(VisualNode* node) {
-      node->dirtyUp(*_na);
-
-      VisualNode* next = node;
-
-      while (!next->isRoot() && next->isHidden()) {
-        next->setHidden(false);
-        next = next->getParent(*_na);
-      }
-    }
-
-  public:
-
-    Actions(NodeAllocator* na, TreeCanvas& tc)
-    : _na(na), _tc(tc), _done(false) {}
-
-  };
 
   auto boundaries = getPixelBoundaries(vline, pixel_data.compression());
   auto start = boundaries.first;
   auto end = boundaries.second; /// not including
 
-  Actions actions(_na, _tc);
-  void (Actions::*apply)(VisualNode*);
+  auto selectOne = [this](VisualNode* node) {
+    _tc.setCurrentNode(node);
+    _tc.centerCurrentNode();
+  };
+
+  auto selectGroup = [this](VisualNode* node) {
+    node->dirtyUp(*_na);
+
+    VisualNode* next = node;
+
+    while (!next->isRoot() && next->isHidden()) {
+      next->setHidden(false);
+      next = next->getParent(*_na);
+    }
+  };
+
+  std::function<void(VisualNode*)> apply = selectOne;
 
   if (pixel_data.compression() == 1) {
-    apply = &Actions::selectOne;
+    apply = selectOne;
   } else {
-    apply = &Actions::selectGroup;
+    apply = selectGroup;
     /// hide everything except root
     _tc.hideAll();
     (*_na)[0]->setHidden(false);
@@ -1046,7 +1029,7 @@ PixelTreeCanvas::selectNodesfromPT(unsigned vline) {
   for (auto id = start; id < end && id < pixel_list.size(); id++) {
     auto& pixelItem = pixel_list[id];
     auto node = pixelItem.node();
-    (actions.*apply)(node);
+    apply(node);
     pixelItem.setSelected(true);
     pixels_selected.push_back(&pixelItem);
   }
