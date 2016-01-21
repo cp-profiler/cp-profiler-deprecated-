@@ -49,6 +49,7 @@ int TreeCanvas::counter = 0;
 TreeCanvas::TreeCanvas(Execution* execution, QGridLayout* layout, CanvasType type, QWidget* parent)
     : QWidget(parent)
     , canvasType(type)
+    , execution(execution)
     , mutex(QMutex::Recursive)
     , layoutMutex(QMutex::Recursive)
     , finishedFlag(false)
@@ -61,7 +62,6 @@ TreeCanvas::TreeCanvas(Execution* execution, QGridLayout* layout, CanvasType typ
     , layoutDoneTimerId(0)
     , shapesWindow(parent,  this)
     , shapesMap(CompareShapes(*this))
-    , execution(execution)
 {
     QMutexLocker locker(&mutex);
 
@@ -920,6 +920,8 @@ TreeCanvas::stopSearch(void) {
 
 void
 TreeCanvas::reset(bool isRestarts) {
+    (void) isRestarts;
+
     QMutexLocker locker(&mutex);
 
     qDebug() << "tc #" << _id << "is resetting";
