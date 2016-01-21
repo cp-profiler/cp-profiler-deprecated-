@@ -13,11 +13,13 @@ public:
     unsigned int nodeid;
     NodeStatus status;
     int depth;
+    int decisionLevel;
     int subtreeDepth;
     int subtreeSize;
     int subtreeSolutions;
     int nogoodStringLength;
     int backjumpDistance;
+    unsigned long long timestamp;
 };
 
 void printStatsEntry(const StatsEntry& se) {
@@ -25,11 +27,13 @@ void printStatsEntry(const StatsEntry& se) {
               << "\t" << se.nodeid
               << "\t" << se.status
               << "\t" << se.depth
+              << "\t" << se.decisionLevel
               << "\t" << se.subtreeDepth
               << "\t" << se.subtreeSize
               << "\t" << se.subtreeSolutions
               << "\t" << se.nogoodStringLength
               << "\t" << se.backjumpDistance
+              << "\t" << se.timestamp
               << "\n";
 }
 
@@ -89,9 +93,21 @@ public:
             se.backjumpDistance = -1;
         }
         int gid = node()->getIndex(na);
-        unsigned int sid = execution->getEntry(gid)->sid;
-        se.nodeid = sid;
-        se.nogoodStringLength = getNogoodStringLength(sid);
+        // Some nodes (e.g. undetermined nodes) do not have entries;
+        // be careful with those.
+        DbEntry* entry = execution->getEntry(gid);
+        if (entry != nullptr) {
+            unsigned int sid = entry->sid;
+            se.nodeid = sid;
+            se.nogoodStringLength = getNogoodStringLength(sid);
+            se.decisionLevel = entry->decisionLevel;
+            se.timestamp = entry->time_stamp;
+        } else {
+            se.nodeid = -1;
+            se.nogoodStringLength = 0;
+            se.decisionLevel = -1;
+            se.timestamp = 0;
+        }
 
         stack.push_back(se);
     }
@@ -110,13 +126,16 @@ public:
     // correct when its last child is done.
     void processCurrentNode() {
         StatsEntry se = stack.back();
-        std::cout << "popped this: ";
         stack.pop_back();
-        printStatsEntry(se);
-        if (stack.size() > 0) {
-            stack.back().subtreeDepth = std::max(stack.back().subtreeDepth, 1 + se.subtreeDepth);
-            stack.back().subtreeSize += se.subtreeSize;
-            stack.back().subtreeSolutions += se.subtreeSolutions;
+        // Undetermined nodes are not real nodes (the solver never
+        // visited them), so we don't do anything with those.
+        if (se.status != UNDETERMINED) {
+            printStatsEntry(se);
+            if (stack.size() > 0) {
+                stack.back().subtreeDepth = std::max(stack.back().subtreeDepth, 1 + se.subtreeDepth);
+                stack.back().subtreeSize += se.subtreeSize;
+                stack.back().subtreeSolutions += se.subtreeSolutions;
+            }
         }
     }
 
@@ -142,40 +161,46 @@ public:
 
 class BackjumpCursor : public NodeCursor<VisualNode> {
 private:
-    int depth;
+    const Execution* execution;
     std::unordered_map<VisualNode*, int>& backjumpDistance;
     VisualNode* mostRecentFailure;
-    int mostRecentFailureDepth;
+    int mostRecentFailureDecisionLevel;
 public:
     // Note that the map is passed in by reference so we can modify
     // it.
     BackjumpCursor(VisualNode* root,
                    const VisualNode::NodeAllocator& na,
+                   const Execution* execution_,
                    std::unordered_map<VisualNode*, int>& bjd)
         : NodeCursor(root, na)
-        , depth(0)
+        , execution(execution_)
         , backjumpDistance(bjd)
     {}
     
-    void moveDownwards() { NodeCursor<VisualNode>::moveDownwards(); depth++; }
-    void moveUpwards()   { NodeCursor<VisualNode>::moveUpwards();   depth--; }
-
     void processCurrentNode() {
         // Note that skipped/undetermined nodes do not do anything;
         // they are not the destination of a backjump.
+        int gid;
+        int decisionLevel;
         switch (node()->getStatus()) {
         case FAILED:
+            gid = node()->getIndex(na);
+            decisionLevel = execution->getEntry(gid)->decisionLevel;
             if (mostRecentFailure) {
-                backjumpDistance[mostRecentFailure] = mostRecentFailureDepth - depth;
+                backjumpDistance[mostRecentFailure] =
+                    mostRecentFailureDecisionLevel - decisionLevel;
                 mostRecentFailure = NULL;
             }
             mostRecentFailure = node();
-            mostRecentFailureDepth = depth;
+            mostRecentFailureDecisionLevel = decisionLevel;
             break;
         case BRANCH:
         case SOLVED:
             if (mostRecentFailure) {
-                backjumpDistance[mostRecentFailure] = mostRecentFailureDepth - depth;
+                gid = node()->getIndex(na);
+                decisionLevel = execution->getEntry(gid)->decisionLevel;
+                backjumpDistance[mostRecentFailure] =
+                    mostRecentFailureDecisionLevel - decisionLevel;
                 mostRecentFailure = NULL;
             }
             break;
@@ -205,7 +230,7 @@ void collectMLStats(VisualNode* root, const VisualNode::NodeAllocator& na, Execu
     std::unordered_map<VisualNode*, int> backjumpDistance;
 
     // First pass: construct the backjumpDistance map.
-    BackjumpCursor bjc(root, na, backjumpDistance);
+    BackjumpCursor bjc(root, na, execution, backjumpDistance);
     PreorderNodeVisitor<BackjumpCursor> bjv(bjc);
     bjv.run();
 

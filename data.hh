@@ -77,6 +77,7 @@ public:
     std::string label;
     char thread;
     int depth;
+    int decisionLevel;
     unsigned long long time_stamp;
     unsigned long long node_time;
     float domain;
@@ -197,7 +198,7 @@ public:
 
     unsigned long long getTotalTime(void); /// time in microseconds
 
-    DbEntry* getEntry(unsigned int gid);
+    DbEntry* getEntry(unsigned int gid) const;
 
     unsigned int getGidBySid(unsigned int sid) { return nodes_arr[sid2aid[sid]]->gid; }
 
@@ -222,10 +223,10 @@ void Data::connectNodeToEntry(unsigned int gid, DbEntry* entry) {
 }
 
 inline
-DbEntry* Data::getEntry(unsigned int gid) {
-    std::unordered_map<unsigned int, DbEntry*>::iterator it = gid2entry.find(gid);
+DbEntry* Data::getEntry(unsigned int gid) const {
+    std::unordered_map<unsigned int, DbEntry*>::const_iterator it = gid2entry.find(gid);
     if (it != gid2entry.end()) {
-        return gid2entry[gid];
+        return it->second;
     } else {
         return nullptr;
     }
