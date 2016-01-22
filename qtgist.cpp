@@ -31,26 +31,6 @@
 #include "execution.hh"
 
 
-// void
-// Gist::createNewCanvas(void) {
-
-//     qDebug() << "!!! about to create a new canvas";
-
-//     SolverTreeDialog* td = new SolverTreeDialog(CanvasType::REGULAR, this);
-//     _td_vec.push_back(td);
-
-// }
-
-// void 
-// Gist::initiateComparison(void) {
-
-//     if (_td_vec.size() == 0) return;
-
-//     /// will be destroyed with Gist
-//     new CmpTreeDialog(CanvasType::MERGED, this,
-//                       canvas, _td_vec[0]->getCanvas());
-// }
-
 void
 Gist::initInterface(void) {
 

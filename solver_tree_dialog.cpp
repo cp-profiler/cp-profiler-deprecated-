@@ -22,8 +22,8 @@
 #include "nodewidget.hh"
 #include "execution.hh"
 
-SolverTreeDialog::SolverTreeDialog(Execution* execution, const CanvasType type, Gist* gist)
-    : BaseTreeDialog(execution, type, gist)
+SolverTreeDialog::SolverTreeDialog(QWidget* parent, Execution* execution, const CanvasType type, Gist* gist)
+    : BaseTreeDialog(parent, execution, type, gist)
 {
 
 

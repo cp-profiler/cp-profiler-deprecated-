@@ -980,8 +980,6 @@ PixelTreeCanvas::mouseMoveEvent(QMouseEvent* event) {
 void
 PixelTreeCanvas::selectNodesfromPT(unsigned vline) {
 
-/// TODO(maxim): use Lambdas instead
-
   auto boundaries = getPixelBoundaries(vline, pixel_data.compression());
   auto start = boundaries.first;
   auto end = boundaries.second; /// not including

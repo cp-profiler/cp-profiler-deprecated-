@@ -190,17 +190,17 @@ public:
 
   const CanvasType canvasType;
 
-    std::string getLabel(unsigned int gid) {
-        return execution->getLabel(gid);
-    }
-    unsigned long long getTotalTime() { return execution->getTotalTime(); }
-    string getTitle() { return execution->getTitle(); }
-    DbEntry* getEntry(unsigned int gid) { return execution->getEntry(gid); }
+  std::string getLabel(unsigned int gid) {
+    return execution->getLabel(gid);
+  }
+  unsigned long long getTotalTime() { return execution->getTotalTime(); }
+  string getTitle() { return execution->getTitle(); }
+  DbEntry* getEntry(unsigned int gid) { return execution->getEntry(gid); }
 
-    NodeAllocator* get_na() { return na; }
-    const Statistics& get_stats() { return stats; }
+  NodeAllocator* get_na() { return na; }
+  const Statistics& get_stats() { return stats; }
 
-    Execution* getExecution() { return execution; }
+  Execution* getExecution() { return execution; }
 
 private:
 
@@ -216,10 +216,10 @@ private:
 
   TreeBuilder* _builder;
 
-    Execution* execution;
+  Execution* execution;
 
-    int nodeCount = 0;
-    QTimer* updateTimer;
+  int nodeCount = 0;
+  QTimer* updateTimer;
 
 public Q_SLOTS:
 

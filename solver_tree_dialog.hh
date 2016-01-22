@@ -43,7 +43,7 @@ private:
 
 public:
 
-    SolverTreeDialog(Execution* execution, const CanvasType type, Gist* gist);
+    SolverTreeDialog(QWidget* parent, Execution* execution, const CanvasType type, Gist* gist);
 
   ~SolverTreeDialog();
 

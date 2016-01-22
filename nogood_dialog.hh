@@ -26,6 +26,7 @@
 #include <QTableWidget>
 #include <unordered_map>
 #include <vector>
+#include <cassert>
 #include <QSortFilterProxyModel>
 
 class TreeCanvas;
@@ -47,6 +48,8 @@ protected:
       int rhs = sourceModel()->data(sourceModel()->index(right.row(), 1)).toString().size();
       return lhs < rhs;
     }
+    assert(true);
+    return false; /// should not reach here; to prevent a warning
   }
 };
 

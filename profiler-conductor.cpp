@@ -46,7 +46,7 @@ public:
     ExecutionListItem(Execution* execution, QListWidget* parent, int type = Type)
         : QListWidgetItem(parent, type),
           execution_(execution),
-          gistWindow_(NULL)
+          gistWindow_(nullptr)
     {}
 
     Execution* execution_;
@@ -80,7 +80,7 @@ ProfilerConductor::gistButtonClicked(bool checked) {
     for (int i = 0 ; i < selected.size() ; i++) {
         ExecutionListItem* item = static_cast<ExecutionListItem*>(selected[i]);
         GistMainWindow* g = item->gistWindow_;
-        if (g == NULL) {
+        if (g == nullptr) {
             g = new GistMainWindow(item->execution_, this);
             item->gistWindow_ = g;
         }
@@ -99,7 +99,9 @@ ProfilerConductor::compareButtonClicked(bool checked) {
     ExecutionListItem* item2 = static_cast<ExecutionListItem*>(selected[1]);
     Execution* e = new Execution;
 
-    CmpTreeDialog* ctd = new CmpTreeDialog(e, CanvasType::MERGED,
+    if (item1->gistWindow_ == nullptr && item2->gistWindow_ == nullptr) return;
+
+    CmpTreeDialog* ctd = new CmpTreeDialog(this, e, CanvasType::MERGED,
                                            item1->gistWindow_->getGist()->getCanvas(),
                                            item2->gistWindow_->getGist()->getCanvas());
     (void) ctd;

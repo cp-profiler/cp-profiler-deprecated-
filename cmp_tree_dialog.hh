@@ -79,7 +79,7 @@ private:
 
 public:
 
-    CmpTreeDialog(Execution* execution, const CanvasType& type, //Gist* gist,
+    CmpTreeDialog(QWidget* parent, Execution* execution, const CanvasType& type, //Gist* gist,
                 TreeCanvas *tc1, TreeCanvas *tc2);
   ~CmpTreeDialog();
 

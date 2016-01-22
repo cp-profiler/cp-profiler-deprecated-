@@ -25,9 +25,9 @@
 
 #include <utility> // pair
 
-CmpTreeDialog::CmpTreeDialog(Execution* execution, const CanvasType& type, //Gist* gist,
+CmpTreeDialog::CmpTreeDialog(QWidget* parent, Execution* execution, const CanvasType& type,
                              TreeCanvas* tc1, TreeCanvas* tc2)
-    : BaseTreeDialog(execution, type), //, gist),
+    : BaseTreeDialog(parent, execution, type),
 _comparison{new TreeComparison()}, analysisMenu{nullptr}, pentListWindow{this} {
 
   hbl->addWidget(new NodeWidget(MERGING));
@@ -82,6 +82,7 @@ CmpTreeDialog::addActions(void) {
 }
 
 CmpTreeDialog::~CmpTreeDialog(void) {
+  qDebug() << "(maxim): CmpTreeDialog destroyed\n";
   delete _comparison;
 }
 

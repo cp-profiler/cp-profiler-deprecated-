@@ -23,9 +23,8 @@
 #include "nodewidget.hh"
 #include "treecanvas.hh"
 
-BaseTreeDialog::BaseTreeDialog(Execution* execution, const CanvasType type) : //, Gist* gist) :
-    //  QDialog(gist), ptr_gist(gist), menuBar{nullptr}, nodeMenu{nullptr} {
-  QDialog(NULL), menuBar{nullptr}, nodeMenu{nullptr} {
+BaseTreeDialog::BaseTreeDialog(QWidget* parent, Execution* execution, const CanvasType type)
+  :QDialog{parent}, menuBar{nullptr}, nodeMenu{nullptr} {
 
   layout = new QGridLayout(this);
   nc_layout = new QVBoxLayout();
