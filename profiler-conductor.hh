@@ -14,6 +14,7 @@ private:
 private slots:
     void gistButtonClicked(bool checked);
     void compareButtonClicked(bool checked);
+    void gatherStatisticsClicked(bool checked);
 public:
     ProfilerConductor();
     void newExecution(Execution* execution);

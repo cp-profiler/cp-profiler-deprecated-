@@ -22,19 +22,32 @@ public:
     unsigned long long timestamp;
 };
 
-void printStatsEntry(const StatsEntry& se) {
-    std::cout << "StatsEntry:"
-              << "\t" << se.nodeid
-              << "\t" << se.status
-              << "\t" << se.depth
-              << "\t" << se.decisionLevel
-              << "\t" << se.subtreeDepth
-              << "\t" << se.subtreeSize
-              << "\t" << se.subtreeSolutions
-              << "\t" << se.nogoodStringLength
-              << "\t" << se.backjumpDistance
-              << "\t" << se.timestamp
+void printStatsHeader(std::ostream& out = std::cout) {
+    out << "id"
+        << "\t" << "status"
+        << "\t" << "depth"
+        << "\t" << "decisionLevel"
+        << "\t" << "subtreeDepth"
+        << "\t" << "subtreeSize"
+        << "\t" << "subtreeSolutions"
+        << "\t" << "nogoodStringLength"
+        << "\t" << "backjumpDistance"
+        << "\t" << "timestamp"
               << "\n";
+}
+
+void printStatsEntry(const StatsEntry& se, std::ostream& out = std::cout) {
+    out <<         se.nodeid
+        << "\t" << se.status
+        << "\t" << se.depth
+        << "\t" << se.decisionLevel
+        << "\t" << se.subtreeDepth
+        << "\t" << se.subtreeSize
+        << "\t" << se.subtreeSolutions
+        << "\t" << se.nogoodStringLength
+        << "\t" << se.backjumpDistance
+        << "\t" << se.timestamp
+        << "\n";
 }
 
 // **************************************************
@@ -47,15 +60,18 @@ private:
     int depth;
     std::vector<StatsEntry> stack;
     const std::unordered_map<VisualNode*, int>& backjumpDistanceMap;
-
+    std::ostream& out;
 public:
     StatsCursor(VisualNode* root, const VisualNode::NodeAllocator& na, Execution* execution_,
-                const std::unordered_map<VisualNode*, int>& backjumpDistanceMap_)
+                const std::unordered_map<VisualNode*, int>& backjumpDistanceMap_,
+                std::ostream& out_)
         : NodeCursor(root, na)
         , execution(execution_)
         , depth(0)
-        , backjumpDistanceMap(backjumpDistanceMap_) {
-
+        , backjumpDistanceMap(backjumpDistanceMap_)
+        , out(out_)
+    {
+        printStatsHeader(out);
         enter();
     }
 
@@ -130,7 +146,7 @@ public:
         // Undetermined nodes are not real nodes (the solver never
         // visited them), so we don't do anything with those.
         if (se.status != UNDETERMINED) {
-            printStatsEntry(se);
+            printStatsEntry(se, out);
             if (stack.size() > 0) {
                 stack.back().subtreeDepth = std::max(stack.back().subtreeDepth, 1 + se.subtreeDepth);
                 stack.back().subtreeSize += se.subtreeSize;
@@ -219,7 +235,7 @@ public:
 // tree, as are the usual arguments to a NodeCursor.  The third
 // argument is the execution the subtree comes from, which is used to
 // find the solver node id and branching/no-good information.
-void collectMLStats(VisualNode* root, const VisualNode::NodeAllocator& na, Execution* execution) {
+void collectMLStats(VisualNode* root, const VisualNode::NodeAllocator& na, Execution* execution, std::ostream& out) {
     // We traverse the tree twice.  In the first pass we calculate
     // backjump distance for failed nodes, using a BackjumpCursor.  In
     // the second pass we calculate all the remaining node data.
@@ -235,7 +251,7 @@ void collectMLStats(VisualNode* root, const VisualNode::NodeAllocator& na, Execu
     bjv.run();
 
     // Second pass: compute all the node statistics.
-    StatsCursor c(root, na, execution, backjumpDistance);
+    StatsCursor c(root, na, execution, backjumpDistance, out);
     PostorderNodeVisitor<StatsCursor> v(c);
     v.run();
 }

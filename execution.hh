@@ -11,7 +11,7 @@ public:
     Execution() {
         NodeAllocator* na = new NodeAllocator(false);
         _data = new Data(na, true);
-
+        connect(this, SIGNAL(doneReceiving(void)), _data, SLOT(setDoneReceiving(void)));
     }
 
     inline const std::unordered_map<unsigned long long, string>& getNogoods(void) { return _data->getNogoods(); }

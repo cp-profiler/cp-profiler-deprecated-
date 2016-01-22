@@ -293,8 +293,12 @@ public Q_SLOTS:
   /// Show node info
   void showNodeInfo(void);
 
-  /// Collect ML stats
+  /// Collect ML stats from the current node
   void collectMLStats(void);
+  /// Collect ML stats for a specified node
+  void collectMLStats(VisualNode* node);
+  /// Collect ML stats from the root
+  void collectMLStatsRoot(std::ostream& out);
 
   /// calls when clicking right mouse button on a shape
   void highlightShape(VisualNode* node);
@@ -374,6 +378,8 @@ Q_SIGNALS:
   void addedBookmark(const QString& id);
   /// Signals that a bookmark has been removed
   void removedBookmark(int idx);
+
+  void buildingFinished(void);
 protected:
   /// Mutex for synchronizing acccess to the tree
   QMutex mutex;

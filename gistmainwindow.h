@@ -65,11 +65,15 @@ private:
   QMenuBar* menuBar;
   /// About dialog
   AboutGist aboutGist;
+
+  QString statsFilename;
   
 Q_SIGNALS:
 
   /// stops the receiver thread
   void stopReceiver(void);
+
+  void buildingFinished(void);
 
 protected Q_SLOTS:
   /// The status has changed (e.g., new solutions have been found)
@@ -82,11 +86,17 @@ protected Q_SLOTS:
   void populateBookmarks(void);
   /// Change MainWindow's title to fzn file name
   void changeTitle(QString file_name);
+public Q_SLOTS:
+  void gatherStatistics(void);
 public:
   /// Constructor
   GistMainWindow(Execution* execution, QWidget* parent);
 
   Gist* getGist(void) { return c; }
+
+  void setStatsFilename(QString filename) {
+      statsFilename = filename;
+  }
 protected:
   /// Close Gist
   /* void closeEvent(QCloseEvent* event); */

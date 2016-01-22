@@ -4,6 +4,6 @@
 #include "execution.hh"
 #include "visualnode.hh"
 
-void collectMLStats(VisualNode* root, const VisualNode::NodeAllocator& na, Execution* execution);
+void collectMLStats(VisualNode* root, const VisualNode::NodeAllocator& na, Execution* execution, std::ostream& out = std::cout);
 
 #endif

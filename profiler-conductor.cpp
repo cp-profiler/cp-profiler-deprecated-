@@ -26,10 +26,14 @@ ProfilerConductor::ProfilerConductor()
     QPushButton* compareButton = new QPushButton("compare trees");
     connect(compareButton, SIGNAL(clicked(bool)), this, SLOT(compareButtonClicked(bool)));
 
+    QPushButton* gatherStatisticsButton = new QPushButton("gather statistics");
+    connect(gatherStatisticsButton, SIGNAL(clicked(bool)), this, SLOT(gatherStatisticsClicked(bool)));
+
     QVBoxLayout* layout = new QVBoxLayout;
     layout->addWidget(executionList);
     layout->addWidget(gistButton);
     layout->addWidget(compareButton);
+    layout->addWidget(gatherStatisticsButton);
     centralWidget->setLayout(layout);
 
     // Listen for new executions.
@@ -98,15 +102,40 @@ ProfilerConductor::compareButtonClicked(bool checked) {
     CmpTreeDialog* ctd = new CmpTreeDialog(e, CanvasType::MERGED,
                                            item1->gistWindow_->getGist()->getCanvas(),
                                            item2->gistWindow_->getGist()->getCanvas());
+    (void) ctd;
+}
+
+class StatsHelper {
+    QString filename;
+    StatsHelper(QString filename_) : filename(filename_) {}
     
-    // for (int i = 0 ; i < selected.size() ; i++) {
-    //     ExecutionListItem* item = static_cast<ExecutionListItem*>(selected[i]);
-    //     GistMainWindow* g = item->gistWindow_;
-    //     if (g == NULL) {
-    //         g = new GistMainWindow(item->execution_, this);
-    //         item->gistWindow_ = g;
-    //     }
-    //     g->show();
-    //     g->activateWindow();
-    // }
+};
+
+void ProfilerConductor::gatherStatisticsClicked(bool checked) {
+    (void) checked;
+
+    QList <QListWidgetItem*> selected = executionList->selectedItems();
+    for (int i = 0 ; i < selected.size() ; i++) {
+        ExecutionListItem* item = static_cast<ExecutionListItem*>(selected[i]);
+        GistMainWindow* g = item->gistWindow_;
+        if (g == NULL) {
+            g = new GistMainWindow(item->execution_, this);
+            item->gistWindow_ = g;
+        }
+        //        g->hide();
+
+
+        // This is a big mess.  The user must wait for the tree to be
+        // built before they select their file.
+        
+        QString filename = QFileDialog::getSaveFileName(this, "Save statistics");
+        // Very inelegant
+        g->setStatsFilename(filename);
+
+        g->gatherStatistics();
+        // connect(g, SIGNAL(buildingFinished(void)),
+        //         g, SLOT(gatherStatistics(void)));
+        // g->show();
+        // g->activateWindow();
+    }
 }

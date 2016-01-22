@@ -105,6 +105,8 @@ TreeCanvas::TreeCanvas(Execution* execution, QGridLayout* layout, CanvasType typ
     connect(_builder, SIGNAL(addedNode()), this, SLOT(maybeUpdateCanvas()));
     connect(_builder, SIGNAL(doneBuilding(bool)), this, SLOT(finalizeCanvas(void)));
     connect(_builder, SIGNAL(doneBuilding(bool)), this, SLOT(statusChanged(bool)));
+    connect(_builder, SIGNAL(doneBuilding(bool)), this, SIGNAL(buildingFinished(void)));
+
 
     // connect(ptr_receiver, SIGNAL(update(int,int,int)), this,
     //         SLOT(layoutDone(int,int,int)));
@@ -617,6 +619,16 @@ TreeCanvas::showNodeInfo(void) {
 void
 TreeCanvas::collectMLStats(void) {
   ::collectMLStats(currentNode, *na, execution);
+}
+
+void
+TreeCanvas::collectMLStats(VisualNode* node) {
+  ::collectMLStats(node, *na, execution);
+}
+
+void
+TreeCanvas::collectMLStatsRoot(std::ostream& out) {
+  ::collectMLStats(root, *na, execution, out);
 }
 
 void

@@ -24,6 +24,7 @@
 #include "nodewidget.hh"
 
 #include <cmath>
+#include <fstream>
 
 AboutGist::AboutGist(QWidget* parent) : QDialog(parent) {
 
@@ -176,6 +177,9 @@ GistMainWindow::GistMainWindow(Execution* execution, QWidget* parent) : QMainWin
   connect(c, SIGNAL(changeMainTitle(QString)),
           this, SLOT(changeTitle(QString)));
 
+  connect(c, SIGNAL(buildingFinished(void)),
+          this, SIGNAL(buildingFinished(void)));
+
   // connect(this, SIGNAL(stopReceiver()), c->getReceiver(), SLOT(stopThread()));
 
   preferences(true);
@@ -261,4 +265,13 @@ void
 GistMainWindow::changeTitle(QString file_name) {
   qDebug() << "changing title to: " << file_name;
   this->setWindowTitle(file_name);
+}
+
+void
+GistMainWindow::gatherStatistics(void) {
+  std::cerr << "GistMainWindow::gatherStatistics\n";
+  std::ofstream out;
+  out.open(statsFilename.toStdString(), std::ofstream::out);
+  c->getCanvas()->collectMLStatsRoot(out);
+  out.close();
 }

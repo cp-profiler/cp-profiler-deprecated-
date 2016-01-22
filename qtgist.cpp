@@ -101,6 +101,8 @@ Gist::Gist(Execution* execution, QWidget* parent) : QWidget(parent), execution(e
     // connect(receiver, SIGNAL(newCanvasNeeded()), this, SLOT(createNewCanvas(void)),
     //    Qt::BlockingQueuedConnection);
 
+    connect(canvas, SIGNAL(buildingFinished()), this, SIGNAL(buildingFinished()));
+
 
     nodeStatInspector = new NodeStatInspector(this);
 

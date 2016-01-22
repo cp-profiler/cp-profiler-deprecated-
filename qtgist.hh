@@ -260,6 +260,8 @@ Q_SIGNALS:
   /// Notify MainWindow about fzn file name
   void changeMainTitle(QString file_name);
 
+  void buildingFinished(void);
+
 
 private Q_SLOTS:
   /// Create new TreeCanvas based on comparison
