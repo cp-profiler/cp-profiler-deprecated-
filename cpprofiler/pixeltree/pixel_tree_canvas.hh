@@ -115,6 +115,10 @@ private:
 
   MaybeCaller maybeCaller;
 
+  /// TODO(maxim): find a better place to put these in
+  int mouse_guide_x = 0;
+  int mouse_guide_y = 0;
+
 public:
 
   static const int HIST_HEIGHT = 20; // in fake pixels
@@ -182,6 +186,7 @@ public Q_SLOTS:
   void toggleDomainsHistogram(int state);
   void toggleVarsHistogram(int state);
   void toggleDepthAnalysisHistogram(int state);
+  void toggleBjHistogram(int state);
 };
 
 }}

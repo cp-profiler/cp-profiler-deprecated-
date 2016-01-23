@@ -21,6 +21,7 @@
 
 #include "pixelImage.hh"
 #include <QDebug>
+#include <cassert>
 
 PixelImage::PixelImage()
   : image_(nullptr), width_(0), height_(0) {
@@ -32,9 +33,11 @@ PixelImage::resize(int width, int height) {
 
   buffer_.clear();
   background_buffer_.clear();
+  guidlines_buffer_.clear();
 
   buffer_.resize(4 * width * height);
   background_buffer_.resize(4 * width * height);
+  guidlines_buffer_.resize(4 * width * height);
 
   width_ = width;
   height_ = height;
@@ -49,9 +52,8 @@ void
 PixelImage::clear() {
 
   std::fill(buffer_.begin(), buffer_.end(), 255);
+  std::fill(guidlines_buffer_.begin(), guidlines_buffer_.end(), 255);
 
-  /// initialize buffer with background (grid)
-  buffer_ = background_buffer_;
 }
 
 void
@@ -88,34 +90,66 @@ PixelImage::setPixel(std::vector<unsigned char>& buffer, int x, int y, QRgb colo
 void
 PixelImage::update() {
   if (image_ != nullptr) delete image_;
-  auto data_ptr = &(buffer_[0]);
 
+  result_buffer_ = background_buffer_;
 
+  /// TODO(maxim): make this a function
+  /// TODO(maxim): make this much faster!
+  for (int i = 0; i < buffer_.size(); ++i) {
+    if (buffer_[i] != 255) {
+      result_buffer_[i] = buffer_[i];
+    }
+  }
 
-  image_ = new QImage(data_ptr, width_, height_, QImage::Format_RGB32);
+  for (int i = 0; i < guidlines_buffer_.size(); ++i) {
+    if (guidlines_buffer_[i] != 255) {
+      result_buffer_[i] = guidlines_buffer_[i];
+    }
+  }
+
+  image_ = new QImage(&(result_buffer_[0]), width_, height_, QImage::Format_RGB32);
 }
 
 void
-PixelImage::drawHorizontalLine(int y) {
+PixelImage::drawHorizontalLine(int y, QRgb color) {
 
-  drawHorizontalLine(buffer_, y);
+  drawHorizontalLine(buffer_, y, color);
 }
 
 void
-PixelImage::drawHorizontalLine(std::vector<unsigned char>& buffer, int y) {
+PixelImage::drawHorizontalLine(std::vector<unsigned char>& buffer, int y, QRgb color) {
 
   y = y * scale_ + scale_;
 
   if (y < 0 || y > height_) return;
 
   for (auto x = 0; x < width_; x++) {
-    setPixel(buffer_, x, y, PixelImage::PIXEL_COLOR::DARK_GRAY);
+    setPixel(buffer, x, y, color);
+  }
+}
+
+void
+PixelImage::drawVerticalLine(std::vector<unsigned char>& buffer, int x, QRgb color) {
+
+  x = x * scale_ + scale_;
+
+  if (x < 0 || x > width_) return;
+
+  for (auto y = 0; y < height_; y++) {
+    setPixel(buffer, x, y, color);
   }
 }
 
 void
 PixelImage::drawMouseGuidelines(unsigned x, unsigned y) {
-  /// TODO
+
+  std::fill(guidlines_buffer_.begin(), guidlines_buffer_.end(), 255);
+
+  drawHorizontalLine(guidlines_buffer_, y - 1, PixelImage::PIXEL_COLOR::DARK_GRAY);
+  drawHorizontalLine(guidlines_buffer_, y, PixelImage::PIXEL_COLOR::DARK_GRAY);
+  drawVerticalLine(guidlines_buffer_, x - 1, PixelImage::PIXEL_COLOR::DARK_GRAY);
+  drawVerticalLine(guidlines_buffer_, x, PixelImage::PIXEL_COLOR::DARK_GRAY);
+
 }
 
 /// TODO: drawGrid only when resized / rescaled

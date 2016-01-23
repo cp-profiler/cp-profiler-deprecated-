@@ -7,8 +7,8 @@ using namespace cpprofiler::pixeltree;
 PixelTreeDialog::PixelTreeDialog(TreeCanvas* tc): QDialog(tc)
 {
 
-  canvas = new PixelTreeCanvas(&scrollArea, *tc);
-
+  this->resize(INIT_WIDTH, INIT_HEIGHT);
+  
   /// set Title
   this->setWindowTitle(QString::fromStdString(tc->getExecution()->getData()->getTitle()));
 
@@ -18,14 +18,13 @@ PixelTreeDialog::PixelTreeDialog(TreeCanvas* tc): QDialog(tc)
   layout->addWidget(&scrollArea);
   layout->addLayout(controlLayout);
 
+  canvas = new PixelTreeCanvas(&scrollArea, *tc);
 
   /// ***** control panel *****
-  QPushButton* scaleUp = new QPushButton(this);
-  scaleUp->setText("+");
+  QPushButton* scaleUp = new QPushButton("+", this);
+  QPushButton* scaleDown = new QPushButton("-", this);
 
-  QPushButton* scaleDown = new QPushButton(this);
-  scaleDown->setText("-");
-
+  // TODO(maxim): make sure this gets deleted 
   QLabel* compLabel = new QLabel("compression");
   compLabel->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
 
@@ -37,39 +36,39 @@ PixelTreeDialog::PixelTreeDialog(TreeCanvas* tc): QDialog(tc)
   controlLayout->addWidget(compLabel);
   controlLayout->addWidget(compressionSB);
 
-  QCheckBox* time_cb = new QCheckBox(this);
-  time_cb->setText("time");
+  QCheckBox* time_cb = new QCheckBox("time", this);
   time_cb->setCheckState(Qt::Checked);
   controlLayout->addWidget(time_cb);
 
-  this->resize(INIT_WIDTH, INIT_HEIGHT);
+  connect(this, SIGNAL(windowResized()), canvas, SLOT(resizeCanvas()));
 
   connect(time_cb, SIGNAL(stateChanged(int)), canvas, SLOT(toggleTimeHistogram(int)));
 
-  QCheckBox* domains_cb = new QCheckBox(this);
-  domains_cb->setText("domains");
+  QCheckBox* domains_cb = new QCheckBox("domains", this);
   domains_cb->setCheckState(Qt::Checked);
   controlLayout->addWidget(domains_cb);
   connect(domains_cb, SIGNAL(stateChanged(int)), canvas, SLOT(toggleDomainsHistogram(int)));
 
-  QCheckBox* depth_analysis_cb = new QCheckBox(this);
-  depth_analysis_cb->setText("depth analysis");
+  QCheckBox* depth_analysis_cb = new QCheckBox("depth analysis", this);
   depth_analysis_cb->setCheckState(Qt::Checked);
   controlLayout->addWidget(depth_analysis_cb);
   connect(depth_analysis_cb, SIGNAL(stateChanged(int)), canvas, SLOT(toggleDepthAnalysisHistogram(int)));
 
-  QCheckBox* decision_vars_cb = new QCheckBox(this);
-  decision_vars_cb->setText("vars");
+  QCheckBox* decision_vars_cb = new QCheckBox("vars", this);
   decision_vars_cb->setCheckState(Qt::Checked);
   controlLayout->addWidget(decision_vars_cb);
   connect(decision_vars_cb, SIGNAL(stateChanged(int)), canvas, SLOT(toggleVarsHistogram(int)));
+
+  QCheckBox* bj_analysis_cb = new QCheckBox("backjumps", this);
+  bj_analysis_cb->setCheckState(Qt::Checked);
+  controlLayout->addWidget(bj_analysis_cb);
+  connect(bj_analysis_cb, SIGNAL(stateChanged(int)), canvas, SLOT(toggleBjHistogram(int)));
+
 
   connect(scaleDown, SIGNAL(clicked()), canvas, SLOT(scaleDown()));
   connect(scaleUp, SIGNAL(clicked()), canvas, SLOT(scaleUp()));
   connect(compressionSB, SIGNAL(valueChanged(int)),
     canvas, SLOT(compressionChanged(int)));
-
-  connect(this, SIGNAL(windowResized()), canvas, SLOT(resizeCanvas()));
 
   setAttribute(Qt::WA_QuitOnClose, true);
   setAttribute(Qt::WA_DeleteOnClose, true);
@@ -77,6 +76,7 @@ PixelTreeDialog::PixelTreeDialog(TreeCanvas* tc): QDialog(tc)
 }
 
 void
-PixelTreeDialog::resizeEvent(QResizeEvent*) {
+PixelTreeDialog::resizeEvent(QResizeEvent* event) {
+  QDialog::resizeEvent(event);
   emit windowResized();
 }

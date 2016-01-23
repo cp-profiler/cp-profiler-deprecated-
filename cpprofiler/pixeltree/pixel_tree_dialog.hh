@@ -54,7 +54,7 @@ namespace cpprofiler { namespace pixeltree {
 
   public:
 
-    static const int INIT_WIDTH = 600;
+    static const int INIT_WIDTH = 1000;
     static const int INIT_HEIGHT = 400;
 
     explicit PixelTreeDialog(TreeCanvas* tc);
