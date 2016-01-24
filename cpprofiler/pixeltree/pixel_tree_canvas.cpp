@@ -555,6 +555,7 @@ PixelTreeCanvas::redrawAll() {
 
   auto time_begin = high_resolution_clock::now();
   if (show_depth_analysis_histogram) drawDepthAnalysisData();
+  if (show_depth_analysis_histogram) drawDepthAnalysisData2();
   auto time_end = high_resolution_clock::now();
   auto time_span = duration_cast<duration<double>>(time_end - time_begin);
   // std::cout << "drawDepthAnalysisData: " << time_span.count() << " seconds." << std::endl;
@@ -868,6 +869,62 @@ PixelTreeCanvas::drawDepthAnalysisData() {
   }
 
   current_image_height += coeff * max_value + MARGIN;
+
+}
+
+void
+PixelTreeCanvas::drawDepthAnalysisData2() {
+
+  auto xoff = _sa->horizontalScrollBar()->value(); // values should be in scaled pixels
+  auto yoff = _sa->verticalScrollBar()->value();
+
+  /// only calculate this once
+  if (da_data_max == 0) {
+    da_data_max = [this](){
+      auto data = this->da_data_compressed;
+      auto max_vector = std::max_element(data.begin(), data.end(),
+        [](vector<unsigned>& lhs, vector<unsigned>& rhs) {
+          auto lhs_max =  *std::max_element(lhs.begin(), lhs.end());
+          auto rhs_max =  *std::max_element(rhs.begin(), rhs.end());
+          return lhs_max < rhs_max;
+      });
+
+      return *std::max_element(max_vector->begin(), max_vector->end());
+    }();
+  }
+
+  const int max_value = da_data_max;
+  const int max_depth = da_data_compressed.size();
+
+  const float coeff = static_cast<float>(255) / (max_value + 1);
+
+  int zero_level = current_image_height + max_depth - yoff;
+
+  pixel_image.drawHorizontalLine(current_image_height - yoff - 1, PixelImage::PIXEL_COLOR::LIGTH_GRAY);
+  pixel_image.drawHorizontalLine(zero_level, PixelImage::PIXEL_COLOR::LIGTH_GRAY);
+  /// *** Actual Data ***
+  /// for each depth level:
+  for (auto depth = 0; depth < max_depth; depth++) {
+
+    for (auto vline = xoff; vline < int(da_data_compressed[depth].size()); vline++) {
+
+      auto value = da_data_compressed[depth][vline];
+
+      auto x = vline - xoff;
+      auto y = current_image_height + depth - yoff;
+      int color_value = 255 - coeff * value;
+
+      if (x > pixel_image.width()) break; /// note: true (breaks) if x < 0
+      if (y > pixel_image.height() || y < 0) continue;
+
+      // if (value != 0) {
+        pixel_image.drawPixel(x, y,  QColor::fromHsv(0, 0, color_value).rgba());
+      // }
+    }
+
+  }
+
+  current_image_height += max_depth + MARGIN;
 
 }
 

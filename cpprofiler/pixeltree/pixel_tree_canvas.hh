@@ -155,6 +155,9 @@ private:
   void drawDomainHistogram();
   void drawDomainReduction();
   void drawDepthAnalysisData();
+
+  // TODO(maxim): better name
+  void drawDepthAnalysisData2();
   void drawBjData();
 
   

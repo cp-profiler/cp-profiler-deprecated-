@@ -12,11 +12,14 @@ PixelTreeDialog::PixelTreeDialog(TreeCanvas* tc): QDialog(tc)
   /// set Title
   this->setWindowTitle(QString::fromStdString(tc->getExecution()->getData()->getTitle()));
 
-  QVBoxLayout* layout = new QVBoxLayout();
-  QHBoxLayout* controlLayout = new QHBoxLayout();
+  auto layout = new QVBoxLayout();
+  auto controlLayout = new QHBoxLayout();
+  auto optionsLayout = new QHBoxLayout();
+
   setLayout(layout);
   layout->addWidget(&scrollArea);
   layout->addLayout(controlLayout);
+  layout->addLayout(optionsLayout);
 
   canvas = new PixelTreeCanvas(&scrollArea, *tc);
 
@@ -38,7 +41,7 @@ PixelTreeDialog::PixelTreeDialog(TreeCanvas* tc): QDialog(tc)
 
   QCheckBox* time_cb = new QCheckBox("time", this);
   time_cb->setCheckState(Qt::Checked);
-  controlLayout->addWidget(time_cb);
+  optionsLayout->addWidget(time_cb);
 
   connect(this, SIGNAL(windowResized()), canvas, SLOT(resizeCanvas()));
 
@@ -46,22 +49,22 @@ PixelTreeDialog::PixelTreeDialog(TreeCanvas* tc): QDialog(tc)
 
   QCheckBox* domains_cb = new QCheckBox("domains", this);
   domains_cb->setCheckState(Qt::Checked);
-  controlLayout->addWidget(domains_cb);
+  optionsLayout->addWidget(domains_cb);
   connect(domains_cb, SIGNAL(stateChanged(int)), canvas, SLOT(toggleDomainsHistogram(int)));
 
   QCheckBox* depth_analysis_cb = new QCheckBox("depth analysis", this);
   depth_analysis_cb->setCheckState(Qt::Checked);
-  controlLayout->addWidget(depth_analysis_cb);
+  optionsLayout->addWidget(depth_analysis_cb);
   connect(depth_analysis_cb, SIGNAL(stateChanged(int)), canvas, SLOT(toggleDepthAnalysisHistogram(int)));
 
   QCheckBox* decision_vars_cb = new QCheckBox("vars", this);
   decision_vars_cb->setCheckState(Qt::Checked);
-  controlLayout->addWidget(decision_vars_cb);
+  optionsLayout->addWidget(decision_vars_cb);
   connect(decision_vars_cb, SIGNAL(stateChanged(int)), canvas, SLOT(toggleVarsHistogram(int)));
 
   QCheckBox* bj_analysis_cb = new QCheckBox("backjumps", this);
   bj_analysis_cb->setCheckState(Qt::Checked);
-  controlLayout->addWidget(bj_analysis_cb);
+  optionsLayout->addWidget(bj_analysis_cb);
   connect(bj_analysis_cb, SIGNAL(stateChanged(int)), canvas, SLOT(toggleBjHistogram(int)));
 
 
