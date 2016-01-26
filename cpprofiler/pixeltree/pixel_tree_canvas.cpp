@@ -552,14 +552,8 @@ PixelTreeCanvas::redrawAll() {
 
   // drawNodeRate(image, leftmost_vline, rightmost_vline);
 
-
-  auto time_begin = high_resolution_clock::now();
   if (show_depth_analysis_histogram) drawDepthAnalysisData();
   if (show_depth_analysis_histogram) drawDepthAnalysisData2();
-  auto time_end = high_resolution_clock::now();
-  auto time_span = duration_cast<duration<double>>(time_end - time_begin);
-  // std::cout << "drawDepthAnalysisData: " << time_span.count() << " seconds." << std::endl;
-
 
   if (show_decision_vars_histogram) drawVarData();
 
@@ -806,13 +800,13 @@ PixelTreeCanvas::drawBjData() {
 
 
       auto x = vline - xoff;
-      auto y_from = zero_level - coeff * average_from;
-      auto y_to = zero_level - coeff * average_to;
-      auto y_skipped = zero_level - coeff * average_skipped;
+      auto y_from = current_image_height + coeff * average_from;
+      auto y_to = current_image_height + coeff * average_to;
+      auto y_skipped = current_image_height + coeff * average_skipped;
 
       pixel_image.drawPixel(x, y_from,  qRgb(170, 0, 0));
       pixel_image.drawPixel(x, y_to,  qRgb(0, 170, 0));
-      pixel_image.drawPixel(x, y_skipped,  qRgb(0, 0, 170));
+      // pixel_image.drawPixel(x, y_skipped,  qRgb(0, 0, 170));
     }
   }
 }
@@ -1088,9 +1082,8 @@ PixelTreeCanvas::selectNodesfromPT(unsigned vline) {
     pixel->setSelected(false);
   }
 
+  /// TODO(maxim): make this a function
   pixels_selected.clear();
-
-
 
   auto& pixel_list = pixel_data.pixel_list;
 
@@ -1104,4 +1097,32 @@ PixelTreeCanvas::selectNodesfromPT(unsigned vline) {
 
   _tc.update();
 
+}
+
+
+PixelItem&
+PixelTreeCanvas::gid2PixelItem(int gid) {
+  auto& pixel_list = pixel_data.pixel_list;
+
+  for (auto& pixelItem : pixel_list) {
+    if (pixelItem.gid(*_na) == gid) return pixelItem;
+  }
+
+  assert(false);
+}
+
+void
+PixelTreeCanvas::setPixelSelected(int gid) {
+
+  for (auto& pixel : pixels_selected) {
+    pixel->setSelected(false);
+  }
+  pixels_selected.clear();
+
+  auto& pixelItem = gid2PixelItem(gid);
+  pixelItem.setSelected(true);
+  pixels_selected.push_back(&pixelItem);
+
+  /// TODO(maxim): confirm that I need to redraw everything
+  redrawAll();
 }

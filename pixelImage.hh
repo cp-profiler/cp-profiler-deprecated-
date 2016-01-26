@@ -25,18 +25,21 @@
 #include <QImage>
 #include <memory>
 #include <vector>
+#include <cstdint>
 
+typedef uint32_t uint32;
 
 class PixelImage {
 
 private:
 
-  std::vector<unsigned char> buffer_;
-  std::vector<unsigned char> background_buffer_;
-  std::vector<unsigned char> guidlines_buffer_;
+  std::vector<uint32> buffer1_;
+  std::vector<uint32> buffer_;
+  std::vector<uint32> background_buffer_;
+  std::vector<uint32> guidlines_buffer_;
   // std::unique_ptr<QImage> image_;
 
-  std::vector<unsigned char> result_buffer_;
+  std::vector<uint32> result_buffer_;
   QImage* image_;
 
   unsigned int width_;
@@ -48,9 +51,9 @@ private:
 
   unsigned scale_ = 4; // size of a 'pixel' in pixels
 
-  void setPixel(std::vector<unsigned char>& buffer, int x, int y, QRgb color);
-  void drawHorizontalLine(std::vector<unsigned char>& buffer, int y, QRgb color);
-  void drawVerticalLine(std::vector<unsigned char>& buffer, int x, QRgb color);
+  void setPixel(std::vector<uint32>& buffer, int x, int y, QRgb color);
+  void drawHorizontalLine(std::vector<uint32>& buffer, int y, QRgb color);
+  void drawVerticalLine(std::vector<uint32>& buffer, int x, QRgb color);
 
 public:
   PixelImage();

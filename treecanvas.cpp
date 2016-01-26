@@ -107,7 +107,6 @@ TreeCanvas::TreeCanvas(Execution* execution, QGridLayout* layout, CanvasType typ
     connect(_builder, SIGNAL(doneBuilding(bool)), this, SLOT(statusChanged(bool)));
     connect(_builder, SIGNAL(doneBuilding(bool)), this, SIGNAL(buildingFinished(void)));
 
-
     // connect(ptr_receiver, SIGNAL(update(int,int,int)), this,
     //         SLOT(layoutDone(int,int,int)));
 
@@ -525,6 +524,11 @@ TreeCanvas::getNoOfSolvedLeaves(VisualNode* n) {
 void TreeCanvas::showPixelTree(void) {
   using cpprofiler::pixeltree::PixelTreeDialog;
   auto pixelTreeDialog = new PixelTreeDialog(this);
+
+  /// TODO(maxim): try to bypass the pt dialog
+  connect(this, SIGNAL(showOnPixelTree(int)),
+          pixelTreeDialog, SLOT(setPixelSelected(int)));
+
   pixelTreeDialog->show();
 }
 
@@ -614,6 +618,12 @@ TreeCanvas::showNodeInfo(void) {
 
   NodeInfoDialog* nidialog = new NodeInfoDialog(this, info_str);
   nidialog->show();
+}
+
+void
+TreeCanvas::showOnPixelTree(void) {
+  int gid = currentNode->getIndex(*na);
+  emit showOnPixelTree(gid);
 }
 
 void

@@ -474,6 +474,9 @@ Gist::addActions(void) {
     showNodeInfo = new QAction("Show node info", this);
     showNodeInfo->setShortcut(QKeySequence("I"));
 
+    showOnPixelTree = new QAction("Show on a pixel tree", this);
+    showOnPixelTree->setShortcut(QKeySequence("J"));
+
     collectMLStats = new QAction("Collect ML stats", this);
     
     toggleStop = new QAction("Stop/unstop", this);
@@ -562,6 +565,7 @@ Gist::addActions(void) {
     addAction(analyzeSimilarSubtrees);
     addAction(showNogoods);
     addAction(showNodeInfo);
+    addAction(showOnPixelTree);
     addAction(collectMLStats);
     addAction(toggleStop);
     addAction(unstopAll);
@@ -594,6 +598,7 @@ Gist::addActions(void) {
     contextMenu->addAction(analyzeSimilarSubtrees);
     contextMenu->addAction(showNogoods);
     contextMenu->addAction(showNodeInfo);
+    contextMenu->addAction(showOnPixelTree);
     contextMenu->addAction(collectMLStats);
 
     contextMenu->addAction(toggleStop);
@@ -654,6 +659,7 @@ Gist::connectCanvas(TreeCanvas* tc) {
         disconnect(analyzeSimilarSubtrees, SIGNAL(triggered()), current_tc, SLOT(analyzeSimilarSubtrees()));
         disconnect(showNogoods, SIGNAL(triggered()), current_tc, SLOT(showNogoods()));
         disconnect(showNodeInfo, SIGNAL(triggered()), current_tc, SLOT(showNodeInfo()));
+        disconnect(showOnPixelTree, SIGNAL(triggered()), current_tc, SLOT(showOnPixelTree()));
         disconnect(collectMLStats, SIGNAL(triggered()), current_tc, SLOT(collectMLStats()));
         disconnect(toggleStop, SIGNAL(triggered()), current_tc, SLOT(toggleStop()));
         disconnect(unstopAll, SIGNAL(triggered()), current_tc, SLOT(unstopAll()));
@@ -700,6 +706,7 @@ Gist::connectCanvas(TreeCanvas* tc) {
     connect(analyzeSimilarSubtrees, SIGNAL(triggered()), tc, SLOT(analyzeSimilarSubtrees()));
     connect(showNogoods, SIGNAL(triggered()), current_tc, SLOT(showNogoods()));
     connect(showNodeInfo, SIGNAL(triggered()), current_tc, SLOT(showNodeInfo()));
+    connect(showOnPixelTree, SIGNAL(triggered()), current_tc, SLOT(showOnPixelTree()));
     connect(collectMLStats, SIGNAL(triggered()), current_tc, SLOT(collectMLStats()));
     connect(toggleStop, SIGNAL(triggered()), tc, SLOT(toggleStop()));
     connect(unstopAll, SIGNAL(triggered()), tc, SLOT(unstopAll()));

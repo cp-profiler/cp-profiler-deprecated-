@@ -25,7 +25,7 @@ namespace cpprofiler { namespace pixeltree {
 
   class PixelItem {
   private:
-    int   _idx;
+    int   _idx; /// TODO(maxim): find out what this is for (not gid)
     int   _depth;
     VisualNode* _node;
     bool  _selected;
@@ -35,6 +35,10 @@ namespace cpprofiler { namespace pixeltree {
     : _idx(idx), _depth(depth), _node(node), _selected(false) {};
 
     inline int idx() const { return _idx; }
+
+    inline int gid(const NodeAllocator& na) const {
+      return _node->getIndex(na);
+    }
 
     inline int depth() const { return _depth; }
 

@@ -21,7 +21,7 @@ PixelTreeDialog::PixelTreeDialog(TreeCanvas* tc): QDialog(tc)
   layout->addLayout(controlLayout);
   layout->addLayout(optionsLayout);
 
-  canvas = new PixelTreeCanvas(&scrollArea, *tc);
+  canvas_ = new PixelTreeCanvas(&scrollArea, *tc);
 
   /// ***** control panel *****
   QPushButton* scaleUp = new QPushButton("+", this);
@@ -43,35 +43,38 @@ PixelTreeDialog::PixelTreeDialog(TreeCanvas* tc): QDialog(tc)
   time_cb->setCheckState(Qt::Checked);
   optionsLayout->addWidget(time_cb);
 
-  connect(this, SIGNAL(windowResized()), canvas, SLOT(resizeCanvas()));
+  connect(this, SIGNAL(windowResized()), canvas_, SLOT(resizeCanvas()));
 
-  connect(time_cb, SIGNAL(stateChanged(int)), canvas, SLOT(toggleTimeHistogram(int)));
+  connect(time_cb, SIGNAL(stateChanged(int)), canvas_, SLOT(toggleTimeHistogram(int)));
 
   QCheckBox* domains_cb = new QCheckBox("domains", this);
   domains_cb->setCheckState(Qt::Checked);
   optionsLayout->addWidget(domains_cb);
-  connect(domains_cb, SIGNAL(stateChanged(int)), canvas, SLOT(toggleDomainsHistogram(int)));
+  connect(domains_cb, SIGNAL(stateChanged(int)), canvas_, SLOT(toggleDomainsHistogram(int)));
 
   QCheckBox* depth_analysis_cb = new QCheckBox("depth analysis", this);
   depth_analysis_cb->setCheckState(Qt::Checked);
   optionsLayout->addWidget(depth_analysis_cb);
-  connect(depth_analysis_cb, SIGNAL(stateChanged(int)), canvas, SLOT(toggleDepthAnalysisHistogram(int)));
+  connect(depth_analysis_cb, SIGNAL(stateChanged(int)), canvas_, SLOT(toggleDepthAnalysisHistogram(int)));
 
   QCheckBox* decision_vars_cb = new QCheckBox("vars", this);
   decision_vars_cb->setCheckState(Qt::Checked);
   optionsLayout->addWidget(decision_vars_cb);
-  connect(decision_vars_cb, SIGNAL(stateChanged(int)), canvas, SLOT(toggleVarsHistogram(int)));
+  connect(decision_vars_cb, SIGNAL(stateChanged(int)), canvas_, SLOT(toggleVarsHistogram(int)));
 
   QCheckBox* bj_analysis_cb = new QCheckBox("backjumps", this);
   bj_analysis_cb->setCheckState(Qt::Checked);
   optionsLayout->addWidget(bj_analysis_cb);
-  connect(bj_analysis_cb, SIGNAL(stateChanged(int)), canvas, SLOT(toggleBjHistogram(int)));
+  connect(bj_analysis_cb, SIGNAL(stateChanged(int)), canvas_, SLOT(toggleBjHistogram(int)));
 
 
-  connect(scaleDown, SIGNAL(clicked()), canvas, SLOT(scaleDown()));
-  connect(scaleUp, SIGNAL(clicked()), canvas, SLOT(scaleUp()));
+  connect(scaleDown, SIGNAL(clicked()), canvas_, SLOT(scaleDown()));
+  connect(scaleUp, SIGNAL(clicked()), canvas_, SLOT(scaleUp()));
   connect(compressionSB, SIGNAL(valueChanged(int)),
-    canvas, SLOT(compressionChanged(int)));
+    canvas_, SLOT(compressionChanged(int)));
+
+  connect(this, SIGNAL(signalPixelSelected(int)),
+          canvas_, SLOT(setPixelSelected(int)));
 
   setAttribute(Qt::WA_QuitOnClose, true);
   setAttribute(Qt::WA_DeleteOnClose, true);
@@ -82,4 +85,9 @@ void
 PixelTreeDialog::resizeEvent(QResizeEvent* event) {
   QDialog::resizeEvent(event);
   emit windowResized();
+}
+
+void
+PixelTreeDialog::setPixelSelected(int gid) {
+  emit signalPixelSelected(gid);
 }

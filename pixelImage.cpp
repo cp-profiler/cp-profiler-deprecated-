@@ -22,6 +22,10 @@
 #include "pixelImage.hh"
 #include <QDebug>
 #include <cassert>
+#include <chrono>
+#include <iostream>
+
+using namespace std::chrono;
 
 PixelImage::PixelImage()
   : image_(nullptr), width_(0), height_(0) {
@@ -35,9 +39,9 @@ PixelImage::resize(int width, int height) {
   background_buffer_.clear();
   guidlines_buffer_.clear();
 
-  buffer_.resize(4 * width * height);
-  background_buffer_.resize(4 * width * height);
-  guidlines_buffer_.resize(4 * width * height);
+  buffer_.resize(width * height);
+  background_buffer_.resize(width * height);
+  guidlines_buffer_.resize(width * height);
 
   width_ = width;
   height_ = height;
@@ -51,8 +55,8 @@ PixelImage::resize(int width, int height) {
 void
 PixelImage::clear() {
 
-  std::fill(buffer_.begin(), buffer_.end(), 255);
-  std::fill(guidlines_buffer_.begin(), guidlines_buffer_.end(), 255);
+  std::fill(buffer_.begin(), buffer_.end(), 0xFFFFFF);
+  std::fill(guidlines_buffer_.begin(), guidlines_buffer_.end(), 0xFFFFFF);
 
 }
 
@@ -76,38 +80,47 @@ PixelImage::drawPixel(int x, int y, QRgb color) {
 }
 
 void
-PixelImage::setPixel(std::vector<unsigned char>& buffer, int x, int y, QRgb color) {
+PixelImage::setPixel(std::vector<uint32>& buffer, int x, int y, QRgb color) {
 
-    char r = qRed(color);
-    char g = qGreen(color);
-    char b = qBlue(color);
+    uint32 r = qRed(color);
+    uint32 g = qGreen(color);
+    uint32 b = qBlue(color);
 
-    buffer[4 * (y * width_ + x)    ] = r;
-    buffer[4 * (y * width_ + x) + 1] = g;
-    buffer[4 * (y * width_ + x) + 2] = b;
+    // uint32 c = color;
+
+    uint32 pixel_color = (0xFF << 24) + (r << 16) + (g << 8) + (b);
+
+    buffer[y * width_ + x] = pixel_color;
+}
+
+static void addLayer(std::vector<uint32>& target_buf,
+               const std::vector<uint32>& source_buf)
+{
+  for (int i = 0; i < source_buf.size(); ++i) {
+    if (source_buf[i] != 0xFFFFFF) {
+      target_buf[i] = source_buf[i];
+    }
+  }
 }
 
 void
 PixelImage::update() {
+  auto time_begin = high_resolution_clock::now();
+
   if (image_ != nullptr) delete image_;
 
   result_buffer_ = background_buffer_;
 
-  /// TODO(maxim): make this a function
-  /// TODO(maxim): make this much faster!
-  for (int i = 0; i < buffer_.size(); ++i) {
-    if (buffer_[i] != 255) {
-      result_buffer_[i] = buffer_[i];
-    }
-  }
+  addLayer(result_buffer_, buffer_);
+  addLayer(result_buffer_, guidlines_buffer_);
 
-  for (int i = 0; i < guidlines_buffer_.size(); ++i) {
-    if (guidlines_buffer_[i] != 255) {
-      result_buffer_[i] = guidlines_buffer_[i];
-    }
-  }
+  auto* buf = reinterpret_cast<unsigned char*>(&(result_buffer_[0]));
 
-  image_ = new QImage(&(result_buffer_[0]), width_, height_, QImage::Format_RGB32);
+  image_ = new QImage(buf, width_, height_, QImage::Format_RGB32);
+
+  auto time_end = high_resolution_clock::now();
+  auto time_span = duration_cast<duration<double>>(time_end - time_begin);
+  // std::cout << "updating pixel image takes: " << time_span.count() * 1000 << "ms\n";
 }
 
 void
@@ -117,7 +130,7 @@ PixelImage::drawHorizontalLine(int y, QRgb color) {
 }
 
 void
-PixelImage::drawHorizontalLine(std::vector<unsigned char>& buffer, int y, QRgb color) {
+PixelImage::drawHorizontalLine(std::vector<uint32>& buffer, int y, QRgb color) {
 
   y = y * scale_ + scale_;
 
@@ -129,7 +142,7 @@ PixelImage::drawHorizontalLine(std::vector<unsigned char>& buffer, int y, QRgb c
 }
 
 void
-PixelImage::drawVerticalLine(std::vector<unsigned char>& buffer, int x, QRgb color) {
+PixelImage::drawVerticalLine(std::vector<uint32>& buffer, int x, QRgb color) {
 
   x = x * scale_ + scale_;
 
@@ -143,7 +156,7 @@ PixelImage::drawVerticalLine(std::vector<unsigned char>& buffer, int x, QRgb col
 void
 PixelImage::drawMouseGuidelines(unsigned x, unsigned y) {
 
-  std::fill(guidlines_buffer_.begin(), guidlines_buffer_.end(), 255);
+  std::fill(guidlines_buffer_.begin(), guidlines_buffer_.end(), 0xFFFFFF);
 
   drawHorizontalLine(guidlines_buffer_, y - 1, PixelImage::PIXEL_COLOR::DARK_GRAY);
   drawHorizontalLine(guidlines_buffer_, y, PixelImage::PIXEL_COLOR::DARK_GRAY);
@@ -156,7 +169,7 @@ PixelImage::drawMouseGuidelines(unsigned x, unsigned y) {
 void
 PixelImage::drawGrid() {
 
-  std::fill(background_buffer_.begin(), background_buffer_.end(), 255);
+  std::fill(background_buffer_.begin(), background_buffer_.end(), 0xFFFFFF);
 
   /// draw cells 5 squares wide
   int gap =  1;

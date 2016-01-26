@@ -46,11 +46,12 @@ namespace cpprofiler { namespace pixeltree {
     QCheckBox* decision_vars_cb;
     QCheckBox* depth_analysis_cb;
 
-    PixelTreeCanvas* canvas;
+    PixelTreeCanvas* canvas_;
 
   Q_SIGNALS:
 
     void windowResized(void);
+    void signalPixelSelected(int);
 
   public:
 
@@ -61,6 +62,10 @@ namespace cpprofiler { namespace pixeltree {
 
   protected:
     void resizeEvent(QResizeEvent * re);
+
+  public Q_SLOTS:
+
+    void setPixelSelected(int);
   };
 
 

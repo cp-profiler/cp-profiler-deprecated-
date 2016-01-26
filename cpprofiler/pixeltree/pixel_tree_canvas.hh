@@ -39,7 +39,6 @@ class VisualNode;
 
 class QAbstractScrollArea;
 class QScrollBar;
-class PixelItem;
 class SpaceNode;
 
 typedef NodeAllocatorBase<VisualNode> NodeAllocator;
@@ -53,6 +52,8 @@ namespace cpprofiler { namespace pixeltree {
 using cpprofiler::analysis::DepthAnalysis;
 using cpprofiler::analysis::BackjumpItem;
 using cpprofiler::analysis::BackjumpData;
+
+class PixelItem;
 
 class PixelTreeCanvas : public QWidget {
   Q_OBJECT
@@ -160,7 +161,6 @@ private:
   void drawDepthAnalysisData2();
   void drawBjData();
 
-  
   void drawVarData();
 
   /// Node Rate
@@ -168,7 +168,8 @@ private:
 
   /// select nodes that correspond to selected vline in pixel tree
   void selectNodesfromPT(unsigned vline);
-  
+
+  PixelItem& gid2PixelItem(int gid);
 
 public:
   PixelTreeCanvas(QWidget* parent, TreeCanvas& tc);
@@ -190,6 +191,7 @@ public Q_SLOTS:
   void toggleVarsHistogram(int state);
   void toggleDepthAnalysisHistogram(int state);
   void toggleBjHistogram(int state);
+  void setPixelSelected(int gid);
 };
 
 }}

@@ -293,6 +293,9 @@ public Q_SLOTS:
   /// Show node info
   void showNodeInfo(void);
 
+  /// Show a node on a pixel tree
+  void showOnPixelTree(void);
+
   /// Collect ML stats from the current node
   void collectMLStats(void);
   /// Collect ML stats for a specified node
@@ -380,6 +383,8 @@ Q_SIGNALS:
   void removedBookmark(int idx);
 
   void buildingFinished(void);
+
+  void showOnPixelTree(int gid);
 protected:
   /// Mutex for synchronizing acccess to the tree
   QMutex mutex;
