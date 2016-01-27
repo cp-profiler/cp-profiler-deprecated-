@@ -106,8 +106,8 @@ private:
 
   PixelData pixel_data;
 
-  bool show_time_histogram = true;
-  bool show_domain_histogram = true;
+  bool show_time_histogram = false;
+  bool show_domain_histogram = false;
   bool show_decision_vars_histogram = true;
   bool show_depth_analysis_histogram = true;
   bool show_bj_analysis_histogram = true;
@@ -122,7 +122,7 @@ private:
 
 public:
 
-  static const int HIST_HEIGHT = 20; // in fake pixels
+  static const int HIST_HEIGHT = 6; // in fake pixels
   static const int MARGIN = 2; // in fake pixels
 
 private:

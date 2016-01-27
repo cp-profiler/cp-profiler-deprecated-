@@ -522,7 +522,7 @@ PixelTreeCanvas::drawPixelTree(const PixelData& pixel_data) {
 
   pixel_image.drawHorizontalLine(tree_depth - yoff, PixelImage::PIXEL_COLOR::LIGTH_GRAY);
 
-  current_image_height += tree_depth + MARGIN;
+  current_image_height += tree_depth + MARGIN + 1;
 
 }
 
@@ -835,12 +835,13 @@ PixelTreeCanvas::drawDepthAnalysisData() {
 
   const int max_value = da_data_max;
 
-  const float coeff = static_cast<float>(HIST_HEIGHT) / (max_value + 1);
+  float coeff = max_value > HIST_HEIGHT ?
+                      static_cast<float>(HIST_HEIGHT) / (max_value + 1) : 1;
 
-  int zero_level = current_image_height + coeff * max_value - yoff;
+  const int zero_level = current_image_height + HIST_HEIGHT - yoff;
 
   pixel_image.drawHorizontalLine(current_image_height - yoff - 1, PixelImage::PIXEL_COLOR::LIGTH_GRAY);
-  pixel_image.drawHorizontalLine(zero_level, PixelImage::PIXEL_COLOR::LIGTH_GRAY);
+  pixel_image.drawHorizontalLine(zero_level - 1, PixelImage::PIXEL_COLOR::LIGTH_GRAY);
   /// *** Actual Data ***
   /// for each depth level:
   for (auto depth = 0; depth < int(da_data_compressed.size()); depth++) {
@@ -863,7 +864,7 @@ PixelTreeCanvas::drawDepthAnalysisData() {
 
   }
 
-  current_image_height += coeff * max_value + MARGIN;
+  current_image_height += HIST_HEIGHT + MARGIN;
 
 }
 
@@ -895,8 +896,8 @@ PixelTreeCanvas::drawDepthAnalysisData2() {
 
   int zero_level = current_image_height + max_depth - yoff;
 
-  pixel_image.drawHorizontalLine(current_image_height - yoff - 1, PixelImage::PIXEL_COLOR::LIGTH_GRAY);
-  pixel_image.drawHorizontalLine(zero_level, PixelImage::PIXEL_COLOR::LIGTH_GRAY);
+  pixel_image.drawHorizontalLine(current_image_height - 1 - yoff, PixelImage::PIXEL_COLOR::LIGTH_GRAY);
+  pixel_image.drawHorizontalLine(zero_level - 1, PixelImage::PIXEL_COLOR::LIGTH_GRAY);
   /// *** Actual Data ***
   /// for each depth level:
   for (auto depth = 0; depth < max_depth; depth++) {

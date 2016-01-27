@@ -40,7 +40,7 @@ PixelTreeDialog::PixelTreeDialog(TreeCanvas* tc): QDialog(tc)
   controlLayout->addWidget(compressionSB);
 
   QCheckBox* time_cb = new QCheckBox("time", this);
-  time_cb->setCheckState(Qt::Checked);
+  time_cb->setCheckState(Qt::Unchecked);
   optionsLayout->addWidget(time_cb);
 
   connect(this, SIGNAL(windowResized()), canvas_, SLOT(resizeCanvas()));
@@ -48,7 +48,7 @@ PixelTreeDialog::PixelTreeDialog(TreeCanvas* tc): QDialog(tc)
   connect(time_cb, SIGNAL(stateChanged(int)), canvas_, SLOT(toggleTimeHistogram(int)));
 
   QCheckBox* domains_cb = new QCheckBox("domains", this);
-  domains_cb->setCheckState(Qt::Checked);
+  domains_cb->setCheckState(Qt::Unchecked);
   optionsLayout->addWidget(domains_cb);
   connect(domains_cb, SIGNAL(stateChanged(int)), canvas_, SLOT(toggleDomainsHistogram(int)));
 
