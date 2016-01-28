@@ -1,4 +1,8 @@
+// v0.1 added optional nogood field
+
 package message;
+
+option java_package = "com.github.cpprofiler";
 
 message Node {
   
@@ -32,4 +36,7 @@ message Node {
   optional int32  thread_id   = 9;
   optional string label       = 10;
   optional float  domain_size = 11;
+  optional string solution    = 12;
+  optional string nogood      = 13;
+  optional string info        = 14;
 }
