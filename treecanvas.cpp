@@ -33,6 +33,7 @@
 #include "treecanvas.hh"
 #include "treebuilder.hh"
 #include "cpprofiler/pixeltree/pixel_tree_dialog.hh"
+#include "cpprofiler/pixeltree/icicle_tree_dialog.hh"
 #include "nogood_dialog.hh"
 #include "node_info_dialog.hh"
 
@@ -526,10 +527,19 @@ void TreeCanvas::showPixelTree(void) {
   auto pixelTreeDialog = new PixelTreeDialog(this);
 
   /// TODO(maxim): try to bypass the pt dialog
-  connect(this, SIGNAL(showOnPixelTree(int)),
+  connect(this, SIGNAL(showNodeOnPixelTree(int)),
           pixelTreeDialog, SLOT(setPixelSelected(int)));
 
   pixelTreeDialog->show();
+}
+
+void TreeCanvas::showIcicleTree(void) {
+
+  using cpprofiler::pixeltree::IcicleTreeDialog;
+
+  auto icicleTreeDialog = new IcicleTreeDialog(this);
+
+  icicleTreeDialog->show();
 }
 
 void TreeCanvas::followPath(void) {
@@ -626,9 +636,9 @@ TreeCanvas::showNodeInfo(void) {
 }
 
 void
-TreeCanvas::showOnPixelTree(void) {
+TreeCanvas::showNodeOnPixelTree(void) {
   int gid = currentNode->getIndex(*na);
-  emit showOnPixelTree(gid);
+  emit showNodeOnPixelTree(gid);
 }
 
 void

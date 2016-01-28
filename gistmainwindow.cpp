@@ -120,8 +120,8 @@ GistMainWindow::GistMainWindow(Execution* execution, QWidget* parent) : QMainWin
   QMenu* treeVisMenu = menuBar->addMenu(tr("Tree"));
 
   treeVisMenu->addAction(c->showPixelTree);
+  treeVisMenu->addAction(c->showIcicleTree);
   treeVisMenu->addAction(c->hideSize);
-  treeVisMenu->addAction(c->depthAnalysis);
   treeVisMenu->addAction(c->followPath);
 
   /// *******************************

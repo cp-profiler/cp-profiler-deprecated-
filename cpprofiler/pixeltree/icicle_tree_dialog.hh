@@ -1,3 +1,4 @@
+
 /*  Permission is hereby granted, free of charge, to any person obtaining
  *  a copy of this software and associated documentation files (the
  *  "Software"), to deal in the Software without restriction, including
@@ -19,46 +20,60 @@
  *
  */
 
-#ifndef PIXEL_VIEW_HH
-#define PIXEL_VIEW_HH
+#ifndef CPPROFILER_PIXELVIEW_ICICLETREEDIALOG_HH
+#define CPPROFILER_PIXELVIEW_ICICLETREEDIALOG_HH
 
-#include "treecanvas.hh"
-#include "cpprofiler/analysis/depth_analysis.hh"
-#include "maybeCaller.hh"
-#include <list>
-#include <vector>
+#include <QDialog>
+#include "pixelImage.hh"
 
-#include "pixel_item.hh"
+class TreeCanvas;
+class QAbstractScrollArea;
 
-namespace cpprofiler { namespace pixeltree {
+ namespace cpprofiler { namespace pixeltree {
 
-/// ***********************************
+  class IcicleTreeDialog;
 
-class PixelData {
+  class IcicleTreeCanvas : public QWidget {
+    Q_OBJECT
+  private:
+    QAbstractScrollArea&  sa_;
+    PixelImage icicle_image_;
 
-private:
-  int compression_;
+    void redrawAll();
 
-public:
-  PixelData() {}
+  protected:
+    void paintEvent(QPaintEvent* event);
 
-  explicit PixelData(unsigned int node_count): compression_(1) {
-    pixel_list.reserve(node_count);
-  }
+  public:
+    IcicleTreeCanvas(QAbstractScrollArea* parent);
 
-  void setCompression(int compression) {
-    compression_ = compression;
-  }
+  public Q_SLOTS:
+    void resizeCanvas(void);
+  };
 
-  int compression() const { return compression_; }
+  class IcicleTreeDialog : public QDialog {
+    Q_OBJECT
 
-  std::vector<PixelItem> pixel_list;
+  private:
+    /// TODO(maxim): make sure this gets deleted
+    QAbstractScrollArea* scrollArea_;
+    IcicleTreeCanvas* canvas_;
 
-};
+  Q_SIGNALS:
+    void windowResized(void);
+
+  public:
+    explicit IcicleTreeDialog(TreeCanvas* tc);
+
+    static const int INIT_WIDTH = 600;
+    static const int INIT_HEIGHT = 400;
+
+  protected:
+    void resizeEvent(QResizeEvent * re);
+
+  };
 
 }}
-
-/// ***********************************
 
 
 #endif

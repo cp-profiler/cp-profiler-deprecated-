@@ -95,9 +95,6 @@ void
 PixelTreeCanvas::paintEvent(QPaintEvent*) {
   if (pixel_image.image() == nullptr) return;
 
-  auto sa_width = _sa->viewport()->width();
-  auto sa_height = _sa->viewport()->height();
-
   QPainter painter(this);
 
   painter.drawImage(QPoint{0,0}, *pixel_image.image());

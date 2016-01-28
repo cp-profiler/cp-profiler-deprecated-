@@ -409,7 +409,7 @@ Gist::addActions(void) {
     /// TODO: set a shortcut
 
     showPixelTree = new QAction("Pixel Tree View", this);
-    depthAnalysis = new QAction("Depth Analysis", this);
+    showIcicleTree = new QAction("Icicle Tree View", this);
     followPath = new QAction("Follow Path", this);
     
     navUp = new QAction("Up", this);
@@ -474,8 +474,8 @@ Gist::addActions(void) {
     showNodeInfo = new QAction("Show node info", this);
     showNodeInfo->setShortcut(QKeySequence("I"));
 
-    showOnPixelTree = new QAction("Show on a pixel tree", this);
-    showOnPixelTree->setShortcut(QKeySequence("J"));
+    showNodeOnPixelTree = new QAction("Show node on a pixel tree", this);
+    showNodeOnPixelTree->setShortcut(QKeySequence("J"));
 
     collectMLStats = new QAction("Collect ML stats", this);
     
@@ -560,12 +560,12 @@ Gist::addActions(void) {
     addAction(labelBranches);
     addAction(labelPath);
     addAction(showPixelTree);
-    addAction(depthAnalysis);
+    addAction(showIcicleTree);
     addAction(followPath);
     addAction(analyzeSimilarSubtrees);
     addAction(showNogoods);
     addAction(showNodeInfo);
-    addAction(showOnPixelTree);
+    addAction(showNodeOnPixelTree);
     addAction(collectMLStats);
     addAction(toggleStop);
     addAction(unstopAll);
@@ -598,7 +598,7 @@ Gist::addActions(void) {
     contextMenu->addAction(analyzeSimilarSubtrees);
     contextMenu->addAction(showNogoods);
     contextMenu->addAction(showNodeInfo);
-    contextMenu->addAction(showOnPixelTree);
+    contextMenu->addAction(showNodeOnPixelTree);
     contextMenu->addAction(collectMLStats);
 
     contextMenu->addAction(toggleStop);
@@ -656,10 +656,12 @@ Gist::connectCanvas(TreeCanvas* tc) {
         disconnect(labelBranches, SIGNAL(triggered()), current_tc, SLOT(labelBranches()));
         disconnect(unhideAll, SIGNAL(triggered()), current_tc, SLOT(unhideAll()));
         disconnect(labelPath, SIGNAL(triggered()), current_tc, SLOT(labelPath()));
+        disconnect(showPixelTree, SIGNAL(triggered()), tc, SLOT(showPixelTree()));
+        disconnect(showIcicleTree, SIGNAL(triggered()), tc, SLOT(showIcicleTree()));
         disconnect(analyzeSimilarSubtrees, SIGNAL(triggered()), current_tc, SLOT(analyzeSimilarSubtrees()));
         disconnect(showNogoods, SIGNAL(triggered()), current_tc, SLOT(showNogoods()));
         disconnect(showNodeInfo, SIGNAL(triggered()), current_tc, SLOT(showNodeInfo()));
-        disconnect(showOnPixelTree, SIGNAL(triggered()), current_tc, SLOT(showOnPixelTree()));
+        disconnect(showNodeOnPixelTree, SIGNAL(triggered()), current_tc, SLOT(showNodeOnPixelTree()));
         disconnect(collectMLStats, SIGNAL(triggered()), current_tc, SLOT(collectMLStats()));
         disconnect(toggleStop, SIGNAL(triggered()), current_tc, SLOT(toggleStop()));
         disconnect(unstopAll, SIGNAL(triggered()), current_tc, SLOT(unstopAll()));
@@ -701,12 +703,12 @@ Gist::connectCanvas(TreeCanvas* tc) {
     connect(unhideAll, SIGNAL(triggered()), tc, SLOT(unhideAll()));
     connect(labelPath, SIGNAL(triggered()), tc, SLOT(labelPath()));
     connect(showPixelTree, SIGNAL(triggered()), tc, SLOT(showPixelTree()));
-    connect(depthAnalysis, SIGNAL(triggered()), tc, SLOT(depthAnalysis()));
+    connect(showIcicleTree, SIGNAL(triggered()), tc, SLOT(showIcicleTree()));
     connect(followPath, SIGNAL(triggered()), tc, SLOT(followPath()));
     connect(analyzeSimilarSubtrees, SIGNAL(triggered()), tc, SLOT(analyzeSimilarSubtrees()));
     connect(showNogoods, SIGNAL(triggered()), current_tc, SLOT(showNogoods()));
     connect(showNodeInfo, SIGNAL(triggered()), current_tc, SLOT(showNodeInfo()));
-    connect(showOnPixelTree, SIGNAL(triggered()), current_tc, SLOT(showOnPixelTree()));
+    connect(showNodeOnPixelTree, SIGNAL(triggered()), current_tc, SLOT(showNodeOnPixelTree()));
     connect(collectMLStats, SIGNAL(triggered()), current_tc, SLOT(collectMLStats()));
     connect(toggleStop, SIGNAL(triggered()), tc, SLOT(toggleStop()));
     connect(unstopAll, SIGNAL(triggered()), tc, SLOT(unstopAll()));

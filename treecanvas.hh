@@ -281,6 +281,9 @@ public Q_SLOTS:
   /// Show Indented Pixel Tree View
   void showPixelTree(void);
 
+  /// Show Icicle Tree View
+  void showIcicleTree(void);
+
   /// Follow path from root
   void followPath(void);
 
@@ -294,7 +297,7 @@ public Q_SLOTS:
   void showNodeInfo(void);
 
   /// Show a node on a pixel tree
-  void showOnPixelTree(void);
+  void showNodeOnPixelTree(void);
 
   /// Collect ML stats from the current node
   void collectMLStats(void);
@@ -384,7 +387,7 @@ Q_SIGNALS:
 
   void buildingFinished(void);
 
-  void showOnPixelTree(int gid);
+  void showNodeOnPixelTree(int gid);
 protected:
   /// Mutex for synchronizing acccess to the tree
   QMutex mutex;

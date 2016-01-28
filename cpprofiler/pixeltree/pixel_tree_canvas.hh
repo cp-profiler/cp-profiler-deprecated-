@@ -30,6 +30,7 @@
 #include "cpprofiler/analysis/depth_analysis.hh"
 #include "cpprofiler/analysis/backjumps.hh"
 #include "pixel_data.hh"
+#include "pixelImage.hh"
 
 class Data;
 class TreeCanvas;

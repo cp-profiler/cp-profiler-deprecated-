@@ -49,6 +49,7 @@ SOURCES += main.cpp\
     ml-stats.cpp \
     cpprofiler\analysis\backjumps.cpp \
     cpprofiler\pixeltree\pixel_tree_dialog.cpp \
+    cpprofiler\pixeltree\icicle_tree_dialog.cpp \
     cpprofiler\pixeltree\pixel_tree_canvas.cpp \
     cpprofiler\analysis\depth_analysis.cpp \
 
@@ -94,6 +95,7 @@ HEADERS  += globalhelper.hh \
     cpprofiler/analysis/backjumps.hh \
     cpprofiler/pixeltree/pixel_data.hh \
     cpprofiler/pixeltree/pixel_tree_dialog.hh \
+    cpprofiler/pixeltree/icicle_tree_dialog.hh \
     cpprofiler/pixeltree/pixel_tree_canvas.hh \
     cpprofiler/pixeltree/pixel_item.hh \
     cpprofiler/analysis/depth_analysis.hh \

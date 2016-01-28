@@ -151,7 +151,7 @@ public:
   /// Show node info
   QAction* showNodeInfo;
   /// Show on a pixel tree
-  QAction* showOnPixelTree;
+  QAction* showNodeOnPixelTree;
   /// Collect ML stats
   QAction* collectMLStats;
   /// Zoom tree to fit window
@@ -184,8 +184,9 @@ public:
   /// Show Indented Pixel Tree View
   QAction* showPixelTree;
 
-  /// Perform depth analysis on a tree
-  QAction* depthAnalysis;
+    /// Show Icicle Search Tree
+  QAction* showIcicleTree;
+
   /// Follow path
   QAction* followPath;
 
