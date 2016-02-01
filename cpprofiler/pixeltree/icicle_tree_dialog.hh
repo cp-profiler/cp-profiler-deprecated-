@@ -26,30 +26,17 @@
 #include <QDialog>
 #include "pixelImage.hh"
 
+#include "nodecursor.hh"
+#include "visualnode.hh"
+
 class TreeCanvas;
 class QAbstractScrollArea;
 
  namespace cpprofiler { namespace pixeltree {
 
+  class IcicleTreeCanvas;
   class IcicleTreeDialog;
-
-  class IcicleTreeCanvas : public QWidget {
-    Q_OBJECT
-  private:
-    QAbstractScrollArea&  sa_;
-    PixelImage icicle_image_;
-
-    void redrawAll();
-
-  protected:
-    void paintEvent(QPaintEvent* event);
-
-  public:
-    IcicleTreeCanvas(QAbstractScrollArea* parent);
-
-  public Q_SLOTS:
-    void resizeCanvas(void);
-  };
+  class IcicleCursor;
 
   class IcicleTreeDialog : public QDialog {
     Q_OBJECT
@@ -72,6 +59,55 @@ class QAbstractScrollArea;
     void resizeEvent(QResizeEvent * re);
 
   };
+
+  class IcicleTreeCanvas : public QWidget {
+    Q_OBJECT
+  private:
+    QAbstractScrollArea&  sa_;
+    TreeCanvas& tc_;
+    PixelImage icicle_image_;
+
+    /// TODO(maxim): make this only accessable from within processNode
+    int cur_depth_;
+    int x_global_;
+
+    void redrawAll();
+    void drawIcicleTree();
+    std::pair<int, int> processNode(const Node&);
+
+  protected:
+    void paintEvent(QPaintEvent* event);
+
+  public:
+    IcicleTreeCanvas(QAbstractScrollArea* parent, TreeCanvas* tc);
+
+  public Q_SLOTS:
+    void resizeCanvas(void);
+  };
+
+  // /// A cursor that prints backjumps
+  // class IcicleCursor : public NodeCursor<VisualNode> {
+
+  // private:
+  //   TreeCanvas& tc_;
+  //   const NodeAllocator& na_;
+  //   PixelImage& icicle_image_;
+
+  //   int max_depth_;
+  //   int cur_depth_;
+  //   int x_ = 0;
+
+  //   int x1_ = 0;
+
+  // public:
+
+  //     IcicleCursor(VisualNode* node, TreeCanvas& tc,
+  //                      const VisualNode::NodeAllocator& na, PixelImage& image);
+
+  //     void processCurrentNode();
+  //     void moveDownwards();
+  //     void moveUpwards();
+  // };
 
 }}
 

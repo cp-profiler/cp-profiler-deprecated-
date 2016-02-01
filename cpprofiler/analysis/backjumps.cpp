@@ -20,6 +20,7 @@
 
 #include "backjumps.hh"
 #include "nodevisitor.hh"
+#include "visualnode.hh"
 
 #include <iostream>
 
@@ -79,7 +80,7 @@ BackjumpsCursor::processCurrentNode() {
       is_backjumping = true;
       bj_item.level_from = last_failure_level;
       bj_data.max_from = std::max(bj_data.max_from, bj_item.level_from);
-      cout << "Backjump from level: " << last_failure_level;
+      // cout << "Backjump from level: " << last_failure_level;
     }
 
   } else {

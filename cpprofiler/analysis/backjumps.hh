@@ -21,10 +21,9 @@
 #ifndef CPPROFILER_ANALYSIS_BACKJUMPS_HH
 #define CPPROFILER_ANALYSIS_BACKJUMPS_HH
 
-class VisualNode;
-
 #include "nodecursor.hh"
-#include "visualnode.hh"
+
+class VisualNode;
 
 namespace cpprofiler { namespace analysis {
 

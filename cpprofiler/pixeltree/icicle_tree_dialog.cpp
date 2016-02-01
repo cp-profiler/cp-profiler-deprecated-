@@ -19,13 +19,18 @@
  *  WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 #include <QAbstractScrollArea>
+#include <climits>
+#include <functional>
 
 #include "icicle_tree_dialog.hh"
 #include "treecanvas.hh"
+#include "nodevisitor.hh"
 
 using namespace cpprofiler::pixeltree;
 
 IcicleTreeDialog::IcicleTreeDialog(TreeCanvas* tc): QDialog(tc) {
+
+  qDebug() << "tc in IcicleTree address: " << tc;
 
   this->resize(INIT_WIDTH, INIT_HEIGHT);
   this->setWindowTitle(QString::fromStdString(tc->getExecution()->getData()->getTitle()));
@@ -36,7 +41,7 @@ IcicleTreeDialog::IcicleTreeDialog(TreeCanvas* tc): QDialog(tc) {
   setLayout(layout);
   layout->addWidget(scrollArea_);
 
-  canvas_ = new IcicleTreeCanvas(scrollArea_);
+  canvas_ = new IcicleTreeCanvas(scrollArea_, tc);
 
   connect(this, SIGNAL(windowResized()), canvas_, SLOT(resizeCanvas()));
 
@@ -48,9 +53,8 @@ IcicleTreeDialog::resizeEvent(QResizeEvent* event) {
   emit windowResized();
 }
 
-IcicleTreeCanvas::IcicleTreeCanvas(QAbstractScrollArea* parent)
-: QWidget(parent), sa_(*parent) {
-  icicle_image_.drawPixel(10, 10, qRgb(0, 255, 0));
+IcicleTreeCanvas::IcicleTreeCanvas(QAbstractScrollArea* parent, TreeCanvas* tc)
+: QWidget(parent), sa_(*parent), tc_(*tc) {
 }
 
 void
@@ -74,8 +78,113 @@ IcicleTreeCanvas::resizeCanvas() {
 
 void
 IcicleTreeCanvas::redrawAll() {
+  /// TODO(maxim): meaningful value instead of 10000
+  // sa_.horizontalScrollBar()->setRange(0, 10000);
   icicle_image_.clear();
+
+  drawIcicleTree();
 
   icicle_image_.update();
   repaint(); /// TODO(maxim): do I need this?
 }
+
+void
+IcicleTreeCanvas::drawIcicleTree() {
+
+  auto& na = *tc_.get_na();
+
+  auto& root = *na[0];
+
+  x_global_ = 0;
+  cur_depth_ = 0;
+
+  processNode(root);
+
+  // IcicleCursor icicle_cursor(root, tc_, na, icicle_image_);
+  // PostorderNodeVisitor<IcicleCursor> visitor(icicle_cursor);
+
+  // visitor.run();
+
+}
+
+
+std::pair<int, int>
+IcicleTreeCanvas::processNode(const Node& node) {
+  ++cur_depth_;
+  /// TODO(maxim): the fake (first) node returns 0 children (but has 1)
+  /// in both Chuffed and Gecode
+  const int kids = node.getNumberOfChildren();
+  qDebug() << "kids: " << kids;
+  auto& na = *tc_.get_na();
+
+  int x_begin = 1000000;
+  int x_end = 0;
+
+  for (int i = 0; i < kids; ++i) {
+    auto& kid = *node.getChild(na, i);
+
+    auto extent = processNode(kid);
+    auto x1 = extent.first;
+    auto x2 = extent.second;
+    qDebug() << "x1: " << x1 << "x2: " << x2;
+    if (x1 < x_begin) x_begin = x1;
+    if (x2 > x_end) x_end = x2;
+
+  }
+
+  if (kids == 0) {
+    x_begin = x_global_;
+    x_end = x_begin + 1;
+    ++x_global_;
+  }
+
+  qDebug() << "x_begin: " << x_begin << " x_end: " << x_end;
+  qDebug() << "cur_depth: " << cur_depth_;
+
+  for (int x = x_begin; x < x_end; x++) {
+    icicle_image_.drawPixel(x, cur_depth_, qRgb(0, 0, 0));
+  }
+
+  --cur_depth_;
+
+  return std::make_pair(x_begin, x_end);
+}
+
+
+
+
+// /// **************** Cursor *********************
+
+// IcicleCursor::IcicleCursor(VisualNode* root, TreeCanvas& tc,
+//   const VisualNode::NodeAllocator& na, PixelImage& image)
+//   : NodeCursor<VisualNode>(root, na), tc_(tc), na_(na), icicle_image_(image)
+// {
+//   max_depth_ = tc_.get_stats().maxDepth;
+//   cur_depth_ = max_depth_;
+// }
+
+// void
+// IcicleCursor::moveDownwards() {
+//     ++cur_depth_;
+//     NodeCursor<VisualNode>::moveDownwards();
+// }
+
+
+// void
+// IcicleCursor::moveUpwards() {
+//     --cur_depth_;
+//     x = x1_;
+//     NodeCursor<VisualNode>::moveUpwards();
+// }
+
+// void
+// IcicleCursor::processCurrentNode() {
+
+//   auto n = node();
+//   x_++;
+
+//   qDebug() << "x1: " << x1_ << "x2: " << x_;
+
+//   icicle_image_.drawPixel(x_, cur_depth_, qRgb(0, 0, 0));
+
+// }

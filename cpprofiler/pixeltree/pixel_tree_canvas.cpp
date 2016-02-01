@@ -107,6 +107,7 @@ PixelTreeCanvas::constructPixelTree(void) {
 
   /// get a root
   auto root = (*_na)[0];
+
   pixel_data = traverseTree(root);
   // pixel_data = traverseTreePostOrder(root);
 
@@ -386,7 +387,8 @@ PixelTreeCanvas::traverseTree(VisualNode* root) {
 
   /// 1. push the root node
   explorationStack.push(root);
-  depthStack.push(1);
+  /// TODO(maxim): do I really need a stack here?
+  depthStack.push(1); 
 
   /// 2. traverse the stack
   while(explorationStack.size() > 0) {
