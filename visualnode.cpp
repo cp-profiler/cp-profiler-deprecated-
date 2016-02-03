@@ -119,7 +119,7 @@ VisualNode::dirtyUp(const NodeAllocator& na) {
         if (!cur->isRoot()) {
             cur = cur->getParent(na);
         }
-    } while (!cur->isDirty()); /// TODO: confirm with Guido
+    } while (!cur->isDirty());
 }
 
 void

@@ -1053,6 +1053,31 @@ PixelTreeCanvas::mouseMoveEvent(QMouseEvent* event) {
 
 }
 
+namespace detail {
+
+  /// Sets the node and its ancectry as not hidden;
+  /// marks the path as dirty
+  void unhideNode(VisualNode* node, NodeAllocator* na) {
+    /// TODO(maxim): make sure dirtyUp doesn't do redundant work here
+    node->dirtyUp(*na);
+
+    auto* next = node;
+    while(!next->isRoot() && next->isHidden()) {
+      next->setHidden(false);
+      next = next->getParent(*na);
+    }
+  }
+
+  void unselectPixels(std::vector<PixelItem*> pixels_selected) {
+    for (auto& pixel : pixels_selected) {
+      pixel->setSelected(false);
+    }
+    pixels_selected.clear();
+  }
+
+}
+
+
 void
 PixelTreeCanvas::selectNodesfromPT(unsigned vline) {
 
@@ -1061,19 +1086,14 @@ PixelTreeCanvas::selectNodesfromPT(unsigned vline) {
   auto end = boundaries.second; /// not including
 
   auto selectOne = [this](VisualNode* node) {
+    detail::unhideNode(node, _na);
+
     _tc.setCurrentNode(node);
     _tc.centerCurrentNode();
   };
 
   auto selectGroup = [this](VisualNode* node) {
-    node->dirtyUp(*_na);
-
-    VisualNode* next = node;
-
-    while (!next->isRoot() && next->isHidden()) {
-      next->setHidden(false);
-      next = next->getParent(*_na);
-    }
+    detail::unhideNode(node, _na);
   };
 
   std::function<void(VisualNode*)> apply = selectOne;
@@ -1087,19 +1107,14 @@ PixelTreeCanvas::selectNodesfromPT(unsigned vline) {
     (*_na)[0]->setHidden(false);
   }
 
-  /// select nodes in interval [ start; end )
 
   // /// unset currently selected nodes
-  for (auto& pixel : pixels_selected) {
-    pixel->setSelected(false);
-  }
+  detail::unselectPixels(pixels_selected);
 
-  /// TODO(maxim): make this a function
-  pixels_selected.clear();
-
+  /// select nodes in interval [ start; end )
   auto& pixel_list = pixel_data.pixel_list;
 
-  for (auto id = start; id < end && id < pixel_list.size(); id++) {
+  for (auto id = start; id < end && id < pixel_list.size(); ++id) {
     auto& pixelItem = pixel_list[id];
     auto node = pixelItem.node();
     apply(node);
