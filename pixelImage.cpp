@@ -68,11 +68,11 @@ PixelImage::drawPixel(int x, int y, QRgb color) {
   int x0 = x * scale_;
   int y0 = y * scale_;
 
-  for (unsigned i = 0; i < scale_; i++) {
-    auto x = x0 + i;
+  for (int column = 0; column < scale_; ++column) {
+    auto x = x0 + column;
     if (x >= width_) break;
-    for (unsigned j = 0; j < scale_; j++) {
-      auto y = y0 + j;
+    for (int row = 0; row < scale_; ++row) {
+      auto y = y0 + row;
       if (y >= height_) break;
       setPixel(buffer_, x, y, color);
     }
@@ -80,17 +80,57 @@ PixelImage::drawPixel(int x, int y, QRgb color) {
 }
 
 void
+PixelImage::drawRect(int x, int width, int y, QRgb color) {
+  int x_begin = x * scale_;
+  int y_begin = y * scale_;
+  int x_end = (x + width) * scale_;
+  int y_end = (y + 1) * scale_;
+
+  /// horizontal lines
+  for (int column = x_begin; column < x_end; ++column) {
+    int x = column;
+    int y_lowest = y_begin;
+    int y_highest = y_end - 1;
+
+    setPixel(buffer_, x, y_lowest, PIXEL_COLOR::BLACK);
+    setPixel(buffer_, x, y_highest, PIXEL_COLOR::BLACK);
+  }
+
+  /// vertical lines
+  for (int row = y_begin; row < y_end; ++row) {
+    int y = row;
+    int x_leftmost = x_begin;
+    int x_rightmost = x_end - 1;
+
+    setPixel(buffer_, x_leftmost, y, PIXEL_COLOR::BLACK);
+    setPixel(buffer_, x_rightmost, y, PIXEL_COLOR::BLACK);
+  }
+
+  /// fill the rect
+
+  for (int column = x_begin + 1; column < x_end - 1; ++column) {
+    for (int row = y_begin + 1; row < y_end - 1; ++row) {
+      setPixel(buffer_, column, row, color);
+    }
+  }
+}
+
+void
 PixelImage::setPixel(std::vector<uint32>& buffer, int x, int y, QRgb color) {
 
-    uint32 r = qRed(color);
-    uint32 g = qGreen(color);
-    uint32 b = qBlue(color);
+  if (x >= width_ || x < 0 || y >= height_ || y < 0) {
+    return;
+  }
 
-    // uint32 c = color;
+  uint32 r = qRed(color);
+  uint32 g = qGreen(color);
+  uint32 b = qBlue(color);
 
-    uint32 pixel_color = (0xFF << 24) + (r << 16) + (g << 8) + (b);
+  // uint32 c = color;
 
-    buffer[y * width_ + x] = pixel_color;
+  uint32 pixel_color = (0xFF << 24) + (r << 16) + (g << 8) + (b);
+
+  buffer[y * width_ + x] = pixel_color;
 }
 
 static void addLayer(std::vector<uint32>& target_buf,
@@ -136,7 +176,7 @@ PixelImage::drawHorizontalLine(std::vector<uint32>& buffer, int y, QRgb color) {
 
   if (y < 0 || y > height_) return;
 
-  for (auto x = 0; x < width_; x++) {
+  for (auto x = 0; x < width_; ++x) {
     setPixel(buffer, x, y, color);
   }
 }
@@ -148,20 +188,20 @@ PixelImage::drawVerticalLine(std::vector<uint32>& buffer, int x, QRgb color) {
 
   if (x < 0 || x > width_) return;
 
-  for (auto y = 0; y < height_; y++) {
+  for (auto y = 0; y < height_; ++y) {
     setPixel(buffer, x, y, color);
   }
 }
 
 void
-PixelImage::drawMouseGuidelines(unsigned x, unsigned y) {
+PixelImage::drawMouseGuidelines(uint32 x, uint32 y) {
 
   std::fill(guidlines_buffer_.begin(), guidlines_buffer_.end(), 0xFFFFFF);
 
-  drawHorizontalLine(guidlines_buffer_, y - 1, PixelImage::PIXEL_COLOR::DARK_GRAY);
-  drawHorizontalLine(guidlines_buffer_, y, PixelImage::PIXEL_COLOR::DARK_GRAY);
-  drawVerticalLine(guidlines_buffer_, x - 1, PixelImage::PIXEL_COLOR::DARK_GRAY);
-  drawVerticalLine(guidlines_buffer_, x, PixelImage::PIXEL_COLOR::DARK_GRAY);
+  drawHorizontalLine(guidlines_buffer_, y - 1, PIXEL_COLOR::DARK_GRAY);
+  drawHorizontalLine(guidlines_buffer_, y, PIXEL_COLOR::DARK_GRAY);
+  drawVerticalLine(guidlines_buffer_, x - 1, PIXEL_COLOR::DARK_GRAY);
+  drawVerticalLine(guidlines_buffer_, x, PIXEL_COLOR::DARK_GRAY);
 
 }
 
@@ -176,23 +216,23 @@ PixelImage::drawGrid() {
   int gap_size = gap * scale_; /// actual gap size in pixels
 
   /// horizontal lines on level == j
-  for (unsigned int j = gap_size; j < height_; j += gap_size) {
+  for (uint32 j = gap_size; j < height_; j += gap_size) {
 
     /// one line
-    for (unsigned int i = 0; i < width_ - scale_; i++) {
+    for (uint32 i = 0; i < width_ - scale_; ++i) {
 
-      for (unsigned k = 0; k < scale_; k++)
+      for (uint32 k = 0; k < scale_; ++k)
         setPixel(background_buffer_, i + k, j, PixelImage::PIXEL_COLOR::GRID);
     }
   }
 
   /// vertical lines on column == i
-  for (unsigned int i = gap_size; i < width_; i += gap_size) {
+  for (uint32 i = gap_size; i < width_; i += gap_size) {
 
     /// one line
-    for (unsigned int j = 0; j < height_ - scale_; j++) {
+    for (uint32 j = 0; j < height_ - scale_; ++j) {
 
-      for (unsigned k = 0; k < scale_; k++)
+      for (uint32 k = 0; k < scale_; ++k)
         setPixel(background_buffer_, i, j + k, PixelImage::PIXEL_COLOR::GRID);
 
     }

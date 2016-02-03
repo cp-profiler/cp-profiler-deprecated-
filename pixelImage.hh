@@ -32,7 +32,7 @@ typedef uint32_t uint32;
 class PixelImage {
 
 private:
-
+  /// TODO(maxim): better name
   std::vector<uint32> buffer1_;
   std::vector<uint32> buffer_;
   std::vector<uint32> background_buffer_;
@@ -42,8 +42,8 @@ private:
   std::vector<uint32> result_buffer_;
   QImage* image_;
 
-  unsigned int width_;
-  unsigned int height_;
+  uint32 width_;
+  uint32 height_;
 
   // int content_height_; // the sum of heights of the pt and histograms
 
@@ -59,6 +59,8 @@ public:
   PixelImage();
   // void drawPixel(int x, int y, unsigned int color);
   void drawPixel(int x, int y, QRgb color);
+
+  void drawRect(int x, int width, int y, QRgb color);
 
   // draw horizontal line (for zero level on histograms)
   // 1 pixel tall, on the bottom-most row of pixels: ______
@@ -83,13 +85,13 @@ public:
   ~PixelImage();
 
   ///***** Getters *****
-  unsigned int width_in_pixels() { return width_; }
-  unsigned int width() { return width_ / scale_; }
-  unsigned int height_in_pixels() { return height_; }
-  unsigned int height() { return height_ / scale_; }
+  uint32 width_in_pixels() { return width_; }
+  uint32 width() { return width_ / scale_; }
+  uint32 height_in_pixels() { return height_; }
+  uint32 height() { return height_ / scale_; }
 
   const QImage* image();
-  unsigned scale() const { return scale_; };
+  uint32 scale() const { return scale_; };
 
   enum PIXEL_COLOR {
     BLACK = qRgb(0, 0, 0),

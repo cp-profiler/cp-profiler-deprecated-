@@ -55,6 +55,13 @@ IcicleTreeDialog::resizeEvent(QResizeEvent* event) {
 
 IcicleTreeCanvas::IcicleTreeCanvas(QAbstractScrollArea* parent, TreeCanvas* tc)
 : QWidget(parent), sa_(*parent), tc_(*tc) {
+
+  connect (sa_.horizontalScrollBar(), SIGNAL(valueChanged (int)), this, SLOT(sliderChanged(int)));
+
+  /// TODO(maxim): find out the 'width' of the icicle tree
+  icicle_image_.scaleUp();
+  icicle_image_.scaleUp();
+  icicle_image_.scaleUp();
 }
 
 void
@@ -79,7 +86,7 @@ IcicleTreeCanvas::resizeCanvas() {
 void
 IcicleTreeCanvas::redrawAll() {
   /// TODO(maxim): meaningful value instead of 10000
-  // sa_.horizontalScrollBar()->setRange(0, 10000);
+  sa_.horizontalScrollBar()->setRange(0, 10000);
   icicle_image_.clear();
 
   drawIcicleTree();
@@ -98,6 +105,7 @@ IcicleTreeCanvas::drawIcicleTree() {
   x_global_ = 0;
   cur_depth_ = 0;
 
+  /// TODO(maxim): construct once, redraw many times
   processNode(root);
 
   // IcicleCursor icicle_cursor(root, tc_, na, icicle_image_);
@@ -109,7 +117,9 @@ IcicleTreeCanvas::drawIcicleTree() {
 
 
 std::pair<int, int>
-IcicleTreeCanvas::processNode(const Node& node) {
+IcicleTreeCanvas::processNode(const SpaceNode& node) {
+  // auto yoff = _sa->verticalScrollBar()->value();
+
   ++cur_depth_;
   /// TODO(maxim): the fake (first) node returns 0 children (but has 1)
   /// in both Chuffed and Gecode
@@ -141,13 +151,37 @@ IcicleTreeCanvas::processNode(const Node& node) {
   qDebug() << "x_begin: " << x_begin << " x_end: " << x_end;
   qDebug() << "cur_depth: " << cur_depth_;
 
-  for (int x = x_begin; x < x_end; x++) {
-    icicle_image_.drawPixel(x, cur_depth_, qRgb(0, 0, 0));
+  QRgb rect_color;
+  switch (node.getStatus()) {
+    case BRANCH: {
+      rect_color = qRgb(50, 50, 255);
+      break;
+    }
+    case FAILED: {
+      rect_color = qRgb(255, 50, 50);
+      break;
+    }
+    case SOLVED: {
+      rect_color = qRgb(50, 255, 50);
+      break;
+    }
+    default: {
+      rect_color = qRgb(255, 255, 255);
+    }
   }
+
+  auto xoff = sa_.horizontalScrollBar()->value();
+  icicle_image_.drawRect(x_begin - xoff, x_end - x_begin, cur_depth_, rect_color);
 
   --cur_depth_;
 
   return std::make_pair(x_begin, x_end);
+}
+
+void
+IcicleTreeCanvas::sliderChanged(int) {
+  /// calls redrawAll not more often than 60hz
+  maybeCaller.call([this]() { redrawAll(); });
 }
 
 

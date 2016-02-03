@@ -37,7 +37,6 @@ getPixelBoundaries(int vline, int compression) {
 
 /// TODO(maxim): fix histograms going outside their boundaries
 /// TODO(maxim): use correct height for the content
-/// TODO(maxim): add option to display backjump data
 /// TODO(maxim): enable labels when hover over some histogram regions (like depth analysis)
 /// TODO(maxim): improve pixel tree selection: fix subtrees not uncollapsing
 ///                                            enable multiple column selection (range)
@@ -806,7 +805,7 @@ PixelTreeCanvas::drawBjData() {
 
       pixel_image.drawPixel(x, y_from,  qRgb(170, 0, 0));
       pixel_image.drawPixel(x, y_to,  qRgb(0, 170, 0));
-      // pixel_image.drawPixel(x, y_skipped,  qRgb(0, 0, 170));
+      pixel_image.drawPixel(x, y_skipped,  qRgb(0, 0, 170));
     }
   }
 }
@@ -959,6 +958,7 @@ PixelTreeCanvas::compressionChanged(int value) {
   redrawAll();
 }
 
+/// TODO(maxim): try to use lambda in the connect statement itself
 void
 PixelTreeCanvas::sliderChanged(int) {
   /// calls redrawAll not more often than 60hz

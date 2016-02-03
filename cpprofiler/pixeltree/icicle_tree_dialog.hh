@@ -28,6 +28,7 @@
 
 #include "nodecursor.hh"
 #include "visualnode.hh"
+#include "maybeCaller.hh"
 
 class TreeCanvas;
 class QAbstractScrollArea;
@@ -67,13 +68,15 @@ class QAbstractScrollArea;
     TreeCanvas& tc_;
     PixelImage icicle_image_;
 
+    MaybeCaller maybeCaller;
+
     /// TODO(maxim): make this only accessable from within processNode
     int cur_depth_;
     int x_global_;
 
     void redrawAll();
     void drawIcicleTree();
-    std::pair<int, int> processNode(const Node&);
+    std::pair<int, int> processNode(const SpaceNode&);
 
   protected:
     void paintEvent(QPaintEvent* event);
@@ -83,6 +86,7 @@ class QAbstractScrollArea;
 
   public Q_SLOTS:
     void resizeCanvas(void);
+    void sliderChanged(int value);
   };
 
   // /// A cursor that prints backjumps
