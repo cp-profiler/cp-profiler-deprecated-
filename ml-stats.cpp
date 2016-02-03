@@ -11,6 +11,7 @@
 class StatsEntry {
 public:
     unsigned int nodeid;
+    unsigned int parentid;
     NodeStatus status;
     int depth;
     int decisionLevel;
@@ -24,6 +25,7 @@ public:
 
 void printStatsHeader(std::ostream& out = std::cout) {
     out << "id"
+        << "\t" << "parentId"
         << "\t" << "status"
         << "\t" << "depth"
         << "\t" << "decisionLevel"
@@ -38,6 +40,7 @@ void printStatsHeader(std::ostream& out = std::cout) {
 
 void printStatsEntry(const StatsEntry& se, std::ostream& out = std::cout) {
     out <<         se.nodeid
+        << "\t" << se.parentid
         << "\t" << se.status
         << "\t" << se.depth
         << "\t" << se.decisionLevel
@@ -115,11 +118,13 @@ public:
         if (entry != nullptr) {
             unsigned int sid = entry->sid;
             se.nodeid = sid;
+            se.parentid = entry->parent_sid;
             se.nogoodStringLength = getNogoodStringLength(sid);
             se.decisionLevel = entry->decisionLevel;
             se.timestamp = entry->time_stamp;
         } else {
             se.nodeid = -1;
+            se.parentid = -1;
             se.nogoodStringLength = 0;
             se.decisionLevel = -1;
             se.timestamp = 0;
