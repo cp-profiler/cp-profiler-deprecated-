@@ -743,7 +743,7 @@ PixelTreeCanvas::drawBjData() {
   int img_height = pixel_image.height();
 
   auto max_value = bj_data.max_from;
-  float coeff = HIST_HEIGHT / (max_value + 1);
+  float coeff = static_cast<float>(HIST_HEIGHT) / (max_value + 1);
 
   int zero_level = current_image_height + coeff * (max_value + 1) - yoff;
 
@@ -799,13 +799,24 @@ PixelTreeCanvas::drawBjData() {
 
 
       auto x = vline - xoff;
-      auto y_from = current_image_height + coeff * average_from;
-      auto y_to = current_image_height + coeff * average_to;
-      auto y_skipped = current_image_height + coeff * average_skipped;
+      auto y_from = current_image_height - yoff + ceil(coeff * average_from);
+      auto y_to = current_image_height - yoff + ceil(coeff * average_to);
+      auto y_skipped = current_image_height - yoff + ceil(coeff * average_skipped);
 
-      pixel_image.drawPixel(x, y_from,  qRgb(170, 0, 0));
-      pixel_image.drawPixel(x, y_to,  qRgb(0, 170, 0));
-      pixel_image.drawPixel(x, y_skipped,  qRgb(0, 0, 170));
+      qDebug() << "coeff: " << coeff;
+      qDebug() << "coeff: " << max_value;
+
+      qDebug() << "from: " << average_from << " to: "
+               << average_to << " skipped: " << average_skipped;
+
+      for (int y = y_from; y >= y_to; --y) {
+        if (y > y_from - average_skipped) {
+          pixel_image.drawPixel(x, y,  qRgb(170, 0, 0));
+        } else {
+          pixel_image.drawPixel(x, y,  qRgb(170, 170, 0));
+        }
+      }
+
     }
   }
 }
