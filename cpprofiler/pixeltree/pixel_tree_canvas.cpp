@@ -19,6 +19,7 @@
  *
  */
 
+#include <numeric>
 #include <stack>
 
 #include "pixel_tree_canvas.hh"

@@ -215,7 +215,7 @@ void ProfilerConductor::gatherStatisticsClicked(bool checked) {
         // This is a big mess.  The user must wait for the tree to be
         // built before they select their file.
         
-        QString filename = QFileDialog::getSaveFileName(this, "Save statistics");
+        QString filename = QFileDialog::getSaveFileName(this, "Save statistics", "my-execution");
         // Very inelegant
         g->setStatsFilename(filename);
 

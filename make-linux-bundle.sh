@@ -1,6 +1,6 @@
 # Run this from the build directory.
 
-HASH=$(git show-ref -s HEAD)
+HASH=$(git rev-parse HEAD)
 SHORT=${HASH:0:8}
 DATE=$(date +%Y%m%d)
 
