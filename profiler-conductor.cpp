@@ -4,8 +4,58 @@
 #include "gistmainwindow.h"
 #include "cmp_tree_dialog.hh"
 
+#include <google/protobuf/io/zero_copy_stream_impl.h>
+#include <google/protobuf/io/coded_stream.h>
+
+#include "message.pb.hh"
+
+#include <fstream>
+
 #include <QPushButton>
 #include <QVBoxLayout>
+
+bool readDelimitedFrom(
+    google::protobuf::io::ZeroCopyInputStream* rawInput,
+    google::protobuf::MessageLite* message) {
+  // We create a new coded stream for each message.  Don't worry, this is fast,
+  // and it makes sure the 64MB total size limit is imposed per-message rather
+  // than on the whole stream.  (See the CodedInputStream interface for more
+  // info on this limit.)
+  google::protobuf::io::CodedInputStream input(rawInput);
+
+  // Read the size.
+  uint32_t size;
+  if (!input.ReadVarint32(&size)) return false;
+
+  // Tell the stream not to read beyond that size.
+  google::protobuf::io::CodedInputStream::Limit limit =
+      input.PushLimit(size);
+
+  // Parse the message.
+  if (!message->ParseFromCodedStream(&input)) return false;
+  if (!input.ConsumedEntireMessage()) return false;
+
+  // Release the limit.
+  input.PopLimit(limit);
+
+  return true;
+}
+
+using google::protobuf::io::IstreamInputStream;
+
+Execution*
+loadSaved(std::string path) {
+    Execution* e = new Execution();
+    std::ifstream inputFile(path, std::ios::in | std::ios::binary);
+    IstreamInputStream raw_input(&inputFile);
+    while (true) {
+        message::Node msg;
+        bool ok = readDelimitedFrom(&raw_input, &msg);
+        if (!ok) break;
+        e->handleNewNode(msg);
+    }
+    return e;
+}
 
 ProfilerConductor::ProfilerConductor()
     : QMainWindow()
@@ -29,11 +79,19 @@ ProfilerConductor::ProfilerConductor()
     QPushButton* gatherStatisticsButton = new QPushButton("gather statistics");
     connect(gatherStatisticsButton, SIGNAL(clicked(bool)), this, SLOT(gatherStatisticsClicked(bool)));
 
+    QPushButton* saveExecutionButton = new QPushButton("save execution");
+    connect(saveExecutionButton, SIGNAL(clicked(bool)), this, SLOT(saveExecutionClicked(bool)));
+
+    QPushButton* loadExecutionButton = new QPushButton("load execution");
+    connect(loadExecutionButton, SIGNAL(clicked(bool)), this, SLOT(loadExecutionClicked(bool)));
+
     QVBoxLayout* layout = new QVBoxLayout;
     layout->addWidget(executionList);
     layout->addWidget(gistButton);
     layout->addWidget(compareButton);
     layout->addWidget(gatherStatisticsButton);
+    layout->addWidget(saveExecutionButton);
+    layout->addWidget(loadExecutionButton);
     centralWidget->setLayout(layout);
 
     // Listen for new executions.
@@ -113,6 +171,33 @@ class StatsHelper {
     
 };
 
+using google::protobuf::io::OstreamOutputStream;
+
+bool writeDelimitedTo(
+    const google::protobuf::MessageLite& message,
+    google::protobuf::io::ZeroCopyOutputStream* rawOutput) {
+  // We create a new coded stream for each message.  Don't worry, this is fast.
+  google::protobuf::io::CodedOutputStream output(rawOutput);
+
+  // Write the size.
+  const int size = message.ByteSize();
+  output.WriteVarint32(size);
+
+  uint8_t* buffer = output.GetDirectBufferForNBytesAndAdvance(size);
+  if (buffer != NULL) {
+    // Optimization:  The message fits in one buffer, so use the faster
+    // direct-to-array serialization path.
+    message.SerializeWithCachedSizesToArray(buffer);
+  } else {
+    // Slightly-slower path when the message is multiple buffers.
+    message.SerializeWithCachedSizes(&output);
+    if (output.HadError()) return false;
+  }
+
+  return true;
+}
+
+
 void ProfilerConductor::gatherStatisticsClicked(bool checked) {
     (void) checked;
 
@@ -141,3 +226,56 @@ void ProfilerConductor::gatherStatisticsClicked(bool checked) {
         // g->activateWindow();
     }
 }
+
+
+void ProfilerConductor::saveExecutionClicked(bool checked) {
+    (void) checked;
+
+    QList <QListWidgetItem*> selected = executionList->selectedItems();
+    if (selected.size() != 1) return;
+    ExecutionListItem* item = static_cast<ExecutionListItem*>(selected[0]);
+
+    QString filename = QFileDialog::getSaveFileName(this, "Save execution");
+    std::ofstream outputFile(filename.toStdString(), std::ios::out | std::ios::binary);
+    OstreamOutputStream raw_output(&outputFile);
+    Data* data = item->execution_->getData();
+
+    std::vector<unsigned int> keys;
+    for (auto it = data->gid2entry.begin() ; it != data->gid2entry.end() ; it++) {
+        keys.push_back(it->first);
+    }
+    sort(keys.begin(), keys.end());
+
+    for (auto it = keys.begin() ; it != keys.end() ; it++) {
+        DbEntry* entry = data->gid2entry[*it];
+        message::Node node;
+        node.set_type(message::Node::NODE);
+        node.set_sid(entry->sid);
+        node.set_pid(entry->parent_sid);
+        node.set_alt(entry->alt);
+        node.set_kids(entry->numberOfKids);
+        node.set_status(static_cast<message::Node::NodeStatus>(entry->status));
+        //            node.set_restart_id
+        node.set_time(entry->time_stamp);
+        node.set_thread_id(entry->thread);
+        node.set_label(entry->label);
+        node.set_domain_size(entry->domain);
+        //            node.set_solution(entry->);
+        auto ngit = data->sid2nogood.find(entry->sid);
+        if (ngit != data->sid2nogood.end())
+            node.set_nogood(ngit->second);
+        auto infoit = data->sid2info.find(entry->sid);
+        if (infoit != data->sid2info.end())
+            node.set_info(infoit->second);
+        writeDelimitedTo(node, &raw_output);
+    }
+}
+
+void ProfilerConductor::loadExecutionClicked(bool checked) {
+    (void) checked;
+    QString filename = QFileDialog::getOpenFileName(this, "Load execution");
+    Execution *e = loadSaved(filename.toStdString());
+    newExecution(e);
+    e->start("loaded from " + filename.toStdString());
+}
+    
