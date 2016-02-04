@@ -6,7 +6,7 @@ DATE=$(date +%Y%m%d)
 
 make
 
-DIRNAME=cp-profiler-$DATE-$SHORT
+DIRNAME=cp-profiler-linux-$DATE-$SHORT
 mkdir $DIRNAME
 
 cp cp-profiler $DIRNAME
