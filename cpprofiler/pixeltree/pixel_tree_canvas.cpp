@@ -21,6 +21,7 @@
 
 #include <numeric>
 #include <stack>
+#include <utility>
 
 #include "pixel_tree_canvas.hh"
 #include "cpprofiler/analysis/backjumps.hh"
@@ -28,12 +29,6 @@
 using namespace cpprofiler::pixeltree;
 // using namespace std::chrono;
 using std::vector; using std::list;
-
-
-static std::pair<int, int>
-getPixelBoundaries(int vline, int compression) {
-  return std::make_pair(vline * compression, (vline + 1) * compression);
-}
 
 /// TODO(maxim): fix histograms going outside their boundaries
 /// TODO(maxim): use correct height for the content
@@ -732,6 +727,16 @@ PixelTreeCanvas::drawNodeRate(unsigned l_vline, unsigned r_vline) {
   }
 }
 
+static std::pair<int, int>
+getPixelBoundaries(int vline_begin, int vline_end, int compression) {
+  return std::make_pair(vline_begin * compression, (vline_end + 1) * compression);
+}
+
+static std::pair<int, int>
+getPixelBoundaries(int vline, int compression) {
+  return getPixelBoundaries(vline, vline, compression);
+}
+
 void
 PixelTreeCanvas::drawBjData() {
 
@@ -802,12 +807,6 @@ PixelTreeCanvas::drawBjData() {
       auto y_from = current_image_height - yoff + ceil(coeff * average_from);
       auto y_to = current_image_height - yoff + ceil(coeff * average_to);
       auto y_skipped = current_image_height - yoff + ceil(coeff * average_skipped);
-
-      qDebug() << "coeff: " << coeff;
-      qDebug() << "coeff: " << max_value;
-
-      qDebug() << "from: " << average_from << " to: "
-               << average_to << " skipped: " << average_skipped;
 
       for (int y = y_from; y >= y_to; --y) {
         if (y > y_from - average_skipped) {
@@ -1020,11 +1019,29 @@ void
 PixelTreeCanvas::mousePressEvent(QMouseEvent* event) {
 
   auto xoff = _sa->horizontalScrollBar()->value();
-  auto vline = event->x() / pixel_image.scale() + xoff;
+  mouse_pressed_vline = event->x() / pixel_image.scale() + xoff;
 
-  selectNodesfromPT(vline);
-  redrawAll();
+  mouse_pressed = true;
 
+}
+
+void
+PixelTreeCanvas::mouseReleaseEvent(QMouseEvent* event) {
+
+  if (mouse_pressed) {
+
+    auto xoff = _sa->horizontalScrollBar()->value();
+    auto mouse_released_vline = event->x() / pixel_image.scale() + xoff;
+
+    if (mouse_pressed_vline > mouse_released_vline) {
+      std::swap(mouse_pressed_vline, mouse_released_vline);
+    }
+
+    selectNodesfromPT(mouse_pressed_vline, mouse_released_vline);
+    redrawAll();
+
+  }
+  mouse_pressed = false;
 }
 
 void
@@ -1079,9 +1096,9 @@ namespace detail {
 
 
 void
-PixelTreeCanvas::selectNodesfromPT(unsigned vline) {
+PixelTreeCanvas::selectNodesfromPT(int vline_begin, int vline_end) {
 
-  auto boundaries = getPixelBoundaries(vline, pixel_data.compression());
+  auto boundaries = getPixelBoundaries(vline_begin, vline_end, pixel_data.compression());
   auto start = boundaries.first;
   auto end = boundaries.second; /// not including
 
@@ -1098,7 +1115,7 @@ PixelTreeCanvas::selectNodesfromPT(unsigned vline) {
 
   std::function<void(VisualNode*)> apply = selectOne;
 
-  if (pixel_data.compression() == 1) {
+  if (pixel_data.compression() == 1 && (vline_begin == vline_end)) {
     apply = selectOne;
   } else {
     apply = selectGroup;
@@ -1107,8 +1124,7 @@ PixelTreeCanvas::selectNodesfromPT(unsigned vline) {
     (*_na)[0]->setHidden(false);
   }
 
-
-  // /// unset currently selected nodes
+  /// unset currently selected nodes
   detail::unselectPixels(pixels_selected);
 
   /// select nodes in interval [ start; end )

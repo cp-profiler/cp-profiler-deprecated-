@@ -122,6 +122,11 @@ private:
   int mouse_guide_x = 0;
   int mouse_guide_y = 0;
 
+  /// Handling multiple selection on a pixel tree
+  bool mouse_pressed = false;
+  unsigned mouse_pressed_vline;
+
+
 public:
 
   static const int HIST_HEIGHT = 6; // in fake pixels
@@ -169,7 +174,7 @@ private:
   void drawNodeRate(unsigned leftmost_vline, unsigned rightmost_vline);
 
   /// select nodes that correspond to selected vline in pixel tree
-  void selectNodesfromPT(unsigned vline);
+  void selectNodesfromPT(int vline_begin, int vline_end);
 
   PixelItem& gid2PixelItem(int gid);
 
@@ -179,6 +184,7 @@ public:
 protected:
   void paintEvent(QPaintEvent* event);
   void mousePressEvent(QMouseEvent* me);
+  void mouseReleaseEvent(QMouseEvent* me);
   void mouseMoveEvent(QMouseEvent* me);
 
 public Q_SLOTS:
