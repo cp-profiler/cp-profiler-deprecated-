@@ -612,9 +612,14 @@ TreeCanvas::showNogoods(void) {
 void
 TreeCanvas::showNodeInfo(void) {
   int gid = currentNode->getIndex(*na);
-  unsigned int sid = execution->getEntry(gid)->sid;
+  DbEntry* entry = execution->getEntry(gid);
+  if (entry == nullptr) return;
+  unsigned int sid = entry->sid;
   std::unordered_map<unsigned long long, string>& sid2info = execution->getInfo();
-  const string& info_str = sid2info[sid];
+  //  const string& info_str = sid2info[sid];
+  auto info_item = sid2info.find(sid);
+  if (info_item == sid2info.end()) return;
+  const string& info_str = info_item->second;
 
   NodeInfoDialog* nidialog = new NodeInfoDialog(this, info_str);
   nidialog->show();
