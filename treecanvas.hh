@@ -38,7 +38,7 @@
 /// \brief Parameters for the tree layout
 namespace LayoutConfig {
   /// Minimum scale factor
-  const int minScale = 10;
+  const int minScale = 1;
   /// Maximum scale factor
   const int maxScale = 400;
   /// Default scale factor
