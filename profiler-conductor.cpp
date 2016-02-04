@@ -215,7 +215,7 @@ void ProfilerConductor::gatherStatisticsClicked(bool checked) {
         // This is a big mess.  The user must wait for the tree to be
         // built before they select their file.
         
-        QString filename = QFileDialog::getSaveFileName(this, "Save statistics", "my-execution");
+        QString filename = QFileDialog::getSaveFileName(this, "Save statistics", QDir::currentPath());
         // Very inelegant
         g->setStatsFilename(filename);
 
@@ -235,7 +235,7 @@ void ProfilerConductor::saveExecutionClicked(bool checked) {
     if (selected.size() != 1) return;
     ExecutionListItem* item = static_cast<ExecutionListItem*>(selected[0]);
 
-    QString filename = QFileDialog::getSaveFileName(this, "Save execution");
+    QString filename = QFileDialog::getSaveFileName(this, "Save execution", QDir::currentPath());
     std::ofstream outputFile(filename.toStdString(), std::ios::out | std::ios::binary);
     OstreamOutputStream raw_output(&outputFile);
     Data* data = item->execution_->getData();
@@ -273,9 +273,8 @@ void ProfilerConductor::saveExecutionClicked(bool checked) {
 
 void ProfilerConductor::loadExecutionClicked(bool checked) {
     (void) checked;
-    QString filename = QFileDialog::getOpenFileName(this, "Load execution");
+    QString filename = QFileDialog::getOpenFileName(this, "Load execution", QDir::currentPath());
     Execution *e = loadSaved(filename.toStdString());
     newExecution(e);
     e->start("loaded from " + filename.toStdString());
 }
-    

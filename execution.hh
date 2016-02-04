@@ -26,7 +26,7 @@ public:
         std::stringstream ss;
         /// TODO: also print model name (from _data->getTitle() -- comes with the first node)
         // ss << "an execution with " << _data->size() << " nodes";
-        ss << "an execution named " << getTitle();
+        ss << getTitle();
         return ss.str();
     }
 
