@@ -89,6 +89,8 @@ private:
 
   std::vector<PixelItem*> pixels_selected; // to know which pixels to deselect
 
+  std::vector<PixelItem*> pixels_mouse_over; // to know which pixels to unhighlight
+
   std::vector<int> var_decisions;
   std::vector<std::vector<int>> var_decisions_compressed;
 
@@ -173,8 +175,10 @@ private:
   /// Node Rate
   void drawNodeRate(unsigned leftmost_vline, unsigned rightmost_vline);
 
-  /// select nodes that correspond to selected vline in pixel tree
+  /// select nodes that correspond to selected vline(s) in pixel tree
   void selectNodesfromPT(int vline_begin, int vline_end);
+  /// highlight nodes on mouse over pixel tree
+  void highlightOnOriginalTree(int vline);
 
   PixelItem& gid2PixelItem(int gid);
 

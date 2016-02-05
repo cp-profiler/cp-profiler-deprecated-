@@ -267,7 +267,7 @@ class HighlightCursor : public NodeCursor<VisualNode> {
 public:
   // Constructor
   HighlightCursor(VisualNode* startNode, const VisualNode::NodeAllocator& na);
-  // Hightlight all the nodes below
+  // Highlight all the nodes below
   void processCurrentNode(void);
 
 };
@@ -276,7 +276,7 @@ class UnhighlightCursor : public NodeCursor<VisualNode> {
 public:
   // Constructor
   UnhighlightCursor(VisualNode* root, const VisualNode::NodeAllocator& na);
-  // Unhightlight all the nodes below
+  // Unhighlight all the nodes below
   void processCurrentNode(void);
 
 };

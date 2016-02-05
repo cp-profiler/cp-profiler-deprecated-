@@ -195,6 +195,16 @@ VisualNode::setSelected(bool m) {
 }
 
 inline bool
+VisualNode::isHovered(void) {
+  return getFlag(HOVEREDOVER);
+}
+
+inline void
+VisualNode::setHovered(bool m) {
+  setFlag(HOVEREDOVER, m);
+}
+
+inline bool
 VisualNode::isBookmarked(void) {
   return getFlag(BOOKMARKED);
 }

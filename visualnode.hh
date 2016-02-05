@@ -143,10 +143,11 @@ protected:
     ONPATH,
     HIGHLIGHTED,
     BOOKMARKED,
+    SELECTED, // selected from a pixel tree (TODO(maxim): decide if still needed)
+    HOVEREDOVER, // highlighted by hovering over on a pixel tree
     SUBTREESIZE,
     SUBTREESIZE2, // reserve this bit for subtree size
     SUBTREESIZE3,  // reserve this bit for subtree size
-    SELECTED
   };
 
   /// Relative offset from the parent node
@@ -192,6 +193,10 @@ public:
   bool isSelected(void);
   /// Set selected flag of this node
   void setSelected(bool m);
+  /// Return whether node is hovered over
+  bool isHovered(void);
+  /// Set hovered over flag of this node
+  void setHovered(bool m);
   /// Return whether node is bookmarked
   bool isBookmarked(void);
   /// Set bookmark of this node

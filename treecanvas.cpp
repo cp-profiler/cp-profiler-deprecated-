@@ -677,7 +677,7 @@ TreeCanvas::highlightShape(VisualNode* node) {
   UnhighlightCursor uhc(root, *na);
   PreorderNodeVisitor<UnhighlightCursor>(uhc).run();
 
-  // highlight shape if it is not already hightlighted
+  // highlight shape if it is not already highlighted
   if (node != shapeHighlighted){
 
     shapeHighlighted = node;

@@ -51,6 +51,11 @@ const double SHADOW_OFFSET = 3.0;
 const double HIDDEN_DEPTH =
   static_cast<double>(Layout::dist_y) + FAILED_WIDTH;
 
+namespace Pens {
+    const QPen hovered = QPen{Qt::black, 3};
+}
+
+
 DrawingCursor::DrawingCursor(VisualNode* root,
                              const VisualNode::NodeAllocator& na,
                              QPainter& painter0,
@@ -177,7 +182,14 @@ DrawingCursor::processCurrentNode(void) {
         }
     }
 
-    painter.setPen(Qt::SolidLine);
+    if (n->isHovered()) {
+        /// TODO(maxim): maybe make the brush color darker as well
+        // pen.set
+        painter.setPen(Pens::hovered);
+    } else {
+        painter.setPen(Qt::SolidLine);
+    }
+
     if (n->isHidden() && ~_showHidden) {
 
         if (n->getStatus() == MERGING) {

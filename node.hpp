@@ -191,7 +191,7 @@ Node::getParent(void) const {
 
 inline VisualNode*
 Node::getParent(const NodeAllocator& na) const {
-  return parent < 0 ? NULL : na[parent];
+  return parent < 0 ? nullptr : na[parent];
 }
 
 inline bool

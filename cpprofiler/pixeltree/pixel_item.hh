@@ -28,7 +28,7 @@ namespace cpprofiler { namespace pixeltree {
     int   _idx; /// TODO(maxim): find out what this is for (not gid)
     int   _depth;
     VisualNode* _node;
-    bool  _selected;
+    bool  _selected; /// to let pixel canvas know if needs to be drawn differently
 
   public:
     PixelItem(int idx, VisualNode* node, int depth)
@@ -49,6 +49,31 @@ namespace cpprofiler { namespace pixeltree {
     inline void setSelected(bool value) {
       _node->setSelected(value);
       _selected = value;
+    }
+
+    /// unset everything on a path to the root
+    inline void unsetHovered(NodeAllocator& na) {
+      auto* next = _node;
+      do {
+        next->setHovered(false);
+      } while (next = next->getParent(na));
+    }
+
+    inline void setHovered(NodeAllocator& na) {
+      /// TODO(maxim): when highlighted node is expanded,
+      ////             the appropriate node should be highlighted instead
+
+      /// Find the hightest hidden ancestor
+      /// or hightlight the original node
+      auto* next = _node;
+      auto* to_highlight = _node;
+
+      while (!next->isRoot()) {
+        if (next->isHidden()) { to_highlight = next; }
+        next = next->getParent(na);
+      }
+
+      to_highlight->setHovered(true);
     }
   };
 

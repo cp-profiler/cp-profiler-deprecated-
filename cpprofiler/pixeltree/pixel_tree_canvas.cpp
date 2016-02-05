@@ -35,9 +35,8 @@ using std::vector; using std::list;
 /// TODO(maxim): enable labels when hover over some histogram regions (like depth analysis)
 /// TODO(maxim): improve pixel tree selection: fix subtrees not uncollapsing
 ///                                            enable multiple column selection (range)
-/// TODO(maxim): find out why restarts hightlight subtrees as if it was parallel execution
+/// TODO(maxim): find out why restarts highlight subtrees as if it was parallel execution
 /// TODO(maxim): we could store some more informaiton about the execution (solver name etc)
-/// TODO(maxim): be able to jump form tree to a corresponding pixel tree region
 
 /// ******** PIXEL_TREE_CANVAS ********
 
@@ -1057,12 +1056,16 @@ PixelTreeCanvas::mouseMoveEvent(QMouseEvent* event) {
     mouse_guide_x = x;
     mouse_guide_y = y;
 
+    auto vline = x + xoff;
+
     /// calls redrawAll not more often than 60hz
-    maybeCaller.call([this, x, y]() {
+    maybeCaller.call([this, x, y, vline]() {
 
       pixel_image.drawMouseGuidelines(x, y);
       pixel_image.update();
       repaint();
+
+      highlightOnOriginalTree(vline);
 
     });
     
@@ -1074,22 +1077,29 @@ namespace detail {
 
   /// Sets the node and its ancectry as not hidden;
   /// marks the path as dirty
-  void unhideNode(VisualNode* node, NodeAllocator* na) {
+  static void unhideNode(VisualNode* node, NodeAllocator* na) {
     /// TODO(maxim): make sure dirtyUp doesn't do redundant work here
     node->dirtyUp(*na);
 
     auto* next = node;
-    while(!next->isRoot() && next->isHidden()) {
+    do {
       next->setHidden(false);
-      next = next->getParent(*na);
-    }
+      // next = next->getParent(*na);
+    } while ((next = next->getParent(*na)) && next->isHidden());
   }
 
-  void unselectPixels(std::vector<PixelItem*> pixels_selected) {
+  static void unselectPixels(std::vector<PixelItem*>& pixels_selected) {
     for (auto& pixel : pixels_selected) {
       pixel->setSelected(false);
     }
     pixels_selected.clear();
+  }
+
+  static void unhighlightNodes(NodeAllocator& na, std::vector<PixelItem*>& pixels_mouse_over) {
+    for (auto& pixel : pixels_mouse_over) {
+      pixel->unsetHovered(na);
+    }
+    pixels_mouse_over.clear();
   }
 
 }
@@ -1133,13 +1143,39 @@ PixelTreeCanvas::selectNodesfromPT(int vline_begin, int vline_end) {
   for (auto id = start; id < end && id < pixel_list.size(); ++id) {
     auto& pixelItem = pixel_list[id];
     auto node = pixelItem.node();
+
     apply(node);
+
+    /// TODO(maxim): Do I really want to set selected when selecting > 1 as well??
+
     pixelItem.setSelected(true);
     pixels_selected.push_back(&pixelItem);
   }
 
   _tc.update();
 
+}
+
+void
+PixelTreeCanvas::highlightOnOriginalTree(int vline) {
+  auto boundaries = getPixelBoundaries(vline, pixel_data.compression());
+  auto start = boundaries.first;
+  auto end = boundaries.second; /// not including
+
+  /// unhighlight previously highlighted
+  detail::unhighlightNodes(*_na, pixels_mouse_over);
+
+  auto& pixel_list = pixel_data.pixel_list;
+
+  for (auto id = start; id < end && id < pixel_list.size(); ++id) {
+    auto& pixelItem = pixel_list[id];
+
+    /// hightlight itself if visible or the first visible parent otherwise
+    pixelItem.setHovered(*_na);
+    pixels_mouse_over.push_back(&pixelItem);
+  }
+
+  _tc.update();
 }
 
 
