@@ -124,7 +124,7 @@ IcicleTreeCanvas::processNode(const SpaceNode& node) {
   /// TODO(maxim): the fake (first) node returns 0 children (but has 1)
   /// in both Chuffed and Gecode
   const int kids = node.getNumberOfChildren();
-  qDebug() << "kids: " << kids;
+  // qDebug() << "kids: " << kids;
   auto& na = *tc_.get_na();
 
   int x_begin = 1000000;
@@ -136,7 +136,7 @@ IcicleTreeCanvas::processNode(const SpaceNode& node) {
     auto extent = processNode(kid);
     auto x1 = extent.first;
     auto x2 = extent.second;
-    qDebug() << "x1: " << x1 << "x2: " << x2;
+    // qDebug() << "x1: " << x1 << "x2: " << x2;
     if (x1 < x_begin) x_begin = x1;
     if (x2 > x_end) x_end = x2;
 
@@ -148,8 +148,8 @@ IcicleTreeCanvas::processNode(const SpaceNode& node) {
     ++x_global_;
   }
 
-  qDebug() << "x_begin: " << x_begin << " x_end: " << x_end;
-  qDebug() << "cur_depth: " << cur_depth_;
+  // qDebug() << "x_begin: " << x_begin << " x_end: " << x_end;
+  // qDebug() << "cur_depth: " << cur_depth_;
 
   QRgb rect_color;
   switch (node.getStatus()) {
