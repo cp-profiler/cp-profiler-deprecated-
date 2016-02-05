@@ -51,6 +51,10 @@ int main(int argc, char *argv[])
     // GistMainWindow w;
     w.show();
 
+    for (int i = 1 ; i < argc ; i++) {
+        w.loadExecution(argv[i]);
+    }
+
     // QObject::connect(&a, SIGNAL(focusChanged(QWidget*,QWidget*)),
     //                   w.getGist(), SLOT(onFocusChanged(QWidget*,QWidget*)));
 

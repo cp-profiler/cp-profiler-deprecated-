@@ -20,6 +20,7 @@ private slots:
 public:
     ProfilerConductor();
     void newExecution(Execution* execution);
+    void loadExecution(std::string filename);
 public slots:
     void updateList();
 };

@@ -274,7 +274,11 @@ void ProfilerConductor::saveExecutionClicked(bool checked) {
 void ProfilerConductor::loadExecutionClicked(bool checked) {
     (void) checked;
     QString filename = QFileDialog::getOpenFileName(this, "Load execution", QDir::currentPath());
-    Execution *e = loadSaved(filename.toStdString());
+    loadExecution(filename.toStdString());
+}
+
+void ProfilerConductor::loadExecution(std::string filename) {
+    Execution *e = loadSaved(filename);
     newExecution(e);
-    e->start("loaded from " + filename.toStdString());
+    e->start("loaded from " + filename);
 }
