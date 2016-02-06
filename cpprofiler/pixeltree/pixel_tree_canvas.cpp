@@ -1085,7 +1085,7 @@ namespace detail {
     do {
       next->setHidden(false);
       // next = next->getParent(*na);
-    } while ((next = next->getParent(*na)) && next->isHidden());
+    } while ((next = next->getParent(*na)));
   }
 
   static void unselectPixels(std::vector<PixelItem*>& pixels_selected) {
