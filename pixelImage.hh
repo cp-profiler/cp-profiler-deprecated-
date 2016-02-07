@@ -49,11 +49,14 @@ private:
 
   QImage::Format image_format;
 
-  unsigned scale_ = 4; // size of a 'pixel' in pixels
+  unsigned pixel_width_ = 4;
+  unsigned pixel_height_ = 4;
 
   void setPixel(std::vector<uint32>& buffer, int x, int y, QRgb color);
   void drawHorizontalLine(std::vector<uint32>& buffer, int y, QRgb color);
   void drawVerticalLine(std::vector<uint32>& buffer, int x, QRgb color);
+
+  void scalePixelBy(int value);
 
 public:
   PixelImage();
@@ -75,6 +78,10 @@ public:
   void scaleUp();
   void scaleDown();
 
+  void setPixelWidth(int width);
+  void setPixelHeight(int height);
+  void setPixelSize(int width, int height);
+
   void update(); /// updates image_ from buffer_
   void clear(); /// fills the image with (white) color
 
@@ -86,12 +93,13 @@ public:
 
   ///***** Getters *****
   uint32 width_in_pixels() { return width_; }
-  uint32 width() { return width_ / scale_; }
+  uint32 width() { return width_ / pixel_width_; }
   uint32 height_in_pixels() { return height_; }
-  uint32 height() { return height_ / scale_; }
+  uint32 height() { return height_ / pixel_height_; }
 
   const QImage* image();
-  uint32 scale() const { return scale_; };
+  /// TODO(maxim): change the name (and have a second method)
+  uint32 scale() const { return pixel_height_; };
 
   enum PIXEL_COLOR {
     BLACK = qRgb(0, 0, 0),

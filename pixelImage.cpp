@@ -30,6 +30,7 @@ using namespace std::chrono;
 PixelImage::PixelImage()
   : image_(nullptr), width_(0), height_(0) {
 
+
 }
 
 void
@@ -55,6 +56,7 @@ PixelImage::resize(int width, int height) {
 void
 PixelImage::clear() {
 
+  /// set all pixels to white
   std::fill(buffer_.begin(), buffer_.end(), 0xFFFFFF);
   std::fill(guidlines_buffer_.begin(), guidlines_buffer_.end(), 0xFFFFFF);
 
@@ -65,13 +67,14 @@ PixelImage::drawPixel(int x, int y, QRgb color) {
   if (y < 0)
     return; /// TODO: fix later
 
-  int x0 = x * scale_;
-  int y0 = y * scale_;
+  int x0 = x * pixel_width_;
+  int y0 = y * pixel_height_;
 
-  for (int column = 0; column < scale_; ++column) {
+  /// TODO(maxim): experiment with using std::fill to draw rows
+  for (int column = 0; column < pixel_width_; ++column) {
     auto x = x0 + column;
     if (x >= width_) break;
-    for (int row = 0; row < scale_; ++row) {
+    for (int row = 0; row < pixel_height_; ++row) {
       auto y = y0 + row;
       if (y >= height_) break;
       setPixel(buffer_, x, y, color);
@@ -81,10 +84,10 @@ PixelImage::drawPixel(int x, int y, QRgb color) {
 
 void
 PixelImage::drawRect(int x, int width, int y, QRgb color) {
-  int x_begin = x * scale_;
-  int y_begin = y * scale_;
-  int x_end = (x + width) * scale_;
-  int y_end = (y + 1) * scale_;
+  int x_begin = x * pixel_width_;
+  int y_begin = y * pixel_height_;
+  int x_end = (x + width) * pixel_width_;
+  int y_end = (y + 1) * pixel_height_;
 
   /// horizontal lines
   for (int column = x_begin; column < x_end; ++column) {
@@ -172,7 +175,7 @@ PixelImage::drawHorizontalLine(int y, QRgb color) {
 void
 PixelImage::drawHorizontalLine(std::vector<uint32>& buffer, int y, QRgb color) {
 
-  y = y * scale_ + scale_;
+  y = (y + 1) * pixel_height_;
 
   if (y < 0 || y > height_) return;
 
@@ -184,7 +187,7 @@ PixelImage::drawHorizontalLine(std::vector<uint32>& buffer, int y, QRgb color) {
 void
 PixelImage::drawVerticalLine(std::vector<uint32>& buffer, int x, QRgb color) {
 
-  x = x * scale_ + scale_;
+  x = (x + 1) * pixel_width_;
 
   if (x < 0 || x > width_) return;
 
@@ -211,17 +214,19 @@ PixelImage::drawGrid() {
 
   std::fill(background_buffer_.begin(), background_buffer_.end(), 0xFFFFFF);
 
+  int pixel_size = pixel_height_; /// arbitrary decision
+
   /// draw cells 5 squares wide
   int gap =  1;
-  int gap_size = gap * scale_; /// actual gap size in pixels
+  int gap_size = gap * pixel_size; /// actual gap size in pixels
 
   /// horizontal lines on level == j
   for (uint32 j = gap_size; j < height_; j += gap_size) {
 
     /// one line
-    for (uint32 i = 0; i < width_ - scale_; ++i) {
+    for (uint32 i = 0; i < width_ - pixel_size; ++i) {
 
-      for (uint32 k = 0; k < scale_; ++k)
+      for (uint32 k = 0; k < pixel_size; ++k)
         setPixel(background_buffer_, i + k, j, PixelImage::PIXEL_COLOR::GRID);
     }
   }
@@ -230,9 +235,9 @@ PixelImage::drawGrid() {
   for (uint32 i = gap_size; i < width_; i += gap_size) {
 
     /// one line
-    for (uint32 j = 0; j < height_ - scale_; ++j) {
+    for (uint32 j = 0; j < height_ - pixel_size; ++j) {
 
-      for (uint32 k = 0; k < scale_; ++k)
+      for (uint32 k = 0; k < pixel_size; ++k)
         setPixel(background_buffer_, i, j + k, PixelImage::PIXEL_COLOR::GRID);
 
     }
@@ -240,18 +245,49 @@ PixelImage::drawGrid() {
 }
 
 void
-PixelImage::scaleDown() {
-  if (scale_ <= 1) return;
-  scale_--;
+PixelImage::setPixelSize(int width, int height) {
 
-  drawGrid();
+  bool changed = false;
+
+  if (width > 0) {
+    pixel_width_ = width;
+    changed = true;
+  }
+
+  if (height > 0) {
+    pixel_height_ = height;
+    changed = true;
+  }
+
+  if (changed) drawGrid();
+}
+
+void
+PixelImage::setPixelWidth(int width) {
+  setPixelSize(width, pixel_height_);
+}
+
+void
+PixelImage::setPixelHeight(int height) {
+  setPixelSize(pixel_width_, height);
+}
+
+void
+PixelImage::scalePixelBy(int value) {
+
+  setPixelSize(pixel_width_ + value, pixel_height_ + value);
+}
+
+void
+PixelImage::scaleDown() {
+
+  scalePixelBy(-1);
 }
 
 void
 PixelImage::scaleUp() {
-  scale_++;
 
-  drawGrid();
+  scalePixelBy(1);
 }
 
 const QImage*

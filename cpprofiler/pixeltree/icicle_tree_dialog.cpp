@@ -24,7 +24,6 @@
 
 #include "icicle_tree_dialog.hh"
 #include "treecanvas.hh"
-#include "nodevisitor.hh"
 
 using namespace cpprofiler::pixeltree;
 
@@ -59,9 +58,9 @@ IcicleTreeCanvas::IcicleTreeCanvas(QAbstractScrollArea* parent, TreeCanvas* tc)
   connect (sa_.horizontalScrollBar(), SIGNAL(valueChanged (int)), this, SLOT(sliderChanged(int)));
 
   /// TODO(maxim): find out the 'width' of the icicle tree
-  icicle_image_.scaleUp();
-  icicle_image_.scaleUp();
-  icicle_image_.scaleUp();
+
+  icicle_image_.setPixelWidth(1);
+  icicle_image_.setPixelHeight(8);
 }
 
 void
@@ -108,11 +107,30 @@ IcicleTreeCanvas::drawIcicleTree() {
   /// TODO(maxim): construct once, redraw many times
   processNode(root);
 
-  // IcicleCursor icicle_cursor(root, tc_, na, icicle_image_);
-  // PostorderNodeVisitor<IcicleCursor> visitor(icicle_cursor);
 
-  // visitor.run();
+}
 
+/// This assignes a color for every node on the icicle tree
+static QRgb getColor(const SpaceNode& node) {
+  QRgb color;
+  switch (node.getStatus()) {
+    case BRANCH: {
+      color = qRgb(50, 50, 255);
+      break;
+    }
+    case FAILED: {
+      color = qRgb(255, 50, 50);
+      break;
+    }
+    case SOLVED: {
+      color = qRgb(50, 255, 50);
+      break;
+    }
+    default: {
+      color = qRgb(255, 255, 255);
+    }
+  }
+  return color;
 }
 
 
@@ -121,13 +139,13 @@ IcicleTreeCanvas::processNode(const SpaceNode& node) {
   // auto yoff = _sa->verticalScrollBar()->value();
 
   ++cur_depth_;
-  /// TODO(maxim): the fake (first) node returns 0 children (but has 1)
-  /// in both Chuffed and Gecode
+
   const int kids = node.getNumberOfChildren();
   // qDebug() << "kids: " << kids;
   auto& na = *tc_.get_na();
 
-  int x_begin = 1000000;
+  int x_begin = INT_MAX;
+
   int x_end = 0;
 
   for (int i = 0; i < kids; ++i) {
@@ -136,7 +154,7 @@ IcicleTreeCanvas::processNode(const SpaceNode& node) {
     auto extent = processNode(kid);
     auto x1 = extent.first;
     auto x2 = extent.second;
-    // qDebug() << "x1: " << x1 << "x2: " << x2;
+
     if (x1 < x_begin) x_begin = x1;
     if (x2 > x_end) x_end = x2;
 
@@ -148,27 +166,7 @@ IcicleTreeCanvas::processNode(const SpaceNode& node) {
     ++x_global_;
   }
 
-  // qDebug() << "x_begin: " << x_begin << " x_end: " << x_end;
-  // qDebug() << "cur_depth: " << cur_depth_;
-
-  QRgb rect_color;
-  switch (node.getStatus()) {
-    case BRANCH: {
-      rect_color = qRgb(50, 50, 255);
-      break;
-    }
-    case FAILED: {
-      rect_color = qRgb(255, 50, 50);
-      break;
-    }
-    case SOLVED: {
-      rect_color = qRgb(50, 255, 50);
-      break;
-    }
-    default: {
-      rect_color = qRgb(255, 255, 255);
-    }
-  }
+  QRgb rect_color = getColor(node);
 
   auto xoff = sa_.horizontalScrollBar()->value();
   icicle_image_.drawRect(x_begin - xoff, x_end - x_begin, cur_depth_, rect_color);
@@ -183,42 +181,3 @@ IcicleTreeCanvas::sliderChanged(int) {
   /// calls redrawAll not more often than 60hz
   maybeCaller.call([this]() { redrawAll(); });
 }
-
-
-
-
-// /// **************** Cursor *********************
-
-// IcicleCursor::IcicleCursor(VisualNode* root, TreeCanvas& tc,
-//   const VisualNode::NodeAllocator& na, PixelImage& image)
-//   : NodeCursor<VisualNode>(root, na), tc_(tc), na_(na), icicle_image_(image)
-// {
-//   max_depth_ = tc_.get_stats().maxDepth;
-//   cur_depth_ = max_depth_;
-// }
-
-// void
-// IcicleCursor::moveDownwards() {
-//     ++cur_depth_;
-//     NodeCursor<VisualNode>::moveDownwards();
-// }
-
-
-// void
-// IcicleCursor::moveUpwards() {
-//     --cur_depth_;
-//     x = x1_;
-//     NodeCursor<VisualNode>::moveUpwards();
-// }
-
-// void
-// IcicleCursor::processCurrentNode() {
-
-//   auto n = node();
-//   x_++;
-
-//   qDebug() << "x1: " << x1_ << "x2: " << x_;
-
-//   icicle_image_.drawPixel(x_, cur_depth_, qRgb(0, 0, 0));
-
-// }
