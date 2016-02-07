@@ -44,7 +44,7 @@ namespace cpprofiler { namespace pixeltree {
 
     inline VisualNode* node() { return _node; }
 
-    inline bool isSelected() { return _selected; }
+    inline bool isSelected() const { return _selected; }
 
     inline void setSelected(bool value) {
       _node->setSelected(value);

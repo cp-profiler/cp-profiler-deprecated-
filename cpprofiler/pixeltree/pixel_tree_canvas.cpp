@@ -33,8 +33,6 @@ using std::vector; using std::list;
 /// TODO(maxim): fix histograms going outside their boundaries
 /// TODO(maxim): use correct height for the content
 /// TODO(maxim): enable labels when hover over some histogram regions (like depth analysis)
-/// TODO(maxim): improve pixel tree selection: fix subtrees not uncollapsing
-///                                            enable multiple column selection (range)
 /// TODO(maxim): find out why restarts highlight subtrees as if it was parallel execution
 /// TODO(maxim): we could store some more informaiton about the execution (solver name etc)
 
@@ -458,10 +456,10 @@ PixelTreeCanvas::drawPixelTree(const PixelData& pixel_data) {
   const auto& pixel_list = pixel_data.pixel_list;
 
   // which pixel to start with:
-  int start = xoff * compr;
+  auto start = static_cast<unsigned>(xoff * compr);
 
-  /// check for solutions first (we do not want solutions on top of nodes)
-  for (auto pixel_id = start; pixel_id < int(pixel_list.size()); pixel_id++) {
+  /// check for solutions first (should be on the background)
+  for (auto pixel_id = start; pixel_id < pixel_list.size(); pixel_id++) {
     auto x = (pixel_id - start) / compr;
     if (x > img_width) break; /// out of image boundary
 
@@ -477,6 +475,7 @@ PixelTreeCanvas::drawPixelTree(const PixelData& pixel_data) {
   }
 
   std::vector<int> intensity_vec(tree_depth + 1, 0);
+  std::vector<bool> selected_on_level(tree_depth + 1, false);
 
   for (auto pixel_id = start; pixel_id < int(pixel_list.size()); pixel_id++) {
     auto x = (pixel_id - start) / compr;
@@ -487,6 +486,7 @@ PixelTreeCanvas::drawPixelTree(const PixelData& pixel_data) {
     auto depth = pixelItem.depth();
 
     intensity_vec.at(depth)++; // populate intensity vector
+    if (pixelItem.isSelected()) { selected_on_level[depth] = true; }
 
     bool is_vline_end = (pixel_id % compr == compr-1) || (pixel_id == int(pixel_list.size()-1));
 
@@ -499,15 +499,15 @@ PixelTreeCanvas::drawPixelTree(const PixelData& pixel_data) {
 
         int value = 100 - 100 * static_cast<float>(intensity_vec[depth]) / compr;
 
-        auto isSelected = pixelItem.isSelected();
-
-        if (!isSelected)
+        if (!selected_on_level[depth])
           pixel_image.drawPixel(x, y, QColor::fromHsv(0, 0, value).rgba());
-        else
+        else {
           pixel_image.drawPixel(x, y, QColor::fromHsv(300, 255, 255).rgba());
+        }
       }
 
       std::fill(intensity_vec.begin(), intensity_vec.end(), 0);
+      std::fill(selected_on_level.begin(), selected_on_level.end(), false);
     }
 
   }
@@ -1193,10 +1193,8 @@ PixelTreeCanvas::gid2PixelItem(int gid) {
 void
 PixelTreeCanvas::setPixelSelected(int gid) {
 
-  for (auto& pixel : pixels_selected) {
-    pixel->setSelected(false);
-  }
-  pixels_selected.clear();
+  /// unset currently selected nodes
+  detail::unselectPixels(pixels_selected);
 
   auto& pixelItem = gid2PixelItem(gid);
   pixelItem.setSelected(true);
