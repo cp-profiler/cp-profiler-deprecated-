@@ -214,11 +214,11 @@ PixelImage::drawGrid() {
 
   std::fill(background_buffer_.begin(), background_buffer_.end(), 0xFFFFFF);
 
-  int pixel_size = pixel_height_; /// arbitrary decision
 
-  /// draw cells 5 squares wide
-  int gap =  1;
-  int gap_size = gap * pixel_size; /// actual gap size in pixels
+  /// draw cells gap_size squares wide
+  const int gap =  1;
+  const int pixel_size = pixel_height_; /// arbitrary decision
+  const int gap_size = gap * pixel_size; /// actual gap size in pixels
 
   /// horizontal lines on level == j
   for (uint32 j = gap_size; j < height_; j += gap_size) {

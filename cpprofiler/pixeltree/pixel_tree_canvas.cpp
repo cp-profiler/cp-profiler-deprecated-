@@ -1037,7 +1037,16 @@ PixelTreeCanvas::mouseReleaseEvent(QMouseEvent* event) {
     }
 
     selectNodesfromPT(mouse_pressed_vline, mouse_released_vline);
+
     redrawAll();
+
+    /// Note(maxim): Faking the mouseMoveEvent to fix the pixel highlighting
+    /// disappearing after mouse release (is there a cleaner way?)
+    /// Have to reset these, or the the mouse over action will be bypassed:
+    mouse_guide_x = -1; mouse_guide_y = -1;
+    QMouseEvent mouse_event{QEvent::MouseMove, QPoint(event->x(), event->y()), 
+        Qt::NoButton, Qt::NoButton, Qt::NoModifier};
+    qApp->sendEvent(this, &mouse_event);
 
   }
   mouse_pressed = false;

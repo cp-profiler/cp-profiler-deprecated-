@@ -32,20 +32,15 @@ typedef uint32_t uint32;
 class PixelImage {
 
 private:
-  /// TODO(maxim): better name
-  std::vector<uint32> buffer1_;
   std::vector<uint32> buffer_;
   std::vector<uint32> background_buffer_;
   std::vector<uint32> guidlines_buffer_;
-  // std::unique_ptr<QImage> image_;
 
   std::vector<uint32> result_buffer_;
   QImage* image_;
 
   uint32 width_;
   uint32 height_;
-
-  // int content_height_; // the sum of heights of the pt and histograms
 
   QImage::Format image_format;
 
@@ -60,7 +55,7 @@ private:
 
 public:
   PixelImage();
-  // void drawPixel(int x, int y, unsigned int color);
+
   void drawPixel(int x, int y, QRgb color);
 
   void drawRect(int x, int width, int y, QRgb color);
@@ -98,7 +93,7 @@ public:
   uint32 height() { return height_ / pixel_height_; }
 
   const QImage* image();
-  /// TODO(maxim): change the name (and have a second method)
+  /// TODO(maxim): change the name (and have a second method for width)
   uint32 scale() const { return pixel_height_; };
 
   enum PIXEL_COLOR {
