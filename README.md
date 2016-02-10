@@ -7,8 +7,6 @@ Pre-release binaries for Linux are available here:
 Dependencies:
 
   * Qt >=5.4.x
-  * Protocol Buffers v2.6.x (v3 is alpha and not supported)
-  * ZeroMQ 4.x.x
 
 Linux/Mac:
 

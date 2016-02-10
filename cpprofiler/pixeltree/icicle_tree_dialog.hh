@@ -25,12 +25,10 @@
 
 #include <QDialog>
 #include "pixelImage.hh"
-
-#include "nodecursor.hh"
-#include "visualnode.hh"
 #include "maybeCaller.hh"
 
 class TreeCanvas;
+class SpaceNode;
 class QAbstractScrollArea;
 
  namespace cpprofiler { namespace pixeltree {
@@ -74,6 +72,9 @@ class QAbstractScrollArea;
     int cur_depth_;
     int x_global_;
 
+    /// TODO(maxim): temporarily here
+    int icicle_width;
+
     void redrawAll();
     void drawIcicleTree();
     std::pair<int, int> processNode(const SpaceNode&);
@@ -88,30 +89,6 @@ class QAbstractScrollArea;
     void resizeCanvas(void);
     void sliderChanged(int value);
   };
-
-  // /// A cursor that prints backjumps
-  // class IcicleCursor : public NodeCursor<VisualNode> {
-
-  // private:
-  //   TreeCanvas& tc_;
-  //   const NodeAllocator& na_;
-  //   PixelImage& icicle_image_;
-
-  //   int max_depth_;
-  //   int cur_depth_;
-  //   int x_ = 0;
-
-  //   int x1_ = 0;
-
-  // public:
-
-  //     IcicleCursor(VisualNode* node, TreeCanvas& tc,
-  //                      const VisualNode::NodeAllocator& na, PixelImage& image);
-
-  //     void processCurrentNode();
-  //     void moveDownwards();
-  //     void moveUpwards();
-  // };
 
 }}
 

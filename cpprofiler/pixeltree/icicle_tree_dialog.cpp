@@ -24,6 +24,7 @@
 
 #include "icicle_tree_dialog.hh"
 #include "treecanvas.hh"
+#include "spacenode.hh"
 
 using namespace cpprofiler::pixeltree;
 
@@ -61,6 +62,7 @@ IcicleTreeCanvas::IcicleTreeCanvas(QAbstractScrollArea* parent, TreeCanvas* tc)
 
   icicle_image_.setPixelWidth(1);
   icicle_image_.setPixelHeight(8);
+
 }
 
 void
@@ -84,13 +86,17 @@ IcicleTreeCanvas::resizeCanvas() {
 
 void
 IcicleTreeCanvas::redrawAll() {
-  /// TODO(maxim): meaningful value instead of 10000
-  sa_.horizontalScrollBar()->setRange(0, 10000);
+
   icicle_image_.clear();
 
   drawIcicleTree();
 
   icicle_image_.update();
+  /// added 10 of padding here
+  sa_.horizontalScrollBar()->setRange(0, icicle_width - sa_.viewport()->width() + 10);
+  sa_.horizontalScrollBar()->setPageStep(sa_.viewport()->width());
+  sa_.horizontalScrollBar()->setSingleStep(100); /// the value is arbitrary
+
   repaint(); /// TODO(maxim): do I need this?
 }
 
@@ -105,7 +111,8 @@ IcicleTreeCanvas::drawIcicleTree() {
   cur_depth_ = 0;
 
   /// TODO(maxim): construct once, redraw many times
-  processNode(root);
+  auto extent = processNode(root);
+  icicle_width = extent.second;
 
 
 }

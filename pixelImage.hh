@@ -86,7 +86,7 @@ public:
   PixelImage(const PixelImage&) = delete;
   ~PixelImage();
 
-  ///***** Getters *****
+  /// Dimensions of the visible area (the image itself)
   uint32 width_in_pixels() { return width_; }
   uint32 width() { return width_ / pixel_width_; }
   uint32 height_in_pixels() { return height_; }
@@ -94,7 +94,8 @@ public:
 
   const QImage* image();
   /// TODO(maxim): change the name (and have a second method for width)
-  uint32 scale() const { return pixel_height_; };
+  uint32 pixel_height() const { return pixel_height_; };
+  uint32 pixel_width() const { return pixel_width_; };
 
   enum PIXEL_COLOR {
     BLACK = qRgb(0, 0, 0),

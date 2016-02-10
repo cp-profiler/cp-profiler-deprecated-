@@ -128,6 +128,7 @@ int Data::handleNodeCallback(message::Node& node) {
 
     if (node.has_info() && node.info().length() > 0) {
         sid2info[id] = string("sid: ") + std::to_string(id) + "\n" + node.info();
+        qDebug() << "sid2info[" << id << "]: " << sid2info[id].c_str();
     }
     
     /// just so we don't have ugly numbers when not using restarts

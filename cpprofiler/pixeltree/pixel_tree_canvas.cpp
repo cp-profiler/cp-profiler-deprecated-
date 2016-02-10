@@ -532,6 +532,7 @@ PixelTreeCanvas::redrawAll() {
   auto vlines = ceil((float)pixel_list.size() / pixel_data.compression());
 
   _sa->horizontalScrollBar()->setRange(0, vlines - pixel_image.width() + 20);
+  _sa->verticalScrollBar()->setRange(0, current_image_height - _sa->viewport()->height() / pixel_image.pixel_height());
 
   drawPixelTree(pixel_data);
 
@@ -554,8 +555,6 @@ PixelTreeCanvas::redrawAll() {
   // drawNogoodData();
 
   pixel_image.update();
-
-  _sa->verticalScrollBar()->setRange(0, current_image_height - _sa->viewport()->height() / pixel_image.scale());
 
   repaint();
 
@@ -953,6 +952,9 @@ PixelTreeCanvas::resizeCanvas(void) {
   auto sa_height =  _sa->viewport()->height();
   pixel_image.resize(sa_width, sa_height);
   this->resize(sa_width, sa_height);
+
+  _sa->horizontalScrollBar()->setPageStep(_sa->viewport()->width());
+  _sa->horizontalScrollBar()->setSingleStep(100); /// the value is arbitrary
   redrawAll();
 }
 
@@ -1018,7 +1020,7 @@ void
 PixelTreeCanvas::mousePressEvent(QMouseEvent* event) {
 
   auto xoff = _sa->horizontalScrollBar()->value();
-  mouse_pressed_vline = event->x() / pixel_image.scale() + xoff;
+  mouse_pressed_vline = event->x() / pixel_image.pixel_width() + xoff;
 
   mouse_pressed = true;
 
@@ -1030,7 +1032,7 @@ PixelTreeCanvas::mouseReleaseEvent(QMouseEvent* event) {
   if (mouse_pressed) {
 
     auto xoff = _sa->horizontalScrollBar()->value();
-    auto mouse_released_vline = event->x() / pixel_image.scale() + xoff;
+    auto mouse_released_vline = event->x() / pixel_image.pixel_width() + xoff;
 
     if (mouse_pressed_vline > mouse_released_vline) {
       std::swap(mouse_pressed_vline, mouse_released_vline);
@@ -1058,8 +1060,8 @@ PixelTreeCanvas::mouseMoveEvent(QMouseEvent* event) {
   auto xoff = _sa->horizontalScrollBar()->value();
   auto yoff = _sa->verticalScrollBar()->value();
 
-  auto x = event->x() / pixel_image.scale();
-  auto y = event->y() / pixel_image.scale();
+  auto x = event->x() / pixel_image.pixel_width();
+  auto y = event->y() / pixel_image.pixel_height();
 
   if (x != mouse_guide_x || y != mouse_guide_y) {
     mouse_guide_x = x;

@@ -623,12 +623,18 @@ void
 TreeCanvas::showNodeInfo(void) {
   int gid = currentNode->getIndex(*na);
   DbEntry* entry = execution->getEntry(gid);
-  if (entry == nullptr) return;
+  if (entry == nullptr) {
+    qDebug() << "showNodeInfo: no entry";
+    return;
+  }
   unsigned int sid = entry->sid;
   std::unordered_map<unsigned long long, string>& sid2info = execution->getInfo();
   //  const string& info_str = sid2info[sid];
   auto info_item = sid2info.find(sid);
-  if (info_item == sid2info.end()) return;
+  if (info_item == sid2info.end()) {
+    qDebug() << "showNodeInfo: no info item";
+    return;
+  }
   const string& info_str = info_item->second;
 
   NodeInfoDialog* nidialog = new NodeInfoDialog(this, info_str);
