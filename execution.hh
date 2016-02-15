@@ -4,6 +4,7 @@
 #include <QObject>
 #include "data.hh"
 #include <sstream>
+#include <ctime>
 
 class Execution : public QObject {
     Q_OBJECT
@@ -40,7 +41,11 @@ public:
     }
 
     void start(std::string label) {
-        _data->setTitle(label);
+        std::time_t t = std::time(nullptr);
+        string ts = std::asctime(std::localtime(&t));
+        // asctime puts a newline at the end; remove it
+        ts.pop_back();
+        _data->setTitle(label + " (" + ts + ")");
         emit titleKnown();
     }
 

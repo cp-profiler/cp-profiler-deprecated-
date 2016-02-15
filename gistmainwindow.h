@@ -87,8 +87,8 @@ protected Q_SLOTS:
   /// Populate the bookmarks menus from the actions found in Gist
   void populateBookmarks(void);
   /// Change MainWindow's title to fzn file name
-  void changeTitle(QString file_name);
 public Q_SLOTS:
+  void changeTitle(QString file_name);
   void gatherStatistics(void);
 public:
   /// Constructor

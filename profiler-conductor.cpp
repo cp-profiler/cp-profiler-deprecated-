@@ -146,6 +146,7 @@ ProfilerConductor::gistButtonClicked(bool checked) {
         if (g == nullptr) {
             g = new GistMainWindow(item->execution_, this);
             item->gistWindow_ = g;
+            g->changeTitle(item->text());
         }
         g->show();
         g->activateWindow();
