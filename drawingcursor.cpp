@@ -21,6 +21,7 @@
 
 #include "drawingcursor.hh"
 
+const QColor DrawingCursor::gold(252, 209, 22);
 /// Red color for failed nodes
 const QColor DrawingCursor::red(218, 37, 29);
 /// Green color for solved nodes
@@ -128,7 +129,8 @@ DrawingCursor::processCurrentNode(void) {
                 painter.setBrush(QColor(150, 255, 150, 255));
             break;
             default:
-                painter.setBrush(QColor(200, 200, 200, 255));
+                // painter.setBrush(QColor(200, 200, 200, 255));
+                painter.setBrush(QColor(255, 255, 255, 255));
         }
         drawShape(myx, myy, n);
     }
@@ -234,7 +236,10 @@ DrawingCursor::processCurrentNode(void) {
             drawDiamond(myx, myy, false);
             break;
         case FAILED:
-            painter.setBrush(QBrush(red));
+            if (n->isMarked())
+                painter.setBrush(QBrush(gold));
+            else
+                painter.setBrush(QBrush(red));
             painter.drawRect(myx - HALF_FAILED_WIDTH, myy, FAILED_WIDTH, FAILED_WIDTH);
             break;
         case UNSTOP:
@@ -243,20 +248,32 @@ DrawingCursor::processCurrentNode(void) {
             drawOctagon(myx, myy, false);
             break;
         case BRANCH:
-            painter.setBrush(n->childrenLayoutIsDone() ? QBrush(blue) :
-                                                         QBrush(white));
+            if (n->isMarked())
+                painter.setBrush(QBrush(gold));
+            else
+                painter.setBrush(n->childrenLayoutIsDone() ? QBrush(blue) :
+                                                             QBrush(white));
             painter.drawEllipse(myx - HALF_NODE_WIDTH, myy, NODE_WIDTH, NODE_WIDTH);
             break;
         case UNDETERMINED:
-            painter.setBrush(Qt::white);
+            if (n->isMarked())
+                painter.setBrush(QBrush(gold));
+            else
+                painter.setBrush(Qt::white);
             painter.drawEllipse(myx - HALF_NODE_WIDTH, myy, NODE_WIDTH, NODE_WIDTH);
             break;
         case SKIPPED:
-            painter.setBrush(Qt::gray);
+            if (n->isMarked())
+                painter.setBrush(QBrush(gold));
+            else
+                painter.setBrush(Qt::gray);
             painter.drawRect(myx - HALF_FAILED_WIDTH, myy, FAILED_WIDTH, FAILED_WIDTH);
             break;
         case MERGING:
-            painter.setBrush(orange);
+            if (n->isMarked())
+                painter.setBrush(QBrush(gold));
+            else
+                painter.setBrush(orange);
             drawPentagon(myx, myy, false);
             break;
         }

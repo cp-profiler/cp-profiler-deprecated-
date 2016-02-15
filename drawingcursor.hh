@@ -48,6 +48,7 @@ private:
     void drawOctagon(int myx, int myy, bool shadow);
     void drawShape(int myx, int myy, VisualNode* node);
 public:
+    static const QColor gold;
     /// The color for failed nodes
     static const QColor red;
     /// The color for solved nodes
