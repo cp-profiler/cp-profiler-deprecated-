@@ -11,45 +11,51 @@
 class StatsEntry {
 public:
     unsigned int nodeid;
-    unsigned int parentid;
+    int parentid;
     NodeStatus status;
     int depth;
     int decisionLevel;
+    string label;
     int subtreeDepth;
     int subtreeSize;
     int subtreeSolutions;
     int nogoodStringLength;
+    string nogoodString;
     int backjumpDistance;
     unsigned long long timestamp;
 };
 
 void printStatsHeader(std::ostream& out = std::cout) {
-    out << "id"
-        << "\t" << "parentId"
-        << "\t" << "status"
-        << "\t" << "depth"
-        << "\t" << "decisionLevel"
-        << "\t" << "subtreeDepth"
-        << "\t" << "subtreeSize"
-        << "\t" << "subtreeSolutions"
-        << "\t" << "nogoodStringLength"
-        << "\t" << "backjumpDistance"
-        << "\t" << "timestamp"
+    out <<        "id"
+        << "," << "parentId"
+        << "," << "status"
+        << "," << "depth"
+        << "," << "decisionLevel"
+        << "," << "label"
+        << "," << "subtreeDepth"
+        << "," << "subtreeSize"
+        << "," << "subtreeSolutions"
+        << "," << "nogoodStringLength"
+        << "," << "nogoodString"
+        << "," << "backjumpDistance"
+        << "," << "timestamp"
               << "\n";
 }
 
 void printStatsEntry(const StatsEntry& se, std::ostream& out = std::cout) {
-    out <<         se.nodeid
-        << "\t" << se.parentid
-        << "\t" << se.status
-        << "\t" << se.depth
-        << "\t" << se.decisionLevel
-        << "\t" << se.subtreeDepth
-        << "\t" << se.subtreeSize
-        << "\t" << se.subtreeSolutions
-        << "\t" << se.nogoodStringLength
-        << "\t" << se.backjumpDistance
-        << "\t" << se.timestamp
+    out <<        se.nodeid
+        << "," << se.parentid
+        << "," << se.status
+        << "," << se.depth
+        << "," << se.decisionLevel
+        << "," << se.label
+        << "," << se.subtreeDepth
+        << "," << se.subtreeSize
+        << "," << se.subtreeSolutions
+        << "," << se.nogoodStringLength
+        << "," << se.nogoodString
+        << "," << se.backjumpDistance
+        << "," << se.timestamp
         << "\n";
 }
 
@@ -85,7 +91,15 @@ public:
         } else {
             return 0;
         }
-                    
+    }
+
+    string getNogoodString(int sid) {
+        std::unordered_map<unsigned long long, string>::const_iterator it = execution->getNogoods().find(sid);
+        if (it != execution->getNogoods().end()) {
+            return it->second;
+        } else {
+            return "";
+        }
     }
 
     // What to do when we see a node for the first time: create a
@@ -120,12 +134,16 @@ public:
             se.nodeid = sid;
             se.parentid = entry->parent_sid;
             se.nogoodStringLength = getNogoodStringLength(sid);
+            se.nogoodString = getNogoodString(sid);
+            se.label = entry->label;
             se.decisionLevel = entry->decisionLevel;
             se.timestamp = entry->time_stamp;
         } else {
             se.nodeid = -1;
             se.parentid = -1;
             se.nogoodStringLength = 0;
+            se.nogoodString = "";
+            se.label = "";
             se.decisionLevel = -1;
             se.timestamp = 0;
         }
