@@ -17,6 +17,7 @@ private slots:
     void gatherStatisticsClicked(bool checked);
     void saveExecutionClicked(bool checked);
     void loadExecutionClicked(bool checked);
+    void deleteExecutionClicked(bool checked);
 public:
     ProfilerConductor();
     void newExecution(Execution* execution);

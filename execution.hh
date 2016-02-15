@@ -13,6 +13,10 @@ public:
         _data = new Data(na, true);
         connect(this, SIGNAL(doneReceiving(void)), _data, SLOT(setDoneReceiving(void)));
     }
+    ~Execution() {
+        // Almost certainly this does not free all the memory.
+        delete _data;
+    }
 
     inline const std::unordered_map<unsigned long long, string>& getNogoods(void) { return _data->getNogoods(); }
     inline std::unordered_map<unsigned long long, string>& getInfo(void) { return _data->getInfo(); }

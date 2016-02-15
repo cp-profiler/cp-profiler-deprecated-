@@ -634,6 +634,8 @@ Gist::onFocusChanged(QWidget* a, QWidget* b) {
 
 void
 Gist::connectCanvas(TreeCanvas* tc) {
+
+    connect(this, SIGNAL(doneReceiving()), tc, SLOT(statusFinished()));
     
     if (current_tc == tc) return;
 

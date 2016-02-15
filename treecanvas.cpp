@@ -502,6 +502,11 @@ TreeCanvas::layoutDone(int w, int h, int scale0) {
 }
 
 void
+TreeCanvas::statusFinished() {
+    statusChanged(true);
+}
+
+void
 TreeCanvas::statusChanged(bool finished) {
     if (finished) {
         update();

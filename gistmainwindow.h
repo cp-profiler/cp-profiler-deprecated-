@@ -75,6 +75,8 @@ Q_SIGNALS:
 
   void buildingFinished(void);
 
+  void doneReceiving(void);
+
 protected Q_SLOTS:
   /// The status has changed (e.g., new solutions have been found)
   void statusChanged(const Statistics& stats, bool finished);

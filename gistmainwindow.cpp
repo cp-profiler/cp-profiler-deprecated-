@@ -180,6 +180,8 @@ GistMainWindow::GistMainWindow(Execution* execution, QWidget* parent) : QMainWin
   connect(c, SIGNAL(buildingFinished(void)),
           this, SIGNAL(buildingFinished(void)));
 
+  connect(this, SIGNAL(doneReceiving()), c, SIGNAL(doneReceiving()));
+
   // connect(this, SIGNAL(stopReceiver()), c->getReceiver(), SLOT(stopThread()));
 
   preferences(true);

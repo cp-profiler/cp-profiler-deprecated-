@@ -265,6 +265,8 @@ Q_SIGNALS:
 
   void buildingFinished(void);
 
+  void doneReceiving(void);
+
 
 private Q_SLOTS:
   /// Create new TreeCanvas based on comparison

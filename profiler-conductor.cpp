@@ -54,6 +54,7 @@ loadSaved(std::string path) {
         if (!ok) break;
         e->handleNewNode(msg);
     }
+    e->doneReceiving();
     return e;
 }
 
@@ -85,6 +86,9 @@ ProfilerConductor::ProfilerConductor()
     QPushButton* loadExecutionButton = new QPushButton("load execution");
     connect(loadExecutionButton, SIGNAL(clicked(bool)), this, SLOT(loadExecutionClicked(bool)));
 
+    QPushButton* deleteExecutionButton = new QPushButton("delete execution");
+    connect(deleteExecutionButton, SIGNAL(clicked(bool)), this, SLOT(deleteExecutionClicked(bool)));
+
     QVBoxLayout* layout = new QVBoxLayout;
     layout->addWidget(executionList);
     layout->addWidget(gistButton);
@@ -92,6 +96,7 @@ ProfilerConductor::ProfilerConductor()
     layout->addWidget(gatherStatisticsButton);
     layout->addWidget(saveExecutionButton);
     layout->addWidget(loadExecutionButton);
+    layout->addWidget(deleteExecutionButton);
     centralWidget->setLayout(layout);
 
     // Listen for new executions.
@@ -144,6 +149,7 @@ ProfilerConductor::gistButtonClicked(bool checked) {
         }
         g->show();
         g->activateWindow();
+        connect(item->execution_, SIGNAL(doneReceiving()), g, SIGNAL(doneReceiving()));
     }
 }
 
@@ -281,4 +287,17 @@ void ProfilerConductor::loadExecution(std::string filename) {
     Execution *e = loadSaved(filename);
     newExecution(e);
     e->start("loaded from " + filename);
+}
+
+void ProfilerConductor::deleteExecutionClicked(bool checked) {
+    (void) checked;
+    QList <QListWidgetItem*> selected = executionList->selectedItems();
+    for (int i = 0 ; i < selected.size() ; i++) {
+        ExecutionListItem* item = static_cast<ExecutionListItem*>(selected[i]);
+        executions.removeOne(item->execution_);
+        delete item->execution_;
+        item->gistWindow_->stopReceiver();
+        delete item->gistWindow_;
+        delete item;
+    }
 }
