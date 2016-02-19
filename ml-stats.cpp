@@ -13,6 +13,8 @@ public:
     unsigned int nodeid;
     int parentid;
     NodeStatus status;
+    int alternative;
+    // int restartNumber;
     int depth;
     int decisionLevel;
     string label;
@@ -21,14 +23,19 @@ public:
     int subtreeSolutions;
     int nogoodStringLength;
     string nogoodString;
+    int nogoodLength;
+    int nogoodNumberVariables;
     int backjumpDistance;
     unsigned long long timestamp;
+    string solutionString;
 };
 
 void printStatsHeader(std::ostream& out = std::cout) {
     out <<        "id"
         << "," << "parentId"
         << "," << "status"
+        << "," << "alternative"
+        // << "," << "restartNumber"
         << "," << "depth"
         << "," << "decisionLevel"
         << "," << "label"
@@ -37,15 +44,20 @@ void printStatsHeader(std::ostream& out = std::cout) {
         << "," << "subtreeSolutions"
         << "," << "nogoodStringLength"
         << "," << "nogoodString"
+        << "," << "nogoodLength"
+        << "," << "nogoodNumberVariables"
         << "," << "backjumpDistance"
         << "," << "timestamp"
-              << "\n";
+        << "," << "solutionString"
+        << "\n";
 }
 
 void printStatsEntry(const StatsEntry& se, std::ostream& out = std::cout) {
     out <<        se.nodeid
         << "," << se.parentid
         << "," << se.status
+        << "," << se.alternative
+        // << "," << se.restartNumber
         << "," << se.depth
         << "," << se.decisionLevel
         << "," << se.label
@@ -54,8 +66,11 @@ void printStatsEntry(const StatsEntry& se, std::ostream& out = std::cout) {
         << "," << se.subtreeSolutions
         << "," << se.nogoodStringLength
         << "," << se.nogoodString
+        << "," << se.nogoodLength
+        << "," << se.nogoodNumberVariables
         << "," << se.backjumpDistance
         << "," << se.timestamp
+        << "," << se.solutionString
         << "\n";
 }
 
@@ -102,6 +117,45 @@ public:
         }
     }
 
+    string getSolutionString(int sid) {
+        std::unordered_map<unsigned long long, string>::const_iterator it = execution->getInfo().find(sid);
+        if (it != execution->getInfo().end()) {
+            return it->second;
+        } else {
+            return "";
+        }
+    }
+
+    int calculateNogoodLength(string nogood) {
+        int count = 0;
+        for (unsigned int i = 0 ; i < nogood.size() ; i++) {
+            if (nogood[i] == ' ') {
+                count++;
+            }
+        }
+        return count;
+    }
+
+    int calculateNogoodNumberVariables(string nogood) {
+        std::set<string> variables;
+        int start = 0;
+        while (true) {
+            size_t space = nogood.find(' ', start);
+            string literalSubstring = nogood.substr(start, space - start);
+            if (literalSubstring.size() > 0) {
+                size_t punctuation = literalSubstring.find_first_of("<>=!");
+                if (punctuation != string::npos) {
+                    string variableSubstring = literalSubstring.substr(0, punctuation);
+                    variables.insert(variableSubstring);
+                }
+            }
+            if (space == string::npos)
+                break;
+            start = space+1;
+        }
+        return variables.size();
+    }
+
     // What to do when we see a node for the first time: create a
     // StatsEntry for it and add it to the stack.
     void enter() {
@@ -133,19 +187,29 @@ public:
             unsigned int sid = entry->sid;
             se.nodeid = sid;
             se.parentid = entry->parent_sid;
+            se.alternative = entry->alt;
+            // se.restartNumber = entry->restart_id;
             se.nogoodStringLength = getNogoodStringLength(sid);
             se.nogoodString = getNogoodString(sid);
+            se.nogoodLength = calculateNogoodLength(se.nogoodString);
+            se.nogoodNumberVariables = calculateNogoodNumberVariables(se.nogoodString);
             se.label = entry->label;
             se.decisionLevel = entry->decisionLevel;
             se.timestamp = entry->time_stamp;
+            se.solutionString = getSolutionString(sid);
         } else {
             se.nodeid = -1;
             se.parentid = -1;
+            se.alternative = -1;
+            // se.restartNumber = -1;
             se.nogoodStringLength = 0;
             se.nogoodString = "";
+            se.nogoodLength = 0;
+            se.nogoodNumberVariables = 0;
             se.label = "";
             se.decisionLevel = -1;
             se.timestamp = 0;
+            se.solutionString = "";
         }
 
         stack.push_back(se);
