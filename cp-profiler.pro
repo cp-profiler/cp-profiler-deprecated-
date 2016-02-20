@@ -15,9 +15,7 @@ TARGET = cp-profiler
 
 TEMPLATE = app
 
-CONFIG += c++11
-#CONFIG += static
-#CONFIG += -std=c++0x
+QMAKE_CXXFLAGS += -std=c++11
 
 SOURCES += main.cpp\
     globalhelper.cpp \

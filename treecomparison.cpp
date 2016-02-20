@@ -23,7 +23,8 @@
 #include "treecanvas.hh"
 #include "node.hh"
 
-TreeComparison::TreeComparison(void) {}
+TreeComparison::TreeComparison(bool withLabels)
+    : withLabels_(withLabels) {}
 
 void
 TreeComparison::compare(TreeCanvas* t1, TreeCanvas* t2, TreeCanvas* new_tc) {
@@ -243,18 +244,18 @@ TreeComparison::copmareNodes(VisualNode* n1, VisualNode* n2) {
     if (n1->getStatus() != n2->getStatus()) 
         return false;
 
-    // int id1 = n1->getIndex(*_na1);
-    // int id2 = n2->getIndex(*_na2);
+    /// check labels
+    if (withLabels_) {
+        for (unsigned i = 0; i < kids; i++) {
 
-    for (unsigned i = 0; i < kids; i++) {
+            int id1 = n1->getChild(i);
+            int id2 = n2->getChild(i);
 
-        int id1 = n1->getChild(i);
-        int id2 = n2->getChild(i);
+            if (_ex1->getLabel(id1).compare(_ex2->getLabel(id2)) != 0) {
+                return false;
+            }
 
-        if (_ex1->getLabel(id1).compare(_ex2->getLabel(id2)) != 0) {
-            return false;
         }
-
     }
 
     return true;

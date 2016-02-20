@@ -5,19 +5,12 @@
 #include "data.hh"
 #include <sstream>
 #include <ctime>
+#include <memory>
 
 class Execution : public QObject {
     Q_OBJECT
 public:
-    Execution() {
-        NodeAllocator* na = new NodeAllocator(false);
-        _data = new Data(na, true);
-        connect(this, SIGNAL(doneReceiving(void)), _data, SLOT(setDoneReceiving(void)));
-    }
-    ~Execution() {
-        // Almost certainly this does not free all the memory.
-        delete _data;
-    }
+    Execution() {}
 
     inline const std::unordered_map<unsigned long long, string>& getNogoods(void) { return _data->getNogoods(); }
     inline std::unordered_map<unsigned long long, string>& getInfo(void) { return _data->getInfo(); }
@@ -37,15 +30,23 @@ public:
 
 
     Data* getData() {
-        return _data;
+        return _data.get();
     }
 
-    void start(std::string label) {
+    void start(std::string label, bool isRestarts) {
+
+        _na = std::unique_ptr<NodeAllocator>{new NodeAllocator(false)};
+        _data = std::unique_ptr<Data>{new Data(_na.get(), isRestarts)};
+
         std::time_t t = std::time(nullptr);
         string ts = std::asctime(std::localtime(&t));
+
         // asctime puts a newline at the end; remove it
         ts.pop_back();
         _data->setTitle(label + " (" + ts + ")");
+
+        connect(this, SIGNAL(doneReceiving(void)), _data.get(), SLOT(setDoneReceiving(void)));
+
         emit titleKnown();
     }
 
@@ -56,7 +57,8 @@ signals:
     void startReceiving();
     void doneReceiving();
 private:
-    Data* _data;
+    std::unique_ptr<Data> _data;
+    std::unique_ptr<NodeAllocator> _na;
 public Q_SLOTS:
     void handleNewNode(message::Node& node) {
         // std::cerr << "execution::newNode\n";

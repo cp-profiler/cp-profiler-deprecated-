@@ -41,7 +41,7 @@ class TreeComparison {
 
 
 public:
-  TreeComparison(void);
+  TreeComparison(bool withLabels);
   void compare(TreeCanvas* t1, TreeCanvas* t2, TreeCanvas* new_tc);
     
   int get_no_pentagons(void);
@@ -62,7 +62,7 @@ private:
   Execution* _ex1;
   Execution* _ex2;
 
-  
+  bool withLabels_;
 
 private: /// methods
 

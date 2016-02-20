@@ -24,9 +24,9 @@
 #include <QTableWidget>
 #include "base_tree_dialog.hh"
 #include "execution.hh"
+ #include "treecomparison.hh"
 
 class Gist;
-class TreeComparison;
 
 class PentListWindow : public QDialog {
 Q_OBJECT
@@ -52,7 +52,7 @@ Q_OBJECT
 
 private:
 
-  TreeComparison* _comparison;
+  TreeComparison comparison_;
 
   QMenu* analysisMenu;
 
@@ -79,9 +79,8 @@ private:
 
 public:
 
-    CmpTreeDialog(QWidget* parent, Execution* execution, const CanvasType& type, //Gist* gist,
+    CmpTreeDialog(QWidget* parent, Execution* execution, bool withLabels,
                 TreeCanvas *tc1, TreeCanvas *tc2);
-  ~CmpTreeDialog();
 
 private Q_SLOTS:
   void statusChanged(VisualNode*, const Statistics& stats, bool finished);

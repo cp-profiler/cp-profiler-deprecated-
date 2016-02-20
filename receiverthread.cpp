@@ -48,6 +48,7 @@ ReceiverThread::run(void) {
         abort();
     }
 
+    /// TODO(maxim): memory leak here
     ReceiverWorker* worker = new ReceiverWorker(tcpSocket, execution);
     connect(tcpSocket, SIGNAL(readyRead()), worker, SLOT(doRead()));
 
@@ -96,7 +97,8 @@ ReceiverWorker::doRead()
                 case message::Node::NODE:
                     execution->handleNewNode(msg1);
                     break;
-                case message::Node::START: /// TODO: start sending should have model name
+                case message::Node::START:
+                {
                     qDebug() << "START RECEIVING: " << msg1.label().c_str();
                     
                     if (msg1.restart_id() != -1 && msg1.restart_id() != 0) {
@@ -104,10 +106,12 @@ ReceiverWorker::doRead()
                         break;
                     }
 
-                    execution->start(msg1.label());
-                    emit startReceiving();
+                    bool is_restarts = (msg1.restart_id() != -1);
 
-                    break;
+                    execution->start(msg1.label(), is_restarts);
+                    emit startReceiving();
+                }
+                break;
                 case message::Node::DONE:
                     qDebug() << "received DONE SENDING";
                     emit doneReceiving();

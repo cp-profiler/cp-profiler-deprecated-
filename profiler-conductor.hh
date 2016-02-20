@@ -6,10 +6,13 @@
 
 #include "execution.hh"
 
+class QCheckBox;
+
 class ProfilerConductor : public QMainWindow {
     Q_OBJECT
 private:
     QListWidget* executionList;
+    QCheckBox* compareWithLabelsCB;
     QList<Execution*> executions;
 private slots:
     void gistButtonClicked(bool checked);

@@ -21,14 +21,13 @@
 
 #include "cmp_tree_dialog.hh"
 #include "nodewidget.hh"
-#include "treecomparison.hh"
 
 #include <utility> // pair
 
-CmpTreeDialog::CmpTreeDialog(QWidget* parent, Execution* execution, const CanvasType& type,
+CmpTreeDialog::CmpTreeDialog(QWidget* parent, Execution* execution, bool withLabels,
                              TreeCanvas* tc1, TreeCanvas* tc2)
-    : BaseTreeDialog(parent, execution, type),
-_comparison{new TreeComparison()}, analysisMenu{nullptr}, pentListWindow{this} {
+    : BaseTreeDialog(parent, execution, CanvasType::MERGED),
+comparison_{withLabels}, analysisMenu{nullptr}, pentListWindow{this} {
 
   hbl->addWidget(new NodeWidget(MERGING));
   mergedLabel = new QLabel("0");
@@ -51,9 +50,9 @@ _comparison{new TreeComparison()}, analysisMenu{nullptr}, pentListWindow{this} {
   connect(_showPentagonHist, SIGNAL(triggered()), this, SLOT(showPentagonHist()));
 
 
-  _comparison->compare(tc1, tc2, _tc);
+  comparison_.compare(tc1, tc2, _tc);
 
-  mergedLabel->setNum(_comparison->get_no_pentagons());
+  mergedLabel->setNum(comparison_.get_no_pentagons());
   // statusChangedShared(true);
 
 }
@@ -81,11 +80,6 @@ CmpTreeDialog::addActions(void) {
   addAction(_labelBranches);
 }
 
-CmpTreeDialog::~CmpTreeDialog(void) {
-  qDebug() << "(maxim): CmpTreeDialog destroyed\n";
-  delete _comparison;
-}
-
 void
 CmpTreeDialog::statusChanged(VisualNode*, const Statistics&, bool finished) {
 
@@ -95,7 +89,7 @@ CmpTreeDialog::statusChanged(VisualNode*, const Statistics&, bool finished) {
 
 void
 CmpTreeDialog::navFirstPentagon(void) {
-  const std::vector<VisualNode*>& pentagons = _comparison->pentagons();
+  const std::vector<VisualNode*>& pentagons = comparison_.pentagons();
 
   if (pentagons.size() == 0) {
     qDebug() << "warning: pentagons.size() == 0";
@@ -122,7 +116,7 @@ CmpTreeDialog::navPrevPentagon(void) {
 
 void
 CmpTreeDialog::showPentagonHist(void) {
-  pentListWindow.createList(_comparison->pentagons(), _comparison->pentSize());
+  pentListWindow.createList(comparison_.pentagons(), comparison_.pentSize());
   pentListWindow.show();
 }
 
@@ -165,7 +159,7 @@ PentListWindow::createList(const std::vector<VisualNode*>& pentagons,
 
 void
 CmpTreeDialog::selectPentagon(int row, int) {
-  const std::vector<VisualNode*>& pentagons = _comparison->pentagons();
+  const std::vector<VisualNode*>& pentagons = comparison_.pentagons();
 
   _tc->setCurrentNode(pentagons[row]);
   _tc->centerCurrentNode();

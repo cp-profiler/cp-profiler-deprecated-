@@ -25,6 +25,8 @@
 #include <QThread>
 #include <QObject>
 #include <QTcpSocket>
+
+#include <QDebug>
 #include <iostream>
 
 #include "message.pb.hh"
@@ -101,6 +103,7 @@ public:
     ReceiverWorker(QTcpSocket* socket, Execution* execution) : execution(execution), tcpSocket(socket) {
         size = 0;
     }
+
 signals:
     void startReceiving(void);
     void doneReceiving(void);

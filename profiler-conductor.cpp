@@ -67,6 +67,7 @@ ProfilerConductor::ProfilerConductor()
 
     QWidget* centralWidget = new QWidget(this);
     setCentralWidget(centralWidget);
+
     
     executionList = new QListWidget;
     executionList->setSelectionMode(QAbstractItemView::MultiSelection);
@@ -77,11 +78,14 @@ ProfilerConductor::ProfilerConductor()
     QPushButton* compareButton = new QPushButton("compare trees");
     connect(compareButton, SIGNAL(clicked(bool)), this, SLOT(compareButtonClicked(bool)));
 
+    compareWithLabelsCB = new QCheckBox("with labels");
+
     QPushButton* gatherStatisticsButton = new QPushButton("gather statistics");
     connect(gatherStatisticsButton, SIGNAL(clicked(bool)), this, SLOT(gatherStatisticsClicked(bool)));
 
     QPushButton* saveExecutionButton = new QPushButton("save execution");
     connect(saveExecutionButton, SIGNAL(clicked(bool)), this, SLOT(saveExecutionClicked(bool)));
+
 
     QPushButton* loadExecutionButton = new QPushButton("load execution");
     connect(loadExecutionButton, SIGNAL(clicked(bool)), this, SLOT(loadExecutionClicked(bool)));
@@ -89,14 +93,20 @@ ProfilerConductor::ProfilerConductor()
     QPushButton* deleteExecutionButton = new QPushButton("delete execution");
     connect(deleteExecutionButton, SIGNAL(clicked(bool)), this, SLOT(deleteExecutionClicked(bool)));
 
-    QVBoxLayout* layout = new QVBoxLayout;
-    layout->addWidget(executionList);
-    layout->addWidget(gistButton);
-    layout->addWidget(compareButton);
-    layout->addWidget(gatherStatisticsButton);
-    layout->addWidget(saveExecutionButton);
-    layout->addWidget(loadExecutionButton);
-    layout->addWidget(deleteExecutionButton);
+    QGridLayout* layout = new QGridLayout();
+
+    layout->addWidget(executionList, 0, 0, 1, 2);
+    layout->addWidget(gistButton, 1, 0, 1, 2);
+
+    layout->addWidget(compareButton, 2, 0, 1, 1);
+    layout->addWidget(compareWithLabelsCB, 2, 1, 1, 1);
+
+
+    layout->addWidget(gatherStatisticsButton, 3, 0, 1, 2);
+    layout->addWidget(saveExecutionButton, 4, 0, 1, 2);
+    layout->addWidget(loadExecutionButton, 5, 0, 1, 2);
+    layout->addWidget(deleteExecutionButton, 6, 0, 1, 2);
+
     centralWidget->setLayout(layout);
 
     // Listen for new executions.
@@ -136,9 +146,8 @@ ProfilerConductor::updateList(void) {
 }
 
 void
-ProfilerConductor::gistButtonClicked(bool checked) {
-    (void)checked;
-    
+ProfilerConductor::gistButtonClicked(bool) {
+
     QList <QListWidgetItem*> selected = executionList->selectedItems();
     for (int i = 0 ; i < selected.size() ; i++) {
         ExecutionListItem* item = static_cast<ExecutionListItem*>(selected[i]);
@@ -155,8 +164,9 @@ ProfilerConductor::gistButtonClicked(bool checked) {
 }
 
 void
-ProfilerConductor::compareButtonClicked(bool checked) {
-    (void)checked;
+ProfilerConductor::compareButtonClicked(bool) {
+
+    const bool withLabels = compareWithLabelsCB->isChecked();
 
     QList <QListWidgetItem*> selected = executionList->selectedItems();
     if (selected.size() != 2) return;
@@ -166,7 +176,7 @@ ProfilerConductor::compareButtonClicked(bool checked) {
 
     if (item1->gistWindow_ == nullptr && item2->gistWindow_ == nullptr) return;
 
-    CmpTreeDialog* ctd = new CmpTreeDialog(this, e, CanvasType::MERGED,
+    CmpTreeDialog* ctd = new CmpTreeDialog(this, e, withLabels,
                                            item1->gistWindow_->getGist()->getCanvas(),
                                            item2->gistWindow_->getGist()->getCanvas());
     (void) ctd;
@@ -205,8 +215,7 @@ bool writeDelimitedTo(
 }
 
 
-void ProfilerConductor::gatherStatisticsClicked(bool checked) {
-    (void) checked;
+void ProfilerConductor::gatherStatisticsClicked(bool) {
 
     QList <QListWidgetItem*> selected = executionList->selectedItems();
     for (int i = 0 ; i < selected.size() ; i++) {
@@ -235,8 +244,7 @@ void ProfilerConductor::gatherStatisticsClicked(bool checked) {
 }
 
 
-void ProfilerConductor::saveExecutionClicked(bool checked) {
-    (void) checked;
+void ProfilerConductor::saveExecutionClicked(bool) {
 
     QList <QListWidgetItem*> selected = executionList->selectedItems();
     if (selected.size() != 1) return;
@@ -278,8 +286,7 @@ void ProfilerConductor::saveExecutionClicked(bool checked) {
     }
 }
 
-void ProfilerConductor::loadExecutionClicked(bool checked) {
-    (void) checked;
+void ProfilerConductor::loadExecutionClicked(bool) {
     QString filename = QFileDialog::getOpenFileName(this, "Load execution", QDir::currentPath());
     loadExecution(filename.toStdString());
 }
@@ -287,7 +294,8 @@ void ProfilerConductor::loadExecutionClicked(bool checked) {
 void ProfilerConductor::loadExecution(std::string filename) {
     Execution *e = loadSaved(filename);
     newExecution(e);
-    e->start("loaded from " + filename);
+    /// TODO(maxim): should know if it was restarts, TRUE for now
+    e->start("loaded from " + filename, true);
 }
 
 void ProfilerConductor::deleteExecutionClicked(bool checked) {
