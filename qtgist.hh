@@ -166,8 +166,6 @@ public:
   QAction* print;
   /// Print search tree log
   QAction* printSearchLog;
-  /// Creates new canvas and runs comparison tool
-  QAction* initComparison;
   /// Allow second canvas (when new data received)
   QAction* sndCanvas;
 
@@ -269,8 +267,6 @@ Q_SIGNALS:
 
 
 private Q_SLOTS:
-  /// Create new TreeCanvas based on comparison
-  // void initiateComparison(void);
   /// Create new TreeCanvas if already have one
   // void createNewCanvas(void);
   /// Create new TreeCanvas if already have one

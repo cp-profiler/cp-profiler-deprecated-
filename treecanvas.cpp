@@ -1003,11 +1003,6 @@ TreeCanvas::reset(bool isRestarts) {
     updateCanvas();
 }
 
-void
-TreeCanvas::toggleSecondCanvas(void) {
-  qDebug() << "comparing Trees";
-}
-
 
 void
 TreeCanvas::bookmarkNode(void) {

@@ -315,9 +315,6 @@ public Q_SLOTS:
   /// Stop current search
   void stopSearch(void);
 
-  /// Do not redraw, but compare with the next tree
-  void toggleSecondCanvas(void);
-
   /// Move selection to the parent of the selected node
   void navUp(void);
   /// Move selection to the first child of the selected node

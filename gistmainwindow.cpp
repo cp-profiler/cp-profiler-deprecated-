@@ -133,8 +133,6 @@ GistMainWindow::GistMainWindow(Execution* execution, QWidget* parent) : QMainWin
   // searchMenu->addAction(c->stop);
   searchMenu->addSeparator();
   searchMenu->addAction(c->reset);
-  searchMenu->addAction(c->sndCanvas);
-  searchMenu->addAction(c->initComparison);
 
   QMenu* helpMenu = menuBar->addMenu(tr("&Help"));
   QAction* aboutAction = helpMenu->addAction(tr("About"));

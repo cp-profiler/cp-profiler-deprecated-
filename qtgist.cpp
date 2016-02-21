@@ -66,7 +66,6 @@ Gist::Gist(Execution* execution, QWidget* parent) : QWidget(parent), execution(e
 
     // connect(execution, SIGNAL(newNode()), current_tc, SLOT(maybeUpdateCanvas()));
 
-    // connect(initComparison, SIGNAL(triggered()), this, SLOT(initiateComparison()));
 
     connect(scrollArea->horizontalScrollBar(), SIGNAL(valueChanged(int)),
             canvas, SLOT(scroll(void)));
@@ -222,7 +221,6 @@ Gist::on_canvas_statusChanged(VisualNode* n, const Statistics& stats,
         // labelBranches->setEnabled(false);
         // labelPath->setEnabled(false);
         analyzeSimilarSubtrees->setEnabled(false);
-        // initComparison->setEnabled(false);
 
         // toggleStop->setEnabled(false);
         // unstopAll->setEnabled(false);
@@ -235,11 +233,9 @@ Gist::on_canvas_statusChanged(VisualNode* n, const Statistics& stats,
 
         bookmarkNode->setEnabled(false);
         bookmarksGroup->setEnabled(false);
-        sndCanvas->setEnabled(true);
     } else {
         // stop->setEnabled(false);
         // reset->setEnabled(true);
-        sndCanvas->setEnabled(true);
 
         if ( (n->isOpen() || n->hasOpenChildren()) && (!n->isHidden()) ) {
             // searchNext->setEnabled(true);
@@ -400,14 +396,6 @@ Gist::addActions(void) {
     reset = new QAction("Reset", this);
     reset->setShortcut(QKeySequence("Ctrl+R"));
 
-    initComparison = new QAction("Compare", this);
-    /// TODO: make unavailable when no data
-
-    sndCanvas = new QAction("Allow second canvas", this);
-    sndCanvas->setCheckable(true);
-    sndCanvas->setChecked(true);
-    /// TODO: set a shortcut
-
     showPixelTree = new QAction("Pixel Tree View", this);
     showIcicleTree = new QAction("Icicle Tree View", this);
     followPath = new QAction("Follow Path", this);
@@ -541,8 +529,6 @@ Gist::addActions(void) {
     addAction(expand);
     addAction(stop);
     addAction(reset);
-    addAction(sndCanvas);
-    addAction(initComparison);
     addAction(navUp);
     addAction(navDown);
     addAction(navLeft);
@@ -644,7 +630,6 @@ Gist::connectCanvas(TreeCanvas* tc) {
         disconnect(expand, SIGNAL(triggered()), current_tc, SLOT(expandCurrentNode()));
         disconnect(stop, SIGNAL(triggered()), current_tc, SLOT(stopSearch()));
         disconnect(reset, SIGNAL(triggered()), current_tc, SLOT(reset()));
-        disconnect(sndCanvas, SIGNAL(triggered()), current_tc, SLOT(toggleSecondCanvas()));
         disconnect(navUp, SIGNAL(triggered()), current_tc, SLOT(navUp()));
         disconnect(navDown, SIGNAL(triggered()), current_tc, SLOT(navDown()));
         disconnect(navLeft, SIGNAL(triggered()), current_tc, SLOT(navLeft()));
@@ -690,7 +675,6 @@ Gist::connectCanvas(TreeCanvas* tc) {
     connect(expand, SIGNAL(triggered()), tc, SLOT(expandCurrentNode()));
     connect(stop, SIGNAL(triggered()), tc, SLOT(stopSearch()));
     connect(reset, SIGNAL(triggered()), tc, SLOT(reset()));
-    connect(sndCanvas, SIGNAL(triggered()), tc, SLOT(toggleSecondCanvas()));
     connect(navUp, SIGNAL(triggered()), tc, SLOT(navUp()));
     connect(navDown, SIGNAL(triggered()), tc, SLOT(navDown()));
     connect(navLeft, SIGNAL(triggered()), tc, SLOT(navLeft()));
