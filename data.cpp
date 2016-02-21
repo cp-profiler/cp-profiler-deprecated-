@@ -45,8 +45,8 @@ ostream& operator<<(ostream& s, const DbEntry& e) {
 }
 
 
-Data::Data(NodeAllocator* na, bool isRestarts)
- : _na(na), _isRestarts(isRestarts) {
+Data::Data(NodeAllocator* na)
+ : _na(na) {
 
     _isDone = false;
     _prev_node_timestamp = 0;

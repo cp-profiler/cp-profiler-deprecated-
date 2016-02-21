@@ -10,7 +10,10 @@
 class Execution : public QObject {
     Q_OBJECT
 public:
-    Execution() {}
+    Execution() {
+        _na = std::unique_ptr<NodeAllocator>{new NodeAllocator(false)};
+        _data = std::unique_ptr<Data>{new Data(_na.get())};
+    }
 
     inline const std::unordered_map<unsigned long long, string>& getNogoods(void) { return _data->getNogoods(); }
     inline std::unordered_map<unsigned long long, string>& getInfo(void) { return _data->getInfo(); }
@@ -35,8 +38,7 @@ public:
 
     void start(std::string label, bool isRestarts) {
 
-        _na = std::unique_ptr<NodeAllocator>{new NodeAllocator(false)};
-        _data = std::unique_ptr<Data>{new Data(_na.get(), isRestarts)};
+        _data->setIsRestarts(isRestarts);
 
         std::time_t t = std::time(nullptr);
         string ts = std::asctime(std::localtime(&t));

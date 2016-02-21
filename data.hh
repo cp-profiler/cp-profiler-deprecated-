@@ -103,7 +103,7 @@ public:
     const NodeAllocator* _na; /// Node allocator of _tc
 
     /// True if we want a dummy node (needed for showing restarts)
-    const bool _isRestarts;
+    bool _isRestarts = false;
 
     /// Where most node data is stored, id as it comes from Broker
     std::vector<DbEntry*> nodes_arr;
@@ -167,7 +167,7 @@ private:
     
 public:
 
-    Data(NodeAllocator* na, bool isRestarts);
+    Data(NodeAllocator* na);
     ~Data(void);
 
     int handleNodeCallback(message::Node& node);
@@ -208,7 +208,11 @@ public:
 /// ********* SETTERS **********
 
     void setTitle(string title) { _title = title; }
-    // void setIsRestarts(bool isRestarts) { _isRestarts = isRestarts; }
+    void setIsRestarts(bool isRestarts) {
+        /// can't set true to false
+        assert(_isRestarts == false || isRestarts == true);
+        _isRestarts = isRestarts;
+    }
 
 
 /// ****************************
