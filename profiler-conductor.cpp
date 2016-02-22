@@ -4,6 +4,8 @@
 #include "gistmainwindow.h"
 #include "cmp_tree_dialog.hh"
 
+#include "globalhelper.hh"
+
 #include <google/protobuf/io/zero_copy_stream_impl.h>
 #include <google/protobuf/io/coded_stream.h>
 
@@ -13,6 +15,8 @@
 
 #include <QPushButton>
 #include <QVBoxLayout>
+
+#include <QDebug>
 
 bool readDelimitedFrom(
     google::protobuf::io::ZeroCopyInputStream* rawInput,
@@ -128,7 +132,6 @@ public:
 
 void
 ProfilerConductor::newExecution(Execution* execution) {
-    qDebug() << "(maxim): new execution";
     ExecutionListItem *newItem = new ExecutionListItem(execution, executionList);
     newItem->setText("some execution");
     newItem->setSelected(true);
@@ -136,6 +139,7 @@ ProfilerConductor::newExecution(Execution* execution) {
     executions << execution;
 
     connect(execution, SIGNAL(titleKnown()), this, SLOT(updateList()));
+    connect(execution, SIGNAL(doneReceiving()), this, SLOT(onFinished()));
 }
 
 void
@@ -236,11 +240,34 @@ void ProfilerConductor::gatherStatisticsClicked(bool) {
         g->setStatsFilename(filename);
 
         g->gatherStatistics();
+
         // connect(g, SIGNAL(buildingFinished(void)),
         //         g, SLOT(gatherStatistics(void)));
         // g->show();
         // g->activateWindow();
     }
+}
+
+void ProfilerConductor::onFinished() {
+    /// NOTE(maxim): this is run whenever any execution is finished,
+    ///              but I only care about the first one for now
+
+    // Execution* exec = item->execution_;
+
+    /// do only if --save_log option is set
+    if (!GlobalParser::isSet(GlobalParser::save_log)) return;
+
+    gistButtonClicked(true);
+
+    auto item = static_cast<ExecutionListItem*>(executionList->item(0));
+    GistMainWindow* g = item->gistWindow_;
+
+    /// TODO(maxim): show the labels (or fix the logger to read the labels from data)
+    auto file_name = GlobalParser::value(GlobalParser::save_log);
+
+    /// NOTE(maxim): relative path will point to the executable's directory
+    g->getGist()->getCanvas()->printSearchLogTo(file_name);
+
 }
 
 
@@ -294,7 +321,7 @@ void ProfilerConductor::loadExecutionClicked(bool) {
 void ProfilerConductor::loadExecution(std::string filename) {
     Execution *e = loadSaved(filename);
     newExecution(e);
-    /// TODO(maxim): should know if it was restarts, TRUE for now
+    /// TODO(maxim): should somehow know if it was restarts, TRUE for now
     e->start("loaded from " + filename, true);
 }
 

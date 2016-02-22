@@ -229,7 +229,7 @@ Gist::on_canvas_statusChanged(VisualNode* n, const Statistics& stats,
         exportPDF->setEnabled(false);
         exportWholeTreePDF->setEnabled(false);
         print->setEnabled(false);
-        printSearchLog->setEnabled(false);
+        // printSearchLog->setEnabled(false);
 
         bookmarkNode->setEnabled(false);
         bookmarksGroup->setEnabled(false);

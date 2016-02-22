@@ -2,6 +2,7 @@
 #define EXECUTION_HH
 
 #include <QObject>
+#include <QDebug>
 #include "data.hh"
 #include <sstream>
 #include <ctime>
@@ -19,7 +20,7 @@ public:
     inline std::unordered_map<unsigned long long, string>& getInfo(void) { return _data->getInfo(); }
     DbEntry* getEntry(unsigned int gid) const { return _data->getEntry(gid); }
     unsigned int getGidBySid(unsigned int sid) { return _data->getGidBySid(sid); }
-    std::string getLabel(unsigned int gid) { return _data->getLabel(gid); }
+    std::string getLabel(unsigned int gid) const { return _data->getLabel(gid); }
     unsigned long long getTotalTime() { return _data->getTotalTime(); }
     string getTitle() { return _data->getTitle(); }
 
@@ -58,6 +59,7 @@ signals:
     void titleKnown();
     void startReceiving();
     void doneReceiving();
+
 private:
     std::unique_ptr<Data> _data;
     std::unique_ptr<NodeAllocator> _na;

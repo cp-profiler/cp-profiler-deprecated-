@@ -365,7 +365,7 @@ void TreeBuilder::run(void) {
     //     qApp->exit();
 
 
-    if (GlobalParser::isSet(GlobalParser::test_option())) {
+    if (GlobalParser::isSet(GlobalParser::test_option)) {
         qDebug() << "test mode, terminate";
         qApp->exit();
     }

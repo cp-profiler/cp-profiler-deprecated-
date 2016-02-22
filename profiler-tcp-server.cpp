@@ -21,7 +21,8 @@ void ProfilerTcpServer::incomingConnection(qintptr socketDescriptor) {
     // g->show();
 
     connect(receiver, SIGNAL(finished()), receiver, SLOT(deleteLater()));
-    connect(receiver, SIGNAL(doneReceiving()), execution, SLOT(doneReceiving()));
+    // already have this in receiverThread
+    // connect(receiver, SIGNAL(doneReceiving()), execution, SLOT(doneReceiving()));
     connect(receiver, SIGNAL(doneReceiving()), execution, SLOT(setDoneReceiving()));
     receiver->start();
 }

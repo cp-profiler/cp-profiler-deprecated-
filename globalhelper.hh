@@ -38,14 +38,16 @@ private:
 
   static QCommandLineParser clParser;
 
-  static QCommandLineOption helpOption;
-  static QCommandLineOption versionOption;
-
-  static QCommandLineOption testOption;
-  static QCommandLineOption portOption;
 
 public:
 
+  static QCommandLineOption help_option;
+  static QCommandLineOption version_option;
+
+  static QCommandLineOption test_option;
+  static QCommandLineOption port_option;
+  static QCommandLineOption load_option;
+  static QCommandLineOption save_log;
 
   
 
@@ -59,11 +61,6 @@ public:
   static QString value(const QCommandLineOption& opt);
 
   static void process(const QCoreApplication & app);
-
-  inline const static QCommandLineOption help_option() { return helpOption; }
-  inline const static QCommandLineOption version_option() { return versionOption; }
-  inline const static QCommandLineOption test_option() { return testOption; }
-  inline const static QCommandLineOption port_option() { return portOption; }
 
 
 };

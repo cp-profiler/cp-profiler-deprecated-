@@ -538,6 +538,23 @@ void TreeCanvas::showPixelTree(void) {
   pixelTreeDialog->show();
 }
 
+void
+TreeCanvas::printSearchLogTo(const QString& file_name) {
+  qDebug() << "hello?";
+  if (file_name != "") {
+        QFile outputFile(file_name);
+        if (outputFile.open(QFile::WriteOnly | QFile::Truncate)) {
+            QTextStream out(&outputFile);
+            SearchLogCursor slc(root, out, *na, *execution);
+            PreorderNodeVisitor<SearchLogCursor>(slc).run();
+            qDebug() << "writing to the file: " << file_name;
+        } else {
+          qDebug() << "could not open the file: " << file_name;
+        }
+    }
+}
+
+
 void TreeCanvas::showIcicleTree(void) {
 
   using cpprofiler::pixeltree::IcicleTreeDialog;
@@ -1230,14 +1247,7 @@ TreeCanvas::print(void) {
 void
 TreeCanvas::printSearchLog(void) {
     QString filename = QFileDialog::getSaveFileName(this, QString(""), "", QString(""));
-    if (filename != "") {
-        QFile outputFile(filename);
-        if (outputFile.open(QFile::WriteOnly | QFile::Truncate)) {
-            QTextStream out(&outputFile);
-            SearchLogCursor slc(root, out, *na);
-            PreorderNodeVisitor<SearchLogCursor>(slc).run();
-        }
-    }
+    printSearchLogTo(filename);
 }
 
 VisualNode*

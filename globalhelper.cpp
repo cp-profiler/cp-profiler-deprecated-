@@ -28,16 +28,22 @@ GlobalParser* GlobalParser::_self = nullptr;
 
 QCommandLineParser GlobalParser::clParser{};
 QCommandLineOption GlobalParser
-      ::helpOption{clParser.addHelpOption()};
+      ::help_option{clParser.addHelpOption()};
 
 QCommandLineOption GlobalParser
-      ::versionOption{clParser.addVersionOption()};
+      ::version_option{clParser.addVersionOption()};
 
 QCommandLineOption GlobalParser
-      ::testOption{"test", "Terminates right after getting DONE RECEIVING"};
+      ::test_option{"test", "Terminates right after getting DONE RECEIVING"};
 
 QCommandLineOption GlobalParser
-      ::portOption{{"p", "port"}, "Send nodes via port <port>.", "port"};
+      ::port_option{{"p", "port"}, "Send nodes via port <port>.", "port"};
+
+QCommandLineOption GlobalParser
+      ::load_option{{"l", "load"}, "Load execution <file_name>.", "file_name"};
+
+QCommandLineOption GlobalParser
+      ::save_log{"save_log", "Save search log to <file_name>.", "file_name"};
 
 
 GlobalParser::GlobalParser()
@@ -49,10 +55,12 @@ GlobalParser::GlobalParser()
   }
   _self = this;
 
-  portOption.setDefaultValue("6565");
+  port_option.setDefaultValue("6565");
 
-  clParser.addOption(testOption);
-  clParser.addOption(portOption);
+  clParser.addOption(test_option);
+  clParser.addOption(port_option);
+  clParser.addOption(load_option);
+  clParser.addOption(save_log);
 
 
 }

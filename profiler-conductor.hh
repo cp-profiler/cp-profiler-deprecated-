@@ -27,6 +27,7 @@ public:
     void loadExecution(std::string filename);
 public slots:
     void updateList();
+    void onFinished();
 };
 
 #endif

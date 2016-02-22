@@ -560,10 +560,12 @@ SubtreeCountCursor::moveDownwards(void) {
 inline
 SearchLogCursor::SearchLogCursor(VisualNode *theNode,
                                  QTextStream& outputStream,
-                                 const VisualNode::NodeAllocator& na)
+                                 const VisualNode::NodeAllocator& na,
+                                 const Execution& execution)
     : NodeCursor<VisualNode>(theNode, na),
+      _out(outputStream),
       _na(na),
-      _out(outputStream)
+      _execution(execution)
 {}
     
 inline void
@@ -576,10 +578,12 @@ SearchLogCursor::processCurrentNode(void) {
 
     for (int i = 0 ; i < numChildren ; i++) {
         int childIndex = n->getChild(i);
-        VisualNode *childNode = n->getChild(_na, i);
-        QString childLabel = _na.getLabel(childNode);
+
+        int child_gid = n->getChild(i);
+        auto child_label = QString::fromStdString(_execution.getLabel(child_gid));
+
         // The child's index and its label.
-        _out << " " << childIndex << " " << childLabel;
+        _out << " " << childIndex << " " << child_label;
     }
 
     // Terminate the line.

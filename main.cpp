@@ -32,7 +32,7 @@ int main(int argc, char *argv[])
 
     QApplication a(argc, argv);
 
-    qDebug() << "scroll bar size: " << a.style()->pixelMetric(QStyle::PM_ScrollBarExtent);
+    // qDebug() << "scroll bar size: " << a.style()->pixelMetric(QStyle::PM_ScrollBarExtent);
 
     QCoreApplication::setApplicationName("cpprof");
     QCoreApplication::setApplicationVersion("0.1");
@@ -41,8 +41,8 @@ int main(int argc, char *argv[])
 
     clParser.process(a);
 
-    if (GlobalParser::isSet(GlobalParser::version_option()) ||
-        GlobalParser::isSet(GlobalParser::help_option())) {
+    if (GlobalParser::isSet(GlobalParser::version_option) ||
+        GlobalParser::isSet(GlobalParser::help_option)) {
       return 0;
     }
 
@@ -51,9 +51,15 @@ int main(int argc, char *argv[])
     // GistMainWindow w;
     w.show();
 
-    for (int i = 1 ; i < argc ; i++) {
-        w.loadExecution(argv[i]);
+    /// NOTE(maxim): only can load 1 execution for now
+    if (GlobalParser::isSet(GlobalParser::load_option)) {
+        auto file_name = GlobalParser::value(GlobalParser::load_option);
+        qDebug() << "loading execuiton: " << file_name;
+        w.loadExecution(file_name.toStdString());
     }
+    // for (int i = 1 ; i < argc ; i++) {
+    //     w.loadExecution(argv[i]);
+    // }
 
     // QObject::connect(&a, SIGNAL(focusChanged(QWidget*,QWidget*)),
     //                   w.getGist(), SLOT(onFocusChanged(QWidget*,QWidget*)));
