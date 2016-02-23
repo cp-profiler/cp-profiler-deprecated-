@@ -43,6 +43,8 @@ IcicleTreeDialog::IcicleTreeDialog(TreeCanvas* tc): QDialog(tc) {
 
   canvas_ = new IcicleTreeCanvas(scrollArea_, tc);
 
+  setAttribute(Qt::WA_DeleteOnClose, true);
+
   connect(this, SIGNAL(windowResized()), canvas_, SLOT(resizeCanvas()));
 
 }
