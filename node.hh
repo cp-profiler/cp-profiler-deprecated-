@@ -121,7 +121,7 @@ private:
   /// The children, or in case there are at most two, the first child
   void* childrenOrFirstChild;
 
-  /// The parent of this node, or NULL for the root
+  /// The parent of this node, or nullptr for the root
   int parent;
 
   /// Read the tag of childrenOrFirstChild

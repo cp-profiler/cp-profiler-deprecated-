@@ -105,7 +105,7 @@ DepthAnalysis::runMSL() {
 
     /// copy count_list to count_array (only when leaving a node):
     if (curr == Direction::UP){
-      for (int d = 0; d < total_depth; d++) {
+      for (unsigned d = 0; d < total_depth; d++) {
         // count_array[d][i] = count_list[d];
         count_array.at(d).push_back(count_list[d]);
       }

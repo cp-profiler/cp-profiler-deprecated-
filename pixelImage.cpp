@@ -67,14 +67,16 @@ PixelImage::drawPixel(int x, int y, QRgb color) {
   if (y < 0)
     return; /// TODO: fix later
 
-  int x0 = x * pixel_width_;
-  int y0 = y * pixel_height_;
+  assert(x >= 0);
+
+  unsigned x0 = x * pixel_width_;
+  unsigned y0 = y * pixel_height_;
 
   /// TODO(maxim): experiment with using std::fill to draw rows
-  for (int column = 0; column < pixel_width_; ++column) {
+  for (unsigned column = 0; column < pixel_width_; ++column) {
     auto x = x0 + column;
     if (x >= width_) break;
-    for (int row = 0; row < pixel_height_; ++row) {
+    for (unsigned row = 0; row < pixel_height_; ++row) {
       auto y = y0 + row;
       if (y >= height_) break;
       setPixel(buffer_, x, y, color);
@@ -84,26 +86,29 @@ PixelImage::drawPixel(int x, int y, QRgb color) {
 
 void
 PixelImage::drawRect(int x, int width, int y, QRgb color) {
-  int x_begin = x * pixel_width_;
-  int y_begin = y * pixel_height_;
-  int x_end = (x + width) * pixel_width_;
-  int y_end = (y + 1) * pixel_height_;
+  assert (x >= 0 && y >= 0);
+
+  unsigned x_begin = x * pixel_width_;
+  unsigned y_begin = y * pixel_height_;
+  unsigned x_end = (x + width) * pixel_width_;
+  unsigned y_end = (y + 1) * pixel_height_;
 
   /// horizontal lines
-  for (int column = x_begin; column < x_end; ++column) {
-    int x = column;
-    int y_lowest = y_begin;
-    int y_highest = y_end - 1;
+  for (auto column = x_begin; column < x_end; ++column) {
+    auto x = column;
+    auto y_lowest = y_begin;
+    auto y_highest = y_end - 1;
 
     setPixel(buffer_, x, y_lowest, PIXEL_COLOR::BLACK);
     setPixel(buffer_, x, y_highest, PIXEL_COLOR::BLACK);
   }
 
   /// vertical lines
-  for (int row = y_begin; row < y_end; ++row) {
-    int y = row;
-    int x_leftmost = x_begin;
-    int x_rightmost = x_end - 1;
+  for (auto row = y_begin; row < y_end; ++row) {
+    auto y = row;
+    auto x_leftmost = x_begin;
+    auto x_rightmost = x_end - 1;
+    assert((int)x_end - 1 >= 0);
 
     setPixel(buffer_, x_leftmost, y, PIXEL_COLOR::BLACK);
     setPixel(buffer_, x_rightmost, y, PIXEL_COLOR::BLACK);
@@ -111,8 +116,8 @@ PixelImage::drawRect(int x, int width, int y, QRgb color) {
 
   /// fill the rect
 
-  for (int column = x_begin + 1; column < x_end - 1; ++column) {
-    for (int row = y_begin + 1; row < y_end - 1; ++row) {
+  for (auto column = x_begin + 1; column < x_end - 1; ++column) {
+    for (auto row = y_begin + 1; row < y_end - 1; ++row) {
       setPixel(buffer_, column, row, color);
     }
   }
@@ -120,8 +125,10 @@ PixelImage::drawRect(int x, int width, int y, QRgb color) {
 
 void
 PixelImage::setPixel(std::vector<uint32>& buffer, int x, int y, QRgb color) {
+  assert(x >= 0 && y >= 0);
 
-  if (x >= width_ || x < 0 || y >= height_ || y < 0) {
+  if ( static_cast<unsigned>(x) >= width_ || x < 0 ||
+       static_cast<unsigned>(y) >= height_ || y < 0) {
     return;
   }
 
@@ -139,7 +146,7 @@ PixelImage::setPixel(std::vector<uint32>& buffer, int x, int y, QRgb color) {
 static void addLayer(std::vector<uint32>& target_buf,
                const std::vector<uint32>& source_buf)
 {
-  for (int i = 0; i < source_buf.size(); ++i) {
+  for (unsigned i = 0; i < source_buf.size(); ++i) {
     if (source_buf[i] != 0xFFFFFF) {
       target_buf[i] = source_buf[i];
     }
@@ -177,21 +184,22 @@ PixelImage::drawHorizontalLine(std::vector<uint32>& buffer, int y, QRgb color) {
 
   y = (y + 1) * pixel_height_;
 
-  if (y < 0 || y > height_) return;
+  if (y < 0 || static_cast<unsigned>(y) > height_) return;
 
-  for (auto x = 0; x < width_; ++x) {
+  for (unsigned x = 0; x < width_; ++x) {
     setPixel(buffer, x, y, color);
   }
 }
 
 void
 PixelImage::drawVerticalLine(std::vector<uint32>& buffer, int x, QRgb color) {
+  assert(x >= 0);
 
   x = (x + 1) * pixel_width_;
 
-  if (x < 0 || x > width_) return;
+  if (x < 0 || static_cast<unsigned>(x) > width_) return;
 
-  for (auto y = 0; y < height_; ++y) {
+  for (unsigned y = 0; y < height_; ++y) {
     setPixel(buffer, x, y, color);
   }
 }
@@ -216,9 +224,9 @@ PixelImage::drawGrid() {
 
 
   /// draw cells gap_size squares wide
-  const int gap =  1;
-  const int pixel_size = pixel_height_; /// arbitrary decision
-  const int gap_size = gap * pixel_size; /// actual gap size in pixels
+  const unsigned gap =  1;
+  const unsigned pixel_size = pixel_height_; /// arbitrary decision
+  const unsigned gap_size = gap * pixel_size; /// actual gap size in pixels
 
   /// horizontal lines on level == j
   for (uint32 j = gap_size; j < height_; j += gap_size) {

@@ -104,7 +104,7 @@ NodeAllocatorBase<T>::best(int i) const {
   assert(i/NodeBlockSize < n);
   assert(i/NodeBlockSize < cur_b || i%NodeBlockSize <= cur_t);
   int bi = b[i/NodeBlockSize]->best[i%NodeBlockSize];
-  return bi == -1 ? NULL : (*this)[bi];
+  return bi == -1 ? nullptr : (*this)[bi];
 }
 
 template<class T>
@@ -179,7 +179,7 @@ Node::getFirstChild(void) const {
 
 inline
 Node::Node(int p, bool failed) : parent(p) {
-  childrenOrFirstChild = NULL;
+  childrenOrFirstChild = nullptr;
   noOfChildren = 0;
   setTag(failed ? LEAF : UNDET);
 }

@@ -205,7 +205,7 @@ bool writeDelimitedTo(
   output.WriteVarint32(size);
 
   uint8_t* buffer = output.GetDirectBufferForNBytesAndAdvance(size);
-  if (buffer != NULL) {
+  if (buffer != nullptr) {
     // Optimization:  The message fits in one buffer, so use the faster
     // direct-to-array serialization path.
     message.SerializeWithCachedSizesToArray(buffer);
@@ -225,7 +225,7 @@ void ProfilerConductor::gatherStatisticsClicked(bool) {
     for (int i = 0 ; i < selected.size() ; i++) {
         ExecutionListItem* item = static_cast<ExecutionListItem*>(selected[i]);
         GistMainWindow* g = item->gistWindow_;
-        if (g == NULL) {
+        if (g == nullptr) {
             g = new GistMainWindow(item->execution_, this);
             item->gistWindow_ = g;
         }

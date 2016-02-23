@@ -30,7 +30,7 @@
 
 double get_wall_time(){
     struct timeval time;
-    if (gettimeofday(&time,NULL)){
+    if (gettimeofday(&time,nullptr)){
         //  Handle error
         return 0;
     }

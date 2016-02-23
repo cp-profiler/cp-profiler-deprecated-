@@ -207,7 +207,7 @@ PixelTreeCanvas::getDomainDataCompressed(vector<float>& compressed, int compress
   auto group_count = 0;
   auto group_value = 0.0f;
 
-  for (auto i = 0; i < pixel_list.size(); i++) {
+  for (unsigned i = 0; i < pixel_list.size(); i++) {
     group_count++;
 
     auto entry = _data.getEntry(pixel_list[i].node()->getIndex(*_na));
@@ -447,28 +447,28 @@ PixelTreeCanvas::traverseTreePostOrder(VisualNode* root) {
 void
 PixelTreeCanvas::drawPixelTree(const PixelData& pixel_data) {
 
-  auto xoff = _sa->horizontalScrollBar()->value();
-  auto yoff = _sa->verticalScrollBar()->value();
+  const auto xoff = _sa->horizontalScrollBar()->value();
+  const auto yoff = _sa->verticalScrollBar()->value();
 
-  int img_width = pixel_image.width();
+  const auto img_width = pixel_image.width();
 
-  const int compr = pixel_data.compression();
+  const auto compr = pixel_data.compression();
   const auto& pixel_list = pixel_data.pixel_list;
 
   // which pixel to start with:
-  auto start = static_cast<unsigned>(xoff * compr);
+  const auto start = static_cast<unsigned>(xoff * compr);
 
   /// check for solutions first (should be on the background)
   for (auto pixel_id = start; pixel_id < pixel_list.size(); pixel_id++) {
-    auto x = (pixel_id - start) / compr;
+    unsigned x = (pixel_id - start) / compr;
     if (x > img_width) break; /// out of image boundary
 
     auto pixelItem =  pixel_list[pixel_id];
     if (pixelItem.node()->getStatus() == SOLVED) {
 
-      for (int depth = 0; depth < tree_depth; depth++) {
+      for (unsigned depth = 0; depth < tree_depth; depth++) {
         int y = depth - yoff;
-        if (y > img_width || y < 0) continue;
+        if (static_cast<unsigned>(y) > img_width || y < 0) continue;
         pixel_image.drawPixel(x, y, qRgb(0, 255, 0));
       }
     }
@@ -477,7 +477,7 @@ PixelTreeCanvas::drawPixelTree(const PixelData& pixel_data) {
   std::vector<int> intensity_vec(tree_depth + 1, 0);
   std::vector<bool> selected_on_level(tree_depth + 1, false);
 
-  for (auto pixel_id = start; pixel_id < int(pixel_list.size()); pixel_id++) {
+  for (auto pixel_id = start; pixel_id < pixel_list.size(); pixel_id++) {
     auto x = (pixel_id - start) / compr;
     if (x > img_width) break; /// out of image boundary
 
@@ -488,7 +488,7 @@ PixelTreeCanvas::drawPixelTree(const PixelData& pixel_data) {
     intensity_vec.at(depth)++; // populate intensity vector
     if (pixelItem.isSelected()) { selected_on_level[depth] = true; }
 
-    bool is_vline_end = (pixel_id % compr == compr-1) || (pixel_id == int(pixel_list.size()-1));
+    bool is_vline_end = ( (pixel_id % compr) == (compr-1) ) || (pixel_id == pixel_list.size()-1);
 
     if (is_vline_end) {
       // draw from intensity vector:
@@ -565,25 +565,26 @@ PixelTreeCanvas::drawVarData() {
 
   /// TODO: add flush
 
-  auto xoff = _sa->horizontalScrollBar()->value();
-  auto yoff = _sa->verticalScrollBar()->value();
+  const auto xoff = _sa->horizontalScrollBar()->value();
+  const auto yoff = _sa->verticalScrollBar()->value();
 
+  const int zero_level = current_image_height + vars.size() - yoff;
   pixel_image.drawHorizontalLine(current_image_height - yoff, PixelImage::PIXEL_COLOR::LIGTH_GRAY);
-  int zero_level = current_image_height + vars.size() - yoff;
   pixel_image.drawHorizontalLine(zero_level, PixelImage::PIXEL_COLOR::LIGTH_GRAY);
 
-  for (auto vline = 0; vline < int(var_decisions_compressed.size()); vline++) {
-    for (auto i = 0; i < int(var_decisions_compressed.at(vline).size()); i++) {
+  for (unsigned vline = 0; vline < var_decisions_compressed.size(); vline++) {
+    for (unsigned i = 0; i < var_decisions_compressed.at(vline).size(); i++) {
 
-      auto var_id = var_decisions_compressed[vline][i];
+      const auto var_id = var_decisions_compressed[vline][i];
 
-      auto x = vline - xoff;
-      auto y = zero_level - var_id;
+      /// cast to `int` as to see if the value < 0
+      const auto x = static_cast<int>(vline) - xoff;
+      const auto y = static_cast<int>(zero_level) - var_id;
 
-      if (x > pixel_image.width()) break;
-      if (y > pixel_image.width() || y < 0) continue;
+      if (static_cast<unsigned>(x) > pixel_image.width()) break;
+      if (static_cast<unsigned>(y) > pixel_image.width() || y < 0) continue;
 
-      auto color_value = ceil(var_id * 255 / vars.size());
+      const auto color_value = ceil(var_id * 255 / vars.size());
 
       pixel_image.drawPixel(x, y, QColor::fromHsv(color_value, 200, 255).rgba());
 
@@ -595,25 +596,26 @@ PixelTreeCanvas::drawVarData() {
 
 void
 PixelTreeCanvas::drawNogoodData() {
-  auto xoff = _sa->horizontalScrollBar()->value();
-  auto yoff = _sa->verticalScrollBar()->value();
+  const auto xoff = _sa->horizontalScrollBar()->value();
+  const auto yoff = _sa->verticalScrollBar()->value();
 
-  int img_height = pixel_image.height();
+  const auto img_height = pixel_image.height();
 
-  auto max_value = *std::max(nogood_counts_compressed.begin(), nogood_counts_compressed.end());
+  const auto max_value = *std::max(nogood_counts_compressed.begin(), nogood_counts_compressed.end());
 
-  int zero_level = current_image_height + max_value - yoff;
+  const int zero_level = current_image_height + max_value - yoff;
   pixel_image.drawHorizontalLine(current_image_height - yoff, PixelImage::PIXEL_COLOR::LIGTH_GRAY);
   pixel_image.drawHorizontalLine(zero_level, PixelImage::PIXEL_COLOR::LIGTH_GRAY);
 
-  for (auto vline = 0; vline < int(nogood_counts_compressed.size()); vline++) {
-    auto value = nogood_counts_compressed[vline];
+  for (unsigned vline = 0; vline < nogood_counts_compressed.size(); vline++) {
+    const auto value = nogood_counts_compressed[vline];
 
-    auto x = vline - xoff;
-    auto y = zero_level - value;
+    /// cast to `int` as to see if the value < 0
+    const auto x = static_cast<int>(vline) - xoff;
+    const auto y = static_cast<int>(zero_level) - value;
 
-    if (x > pixel_image.width()) break;
-    if (y > img_height || y < 0) continue;
+    if (static_cast<unsigned>(x) > pixel_image.width()) break;
+    if (static_cast<unsigned>(y) > img_height || y < 0) continue;
 
     /// TODO: normalize
 
@@ -648,7 +650,7 @@ PixelTreeCanvas::drawHistogram(vector<float>& data, int color) {
   auto xoff = _sa->horizontalScrollBar()->value();
   auto yoff = _sa->verticalScrollBar()->value();
 
-  int img_height = pixel_image.height();
+  auto img_height = pixel_image.height();
 
   /// work out maximum value
   int max_value = *max_element(std::begin(data), std::end(data));
@@ -667,15 +669,15 @@ PixelTreeCanvas::drawHistogram(vector<float>& data, int color) {
 
   pixel_image.drawHorizontalLine(zero_level, PixelImage::PIXEL_COLOR::LIGTH_GRAY);
 
-  for (auto vline = 0; vline < int(data.size()); vline++) {
+  for (unsigned vline = 0; vline < data.size(); vline++) {
     auto val = floor(data[vline] * coeff);
 
-    auto x = vline - xoff;
-    auto y = zero_level - val;
+    auto x = static_cast<int>(vline) - xoff;
+    auto y = static_cast<int>(zero_level) - val;
 
     if (x < 0) continue;
-    if (x > pixel_image.width()) break; /// note: true (breaks) if x < 0
-    if (y > img_height || y < 0) continue;
+    if (static_cast<unsigned>(x) > pixel_image.width()) break; /// note: true (breaks) if x < 0
+    if (static_cast<unsigned>(y) > img_height || y < 0) continue;
 
     pixel_image.drawPixel(x, y, color);
 
@@ -688,12 +690,12 @@ PixelTreeCanvas::drawHistogram(vector<float>& data, int color) {
 void
 PixelTreeCanvas::drawNodeRate(unsigned l_vline, unsigned r_vline) {
 
-  std::vector<float>& node_rate = _data.node_rate;
+  // std::vector<float>& node_rate = _data.node_rate;
   std::vector<int>& nr_intervals = _data.nr_intervals;
 
   // int start_x = 0;
 
-  float max_node_rate = *std::max_element(node_rate.begin(), node_rate.end());
+  // float max_node_rate = *std::max_element(node_rate.begin(), node_rate.end());
 
   // float coeff = (float)HIST_HEIGHT / max_node_rate;
 
@@ -742,8 +744,8 @@ PixelTreeCanvas::drawBjData() {
   auto yoff = _sa->verticalScrollBar()->value();
 
   /// TODO(maxim): check boundaries for this histogram
-  int img_width = pixel_image.width();
-  int img_height = pixel_image.height();
+  // auto img_width = pixel_image.width();
+  // auto img_height = pixel_image.height();
 
   auto max_value = bj_data.max_from;
   float coeff = static_cast<float>(HIST_HEIGHT) / (max_value + 1);
@@ -754,7 +756,6 @@ PixelTreeCanvas::drawBjData() {
   pixel_image.drawHorizontalLine(zero_level, PixelImage::PIXEL_COLOR::LIGTH_GRAY);
 
   const auto compr = pixel_data.compression();
-  const auto start = xoff;
   const auto end = std::ceil((float)_nodeCount / compr);
 
   /// TODO(maxim): break if out of canvas' boundary
@@ -804,7 +805,6 @@ PixelTreeCanvas::drawBjData() {
       auto x = vline - xoff;
       auto y_from = current_image_height - yoff + ceil(coeff * average_from);
       auto y_to = current_image_height - yoff + ceil(coeff * average_to);
-      auto y_skipped = current_image_height - yoff + ceil(coeff * average_skipped);
 
       for (int y = y_from; y >= y_to; --y) {
         if (y > y_from - average_skipped) {
@@ -856,11 +856,11 @@ PixelTreeCanvas::drawDepthAnalysisData() {
 
       auto value = da_data_compressed[depth][vline];
 
-      auto x = vline - xoff;
-      auto y = zero_level - coeff * value;
+      auto x = static_cast<int>(vline) - xoff;
+      auto y = static_cast<int>(zero_level) - coeff * value;
 
-      if (x > pixel_image.width()) break; /// note: true (breaks) if x < 0
-      if (y > pixel_image.height() || y < 0) continue;
+      if (static_cast<unsigned>(x) > pixel_image.width()) break; /// note: true (breaks) if x < 0
+      if (static_cast<unsigned>(y) > pixel_image.height() || y < 0) continue;
 
       int color_value = 200 - 200 * static_cast<float>(depth) / tree_depth;
 
@@ -912,12 +912,12 @@ PixelTreeCanvas::drawDepthAnalysisData2() {
 
       auto value = da_data_compressed[depth][vline];
 
-      auto x = vline - xoff;
-      auto y = current_image_height + depth - yoff;
+      auto x = static_cast<int>(vline) - xoff;
+      auto y = static_cast<int>(current_image_height) + depth - yoff;
       int color_value = 255 - coeff * value;
 
-      if (x > pixel_image.width()) break; /// note: true (breaks) if x < 0
-      if (y > pixel_image.height() || y < 0) continue;
+      if (static_cast<unsigned>(x) > pixel_image.width()) break; /// note: true (breaks) if x < 0
+      if (static_cast<unsigned>(y) > pixel_image.height() || y < 0) continue;
 
       // if (value != 0) {
         pixel_image.drawPixel(x, y,  QColor::fromHsv(0, 0, color_value).rgba());
@@ -1057,17 +1057,16 @@ PixelTreeCanvas::mouseReleaseEvent(QMouseEvent* event) {
 void
 PixelTreeCanvas::mouseMoveEvent(QMouseEvent* event) {
 
-  auto xoff = _sa->horizontalScrollBar()->value();
-  auto yoff = _sa->verticalScrollBar()->value();
+  const auto xoff = _sa->horizontalScrollBar()->value();
 
-  auto x = event->x() / pixel_image.pixel_width();
-  auto y = event->y() / pixel_image.pixel_height();
+  const auto x = event->x() / pixel_image.pixel_width();
+  const auto y = event->y() / pixel_image.pixel_height();
 
   if (x != mouse_guide_x || y != mouse_guide_y) {
     mouse_guide_x = x;
     mouse_guide_y = y;
 
-    auto vline = x + xoff;
+    const auto vline = x + xoff;
 
     /// calls redrawAll not more often than 60hz
     maybeCaller.call([this, x, y, vline]() {
@@ -1120,8 +1119,8 @@ void
 PixelTreeCanvas::selectNodesfromPT(int vline_begin, int vline_end) {
 
   auto boundaries = getPixelBoundaries(vline_begin, vline_end, pixel_data.compression());
-  auto start = boundaries.first;
-  auto end = boundaries.second; /// not including
+  unsigned start = boundaries.first;
+  unsigned end = boundaries.second; /// not including
 
   auto selectOne = [this](VisualNode* node) {
     detail::unhideNode(node, _na);
@@ -1151,7 +1150,7 @@ PixelTreeCanvas::selectNodesfromPT(int vline_begin, int vline_end) {
   /// select nodes in interval [ start; end )
   auto& pixel_list = pixel_data.pixel_list;
 
-  for (auto id = start; id < end && id < pixel_list.size(); ++id) {
+  for (unsigned id = start; id < end && id < pixel_list.size(); ++id) {
     auto& pixelItem = pixel_list[id];
     auto node = pixelItem.node();
 
@@ -1170,15 +1169,15 @@ PixelTreeCanvas::selectNodesfromPT(int vline_begin, int vline_end) {
 void
 PixelTreeCanvas::highlightOnOriginalTree(int vline) {
   auto boundaries = getPixelBoundaries(vline, pixel_data.compression());
-  auto start = boundaries.first;
-  auto end = boundaries.second; /// not including
+  unsigned start = boundaries.first;
+  unsigned end = boundaries.second; /// not including
 
   /// unhighlight previously highlighted
   detail::unhighlightNodes(*_na, pixels_mouse_over);
 
   auto& pixel_list = pixel_data.pixel_list;
 
-  for (auto id = start; id < end && id < pixel_list.size(); ++id) {
+  for (unsigned id = start; id < end && id < pixel_list.size(); ++id) {
     auto& pixelItem = pixel_list[id];
 
     /// hightlight itself if visible or the first visible parent otherwise

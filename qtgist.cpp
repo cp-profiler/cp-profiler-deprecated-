@@ -178,7 +178,7 @@ Gist::updateActions(VisualNode* n, bool finished) {
         }
 
         VisualNode* p = n->getParent(*current_tc->na);
-        if (p == NULL) {
+        if (p == nullptr) {
             navUp->setEnabled(false);
             navRight->setEnabled(false);
             navLeft->setEnabled(false);

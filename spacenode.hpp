@@ -123,7 +123,7 @@ SpaceNode::hasOpenChildren(void) {
 inline int
 SpaceNode::getAlternative(const NodeAllocator& na) const {
   SpaceNode* p = getParent(na);
-  if (p == NULL)
+  if (p == nullptr)
     return -1;
   for (int i=p->getNumberOfChildren(); i--;)
     if (p->getChild(na,i) == this)

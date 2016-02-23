@@ -63,7 +63,7 @@
         setHasSolvedChildren(hasSolvedChildren() ||
           getChild(na,i)->hasSolvedChildren());
       SpaceNode* p = getParent(na);
-      if (p != NULL) {
+      if (p != nullptr) {
         p->closeChild(na, hasFailedChildren(), hasSolvedChildren());
       }
     } else {
@@ -71,14 +71,14 @@
       if (hadSolutions) {
         setHasSolvedChildren(true);
         SpaceNode* p = getParent(na);
-        while (p != NULL && !p->hasSolvedChildren()) {
+        while (p != nullptr && !p->hasSolvedChildren()) {
           p->setHasSolvedChildren(true);
           p = p->getParent(na);
         }
       }
       if (hadFailures) {
         SpaceNode* p = getParent(na);
-        while (p != NULL && !p->hasFailedChildren()) {
+        while (p != nullptr && !p->hasFailedChildren()) {
           p->setHasFailedChildren(true);
           p = p->getParent(na);
         }        
@@ -90,7 +90,7 @@
   SpaceNode::SpaceNode(bool)
   : Node(-1, false),
     nstatus(0) {
-//    if (root == NULL) {
+//    if (root == nullptr) {
 //      setStatus(FAILED);
 //      setHasSolvedChildren(false);
 //      setHasFailedChildren(true);

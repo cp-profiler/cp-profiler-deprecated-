@@ -332,7 +332,7 @@ Filters::setMinCount(uint val){
 }
 
 ShapeCanvas::ShapeCanvas(QWidget* parent, TreeCanvas* tc) 
-: QWidget(parent), _targetNode(NULL), _tc(tc) {
+: QWidget(parent), _targetNode(nullptr), _tc(tc) {
 }
 
 void
@@ -342,7 +342,7 @@ ShapeCanvas::paintEvent(QPaintEvent* event) {
     
   std::multiset<ShapeI>::iterator it;
   it = _tc->shapesMap.begin();
-  if (_targetNode == NULL) {
+  if (_targetNode == nullptr) {
     _targetNode = it->node;
   }
    
@@ -399,7 +399,7 @@ ShapeCanvas::scroll(void) {
 //   return _data;
 // }
 
-unsigned int TreeCanvas::getTreeDepth() {
+unsigned TreeCanvas::getTreeDepth() {
   return stats.maxDepth;
 }
 
@@ -452,7 +452,7 @@ TreeCanvas::update(void) {
     QMutexLocker locker(&mutex);
     layoutMutex.lock();
     // std::cerr << "TreeCanvas::update\n";
-    if (root != NULL) {
+    if (root != nullptr) {
         // std::cerr << "root->layout\n";
         root->layout(*na);
         BoundingBox bb = root->getBoundingBox();
@@ -728,7 +728,7 @@ TreeCanvas::highlightShape(VisualNode* node) {
     PostorderNodeVisitor<HideNotHighlightedCursor>(hnhc).run();
       
   } else {
-    shapeHighlighted = NULL;
+    shapeHighlighted = nullptr;
   }
     
   update();
@@ -849,7 +849,7 @@ TreeCanvas::timerEvent(QTimerEvent* e) {
 void
 TreeCanvas::zoomToFit(void) {
     QMutexLocker locker(&layoutMutex);
-    if (root != NULL) {
+    if (root != nullptr) {
         BoundingBox bb;
         bb = root->getBoundingBox();
         QWidget* p = parentWidget();
@@ -889,7 +889,7 @@ TreeCanvas::centerCurrentNode(void) {
     int y=0;
 
     VisualNode* c = currentNode;
-    while (c != NULL) {
+    while (c != nullptr) {
         x += c->getOffset();
         y += Layout::dist_y;
         c = c->getParent(*na);
@@ -1059,7 +1059,7 @@ TreeCanvas::navUp(void) {
 
     setCurrentNode(p);
 
-    if (p != NULL) {
+    if (p != nullptr) {
         centerCurrentNode();
     }
 }
@@ -1093,7 +1093,7 @@ void
 TreeCanvas::navLeft(void) {
     QMutexLocker locker(&mutex);
     VisualNode* p = currentNode->getParent(*na);
-    if (p != NULL) {
+    if (p != nullptr) {
         int alt = currentNode->getAlternative(*na);
         if (alt > 0) {
             VisualNode* n = p->getChild(*na,alt-1);
@@ -1107,7 +1107,7 @@ void
 TreeCanvas::navRight(void) {
     QMutexLocker locker(&mutex);
     VisualNode* p = currentNode->getParent(*na);
-    if (p != NULL) {
+    if (p != nullptr) {
         uint alt = currentNode->getAlternative(*na);
         if (alt + 1 < p->getNumberOfChildren()) {
             VisualNode* n = p->getChild(*na,alt+1);
@@ -1280,7 +1280,7 @@ TreeCanvas::eventNode(QEvent* event) {
         break;
     }
     default:
-        return NULL;
+        return nullptr;
     }
     QAbstractScrollArea* sa =
             static_cast<QAbstractScrollArea*>(parentWidget()->parentWidget());
@@ -1305,7 +1305,7 @@ TreeCanvas::event(QEvent* event) {
     if (mutex.tryLock()) {
         if (event->type() == QEvent::ToolTip) {
             VisualNode* n = eventNode(event);
-            if (n != NULL) {
+            if (n != nullptr) {
                 QHelpEvent* he = static_cast<QHelpEvent*>(event);
                 QToolTip::showText(he->globalPos(),
                                    QString(n->toolTip(*na).c_str()));
@@ -1385,7 +1385,7 @@ void
 TreeCanvas::contextMenuEvent(QContextMenuEvent* event) {
     if (mutex.tryLock()) {
         VisualNode* n = eventNode(event);
-        if (n != NULL) {
+        if (n != nullptr) {
             setCurrentNode(n);
             emit contextMenu(event);
             event->accept();
@@ -1446,7 +1446,7 @@ TreeCanvas::setCurrentNode(VisualNode* n, bool finished, bool update) {
     if (finished)
         mutex.lock();
 
-    if (n != NULL) {
+    if (n != nullptr) {
         currentNode->setMarked(false);
         currentNode = n;
         currentNode->setMarked(true);
@@ -1485,7 +1485,7 @@ TreeCanvas::mousePressEvent(QMouseEvent* event) {
             VisualNode* n = eventNode(event);
             setCurrentNode(n);
             setCursor(QCursor(Qt::ArrowCursor));
-            if (n != NULL) {
+            if (n != nullptr) {
                 event->accept();
                 mutex.unlock();
                 return;
@@ -1596,14 +1596,14 @@ TreeCanvas::updateCanvas(void) {
 
     layoutMutex.lock();
 
-    if (root == NULL) return;
+    if (root == nullptr) return;
 
     if (autoHideFailed) {
         // std::cerr << "autoHideFailed is true\n";
         root->hideFailed(*na, true);
     }
 
-    for (VisualNode* n = currentNode; n != NULL; n=n->getParent(*na)) {
+    for (VisualNode* n = currentNode; n != nullptr; n=n->getParent(*na)) {
         if (n->isHidden()) {
             currentNode->setMarked(false);
             currentNode = n;

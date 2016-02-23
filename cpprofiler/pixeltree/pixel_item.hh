@@ -56,7 +56,7 @@ namespace cpprofiler { namespace pixeltree {
       auto* next = _node;
       do {
         next->setHovered(false);
-      } while (next = next->getParent(na));
+      } while ((next = next->getParent(na)) != nullptr);
     }
 
     inline void setHovered(NodeAllocator& na) {

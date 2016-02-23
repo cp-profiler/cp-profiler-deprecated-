@@ -81,7 +81,7 @@ VisualNode::VisualNode(int p)
     : SpaceNode(p)
     , offset(0)
 {
-    shape = NULL;
+    shape = nullptr;
     setDirty(true);
     setChildrenLayoutDone(false);
     setHidden(false);
@@ -95,7 +95,7 @@ VisualNode::VisualNode( bool)
     : SpaceNode(true)
     , offset(0)
 {
-    shape = NULL;
+    shape = nullptr;
     setDirty(true);
     setChildrenLayoutDone(false);
     setHidden(false);
@@ -270,12 +270,12 @@ VisualNode::findNode(const NodeAllocator& na, int x, int y) {
     VisualNode* cur = this;
     int depth = y / Layout::dist_y;
 
-    while (depth > 0 && cur != NULL) {
+    while (depth > 0 && cur != nullptr) {
         if (cur->isHidden()) {
             break;
         }
         VisualNode* oldCur = cur;
-        cur = NULL;
+        cur = nullptr;
         for (unsigned int i=0; i<oldCur->getNumberOfChildren(); i++) {
             VisualNode* nextChild = oldCur->getChild(na,i);
             int newX = x - nextChild->getOffset();
@@ -290,7 +290,7 @@ VisualNode::findNode(const NodeAllocator& na, int x, int y) {
     }
 
     if(cur == this && !cur->containsCoordinateAtDepth(x, 0)) {
-        return NULL;
+        return nullptr;
     }
     return cur;
 }

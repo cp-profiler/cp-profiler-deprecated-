@@ -79,7 +79,7 @@ private:
 
   /// Stuff specific for a particular pixel tree
   // unsigned vlines; /// width of pixel tree
-  int tree_depth;
+  unsigned tree_depth;
 
   std::vector<float> time_arr; // time for each vline
   std::vector<float> domain_arr; // domain for each vline
@@ -121,8 +121,8 @@ private:
   MaybeCaller maybeCaller;
 
   /// TODO(maxim): find a better place to put these in
-  int mouse_guide_x = 0;
-  int mouse_guide_y = 0;
+  unsigned mouse_guide_x = 0;
+  unsigned mouse_guide_y = 0;
 
   /// Handling multiple selection on a pixel tree
   bool mouse_pressed = false;

@@ -357,7 +357,7 @@ DrawingCursor::drawShape(int myx, int myy, VisualNode* node){
     painter.setPen(Qt::NoPen);
 
     Shape* shape = node->getShape();
-    if (shape == NULL) {
+    if (shape == nullptr) {
         std::cerr << "WARNING: node has no shape\n";
         return; // this is wrong
     }

@@ -12,10 +12,10 @@ QMAKE_CXXFLAGS += -g
 
 TARGET = cp-profiler
 
-
 TEMPLATE = app
 
 QMAKE_CXXFLAGS += -std=c++11
+QMAKE_CXXFLAGS += -Werror
 
 SOURCES += main.cpp\
     globalhelper.cpp \

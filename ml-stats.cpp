@@ -292,7 +292,7 @@ public:
             if (mostRecentFailure) {
                 backjumpDistance[mostRecentFailure] =
                     mostRecentFailureDecisionLevel - decisionLevel;
-                mostRecentFailure = NULL;
+                mostRecentFailure = nullptr;
             }
             mostRecentFailure = node();
             mostRecentFailureDecisionLevel = decisionLevel;
@@ -304,7 +304,7 @@ public:
                 decisionLevel = execution->getEntry(gid)->decisionLevel;
                 backjumpDistance[mostRecentFailure] =
                     mostRecentFailureDecisionLevel - decisionLevel;
-                mostRecentFailure = NULL;
+                mostRecentFailure = nullptr;
             }
             break;
         default:
