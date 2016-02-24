@@ -45,6 +45,8 @@ QCommandLineOption GlobalParser
 QCommandLineOption GlobalParser
       ::save_log{"save_log", "Save search log to <file_name>.", "file_name"};
 
+QCommandLineOption GlobalParser
+      ::auto_compare{"auto_compare", "Compare the first two executions"};
 
 GlobalParser::GlobalParser()
 {
@@ -61,6 +63,7 @@ GlobalParser::GlobalParser()
   clParser.addOption(port_option);
   clParser.addOption(load_option);
   clParser.addOption(save_log);
+  clParser.addOption(auto_compare);
 
 
 }

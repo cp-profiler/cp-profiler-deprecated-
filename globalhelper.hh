@@ -48,6 +48,7 @@ public:
   static QCommandLineOption port_option;
   static QCommandLineOption load_option;
   static QCommandLineOption save_log;
+  static QCommandLineOption auto_compare;
 
   
 

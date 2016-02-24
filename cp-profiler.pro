@@ -108,4 +108,3 @@ else:unix: LIBS += -L$$PWD/../../../../../../usr/local/lib/ -ldl
 
 CONFIG += link_pkgconfig
 PKGCONFIG += protobuf
-

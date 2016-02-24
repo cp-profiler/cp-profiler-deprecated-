@@ -49,8 +49,13 @@ public:
         _data->setTitle(label + " (" + ts + ")");
 
         connect(this, SIGNAL(doneReceiving(void)), _data.get(), SLOT(setDoneReceiving(void)));
+        connect(this, &Execution::doneReceiving, [this](){ _is_done = true; });
 
         emit titleKnown();
+    }
+
+    bool isDone() const {
+        return _is_done;
     }
 
 
@@ -63,6 +68,7 @@ signals:
 private:
     std::unique_ptr<Data> _data;
     std::unique_ptr<NodeAllocator> _na;
+    bool _is_done;
 public Q_SLOTS:
     void handleNewNode(message::Node& node) {
         // std::cerr << "execution::newNode\n";

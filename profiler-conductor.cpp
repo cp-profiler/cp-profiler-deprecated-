@@ -16,6 +16,9 @@
 #include <QPushButton>
 #include <QVBoxLayout>
 
+#include <thread>
+#include <chrono>
+
 #include <QDebug>
 
 bool readDelimitedFrom(
@@ -252,21 +255,38 @@ void ProfilerConductor::onFinished() {
     /// NOTE(maxim): this is run whenever any execution is finished,
     ///              but I only care about the first one for now
 
-    // Execution* exec = item->execution_;
+    qDebug() << "--------------- executions.size: " << executions.size();
 
-    /// do only if --save_log option is set
-    if (!GlobalParser::isSet(GlobalParser::save_log)) return;
+    if (GlobalParser::isSet(GlobalParser::save_log)) {
 
-    gistButtonClicked(true);
+        if (executions.size() == 1) {
+            gistButtonClicked(true);
 
-    auto item = static_cast<ExecutionListItem*>(executionList->item(0));
-    GistMainWindow* g = item->gistWindow_;
+            auto item = static_cast<ExecutionListItem*>(executionList->item(0));
+            GistMainWindow* g = item->gistWindow_;
 
-    /// TODO(maxim): show the labels (or fix the logger to read the labels from data)
-    auto file_name = GlobalParser::value(GlobalParser::save_log);
+            /// TODO(maxim): show the labels (or fix the logger to read the labels from data)
+            auto file_name = GlobalParser::value(GlobalParser::save_log);
 
-    /// NOTE(maxim): relative path will point to the executable's directory
-    g->getGist()->getCanvas()->printSearchLogTo(file_name);
+            /// NOTE(maxim): relative path will point to the executable's directory
+            g->getGist()->getCanvas()->printSearchLogTo(file_name);
+        }
+
+    }
+
+    if (GlobalParser::isSet(GlobalParser::auto_compare)) {
+
+        if (executions.size() == 2) {
+            gistButtonClicked(true);
+
+            // std::this_thread::sleep_for (std::chrono::seconds(1));
+
+            compareButtonClicked(true);
+
+        }
+
+    }
+
 
 }
 
