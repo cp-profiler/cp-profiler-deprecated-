@@ -47,7 +47,7 @@ int main(int argc, char *argv[])
     }
 
     ProfilerConductor w;
-    
+
     // GistMainWindow w;
     w.show();
 
@@ -65,5 +65,5 @@ int main(int argc, char *argv[])
     //                   w.getGist(), SLOT(onFocusChanged(QWidget*,QWidget*)));
 
     return a.exec();
-    
+
 }

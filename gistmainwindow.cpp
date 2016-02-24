@@ -55,7 +55,7 @@ GistMainWindow::GistMainWindow(Execution* execution, QWidget* parent) : QMainWin
   setCentralWidget(c);
   setWindowTitle(tr("CP-Profiler"));
 
-  
+
 
 //  Logos logos;
 //  QPixmap myPic;
@@ -195,7 +195,7 @@ GistMainWindow::GistMainWindow(Execution* execution, QWidget* parent) : QMainWin
 
 //   if (c->finish())
 //     event->accept();
-//   else 
+//   else
 //     event->ignore();
 // }
 

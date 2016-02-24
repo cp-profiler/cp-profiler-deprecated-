@@ -51,6 +51,8 @@ Gist::initInterface(void) {
 
 Gist::Gist(Execution* execution, QWidget* parent) : QWidget(parent), execution(execution) {
 
+    qDebug() << "--------------- Created Gist!";
+
     initInterface();
     addActions();
 
@@ -61,7 +63,7 @@ Gist::Gist(Execution* execution, QWidget* parent) : QWidget(parent), execution(e
     layout->addWidget(scrollArea, 0,0,-1,1);
     layout->addWidget(canvas->scaleBar, 1,1, Qt::AlignHCenter);
     layout->addWidget(canvas->smallBox, 1,2, Qt::AlignBottom);
-    
+
     connectCanvas(canvas);
 
     // connect(execution, SIGNAL(newNode()), current_tc, SLOT(maybeUpdateCanvas()));
@@ -217,7 +219,7 @@ Gist::on_canvas_statusChanged(VisualNode* n, const Statistics& stats,
         toggleHidden->setEnabled(false);
         hideFailed->setEnabled(false);
         // hideSize->setEnabled(false);
-        
+
         // labelBranches->setEnabled(false);
         // labelPath->setEnabled(false);
         analyzeSimilarSubtrees->setEnabled(false);
@@ -245,7 +247,7 @@ Gist::on_canvas_statusChanged(VisualNode* n, const Statistics& stats,
             // searchAll->setEnabled(false);
         }
         if (n->getNumberOfChildren() > 0) {
-            
+
             toggleHidden->setEnabled(true);
             hideFailed->setEnabled(true);
             // hideSize->setEnabled(true);
@@ -264,12 +266,6 @@ Gist::on_canvas_statusChanged(VisualNode* n, const Statistics& stats,
         showNodeStats->setEnabled(true);
         labelPath->setEnabled(true);
         analyzeSimilarSubtrees->setEnabled(true);
-        if (n->getStatus() == UNDETERMINED) {
-            /// TODO: disable based on active canvas' current node:
-            // labelBranches->setEnabled(false); 
-        } else {
-            // labelBranches->setEnabled(!n->isHidden());
-        }
 
         VisualNode* root = n;
         while (!root->isRoot())
@@ -385,11 +381,9 @@ Gist::showStats(void) {
 
 void
 Gist::addActions(void) {
-    /// important! Expands hidden nodes and pentagons
     expand = new QAction("Expand", this);
     expand->setShortcut(QKeySequence("Return"));
-    expand->setShortcutContext(Qt::ApplicationShortcut);
-    
+
     stop = new QAction("Stop search", this);
     stop->setShortcut(QKeySequence("Esc"));
 
@@ -399,59 +393,53 @@ Gist::addActions(void) {
     showPixelTree = new QAction("Pixel Tree View", this);
     showIcicleTree = new QAction("Icicle Tree View", this);
     followPath = new QAction("Follow Path", this);
-    
+
     navUp = new QAction("Up", this);
     navUp->setShortcut(QKeySequence("Up"));
-    navUp->setShortcutContext(Qt::ApplicationShortcut);
-    
+
     navDown = new QAction("Down", this);
     navDown->setShortcut(QKeySequence("Down"));
-    navDown->setShortcutContext(Qt::ApplicationShortcut);
-    
+
     navLeft = new QAction("Left", this);
     navLeft->setShortcut(QKeySequence("Left"));
-    navLeft->setShortcutContext(Qt::ApplicationShortcut);
-    
+
     navRight = new QAction("Right", this);
     navRight->setShortcut(QKeySequence("Right"));
-    navRight->setShortcutContext(Qt::ApplicationShortcut);
-    
+
     navRoot = new QAction("Root", this);
     navRoot->setShortcut(QKeySequence("R"));
-    navRoot->setShortcutContext(Qt::ApplicationShortcut);
 
     navNextSol = new QAction("To next solution", this);
     navNextSol->setShortcut(QKeySequence("Shift+Right"));
-    
+
     navPrevSol = new QAction("To previous solution", this);
     navPrevSol->setShortcut(QKeySequence("Shift+Left"));
-    
+
     searchNext = new QAction("Next solution", this);
     searchNext->setShortcut(QKeySequence("N"));
-    
+
     searchAll = new QAction("All solutions", this);
     searchAll->setShortcut(QKeySequence("A"));
-    
+
     toggleHidden = new QAction("Hide/unhide", this);
     toggleHidden->setShortcut(QKeySequence("H"));
-    
+
     hideFailed = new QAction("Hide failed subtrees", this);
     hideFailed->setShortcut(QKeySequence("F"));
-    hideFailed->setShortcutContext(Qt::ApplicationShortcut);
 
     hideSize = new QAction("Hide small subtrees", this);
-    
+
     unhideAll = new QAction("Unhide all", this);
     unhideAll->setShortcut(QKeySequence("U"));
-    unhideAll->setShortcutContext(Qt::ApplicationShortcut);
-    
+
     labelBranches = new QAction("Label/clear branches", this);
     labelBranches->setShortcut(QKeySequence("L"));
+    /// TODO(maxim): should this be the default (Qt::WindowShortcut) instead?
     labelBranches->setShortcutContext(Qt::WidgetWithChildrenShortcut);
-    
+
     labelPath = new QAction("Label/clear path", this);
     labelPath->setShortcut(QKeySequence("Shift+L"));
-    labelPath->setShortcutContext(Qt::ApplicationShortcut);
+    // labelPath->setShortcutContext(Qt::ApplicationShortcut);
 
     analyzeSimilarSubtrees = new QAction("Analyse similar subtrees", this);
     analyzeSimilarSubtrees->setShortcut(QKeySequence("Shift+s"));
@@ -466,25 +454,25 @@ Gist::addActions(void) {
     showNodeOnPixelTree->setShortcut(QKeySequence("J"));
 
     collectMLStats = new QAction("Collect ML stats", this);
-    
+
     toggleStop = new QAction("Stop/unstop", this);
     toggleStop->setShortcut(QKeySequence("X"));
-    
+
     unstopAll = new QAction("Do not stop in subtree", this);
-    unstopAll->setShortcut(QKeySequence("Shift+X"));   
+    unstopAll->setShortcut(QKeySequence("Shift+X"));
 
     zoomToFit = new QAction("Zoom to fit", this);
     zoomToFit->setShortcut(QKeySequence("Z"));
-    
+
     center = new QAction("Center current node", this);
     center->setShortcut(QKeySequence("C"));
-    
+
     exportPDF = new QAction("Export subtree PDF...", this);
     exportPDF->setShortcut(QKeySequence("P"));
-    
+
     exportWholeTreePDF = new QAction("Export PDF...", this);
     exportWholeTreePDF->setShortcut(QKeySequence("Ctrl+Shift+P"));
-    
+
     print = new QAction("Print...", this);
     print->setShortcut(QKeySequence("Ctrl+P"));
 
@@ -492,7 +480,7 @@ Gist::addActions(void) {
 
     bookmarkNode = new QAction("Add/remove bookmark", this);
     bookmarkNode->setShortcut(QKeySequence("Shift+B"));
-    
+
     nullBookmark = new QAction("<none>",this);
     nullBookmark->setCheckable(true);
     nullBookmark->setChecked(false);
@@ -600,7 +588,8 @@ Gist::addActions(void) {
 void
 Gist::onFocusChanged(QWidget* a, QWidget* b) {
 
-  // return;
+  /// TODO(maxim): is this still needed? (no)
+  return;
   (void) a; // unused
   if (b) {
     if (QString(b->metaObject()->className()) == "QAbstractScrollArea"){
@@ -613,7 +602,7 @@ Gist::onFocusChanged(QWidget* a, QWidget* b) {
         BaseTreeDialog* td = static_cast<BaseTreeDialog*>(sa->parentWidget());
         connectCanvas(td->getCanvas());
       }
-      
+
     }
   }
 }
@@ -621,8 +610,9 @@ Gist::onFocusChanged(QWidget* a, QWidget* b) {
 void
 Gist::connectCanvas(TreeCanvas* tc) {
 
+
     connect(this, SIGNAL(doneReceiving()), tc, SLOT(statusFinished()));
-    
+
     if (current_tc == tc) return;
 
     if (current_tc && current_tc->_builder) {
@@ -709,5 +699,5 @@ Gist::connectCanvas(TreeCanvas* tc) {
     connect(tc, SIGNAL(removedBookmark(int)), this, SLOT(removeBookmark(int)));
     connect(tc, SIGNAL(needActionsUpdate(VisualNode*, bool)),
             this, SLOT(updateActions(VisualNode*, bool)));
-    
+
 }

@@ -141,7 +141,7 @@ TreeComparison::compare(TreeCanvas* t1, TreeCanvas* t2, TreeCanvas* new_tc) {
             }
 
             /// new node is built
-            
+
             next->setNumberOfChildren(kids, *na);
             // next->setStatus(node1->getStatus());
             next->nstatus = node1->nstatus;
@@ -192,7 +192,7 @@ TreeComparison::copyTree(VisualNode* target, TreeCanvas* tc,
                          VisualNode* root,   TreeCanvas* tc_source, int which) {
 
     NodeAllocator* na = tc->na;
-    NodeAllocator* na_source = tc_source->na; 
+    NodeAllocator* na_source = tc_source->na;
 
     QStack<VisualNode*> source_stack;
     QStack<VisualNode*> target_stack;
@@ -241,7 +241,7 @@ TreeComparison::copmareNodes(VisualNode* n1, VisualNode* n2) {
     if (kids != n2->getNumberOfChildren())
         return false;
 
-    if (n1->getStatus() != n2->getStatus()) 
+    if (n1->getStatus() != n2->getStatus())
         return false;
 
     /// check labels

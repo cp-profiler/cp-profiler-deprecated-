@@ -67,7 +67,7 @@
         p->closeChild(na, hasFailedChildren(), hasSolvedChildren());
       }
     } else {
-      
+
       if (hadSolutions) {
         setHasSolvedChildren(true);
         SpaceNode* p = getParent(na);
@@ -81,7 +81,7 @@
         while (p != nullptr && !p->hasFailedChildren()) {
           p->setHasFailedChildren(true);
           p = p->getParent(na);
-        }        
+        }
       }
     }
 

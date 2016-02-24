@@ -63,7 +63,7 @@ public:
   // draw horizontal line (for zero level on histograms)
   // 1 pixel tall, on the bottom-most row of pixels: ______
   void drawHorizontalLine(int y, QRgb color);
-  
+
   void drawMouseGuidelines(unsigned vline, unsigned depth);
 
   /// xoff and yoff account for scrolling

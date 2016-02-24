@@ -207,7 +207,7 @@ private:
   /// ****** INTERFACE STUFF *********
   QPixmap zoomPic;
   QToolButton* autoZoomButton;
-  
+
   /// to generate ids
   static int counter;
 
@@ -245,7 +245,7 @@ public:
 
   void printSearchLogTo(const QString& file_name);
 
-public Q_SLOTS: 
+public Q_SLOTS:
   /// Set scale factor to \a scale0
   void scaleTree(int scale0, int zoomx=-1, int zoomy=-1);
 
@@ -373,7 +373,7 @@ Q_SIGNALS:
   void contextMenu(QContextMenuEvent*);
   /// Status bar update
   void statusChanged(VisualNode*, const Statistics&, bool);
-  
+
   void needActionsUpdate(VisualNode*, bool);
   /// Signals that a solution has been found
   void solution(int);

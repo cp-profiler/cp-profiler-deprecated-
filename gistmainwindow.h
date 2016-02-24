@@ -67,7 +67,7 @@ private:
   AboutGist aboutGist;
 
   QString statsFilename;
-  
+
 Q_SIGNALS:
 
   /// stops the receiver thread

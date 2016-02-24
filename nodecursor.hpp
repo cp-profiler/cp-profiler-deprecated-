@@ -34,7 +34,7 @@
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
  */
- 
+
 template<class Node>
 inline
 NodeCursor<Node>::NodeCursor(Node* theNode,
@@ -335,7 +335,7 @@ StatCursor::moveUpwards(void) {
 }
 
 inline
-AnalyzeCursor::AnalyzeCursor(VisualNode* root, 
+AnalyzeCursor::AnalyzeCursor(VisualNode* root,
   const VisualNode::NodeAllocator& na, TreeCanvas* tc)
 : NodeCursor<VisualNode>(root, na), _tc(tc) {}
 
@@ -372,7 +372,7 @@ AnalyzeCursor::processCurrentNode(void) {
 }
 
 inline
-HighlightCursor::HighlightCursor(VisualNode* startNode, 
+HighlightCursor::HighlightCursor(VisualNode* startNode,
   const VisualNode::NodeAllocator& na)
 : NodeCursor<VisualNode>(startNode, na) {}
 
@@ -383,7 +383,7 @@ HighlightCursor::processCurrentNode(void) {
 }
 
 inline
-UnhighlightCursor::UnhighlightCursor(VisualNode* root, 
+UnhighlightCursor::UnhighlightCursor(VisualNode* root,
   const VisualNode::NodeAllocator& na)
 : NodeCursor<VisualNode>(root, na) {}
 
@@ -394,7 +394,7 @@ UnhighlightCursor::processCurrentNode(void) {
 }
 
 inline
-CountSolvedCursor::CountSolvedCursor(VisualNode* startNode, 
+CountSolvedCursor::CountSolvedCursor(VisualNode* startNode,
   const VisualNode::NodeAllocator& na, int &count)
 : NodeCursor<VisualNode>(startNode, na), _count(count){
   _count = 0;
@@ -409,7 +409,7 @@ CountSolvedCursor::processCurrentNode(void) {
 }
 
 inline
-GetIndexesCursor::GetIndexesCursor(VisualNode* startNode, 
+GetIndexesCursor::GetIndexesCursor(VisualNode* startNode,
   const VisualNode::NodeAllocator& na, std::vector<int>& node_gids)
 : NodeCursor<VisualNode>(startNode, na), _na(na), _node_gids(node_gids){
 
@@ -425,7 +425,7 @@ inline
 HideNotHighlightedCursor::HideNotHighlightedCursor(VisualNode* startNode,
   const VisualNode::NodeAllocator& na)
   : NodeCursor<VisualNode>(startNode,na) {}
-  
+
 inline void
 HideNotHighlightedCursor::processCurrentNode(void) {
   VisualNode* n = node();
@@ -567,7 +567,7 @@ SearchLogCursor::SearchLogCursor(VisualNode *theNode,
       _na(na),
       _execution(execution)
 {}
-    
+
 inline void
 SearchLogCursor::processCurrentNode(void) {
     VisualNode* n = node();

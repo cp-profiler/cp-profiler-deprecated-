@@ -75,14 +75,14 @@ TreeCanvas::TreeCanvas(Execution* execution, QGridLayout* layout, CanvasType typ
     na = new Node::NodeAllocator(false);
 
     // _data = new Data(this, na, false); // default data instance
-    
+
     na->allocateRoot();
 
     root = (*na)[0];
     currentNode = root;
     root->setMarked(true);
     root->setStatus(BRANCH);
-    
+
     scale = LayoutConfig::defScale / 100.0;
 
     setAutoFillBackground(true);
@@ -181,13 +181,13 @@ ShapeRect::ShapeRect(qreal x, qreal y, qreal width,
   selectionArea.setPen(whitepen);
 }
 
-void 
+void
 ShapeRect::draw(QGraphicsScene* scene){
   scene->addItem(this);
   scene->addItem(&selectionArea);
 }
 
-VisualNode* 
+VisualNode*
 ShapeRect::getNode(void){
   return _node;
 }
@@ -201,7 +201,7 @@ ShapeRect::mousePressEvent (QGraphicsSceneMouseEvent* ) {
 
 
 
-SimilarShapesWindow::SimilarShapesWindow(QWidget* parent, TreeCanvas* tc) 
+SimilarShapesWindow::SimilarShapesWindow(QWidget* parent, TreeCanvas* tc)
  : QDialog(parent), tc(tc), histScene(this), view(this),
   scrollArea(this), filters(tc)
 {
@@ -246,7 +246,7 @@ SimilarShapesWindow::applyLayouts(void){
   filtersLayout.addLayout(&countFilterLayout);
   filtersLayout.addStretch();
   globalLayout.addWidget(&splitter);
-    
+
   // depthFilterLayout.addWidget(&depthFilterLabel);
   depthFilterLayout.addWidget(new QLabel("min depth"));
   depthFilterLayout.addWidget(&depthFilterSB);
@@ -254,7 +254,7 @@ SimilarShapesWindow::applyLayouts(void){
   countFilterLayout.addWidget(&countFilterSB);
 }
 
-void 
+void
 SimilarShapesWindow::drawHistogram(void) {
   QPen blackPen(Qt::black);
   ShapeRect * rect;
@@ -273,13 +273,13 @@ SimilarShapesWindow::drawHistogram(void) {
     if (!filters.apply(*it)){
       continue;
     }
-        
+
    // qDebug() << "shape: " << it->first << "node: " << it;
 
    // text = new QGraphicsTextItem;
    // text->setPos(-30, y - 5);
    // text->setPlainText(QString::number((it->node)->getShape()->depth()));
-   // 
+   //
    // histScene.addItem(text);
 
     int nShapes = smap.count(*it);
@@ -291,7 +291,7 @@ SimilarShapesWindow::drawHistogram(void) {
     // text = new QGraphicsTextItem;
     // text->setPos(x + 10, y - 5);
     // text->setPlainText(QString::number(nShapes));
-    // 
+    //
     // histScene.addItem(text);
     y += 25;
 
@@ -331,7 +331,7 @@ Filters::setMinCount(uint val){
   _minCount = val;
 }
 
-ShapeCanvas::ShapeCanvas(QWidget* parent, TreeCanvas* tc) 
+ShapeCanvas::ShapeCanvas(QWidget* parent, TreeCanvas* tc)
 : QWidget(parent), _targetNode(nullptr), _tc(tc) {
 }
 
@@ -339,41 +339,41 @@ void
 ShapeCanvas::paintEvent(QPaintEvent* event) {
   QPainter painter(this);
   painter.setRenderHint(QPainter::Antialiasing);
-    
+
   std::multiset<ShapeI>::iterator it;
   it = _tc->shapesMap.begin();
   if (_targetNode == nullptr) {
     _targetNode = it->node;
   }
-   
+
   QAbstractScrollArea* sa =
    static_cast<QAbstractScrollArea*>(parentWidget());
-    
+
   float scale = 1;
   int view_w = sa->viewport()->width();
   int view_h = sa->viewport()->height();
-    
+
   int xoff = sa->horizontalScrollBar()->value()/scale;
   int yoff = sa->verticalScrollBar()->value()/scale;
-   
+
   BoundingBox bb = _targetNode->getBoundingBox();
-  
+
   int w = static_cast<int>((bb.right - bb.left + Layout::extent) * scale);
   int h = static_cast<int>(2 * Layout::extent +
       _targetNode->getShape()->depth() * Layout::dist_y * scale);
-  
+
   // center the shape if small
   if (w < view_w) xoff -= (view_w - w)/2;
-   
+
   setFixedSize(view_w, view_h) ;
-    
+
   xtrans = -bb.left+(Layout::extent / 2);
-    
+
   sa->horizontalScrollBar()->setRange(0, w - view_w);
   sa->verticalScrollBar()->setRange(0, h - view_h);
   sa->horizontalScrollBar()->setPageStep(view_w);
   sa->verticalScrollBar()->setPageStep(view_h);
-    
+
   QRect origClip = event->rect();
   painter.translate(0, 30);
   // painter.scale(scale,scale);
@@ -382,7 +382,7 @@ ShapeCanvas::paintEvent(QPaintEvent* event) {
              static_cast<int>(origClip.y()/scale+yoff),
              static_cast<int>(origClip.width()/scale),
              static_cast<int>(origClip.height()/scale));
-   
+
   DrawingCursor dc(_targetNode, *_tc->na, painter, clip, false);
   PreorderNodeVisitor<DrawingCursor>(dc).run();
 }
@@ -514,7 +514,7 @@ TreeCanvas::statusChanged(bool finished) {
     }
     emit statusChanged(currentNode, stats, finished);
     emit needActionsUpdate(currentNode, finished);
-    
+
 }
 
 int
@@ -624,7 +624,7 @@ void
 TreeCanvas::analyzeSimilarSubtrees(void) {
   addNodesToMap();
   shapesWindow.drawHistogram();
-  shapesWindow.show();  
+  shapesWindow.show();
 }
 
 void
@@ -696,7 +696,7 @@ TreeCanvas::addNodesToMap(void) {
   PostorderNodeVisitor<AnalyzeCursor>(ac).run();
 }
 
-void 
+void
 TreeCanvas::highlightShape(VisualNode* node) {
   QMutexLocker locker_1(&mutex);
   QMutexLocker locker_2(&layoutMutex);
@@ -723,14 +723,14 @@ TreeCanvas::highlightShape(VisualNode* node) {
       targetNode->setHighlighted(true);
 
     }
-      
+
     HideNotHighlightedCursor hnhc(root,*na);
     PostorderNodeVisitor<HideNotHighlightedCursor>(hnhc).run();
-      
+
   } else {
     shapeHighlighted = nullptr;
   }
-    
+
   update();
 }
 
@@ -949,7 +949,7 @@ TreeCanvas::expandCurrentNode() {
 
   if (currentNode->getStatus() == MERGING) {
       toggleHidden();
-      
+
       return;
   }
 
@@ -1292,7 +1292,7 @@ TreeCanvas::eventNode(QEvent* event) {
             static_cast<int>((bb.right-bb.left+Layout::extent)*scale);
     if (w < sa->viewport()->width())
         xoff -= (sa->viewport()->width()-w)/2;
-    
+
     VisualNode* n;
     n = root->findNode(*na,
                        static_cast<int>(x/scale-xtrans+xoff),
@@ -1468,7 +1468,7 @@ TreeCanvas::navigateToNodeBySid(unsigned int sid) {
   VisualNode* node = (*na)[gid];
 
   setCurrentNode(node, true, true);
-  
+
   UnhideAncestorsCursor unhideCursor(node, *na);
   AncestorNodeVisitor<UnhideAncestorsCursor> unhideAncestors(unhideCursor);
   unhideAncestors.run();
@@ -1581,7 +1581,7 @@ TreeCanvas::updateCanvas(void) {
     // qDebug() << "update Canvas" << _t->_id;
 
     // std::cerr << "TreeCanvas::updateCanvas\n";
-    
+
         // if (_t->refresh > 0 && nodeCount >= _t->refresh) {
             // currentNode->dirtyUp(*na);
             statusChanged(false);

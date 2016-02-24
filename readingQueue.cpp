@@ -115,7 +115,7 @@ ReadingQueue::update(bool success) {
   if (read_delayed && success) {
     it->second->pop();
     delayed_count--;
-    std::cout << "successfully read from delayed, "; 
+    std::cout << "successfully read from delayed, ";
     std::cout << delayed_count << " left ";
     std::cout << " misses: " << node_misses << "\n";
     return;
@@ -161,7 +161,7 @@ ReadingQueue::readLater(DbEntry* delayed) {
   if (delayed_treads.find(tid) == delayed_treads.end()) {
       std::cout << "create delayed_treads[" << tid << "] queue\n";
       delayed_treads[tid] = new std::queue<DbEntry*>(); /// TODO: delete queues in the end
-  } 
+  }
 
   /// delayed_treads[tid] exists at this point
   delayed_count++;

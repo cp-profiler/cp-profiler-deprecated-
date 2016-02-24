@@ -5,7 +5,7 @@ package message;
 option java_package = "com.github.cpprofiler";
 
 message Node {
-  
+
   enum MsgType {
     NODE  = 0;
     DONE  = 1;

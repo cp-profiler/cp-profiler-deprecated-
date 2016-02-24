@@ -68,14 +68,14 @@ loadSaved(std::string path) {
 ProfilerConductor::ProfilerConductor()
     : QMainWindow()
 {
-    
+
     // this->setMinimumHeight(320);
     // this->setMinimumWidth(320);
 
     QWidget* centralWidget = new QWidget(this);
     setCentralWidget(centralWidget);
 
-    
+
     executionList = new QListWidget;
     executionList->setSelectionMode(QAbstractItemView::MultiSelection);
 
@@ -192,7 +192,7 @@ ProfilerConductor::compareButtonClicked(bool) {
 class StatsHelper {
     QString filename;
     StatsHelper(QString filename_) : filename(filename_) {}
-    
+
 };
 
 using google::protobuf::io::OstreamOutputStream;
@@ -237,7 +237,7 @@ void ProfilerConductor::gatherStatisticsClicked(bool) {
 
         // This is a big mess.  The user must wait for the tree to be
         // built before they select their file.
-        
+
         QString filename = QFileDialog::getSaveFileName(this, "Save statistics", QDir::currentPath());
         // Very inelegant
         g->setStatsFilename(filename);

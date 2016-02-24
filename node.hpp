@@ -227,7 +227,7 @@ Node::getNumberOfChildren(void) const {
 }
 
 inline int
-Node::getIndex(const NodeAllocator& na) const { 
+Node::getIndex(const NodeAllocator& na) const {
 //  int j;
   if (parent==-1)
     return 0;

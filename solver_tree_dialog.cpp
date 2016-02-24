@@ -46,14 +46,14 @@ SolverTreeDialog::SolverTreeDialog(QWidget* parent, Execution* execution, const 
   hbl->addWidget(new NodeWidget(UNDETERMINED));
   openLabel = new QLabel("0");
   hbl->addWidget(openLabel);
-  
+
 }
 
 SolverTreeDialog::~SolverTreeDialog() {
 
 }
 
-/// SLOTS 
+/// SLOTS
 
 void
 SolverTreeDialog::statusChanged(VisualNode*, const Statistics& stats, bool finished) {

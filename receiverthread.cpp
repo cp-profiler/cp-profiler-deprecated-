@@ -100,7 +100,7 @@ ReceiverWorker::doRead()
                 case message::Node::START:
                 {
                     qDebug() << "START RECEIVING: " << msg1.label().c_str();
-                    
+
                     if (msg1.restart_id() != -1 && msg1.restart_id() != 0) {
                         qDebug() << ">>> restart and continue";
                         break;

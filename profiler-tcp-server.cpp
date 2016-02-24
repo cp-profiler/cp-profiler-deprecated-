@@ -16,7 +16,7 @@ void ProfilerTcpServer::incomingConnection(qintptr socketDescriptor) {
     ReceiverThread* receiver = new ReceiverThread(socketDescriptor, execution, this);
 
     _parent->newExecution(execution);
-    
+
     // GistMainWindow* g = new GistMainWindow(execution, _parent);
     // g->show();
 

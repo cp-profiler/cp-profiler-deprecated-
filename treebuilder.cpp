@@ -85,7 +85,7 @@ bool TreeBuilder::processRoot(DbEntry& dbEntry) {
     int kids = dbEntry.numberOfKids;
 
     if (_data->isRestarts()) {
-        int restart_root = (*_na)[0]->addChild(*_na); // create a node for a new root        
+        int restart_root = (*_na)[0]->addChild(*_na); // create a node for a new root
         root = (*_na)[restart_root];
         root->_tid = dbEntry.thread;
         dbEntry.gid = restart_root;
@@ -148,10 +148,10 @@ bool TreeBuilder::processNode(DbEntry& dbEntry, bool is_delayed) {
     }
 
     // std::cerr << "sid2aid[pid]: " << pid_it->second << "\n";
-    
+
     DbEntry& parentEntry = *nodes_arr[pid_it->second];
     int parent_gid  = parentEntry.gid; /// parent ID as it is in Node Allocator (Gist)
-    
+
     /// put delayed also if parent node hasn't been processed yet:
     if (parent_gid == -1) {
         // qDebug() << "parent arrived, but has not been processed yet";
@@ -299,16 +299,16 @@ void TreeBuilder::run(void) {
     using std::cout; using std::cerr;
 
     std::cerr << "TreeBuilder::run\n";
-    
+
     clock_t beginClock, endClock;
     double beginTime, endTime;
-    
+
     beginClock = clock();
     beginTime = get_wall_time();
 	// qDebug() << "### in run method of tc:" << _tc->_id;
 
     QMutex &dataMutex = _data->dataMutex;
-    
+
     Statistics &stats = _tc->stats;
     stats.undetermined = 1;
 
@@ -355,7 +355,7 @@ void TreeBuilder::run(void) {
     qDebug() << "Elapsed CPU time:  " << elapsed_clock_secs << " seconds";
     qDebug() << "Elapsed wall time: " << (endTime - beginTime) << " seconds";
     // qDebug() << fixed << beginTime << "  ->  " << endTime;
-    
+
     qDebug() << "solutions:" << stats.solutions;
     qDebug() << "failures:" << stats.failures;
     qDebug() << "undetermined:" << stats.undetermined;

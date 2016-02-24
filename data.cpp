@@ -131,7 +131,7 @@ int Data::handleNodeCallback(message::Node& node) {
         sid2info[id] = node.info();
         qDebug() << "sid2info[" << id << "]: " << sid2info[id].c_str();
     }
-    
+
     /// just so we don't have ugly numbers when not using restarts
     if (restart_id == -1) restart_id = 0;
 

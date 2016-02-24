@@ -38,12 +38,12 @@ comparison_{withLabels}, analysisMenu{nullptr}, pentListWindow{this} {
   nodeMenu->addAction(_navFirstPentagon);
   nodeMenu->addAction(_navNextPentagon);
   nodeMenu->addAction(_navPrevPentagon);
+  nodeMenu->addAction(_labelBranches);
   connect(_navFirstPentagon, SIGNAL(triggered()), this, SLOT(navFirstPentagon()));
   connect(_navNextPentagon, SIGNAL(triggered()), this, SLOT(navNextPentagon()));
   connect(_navPrevPentagon, SIGNAL(triggered()), this, SLOT(navPrevPentagon()));
   connect(_labelBranches, SIGNAL(triggered()), _tc, SLOT(labelBranches()));
 
-  nodeMenu->addAction(_labelBranches);
 
   analysisMenu = menuBar->addMenu(tr("&Analysis"));
   analysisMenu->addAction(_showPentagonHist);
@@ -59,6 +59,7 @@ comparison_{withLabels}, analysisMenu{nullptr}, pentListWindow{this} {
 
 void
 CmpTreeDialog::addActions(void) {
+  /// Note(maxim): Qt::WindowShortcut is default context
   _navFirstPentagon = new QAction("To first pentagon", this);
   _navFirstPentagon->setShortcut(QKeySequence("Ctrl+Shift+1"));
 
@@ -72,7 +73,6 @@ CmpTreeDialog::addActions(void) {
 
   _labelBranches = new QAction("Label/clear branches", this);
   _labelBranches->setShortcut(QKeySequence("L"));
-  _labelBranches->setShortcutContext(Qt::WidgetShortcut);
 
   addAction(_navFirstPentagon);
   addAction(_navNextPentagon);
@@ -144,7 +144,7 @@ void
 PentListWindow::createList(const std::vector<VisualNode*>& pentagons,
                            const std::vector<std::pair<unsigned int, unsigned int>>& pentSize)
 {
- 
+
   // p_pentagons = &pentagons;
 
   _histTable.setColumnCount(2);
@@ -154,7 +154,7 @@ PentListWindow::createList(const std::vector<VisualNode*>& pentagons,
     _histTable.setItem(i, 0, new QTableWidgetItem(QString::number(pentSize[i].first)));
     _histTable.setItem(i, 1, new QTableWidgetItem(QString::number(pentSize[i].second)));
   }
-  
+
 }
 
 void

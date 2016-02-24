@@ -237,7 +237,7 @@ public:
     /// Constructor
     StatCursor(VisualNode* theNode,
                const VisualNode::NodeAllocator& na);
-    
+
     /// \name Cursor interface
     //@{
     /// Collect statistics
@@ -247,7 +247,7 @@ public:
     /// Move cursor to the parent node
     void moveUpwards(void);
     //@}
-    
+
 };
 
 
@@ -323,7 +323,7 @@ class BranchLabelCursor : public NodeCursor<VisualNode> {
 private:
     /// The node allocator
     VisualNode::NodeAllocator& _na;
-    /// Current TreeCanvas instance (extract labels from data) 
+    /// Current TreeCanvas instance (extract labels from data)
     TreeCanvas& _tc;
     /// Whether to clear labels
     bool _clear;
@@ -343,13 +343,13 @@ public:
     /// Constructor
     DisposeCursor(VisualNode* theNode,
                   const VisualNode::NodeAllocator& na);
-    
+
     /// \name Cursor interface
     //@{
     /// Dispose node
     void processCurrentNode(void);
     //@}
-    
+
 };
 
 class SubtreeCountCursor : public NodeCursor<VisualNode> {

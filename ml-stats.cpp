@@ -214,8 +214,8 @@ public:
 
         stack.push_back(se);
     }
-        
-    
+
+
     void moveDownwards() {
         NodeCursor<VisualNode>::moveDownwards();
         depth++;
@@ -279,7 +279,7 @@ public:
         , execution(execution_)
         , backjumpDistance(bjd)
     {}
-    
+
     void processCurrentNode() {
         // Note that skipped/undetermined nodes do not do anything;
         // they are not the destination of a backjump.

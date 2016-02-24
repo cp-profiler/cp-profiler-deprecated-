@@ -134,7 +134,7 @@ AncestorNodeVisitor<Cursor>::next(void) {
     } else {
         return false;
     }
-    
+
 }
 
 template<class Cursor>

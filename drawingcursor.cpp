@@ -62,7 +62,7 @@ DrawingCursor::DrawingCursor(VisualNode* root,
                              QPainter& painter0,
                              const QRect& clippingRect0,
                              bool showHidden)
-    : NodeCursor<VisualNode>(root,na), painter(painter0), 
+    : NodeCursor<VisualNode>(root,na), painter(painter0),
       clippingRect(clippingRect0), x(0.0), y(0.0),
       _showHidden(showHidden)
 {
@@ -224,7 +224,7 @@ DrawingCursor::processCurrentNode(void) {
             else
               drawTriangle(myx, myy, false);
         }
-        
+
     } else {
         switch (n->getStatus()) {
         case SOLVED:
@@ -339,7 +339,7 @@ DrawingCursor::drawOctagon(int myx, int myy, bool shadow){
     int so = shadow? SHADOW_OFFSET : 0;
 
     QPointF points[8] = {
-        QPointF(myx - QUARTER_FAILED_WIDTH + so, myy  + so), 
+        QPointF(myx - QUARTER_FAILED_WIDTH + so, myy  + so),
         QPointF(myx + QUARTER_FAILED_WIDTH  + so, myy  + so),
         QPointF(myx + HALF_FAILED_WIDTH  + so, myy + QUARTER_FAILED_WIDTH + so),
         QPointF(myx + HALF_FAILED_WIDTH + so, myy + HALF_FAILED_WIDTH + QUARTER_FAILED_WIDTH + so),
@@ -352,7 +352,7 @@ DrawingCursor::drawOctagon(int myx, int myy, bool shadow){
     painter.drawConvexPolygon(points, 8);
 }
 
-inline void 
+inline void
 DrawingCursor::drawShape(int myx, int myy, VisualNode* node){
     painter.setPen(Qt::NoPen);
 
@@ -376,11 +376,11 @@ DrawingCursor::drawShape(int myx, int myy, VisualNode* node){
         l_x += (*shape)[i].l;
         r_x += (*shape)[i].r;
         points[i] = QPointF(l_x, y);
-        points[depth * 2 - i - 1] = QPointF(r_x, y);  
-    }    
+        points[depth * 2 - i - 1] = QPointF(r_x, y);
+    }
 
     painter.drawConvexPolygon(points, shape->depth() * 2);
-    
+
     delete[] points;
 
     // delete[] shape;

@@ -70,7 +70,7 @@ public:
 
     int sid; // solver id
     int gid; // gist id, set to -1 so we don't forget to assign the real value
-    unsigned long long parent_sid; // parent id in database 
+    unsigned long long parent_sid; // parent id in database
     int alt; // which child by order
     int numberOfKids;
     int status;
@@ -159,12 +159,12 @@ public:
 
 private:
 
-    /// Populate nodes_arr with the data coming from 
+    /// Populate nodes_arr with the data coming from
     void pushInstance(unsigned long long sid, DbEntry* entry);
 
-    /// Work out node rate for the last (incomplete) interval 
+    /// Work out node rate for the last (incomplete) interval
     void flush_node_rate(void);
-    
+
 public:
 
     Data(NodeAllocator* na);
