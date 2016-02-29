@@ -68,6 +68,8 @@ private:
   QAction* _navPrevPentagon;
   /// Show pentagon histogram
   QAction* _showPentagonHist;
+  /// Save comparison stats to a disk
+  QAction* _saveComparisonStats;
   /// Label/clear branches
   QAction* _labelBranches;
 
@@ -79,8 +81,10 @@ private:
 
 public:
 
-    CmpTreeDialog(QWidget* parent, Execution* execution, bool withLabels,
+  CmpTreeDialog(QWidget* parent, Execution* execution, bool withLabels,
                 TreeCanvas *tc1, TreeCanvas *tc2);
+
+  void saveComparisonStatsTo(const QString& file_name);
 
 private Q_SLOTS:
   void statusChanged(VisualNode*, const Statistics& stats, bool finished);
@@ -91,6 +95,7 @@ private Q_SLOTS:
   void navPrevPentagon(void);
 
   void showPentagonHist(void);
+  void saveComparisonStats(void);
   void selectPentagon(int row, int);
 
 };

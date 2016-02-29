@@ -235,6 +235,14 @@ TreeComparison::copyTree(VisualNode* target, TreeCanvas* tc,
     return count;
 }
 
+void find_and_replace_all(std::string& str, std::string substr_old, std::string substr_new) {
+    auto pos = str.find(substr_old);
+    while (pos != std::string::npos) {
+        str.replace(pos, std::string(substr_old).length(), substr_new);
+        pos = str.find(substr_old);
+    }
+}
+
 bool
 TreeComparison::copmareNodes(VisualNode* n1, VisualNode* n2) {
     unsigned kids = n1->getNumberOfChildren();
@@ -251,7 +259,25 @@ TreeComparison::copmareNodes(VisualNode* n1, VisualNode* n2) {
             int id1 = n1->getChild(i);
             int id2 = n2->getChild(i);
 
-            if (_ex1->getLabel(id1).compare(_ex2->getLabel(id2)) != 0) {
+            auto label1 = _ex1->getLabel(id1);
+            auto label2 = _ex2->getLabel(id2);
+
+            /// NOTE(maxim): removes whitespaces before comparing;
+            /// this will be necessary as long as Chuffed and Gecode don't agree
+            /// on whether to put whitespaces around operators (Gecode uses ' '
+            /// for parsing logbrancher while Chuffed uses them as a delimiter
+            /// between literals)
+
+            label1.erase(remove_if(label1.begin(), label1.end(), isspace), label1.end());
+            label2.erase(remove_if(label2.begin(), label2.end(), isspace), label2.end());
+
+            /// Replace `==` with `=`
+
+            find_and_replace_all(label1, "==", "=");
+            find_and_replace_all(label2, "==", "=");
+
+            if (label1.compare(label2) != 0) {
+                qDebug() << "labels not equal: " << label1.c_str() << " " << label2.c_str();
                 return false;
             }
 

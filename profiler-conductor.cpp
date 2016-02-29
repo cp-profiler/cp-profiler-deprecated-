@@ -173,6 +173,12 @@ ProfilerConductor::gistButtonClicked(bool) {
 void
 ProfilerConductor::compareButtonClicked(bool) {
 
+    compareExecutions(false);
+}
+
+void
+ProfilerConductor::compareExecutions(bool auto_save) {
+
     const bool withLabels = compareWithLabelsCB->isChecked();
 
     QList <QListWidgetItem*> selected = executionList->selectedItems();
@@ -186,7 +192,10 @@ ProfilerConductor::compareButtonClicked(bool) {
     CmpTreeDialog* ctd = new CmpTreeDialog(this, e, withLabels,
                                            item1->gistWindow_->getGist()->getCanvas(),
                                            item2->gistWindow_->getGist()->getCanvas());
-    (void) ctd;
+
+    if (auto_save) {
+        ctd->saveComparisonStatsTo("/home/maxim/temp_stats.txt");
+    }
 }
 
 class StatsHelper {
@@ -281,7 +290,7 @@ void ProfilerConductor::onFinished() {
 
             // std::this_thread::sleep_for (std::chrono::seconds(1));
 
-            compareButtonClicked(true);
+            compareExecutions(true);
 
         }
 

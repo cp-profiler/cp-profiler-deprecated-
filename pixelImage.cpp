@@ -67,7 +67,7 @@ PixelImage::drawPixel(int x, int y, QRgb color) {
   if (y < 0)
     return; /// TODO: fix later
 
-  assert(x >= 0);
+  // assert(x >= 0);
 
   unsigned x0 = x * pixel_width_;
   unsigned y0 = y * pixel_height_;
@@ -86,7 +86,8 @@ PixelImage::drawPixel(int x, int y, QRgb color) {
 
 void
 PixelImage::drawRect(int x, int width, int y, QRgb color) {
-  assert (x >= 0 && y >= 0);
+  // assert (x >= 0 && y >= 0);
+  if (x + width < 0 || y < 0) return;
 
   unsigned x_begin = x * pixel_width_;
   unsigned y_begin = y * pixel_height_;
@@ -108,7 +109,7 @@ PixelImage::drawRect(int x, int width, int y, QRgb color) {
     auto y = row;
     auto x_leftmost = x_begin;
     auto x_rightmost = x_end - 1;
-    assert((int)x_end - 1 >= 0);
+    // assert((int)x_end - 1 >= 0);
 
     setPixel(buffer_, x_leftmost, y, PIXEL_COLOR::BLACK);
     setPixel(buffer_, x_rightmost, y, PIXEL_COLOR::BLACK);
@@ -125,7 +126,7 @@ PixelImage::drawRect(int x, int width, int y, QRgb color) {
 
 void
 PixelImage::setPixel(std::vector<uint32>& buffer, int x, int y, QRgb color) {
-  assert(x >= 0 && y >= 0);
+  // assert(x >= 0 && y >= 0);
 
   if ( static_cast<unsigned>(x) >= width_ || x < 0 ||
        static_cast<unsigned>(y) >= height_ || y < 0) {
@@ -193,7 +194,7 @@ PixelImage::drawHorizontalLine(std::vector<uint32>& buffer, int y, QRgb color) {
 
 void
 PixelImage::drawVerticalLine(std::vector<uint32>& buffer, int x, QRgb color) {
-  assert(x >= 0);
+  // assert(x >= 0);
 
   x = (x + 1) * pixel_width_;
 

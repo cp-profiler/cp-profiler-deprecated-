@@ -47,7 +47,9 @@ comparison_{withLabels}, analysisMenu{nullptr}, pentListWindow{this} {
 
   analysisMenu = menuBar->addMenu(tr("&Analysis"));
   analysisMenu->addAction(_showPentagonHist);
+  analysisMenu->addAction(_saveComparisonStats);
   connect(_showPentagonHist, SIGNAL(triggered()), this, SLOT(showPentagonHist()));
+  connect(_saveComparisonStats, SIGNAL(triggered()), this, SLOT(saveComparisonStats()));
 
 
   comparison_.compare(tc1, tc2, _tc);
@@ -70,6 +72,8 @@ CmpTreeDialog::addActions(void) {
   _navPrevPentagon->setShortcut(QKeySequence("Ctrl+Shift+Left"));
 
   _showPentagonHist = new QAction("Pentagon list", this);
+
+  _saveComparisonStats = new QAction("Save comparison stats", this);
 
   _labelBranches = new QAction("Label/clear branches", this);
   _labelBranches->setShortcut(QKeySequence("L"));
@@ -120,6 +124,31 @@ CmpTreeDialog::showPentagonHist(void) {
   pentListWindow.show();
 }
 
+void
+CmpTreeDialog::saveComparisonStatsTo(const QString& file_name) {
+  if (file_name != "") {
+        QFile outputFile(file_name);
+        if (outputFile.open(QFile::WriteOnly | QFile::Truncate)) {
+            QTextStream out(&outputFile);
+
+            auto pentagons_diff = comparison_.pentSize();
+
+            for (auto& pair : pentagons_diff) {
+              out << pair.first << " " << pair.second << "\n";
+            }
+
+            qDebug() << "writing comp stats to the file: " << file_name;
+        } else {
+          qDebug() << "could not open the file: " << file_name;
+        }
+    }
+}
+
+void
+CmpTreeDialog::saveComparisonStats(void) {
+  saveComparisonStatsTo("/home/maxim/temp_stats.txt");
+}
+
 /// *************** Pentagon List Window ****************
 
 PentListWindow::PentListWindow(QWidget* parent)
@@ -130,9 +159,9 @@ PentListWindow::PentListWindow(QWidget* parent)
   connect(&_histTable, SIGNAL(cellDoubleClicked (int, int)), parent, SLOT(selectPentagon(int, int)));
   QHBoxLayout* layout = new QHBoxLayout(this);
 
-  // QStringList table_header;
-  // table_header << "#" << "Left" << "Right";
-  // _histTable.setHorizontalHeaderLabels(table_header);
+  QStringList table_header;
+  table_header << "#" << "Left" << "Right";
+  _histTable.setHorizontalHeaderLabels(table_header);
 
   _histTable.setEditTriggers(QAbstractItemView::NoEditTriggers);
   _histTable.setSelectionBehavior(QAbstractItemView::SelectRows);

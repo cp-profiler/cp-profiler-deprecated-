@@ -188,5 +188,6 @@ IcicleTreeCanvas::processNode(const SpaceNode& node) {
 void
 IcicleTreeCanvas::sliderChanged(int) {
   /// calls redrawAll not more often than 60hz
-  maybeCaller.call([this]() { redrawAll(); });
+  // TODO(maxim): this goes into infinite loop somehow...
+  // maybeCaller.call([this]() { redrawAll(); });
 }

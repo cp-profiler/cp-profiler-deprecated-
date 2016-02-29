@@ -25,6 +25,7 @@ public:
     ProfilerConductor();
     void newExecution(Execution* execution);
     void loadExecution(std::string filename);
+    void compareExecutions(bool auto_save);
 public slots:
     void updateList();
     void onFinished();

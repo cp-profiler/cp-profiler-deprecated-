@@ -540,7 +540,6 @@ void TreeCanvas::showPixelTree(void) {
 
 void
 TreeCanvas::printSearchLogTo(const QString& file_name) {
-  qDebug() << "hello?";
   if (file_name != "") {
         QFile outputFile(file_name);
         if (outputFile.open(QFile::WriteOnly | QFile::Truncate)) {
