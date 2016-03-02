@@ -10,12 +10,18 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets printsupport
 
 QMAKE_CXXFLAGS += -g
 
+macx: {
+  QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.7
+  LIBS += -lc++
+  QMAKE_CXXFLAGS += -stdlib=libc++
+}
+
 TARGET = cp-profiler
 
 TEMPLATE = app
 
 QMAKE_CXXFLAGS += -std=c++11
-QMAKE_CXXFLAGS += -Werror
+# QMAKE_CXXFLAGS += -Werror
 
 SOURCES += main.cpp\
     globalhelper.cpp \

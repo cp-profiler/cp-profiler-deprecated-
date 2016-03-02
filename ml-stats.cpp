@@ -70,7 +70,7 @@ void printStatsEntry(const StatsEntry& se, std::ostream& out = std::cout) {
         << "," << se.nogoodNumberVariables
         << "," << se.backjumpDistance
         << "," << se.timestamp
-        << "," << se.solutionString
+        << "," << '"' << se.solutionString << '"'
         << "\n";
 }
 
