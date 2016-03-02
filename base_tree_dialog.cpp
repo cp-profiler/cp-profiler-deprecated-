@@ -35,7 +35,7 @@ BaseTreeDialog::BaseTreeDialog(QWidget* parent, Execution* execution, const Canv
   // setLayout(main_layout);          /// TODO: find out which layout is already set
   // main_layout->addLayout(layout);  /// TODO: find out who is a `parent` of layout
   main_layout->addLayout(status_layout);
-  
+
   scrollArea = new QAbstractScrollArea(this);
 
 
@@ -64,7 +64,7 @@ BaseTreeDialog::BaseTreeDialog(QWidget* parent, Execution* execution, const Canv
   hbl->setContentsMargins(0,0,0,0);
 
   stw->setLayout(hbl);
-  
+
   statusBar->showMessage("Ready");
 
   /// ***********************************

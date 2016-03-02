@@ -75,7 +75,7 @@ BackjumpsCursor::processCurrentNode() {
 
     ++skipped_count;
 
-    if (!is_backjumping) { 
+    if (!is_backjumping) {
       /// Backjump starts (form the last failure node)
       is_backjumping = true;
       bj_item.level_from = last_failure_level;

@@ -69,7 +69,7 @@ PixelTreeCanvas::PixelTreeCanvas(QWidget* parent, TreeCanvas& tc)
 
   Backjumps bj;
   bj_data = bj.findBackjumps((*_na)[0], *_na);
-  
+
   constructPixelTree();
   compressPixelTree(1);
   compressDepthAnalysis(da_data_compressed, 1);
@@ -109,7 +109,7 @@ PixelTreeCanvas::constructPixelTree(void) {
 }
 
 /// This sets compression that will be used during the drawing
-void 
+void
 PixelTreeCanvas::compressPixelTree(int value) {
 
   pixel_data.setCompression(value);
@@ -289,7 +289,7 @@ PixelTreeCanvas::gatherVarData() {
       }
     }
 
-    if (var_id == -1) { /// no such variable 
+    if (var_id == -1) { /// no such variable
       vars.push_back(var);
       var_id = vars.size() - 1;
     } else {
@@ -379,7 +379,7 @@ PixelTreeCanvas::traverseTree(VisualNode* root) {
   /// 1. push the root node
   explorationStack.push(root);
   /// TODO(maxim): do I really need a stack here?
-  depthStack.push(1); 
+  depthStack.push(1);
 
   /// 2. traverse the stack
   while(explorationStack.size() > 0) {
@@ -622,7 +622,7 @@ PixelTreeCanvas::drawNogoodData() {
     pixel_image.drawPixel(x, y, QColor::fromHsv(180, 200, 255).rgba());
   }
 
-  
+
 
   current_image_height += max_value + MARGIN;
 }
@@ -661,7 +661,7 @@ PixelTreeCanvas::drawHistogram(vector<float>& data, int color) {
   }
 
 
-  float coeff = HIST_HEIGHT / (max_value + 1);
+  float coeff = static_cast<float>(HIST_HEIGHT) / (max_value + 1);
 
   pixel_image.drawHorizontalLine(current_image_height - yoff, PixelImage::PIXEL_COLOR::LIGTH_GRAY);
 
@@ -777,7 +777,7 @@ PixelTreeCanvas::drawBjData() {
       }
     }
 
-    
+
     if (bj_items.size() > 0) {
 
       auto average_from = std::accumulate(
@@ -935,7 +935,7 @@ PixelTreeCanvas::scaleUp(void) {
 
   pixel_image.scaleUp();
   redrawAll();
-  
+
 }
 
 void
@@ -1046,7 +1046,7 @@ PixelTreeCanvas::mouseReleaseEvent(QMouseEvent* event) {
     /// disappearing after mouse release (is there a cleaner way?)
     /// Have to reset these, or the the mouse over action will be bypassed:
     mouse_guide_x = -1; mouse_guide_y = -1;
-    QMouseEvent mouse_event{QEvent::MouseMove, QPoint(event->x(), event->y()), 
+    QMouseEvent mouse_event{QEvent::MouseMove, QPoint(event->x(), event->y()),
         Qt::NoButton, Qt::NoButton, Qt::NoModifier};
     qApp->sendEvent(this, &mouse_event);
 
@@ -1078,7 +1078,7 @@ PixelTreeCanvas::mouseMoveEvent(QMouseEvent* event) {
       highlightOnOriginalTree(vline);
 
     });
-    
+
   }
 
 }

@@ -31,7 +31,7 @@ PixelTreeDialog::PixelTreeDialog(TreeCanvas* tc): QDialog(tc)
 {
 
   this->resize(INIT_WIDTH, INIT_HEIGHT);
-  
+
   /// set Title
   this->setWindowTitle(QString::fromStdString(tc->getExecution()->getData()->getTitle()));
 
@@ -50,7 +50,7 @@ PixelTreeDialog::PixelTreeDialog(TreeCanvas* tc): QDialog(tc)
   QPushButton* scaleUp = new QPushButton("+", this);
   QPushButton* scaleDown = new QPushButton("-", this);
 
-  // TODO(maxim): make sure this gets deleted 
+  // TODO(maxim): make sure this gets deleted
   QLabel* compLabel = new QLabel("compression");
   compLabel->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
 

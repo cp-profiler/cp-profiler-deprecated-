@@ -100,7 +100,7 @@ DepthAnalysis::runMSL() {
         count_list[prev_level] = 0;
         dl_list[prev_level] = deepest;
       }
-      
+
     }
 
     /// copy count_list to count_array (only when leaving a node):
