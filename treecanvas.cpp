@@ -106,6 +106,8 @@ TreeCanvas::TreeCanvas(Execution* execution, QGridLayout* layout, CanvasType typ
     connect(_builder, SIGNAL(addedNode()), this, SLOT(maybeUpdateCanvas()));
     connect(_builder, SIGNAL(doneBuilding(bool)), this, SLOT(finalizeCanvas(void)));
     connect(_builder, SIGNAL(doneBuilding(bool)), this, SLOT(statusChanged(bool)));
+
+    // NOTE(maxim): this connects to conductor later
     connect(_builder, SIGNAL(doneBuilding(bool)), this, SIGNAL(buildingFinished(void)));
 
     // connect(ptr_receiver, SIGNAL(update(int,int,int)), this,

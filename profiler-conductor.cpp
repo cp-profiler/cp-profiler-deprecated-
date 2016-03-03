@@ -142,7 +142,7 @@ ProfilerConductor::newExecution(Execution* execution) {
     executions << execution;
 
     connect(execution, SIGNAL(titleKnown()), this, SLOT(updateList()));
-    connect(execution, SIGNAL(doneReceiving()), this, SLOT(onFinished()));
+    connect(execution, SIGNAL(doneReceiving()), this, SLOT(onSomeFinishedReceiving()));
 }
 
 void
@@ -158,15 +158,19 @@ ProfilerConductor::gistButtonClicked(bool) {
     QList <QListWidgetItem*> selected = executionList->selectedItems();
     for (int i = 0 ; i < selected.size() ; i++) {
         ExecutionListItem* item = static_cast<ExecutionListItem*>(selected[i]);
-        GistMainWindow* g = item->gistWindow_;
-        if (g == nullptr) {
-            g = new GistMainWindow(item->execution_, this);
-            item->gistWindow_ = g;
-            g->changeTitle(item->text());
+        GistMainWindow* gistMW = item->gistWindow_;
+        if (gistMW == nullptr) {
+            gistMW = new GistMainWindow(item->execution_, this);
+            item->gistWindow_ = gistMW;
+            gistMW->changeTitle(item->text());
         }
-        g->show();
-        g->activateWindow();
-        connect(item->execution_, SIGNAL(doneReceiving()), g, SIGNAL(doneReceiving()));
+        gistMW->show();
+        gistMW->activateWindow();
+        connect(item->execution_, SIGNAL(doneReceiving()), gistMW, SIGNAL(doneReceiving()));
+        /// TODO(maxim): connect doneBuilding (in TreeCanvas) to treeReady here
+
+        auto* tc = gistMW->getGist()->getCanvas();
+        connect(tc, SIGNAL(buildingFinished()), this, SLOT(onSomeTreeReady()));
     }
 }
 
@@ -260,12 +264,9 @@ void ProfilerConductor::gatherStatisticsClicked(bool) {
     }
 }
 
-void ProfilerConductor::onFinished() {
-    /// NOTE(maxim): this is run whenever any execution is finished,
-    ///              but I only care about the first one for now
+void ProfilerConductor::onSomeFinishedReceiving() {
 
-    qDebug() << "--------------- executions.size: " << executions.size();
-
+    /// ***** Save Search Log *****
     if (GlobalParser::isSet(GlobalParser::save_log)) {
 
         if (executions.size() == 1) {
@@ -288,15 +289,21 @@ void ProfilerConductor::onFinished() {
         if (executions.size() == 2) {
             gistButtonClicked(true);
 
-            // std::this_thread::sleep_for (std::chrono::seconds(1));
-
-            compareExecutions(true);
+            /// NOTE(maxim): the second tree is most likely not built yet here,
+            /// so the comparison will be initiated in onSomeTreeReady()
 
         }
 
     }
 
+}
 
+void ProfilerConductor::onSomeTreeReady() {
+    if (GlobalParser::isSet(GlobalParser::auto_compare)) {
+        if (executions.size() == 2) {
+            compareExecutions(true);
+        }
+    }
 }
 
 
