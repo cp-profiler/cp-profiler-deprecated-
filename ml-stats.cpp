@@ -52,6 +52,19 @@ void printStatsHeader(std::ostream& out = std::cout) {
         << "\n";
 }
 
+std::string
+quote(const std::string& input, char delim, char escape) {
+    std::stringstream out;
+    out << delim;
+    for (std::string::const_iterator it = input.begin() ; it != input.end() ; it++) {
+        if (*it == delim || *it == escape)
+            out << escape;
+        out << *it;
+    }
+    out << delim;
+    return out.str();
+}
+
 void printStatsEntry(const StatsEntry& se, std::ostream& out = std::cout) {
     out <<        se.nodeid
         << "," << se.parentid
@@ -70,7 +83,7 @@ void printStatsEntry(const StatsEntry& se, std::ostream& out = std::cout) {
         << "," << se.nogoodNumberVariables
         << "," << se.backjumpDistance
         << "," << se.timestamp
-        << "," << '"' << se.solutionString << '"'
+        << "," << quote(se.solutionString, '"', '\\')
         << "\n";
 }
 
