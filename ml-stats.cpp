@@ -53,15 +53,17 @@ void printStatsHeader(std::ostream& out = std::cout) {
 }
 
 std::string
-quote(const std::string& input, char delim, char escape) {
+csvquote(const std::string& input) {
     std::stringstream out;
-    out << delim;
+    out << '"';
     for (std::string::const_iterator it = input.begin() ; it != input.end() ; it++) {
-        if (*it == delim || *it == escape)
-            out << escape;
+        // CSV quoting is to replace " with "", e.g.
+        // "one", "two", "I said, ""two,"" pay attention!"
+        if (*it == '"')
+            out << '"';
         out << *it;
     }
-    out << delim;
+    out << '"';
     return out.str();
 }
 
@@ -83,7 +85,7 @@ void printStatsEntry(const StatsEntry& se, std::ostream& out = std::cout) {
         << "," << se.nogoodNumberVariables
         << "," << se.backjumpDistance
         << "," << se.timestamp
-        << "," << quote(se.solutionString, '"', '\\')
+        << "," << csvquote(se.solutionString)
         << "\n";
 }
 
