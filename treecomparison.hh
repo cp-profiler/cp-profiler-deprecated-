@@ -43,15 +43,16 @@ class TreeComparison {
 public:
   TreeComparison(bool withLabels);
   void compare(TreeCanvas* t1, TreeCanvas* t2, TreeCanvas* new_tc);
+  void sortPentagons();
 
   int get_no_pentagons(void);
 
-  inline const std::vector<VisualNode*>& pentagons(void) { return _pentagons; }
-  inline const std::vector<std::pair<unsigned int, unsigned int>>& pentSize(void) { return _pentSize;}
+  inline const std::vector<VisualNode*>& pentagon_nodes(void) { return _pentagon_nodes; }
+  inline const std::vector<std::pair<unsigned int, unsigned int>>& pentagon_sizes(void) { return _pentagon_sizes;}
 
 private:
-  std::vector<VisualNode*> _pentagons;
-  std::vector<std::pair<unsigned int, unsigned int>> _pentSize;
+  std::vector<VisualNode*> _pentagon_nodes;
+  std::vector<std::pair<unsigned int, unsigned int>> _pentagon_sizes;
 
 private:
 

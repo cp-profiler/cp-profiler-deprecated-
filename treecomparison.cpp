@@ -26,6 +26,44 @@
 TreeComparison::TreeComparison(bool withLabels)
     : withLabels_(withLabels) {}
 
+template <typename T, typename Compare>
+std::vector<std::size_t> sort_permutation(
+    const std::vector<T>& vec,
+    Compare compare)
+{
+    std::vector<std::size_t> p(vec.size());
+    std::iota(p.begin(), p.end(), 0);
+    std::sort(p.begin(), p.end(),
+        [&](std::size_t i, std::size_t j){ return compare(vec[i], vec[j]); });
+    return p;
+}
+
+template <typename T>
+std::vector<T> apply_permutation(
+    const std::vector<T>& vec,
+    const std::vector<std::size_t>& p)
+{
+    std::vector<T> sorted_vec(p.size());
+    std::transform(p.begin(), p.end(), sorted_vec.begin(),
+        [&](std::size_t i){ return vec[i]; });
+    return sorted_vec;
+}
+
+void
+TreeComparison::sortPentagons() {
+
+    /// Note(maxim): this will sort the two vectors together
+
+    auto p = sort_permutation(_pentagon_sizes,
+    [](const std::pair<unsigned int, unsigned int>& lhs,
+       const std::pair<unsigned int, unsigned int>& rhs){
+        return std::abs((int)lhs.first - (int)lhs.second) > std::abs((int)rhs.first - (int)rhs.second);  
+    });
+
+    _pentagon_sizes = apply_permutation(_pentagon_sizes, p);
+    _pentagon_nodes = apply_permutation(_pentagon_nodes, p);
+}
+
 void
 TreeComparison::compare(TreeCanvas* t1, TreeCanvas* t2, TreeCanvas* new_tc) {
 
@@ -170,7 +208,7 @@ TreeComparison::compare(TreeCanvas* t1, TreeCanvas* t2, TreeCanvas* new_tc) {
             next->setHidden(true);
             next->_tid = 0;
 
-            _pentagons.push_back(next);
+            _pentagon_nodes.push_back(next);
 
             stack.push(next->getChild(*na, 1));
             stack.push(next->getChild(*na, 0));
@@ -178,7 +216,7 @@ TreeComparison::compare(TreeCanvas* t1, TreeCanvas* t2, TreeCanvas* new_tc) {
             unsigned int left = copyTree(stack.pop(), new_tc, node1, t1, 1);
             unsigned int right = copyTree(stack.pop(), new_tc, node2, t2, 2);
 
-            _pentSize.push_back(std::make_pair(left, right));
+            _pentagon_sizes.push_back(std::make_pair(left, right));
 
         }
 
@@ -298,5 +336,5 @@ TreeComparison::setSource(NodeAllocator* na1, NodeAllocator* na2,
 
 int
 TreeComparison::get_no_pentagons(void) {
-    return static_cast<int>(_pentagons.size());
+    return static_cast<int>(_pentagon_nodes.size());
 }

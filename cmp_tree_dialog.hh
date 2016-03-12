@@ -39,8 +39,9 @@ private:
   // const std::vector<VisualNode*>* p_pentagons;
 
 private:
-  void createList(const std::vector<VisualNode*>& pentagons,
-                  const std::vector<std::pair<unsigned int, unsigned int>>& pentSize);
+  // want a copy of a second vector here
+  void createList(const std::vector<VisualNode*>& pentagon_nodes,
+                  std::vector<std::pair<unsigned int, unsigned int>> pentSize);
 
 
 public:

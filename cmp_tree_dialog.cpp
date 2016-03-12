@@ -23,6 +23,8 @@
 #include "nodewidget.hh"
 
 #include <utility> // pair
+#include <algorithm>
+#include <cmath>
 
 CmpTreeDialog::CmpTreeDialog(QWidget* parent, Execution* execution, bool withLabels,
                              TreeCanvas* tc1, TreeCanvas* tc2)
@@ -51,8 +53,14 @@ comparison_{withLabels}, analysisMenu{nullptr}, pentListWindow{this} {
   connect(_showPentagonHist, SIGNAL(triggered()), this, SLOT(showPentagonHist()));
   connect(_saveComparisonStats, SIGNAL(triggered()), this, SLOT(saveComparisonStats()));
 
+  /// sort the pentagons by nodes diff:
+
+
+
 
   comparison_.compare(tc1, tc2, _tc);
+
+  comparison_.sortPentagons();
 
   mergedLabel->setNum(comparison_.get_no_pentagons());
   // statusChangedShared(true);
@@ -93,14 +101,14 @@ CmpTreeDialog::statusChanged(VisualNode*, const Statistics&, bool finished) {
 
 void
 CmpTreeDialog::navFirstPentagon(void) {
-  const std::vector<VisualNode*>& pentagons = comparison_.pentagons();
+  const std::vector<VisualNode*>& pentagon_nodes = comparison_.pentagon_nodes();
 
-  if (pentagons.size() == 0) {
+  if (pentagon_nodes.size() == 0) {
     qDebug() << "warning: pentagons.size() == 0";
     return;
   }
 
-  _tc->setCurrentNode(pentagons[0]);
+  _tc->setCurrentNode(pentagon_nodes[0]);
   _tc->centerCurrentNode();
 
 }
@@ -120,7 +128,7 @@ CmpTreeDialog::navPrevPentagon(void) {
 
 void
 CmpTreeDialog::showPentagonHist(void) {
-  pentListWindow.createList(comparison_.pentagons(), comparison_.pentSize());
+  pentListWindow.createList(comparison_.pentagon_nodes(), comparison_.pentagon_sizes());
   pentListWindow.show();
 }
 
@@ -131,7 +139,7 @@ CmpTreeDialog::saveComparisonStatsTo(const QString& file_name) {
         if (outputFile.open(QFile::WriteOnly | QFile::Truncate)) {
             QTextStream out(&outputFile);
 
-            auto pentagons_diff = comparison_.pentSize();
+            auto pentagons_diff = comparison_.pentagon_sizes();
 
             for (auto& pair : pentagons_diff) {
               out << pair.first << " " << pair.second << "\n";
@@ -159,10 +167,6 @@ PentListWindow::PentListWindow(QWidget* parent)
   connect(&_histTable, SIGNAL(cellDoubleClicked (int, int)), parent, SLOT(selectPentagon(int, int)));
   QHBoxLayout* layout = new QHBoxLayout(this);
 
-  QStringList table_header;
-  table_header << "#" << "Left" << "Right";
-  _histTable.setHorizontalHeaderLabels(table_header);
-
   _histTable.setEditTriggers(QAbstractItemView::NoEditTriggers);
   _histTable.setSelectionBehavior(QAbstractItemView::SelectRows);
 
@@ -170,28 +174,39 @@ PentListWindow::PentListWindow(QWidget* parent)
 }
 
 void
-PentListWindow::createList(const std::vector<VisualNode*>& pentagons,
-                           const std::vector<std::pair<unsigned int, unsigned int>>& pentSize)
+PentListWindow::createList(const std::vector<VisualNode*>& pentagon_nodes,
+                           std::vector<std::pair<unsigned int, unsigned int>> pentagon_sizes)
 {
 
-  // p_pentagons = &pentagons;
+  assert(pentagon_nodes.size() == pentagon_sizes.size());
 
   _histTable.setColumnCount(2);
-  _histTable.setRowCount(pentagons.size());
+  _histTable.setRowCount(pentagon_sizes.size());
 
-  for (unsigned int i = 0; i < pentagons.size(); i++) {
-    _histTable.setItem(i, 0, new QTableWidgetItem(QString::number(pentSize[i].first)));
-    _histTable.setItem(i, 1, new QTableWidgetItem(QString::number(pentSize[i].second)));
+  QStringList table_header;
+  table_header << "Left" << "Right";
+  _histTable.setHorizontalHeaderLabels(table_header);
+
+  for (unsigned int i = 0; i < pentagon_sizes.size(); i++) {
+    _histTable.setItem(i, 0, new QTableWidgetItem(QString::number(pentagon_sizes[i].first)));
+    _histTable.setItem(i, 1, new QTableWidgetItem(QString::number(pentagon_sizes[i].second)));
   }
 
 }
 
 void
 CmpTreeDialog::selectPentagon(int row, int) {
-  const std::vector<VisualNode*>& pentagons = comparison_.pentagons();
+  const std::vector<VisualNode*>& pentagon_nodes = comparison_.pentagon_nodes();
 
-  _tc->setCurrentNode(pentagons[row]);
+  auto* node = pentagon_nodes[row];
+
+
+  //TODO(maxim): this should unhide all nodes above
+  // _tc->unhideNode(node); // <- does not work correctly
+  _tc->setCurrentNode(node);
   _tc->centerCurrentNode();
+
+  
 }
 
 /// ******************************************************

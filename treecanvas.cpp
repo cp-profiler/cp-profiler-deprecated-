@@ -807,6 +807,17 @@ TreeCanvas::unhideAll(void) {
 }
 
 void
+TreeCanvas::unhideNode(VisualNode* node) {
+  node->dirtyUp(*na);
+
+  auto* next = node;
+  do {
+    next->setHidden(false);
+    // next = next->getParent(*na);
+  } while ((next = next->getParent(*na)));
+}
+
+void
 TreeCanvas::toggleStop(void) {
     QMutexLocker locker(&mutex);
     currentNode->toggleStop(*na);

@@ -1085,19 +1085,6 @@ PixelTreeCanvas::mouseMoveEvent(QMouseEvent* event) {
 
 namespace detail {
 
-  /// Sets the node and its ancectry as not hidden;
-  /// marks the path as dirty
-  static void unhideNode(VisualNode* node, NodeAllocator* na) {
-    /// TODO(maxim): make sure dirtyUp doesn't do redundant work here
-    node->dirtyUp(*na);
-
-    auto* next = node;
-    do {
-      next->setHidden(false);
-      // next = next->getParent(*na);
-    } while ((next = next->getParent(*na)));
-  }
-
   static void unselectPixels(std::vector<PixelItem*>& pixels_selected) {
     for (auto& pixel : pixels_selected) {
       pixel->setSelected(false);
@@ -1123,14 +1110,15 @@ PixelTreeCanvas::selectNodesfromPT(int vline_begin, int vline_end) {
   unsigned end = boundaries.second; /// not including
 
   auto selectOne = [this](VisualNode* node) {
-    detail::unhideNode(node, _na);
+
+    _tc.unhideNode(node);
 
     _tc.setCurrentNode(node);
     _tc.centerCurrentNode();
   };
 
   auto selectGroup = [this](VisualNode* node) {
-    detail::unhideNode(node, _na);
+    _tc.unhideNode(node);
   };
 
   std::function<void(VisualNode*)> apply = selectOne;
