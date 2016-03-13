@@ -229,7 +229,7 @@ PixelTreeCanvas::getDomainDataCompressed(vector<float>& compressed, int compress
 
   auto time_end = high_resolution_clock::now();
   auto time_span = duration_cast<duration<double>>(time_end - time_begin);
-  std::cout << "getDomainDataCompressed: " << time_span.count() << " seconds." << std::endl;
+  // std::cout << "getDomainDataCompressed: " << time_span.count() << " seconds." << std::endl;
 }
 
 void

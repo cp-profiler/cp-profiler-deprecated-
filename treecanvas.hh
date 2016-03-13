@@ -234,8 +234,6 @@ public:
 
   /// ***** GETTERS *****
 
-  // Data* getData(void);
-
   unsigned int getTreeDepth(void);
 
   /// *******************

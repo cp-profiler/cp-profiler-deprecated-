@@ -114,11 +114,12 @@ int Data::handleNodeCallback(message::Node& node) {
     float domain = node.domain_size();
 
     // qDebug() << "Received node: \t" << id << " " << pid << " "
-    //                 << alt << " " << kids << " " << status << " wid: "
-    //                 << (int)thread << " restart: " << restart_id
-    //                 << "time: " << node.time()
-    //                 << "label: " << node.label().c_str()
-    //                 << "nogood: " << node.nogood().c_str();
+    //                 << alt << " " << kids << " " << status << " wid:"
+    //                 << (int)thread << " restart:" << restart_id
+    //                 << "time:" << node.time()
+    //                 << "label:" << node.label().c_str()
+    //                 << "domain:" << domain
+    //                 << "nogood:" << node.nogood().c_str();
 
 
     if (node.has_nogood() && node.nogood().length() > 0) {
@@ -190,6 +191,12 @@ std::string Data::getLabel(unsigned int gid) {
         return it->second->label;
     return "";
 
+}
+
+const DbEntry*
+Data::getEntry(const Node& node) const {
+    auto gid = node.getIndex(*_na);
+    return gid2entry.at(gid);
 }
 
 unsigned long long Data::gid2sid(unsigned int gid) {

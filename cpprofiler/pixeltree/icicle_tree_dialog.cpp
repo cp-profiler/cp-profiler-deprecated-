@@ -28,6 +28,9 @@
 
 using namespace cpprofiler::pixeltree;
 
+/// TODO(maxim): be able to link rectangle to the a node
+/// pos_x and pox_y -> node gid
+
 IcicleTreeDialog::IcicleTreeDialog(TreeCanvas* tc): QDialog(tc) {
 
   qDebug() << "tc in IcicleTree address: " << tc;
@@ -175,10 +178,28 @@ IcicleTreeCanvas::processNode(const SpaceNode& node) {
     ++x_global_;
   }
 
-  QRgb rect_color = getColor(node);
+  // QRgb rect_color = getColor(node);
+
+  auto data = tc_.getExecution()->getData();
+
+  auto gid = node.getIndex(na);
+  auto* entry = data->getEntry(gid);
+
+  // auto* entry = data->getEntry(node);
+  /// entry to domain size (reduction)
+  auto domain_red = entry == nullptr ? 0 : entry->domain;
+  /// float to color
+  int color_value = 255 - 255 * static_cast<float>(domain_red);
+
+  // qDebug() << "domain reduction: " << domain_red;
+  /// NOTE(maxim): sometimes domain reduction is negative
+  /// (domains appear to be larger in children nodes!?)
+  if (color_value < 0) color_value = 0;
+  auto color = QColor::fromHsv(180, 180, color_value).rgba();
+
 
   auto xoff = sa_.horizontalScrollBar()->value();
-  icicle_image_.drawRect(x_begin - xoff, x_end - x_begin, cur_depth_, rect_color);
+  icicle_image_.drawRect(x_begin - xoff, x_end - x_begin, cur_depth_, color);
 
   --cur_depth_;
 

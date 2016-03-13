@@ -199,6 +199,7 @@ public:
     unsigned long long getTotalTime(void); /// time in microseconds
 
     DbEntry* getEntry(unsigned int gid) const;
+    const DbEntry* getEntry(const Node& node) const; /// TODO(maxim): find out why this doesn't work
 
     unsigned int getGidBySid(unsigned int sid) { return nodes_arr[sid2aid[sid]]->gid; }
 
@@ -237,8 +238,6 @@ DbEntry* Data::getEntry(unsigned int gid) const {
         return nullptr;
     }
 }
-
-
 
 
 #endif // DATA_HH

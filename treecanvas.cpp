@@ -396,11 +396,6 @@ ShapeCanvas::scroll(void) {
 
 ///***********************
 
-
-// Data* TreeCanvas::getData(void) {
-//   return _data;
-// }
-
 unsigned TreeCanvas::getTreeDepth() {
   return stats.maxDepth;
 }
