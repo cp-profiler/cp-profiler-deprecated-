@@ -65,7 +65,9 @@ IcicleTreeCanvas::IcicleTreeCanvas(QAbstractScrollArea* parent, TreeCanvas* tc)
 
   /// TODO(maxim): find out the 'width' of the icicle tree
 
-  icicle_image_.setPixelWidth(1);
+  setMouseTracking(true);
+
+  icicle_image_.setPixelWidth(4);
   icicle_image_.setPixelHeight(8);
 
 }
@@ -108,6 +110,8 @@ IcicleTreeCanvas::redrawAll() {
 void
 IcicleTreeCanvas::drawIcicleTree() {
 
+  icicle_rects_.clear();
+
   auto& na = *tc_.get_na();
 
   auto& root = *na[0];
@@ -147,7 +151,7 @@ static QRgb getColor(const SpaceNode& node) {
 
 
 std::pair<int, int>
-IcicleTreeCanvas::processNode(const SpaceNode& node) {
+IcicleTreeCanvas::processNode(SpaceNode& node) {
   // auto yoff = _sa->verticalScrollBar()->value();
 
   ++cur_depth_;
@@ -178,7 +182,8 @@ IcicleTreeCanvas::processNode(const SpaceNode& node) {
     ++x_global_;
   }
 
-  // QRgb rect_color = getColor(node);
+  QRgb color = getColor(node);
+
 
   auto data = tc_.getExecution()->getData();
 
@@ -195,11 +200,17 @@ IcicleTreeCanvas::processNode(const SpaceNode& node) {
   /// NOTE(maxim): sometimes domain reduction is negative
   /// (domains appear to be larger in children nodes!?)
   if (color_value < 0) color_value = 0;
-  auto color = QColor::fromHsv(180, 180, color_value).rgba();
-
-
+  // auto color = QColor::fromHsv(180, 180, color_value).rgba();
   auto xoff = sa_.horizontalScrollBar()->value();
-  icicle_image_.drawRect(x_begin - xoff, x_end - x_begin, cur_depth_, color);
+
+  /// Actually drawing the rectangle
+  int rect_x = x_begin - xoff;
+  int rect_y = cur_depth_;
+  int rect_width = x_end - x_begin;
+  int rect_height = icicle_image_.pixel_height();
+
+  icicle_image_.drawRect(rect_x, rect_width, rect_y, color);
+  icicle_rects_.push_back(IcicleRect{rect_x, rect_y, rect_width, rect_height, node});
 
   --cur_depth_;
 
@@ -211,4 +222,54 @@ IcicleTreeCanvas::sliderChanged(int) {
   /// calls redrawAll not more often than 60hz
   // TODO(maxim): this goes into infinite loop somehow...
   // maybeCaller.call([this]() { redrawAll(); });
+}
+
+SpaceNode*
+IcicleTreeCanvas::getNodeByXY(int x, int y) const {
+
+  // Find rectangle by x and y (binary or linear search)
+  for (int i = 0; i < icicle_rects_.size(); i++) {
+    auto& rect = icicle_rects_[i];
+
+    if ((rect.x <= x) && (x <= rect.x + rect.width) &&
+        (rect.y <= y) && (y <= rect.y + rect.height)) {
+      return &rect.node;
+    }
+  }
+
+  return nullptr;
+}
+
+static void unselectNodes(std::vector<SpaceNode*>& nodes_selected) {
+  for (auto node : nodes_selected) {
+    static_cast<VisualNode*>(node)->setHovered(false);
+  }
+  nodes_selected.clear();
+}
+
+void
+IcicleTreeCanvas::mouseMoveEvent(QMouseEvent* event) {
+
+  const auto x = event->x() / icicle_image_.pixel_width();
+  const auto y = event->y() / icicle_image_.pixel_height();
+
+  auto* node = getNodeByXY(x, y);
+
+  if (node == nullptr) return;
+
+  /// Do stuff not more often than 60hz
+  maybeCaller.call([this, node]() {
+    unselectNodes(nodes_selected);
+    nodes_selected.push_back(node);
+    static_cast<VisualNode*>(node)->setHovered(true);
+    tc_.update();
+  });
+
+}
+
+void
+IcicleTreeCanvas::mousePressEvent(QMouseEvent* event) {
+
+  /// do nothing for now
+
 }

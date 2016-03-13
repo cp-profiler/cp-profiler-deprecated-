@@ -37,6 +37,16 @@ class QAbstractScrollArea;
   class IcicleTreeDialog;
   class IcicleCursor;
 
+  struct IcicleRect {
+    int x;
+    int y;
+    int width;
+    int height;
+    SpaceNode& node;
+    IcicleRect(int x, int y, int width, int height, SpaceNode& node)
+      : x(x), y(y), width(width), height(height), node(node) {}
+  };
+
   class IcicleTreeDialog : public QDialog {
     Q_OBJECT
 
@@ -65,6 +75,8 @@ class QAbstractScrollArea;
     QAbstractScrollArea&  sa_;
     TreeCanvas& tc_;
     PixelImage icicle_image_;
+    std::vector<IcicleRect> icicle_rects_;
+    std::vector<SpaceNode*> nodes_selected; // to know which nodes to deselect
 
     MaybeCaller maybeCaller;
 
@@ -77,10 +89,14 @@ class QAbstractScrollArea;
 
     void redrawAll();
     void drawIcicleTree();
-    std::pair<int, int> processNode(const SpaceNode&);
+    std::pair<int, int> processNode(SpaceNode&);
+
+    SpaceNode* getNodeByXY(int x, int y) const;
 
   protected:
     void paintEvent(QPaintEvent* event);
+    void mousePressEvent(QMouseEvent* me);
+    void mouseMoveEvent(QMouseEvent* me);
 
   public:
     IcicleTreeCanvas(QAbstractScrollArea* parent, TreeCanvas* tc);
