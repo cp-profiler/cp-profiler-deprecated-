@@ -19,6 +19,7 @@
  *  WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 #include <QAbstractScrollArea>
+#include <QComboBox>
 #include <climits>
 #include <functional>
 
@@ -42,13 +43,28 @@ IcicleTreeDialog::IcicleTreeDialog(TreeCanvas* tc): QDialog(tc) {
 
   auto layout = new QVBoxLayout();
   setLayout(layout);
+
   layout->addWidget(scrollArea_);
+
+  auto optionsLayout = new QHBoxLayout();
+  layout->addLayout(optionsLayout);
+
+  QLabel* colorMapLabel = new QLabel("color map by");
+  colorMapLabel->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
+  auto color_map_cb = new QComboBox();
+  optionsLayout->addWidget(colorMapLabel);
+  optionsLayout->addWidget(color_map_cb);
+  color_map_cb->addItem("default");
+  color_map_cb->addItem("domain reduction");
+  color_map_cb->addItem("node time");
 
   canvas_ = new IcicleTreeCanvas(scrollArea_, tc);
 
   setAttribute(Qt::WA_DeleteOnClose, true);
 
   connect(this, SIGNAL(windowResized()), canvas_, SLOT(resizeCanvas()));
+  connect(color_map_cb, SIGNAL(currentTextChanged(const QString&)),
+          canvas_, SLOT(changeColorMapping(const QString&)));
 
 }
 
@@ -119,9 +135,13 @@ IcicleTreeCanvas::drawIcicleTree() {
   x_global_ = 0;
   cur_depth_ = 0;
 
+  domain_red_sum = 0;
+
   /// TODO(maxim): construct once, redraw many times
   auto extent = processNode(root);
   icicle_width = extent.second;
+
+  qDebug() << "average domain reduction: " << domain_red_sum / tc_.get_stats().allNodes();
 
 
 }
@@ -182,25 +202,47 @@ IcicleTreeCanvas::processNode(SpaceNode& node) {
     ++x_global_;
   }
 
-  QRgb color = getColor(node);
-
 
   auto data = tc_.getExecution()->getData();
 
   auto gid = node.getIndex(na);
   auto* entry = data->getEntry(gid);
 
+
   // auto* entry = data->getEntry(node);
   /// entry to domain size (reduction)
   auto domain_red = entry == nullptr ? 0 : entry->domain;
-  /// float to color
-  int color_value = 255 - 255 * static_cast<float>(domain_red);
-
   // qDebug() << "domain reduction: " << domain_red;
   /// NOTE(maxim): sometimes domain reduction is negative
   /// (domains appear to be larger in children nodes!?)
-  if (color_value < 0) color_value = 0;
-  // auto color = QColor::fromHsv(180, 180, color_value).rgba();
+  domain_red_sum += domain_red;
+
+
+  QRgb color;
+
+  switch(color_mapping_type) {
+    case ColorMappingType::DEFAULT:
+    {
+      color = getColor(node);
+    }
+    break;
+    case ColorMappingType::DOMAIN_REDUCTION:
+    {
+      /// the smaller the value, the darker the color
+      int color_value = 255 * static_cast<float>(domain_red);  
+      if (color_value < 0) color_value = 0;
+      color = QColor::fromHsv(0, 0, color_value).rgba(); 
+    }
+    break;
+    case ColorMappingType::NODE_TIME:
+    {
+      auto node_time = entry == nullptr ? 0 : entry->node_time;
+      ///TODO(maxim): need to normalize the node time
+      int color_value = static_cast<float>(node_time);
+      color = QColor::fromHsv(0, 0, color_value).rgba();
+    }
+  }
+
   auto xoff = sa_.horizontalScrollBar()->value();
 
   /// Actually drawing the rectangle
@@ -272,4 +314,20 @@ IcicleTreeCanvas::mousePressEvent(QMouseEvent* event) {
 
   /// do nothing for now
 
+}
+
+void IcicleTreeCanvas::changeColorMapping(const QString& text) {
+  
+
+  if (text == "default") {
+    qDebug() << "to default color mapping";
+    color_mapping_type = ColorMappingType::DEFAULT;
+  } else if (text == "domain reduction") {
+    qDebug() << "to domain reduction color mapping";
+    color_mapping_type = ColorMappingType::DOMAIN_REDUCTION;
+  } else if (text == "node time") {
+    color_mapping_type = ColorMappingType::NODE_TIME;
+  }
+
+  redrawAll();
 }

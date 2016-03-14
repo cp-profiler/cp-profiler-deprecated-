@@ -30,6 +30,7 @@
 class TreeCanvas;
 class SpaceNode;
 class QAbstractScrollArea;
+class QComboBox;
 
  namespace cpprofiler { namespace pixeltree {
 
@@ -69,6 +70,12 @@ class QAbstractScrollArea;
 
   };
 
+  enum class ColorMappingType {
+    DEFAULT,
+    DOMAIN_REDUCTION,
+    NODE_TIME
+  };
+
   class IcicleTreeCanvas : public QWidget {
     Q_OBJECT
   private:
@@ -78,6 +85,8 @@ class QAbstractScrollArea;
     std::vector<IcicleRect> icicle_rects_;
     std::vector<SpaceNode*> nodes_selected; // to know which nodes to deselect
 
+    ColorMappingType color_mapping_type = ColorMappingType::DEFAULT;
+
     MaybeCaller maybeCaller;
 
     /// TODO(maxim): make this only accessable from within processNode
@@ -85,6 +94,7 @@ class QAbstractScrollArea;
     int x_global_;
 
     /// TODO(maxim): temporarily here
+    float domain_red_sum;
     int icicle_width;
 
     void redrawAll();
@@ -104,6 +114,7 @@ class QAbstractScrollArea;
   public Q_SLOTS:
     void resizeCanvas(void);
     void sliderChanged(int value);
+    void changeColorMapping(const QString& text);
   };
 
 }}
