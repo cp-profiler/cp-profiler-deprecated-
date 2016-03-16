@@ -118,6 +118,7 @@ GistMainWindow::GistMainWindow(Execution* execution, QWidget* parent) : QMainWin
 
   QMenu* treeVisMenu = menuBar->addMenu(tr("Tree"));
 
+  treeVisMenu->addAction(c->highlightNodesMenu);
   treeVisMenu->addAction(c->analyzeSimilarSubtrees);
   treeVisMenu->addAction(c->showPixelTree);
   treeVisMenu->addAction(c->showIcicleTree);

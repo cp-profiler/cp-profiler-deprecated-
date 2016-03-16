@@ -160,9 +160,8 @@ public:
   QAction* print;
   /// Print search tree log
   QAction* printSearchLog;
-  /// Allow second canvas (when new data received)
-  QAction* sndCanvas;
-
+  /// Highlight nodes
+  QAction* highlightNodesMenu;
   /// Bookmark current node
   QAction* bookmarkNode;
   /// Open node statistics inspector

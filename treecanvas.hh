@@ -30,6 +30,7 @@
 #endif
 
 #include <set>
+ #include <functional>
 #include "visualnode.hh"
 #include "treebuilder.hh"
 #include "zoomToFitIcon.hpp"
@@ -242,6 +243,10 @@ public:
 
   void printSearchLogTo(const QString& file_name);
 
+  /// Apply `action` to every node that satisfies the predicate
+  void applyToEachNodeIf(std::function<void (VisualNode*)> action,
+                         std::function<bool (VisualNode*)> predicate);
+
 public Q_SLOTS:
   /// Set scale factor to \a scale0
   void scaleTree(int scale0, int zoomx=-1, int zoomy=-1);
@@ -292,6 +297,9 @@ public Q_SLOTS:
   /// Analyze similar subtrees of current node
   void analyzeSimilarSubtrees(void);
 
+  /// Show highlight nodes dialog
+  void highlightNodesMenu(void);
+
   /// Show no-goods
   void showNogoods(void);
 
@@ -310,6 +318,9 @@ public Q_SLOTS:
 
   /// calls when clicking right mouse button on a shape
   void highlightShape(VisualNode* node);
+
+  /// TODO(maxim): turn this into method that takes a predicate
+  void highlightNodesWithInfo();
 
   /// Loop through all nodes and add them to the multimap
   void addNodesToMap(void);

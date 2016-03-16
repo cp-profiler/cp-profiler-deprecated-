@@ -435,6 +435,8 @@ Gist::addActions(void) {
     analyzeSimilarSubtrees = new QAction("Symilar Subtree Analysis", this);
     analyzeSimilarSubtrees->setShortcut(QKeySequence("Shift+s"));
 
+    highlightNodesMenu = new QAction("Highlight Nodes Based On ...", this);
+
     showNogoods = new QAction("Show no-goods", this);
     showNogoods->setShortcut(QKeySequence("Shift+N"));
 
@@ -528,6 +530,7 @@ Gist::addActions(void) {
     addAction(showIcicleTree);
     addAction(followPath);
     addAction(analyzeSimilarSubtrees);
+    addAction(highlightNodesMenu);
     addAction(showNogoods);
     addAction(showNodeInfo);
     addAction(showNodeOnPixelTree);
@@ -671,6 +674,7 @@ Gist::connectCanvas(TreeCanvas* tc) {
     connect(showIcicleTree, SIGNAL(triggered()), tc, SLOT(showIcicleTree()));
     connect(followPath, SIGNAL(triggered()), tc, SLOT(followPath()));
     connect(analyzeSimilarSubtrees, SIGNAL(triggered()), tc, SLOT(analyzeSimilarSubtrees()));
+    connect(highlightNodesMenu, SIGNAL(triggered()), tc, SLOT(highlightNodesMenu()));
     connect(showNogoods, SIGNAL(triggered()), current_tc, SLOT(showNogoods()));
     connect(showNodeInfo, SIGNAL(triggered()), current_tc, SLOT(showNodeInfo()));
     connect(showNodeOnPixelTree, SIGNAL(triggered()), current_tc, SLOT(showNodeOnPixelTree()));

@@ -34,6 +34,7 @@
 #include "treebuilder.hh"
 #include "cpprofiler/pixeltree/pixel_tree_dialog.hh"
 #include "cpprofiler/pixeltree/icicle_tree_dialog.hh"
+#include "highlight_nodes_dialog.hpp"
 #include "nogood_dialog.hh"
 #include "node_info_dialog.hh"
 
@@ -618,9 +619,16 @@ CompareShapes::operator()(const ShapeI& n1, const ShapeI& n2) const {
 
 void
 TreeCanvas::analyzeSimilarSubtrees(void) {
+  /// NOTE(maxim): only do this once?
   addNodesToMap();
   shapesWindow.drawHistogram();
   shapesWindow.show();
+}
+
+void
+TreeCanvas::highlightNodesMenu(void) {
+  auto hn_dialog = new HighlightNodesDialog(this);
+  hn_dialog->show();
 }
 
 void
@@ -1650,4 +1658,53 @@ TreeCanvas::updateCanvas(void) {
     update();
     layoutDone(w,h,scale0);
     // emit update(w,h,scale0);
+}
+
+void
+TreeCanvas::applyToEachNodeIf(std::function<void (VisualNode*)> action,
+                              std::function<bool (VisualNode*)> predicate) {
+
+  for (int i = 0; i < na->size(); ++i) {
+    VisualNode* node = (*na)[i];
+
+    if (predicate(node)) { action(node);
+      qDebug() << "apply to node: " << node;
+    }
+  }
+  qDebug() << "na.size(): " << na->size();
+}
+
+void
+TreeCanvas::highlightNodesWithInfo() {
+
+  auto action = [](VisualNode* node) {
+    node->setHovered(true);
+  };
+
+  /// TODO(maxim): make it easier to get Info field
+
+  /// Does the node have non-empty info field?
+  auto predicate = [this](VisualNode* node) {
+    auto gid = node->getIndex(*na);
+    auto entry = execution->getData()->getEntry(gid);
+
+    if (entry == nullptr) return false;
+
+    auto sid = entry->sid;
+    auto sid2info = execution->getInfo();
+
+    auto info = sid2info.find(sid);
+
+    if (info != sid2info.end()) {
+      qDebug() << "should highlight this node: " << node;
+      return true;
+    }
+
+    return false;
+  };
+
+  applyToEachNodeIf(action, predicate);
+
+  update();
+
 }

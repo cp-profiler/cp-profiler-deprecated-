@@ -151,6 +151,12 @@ NodeAllocatorBase<T>::getLabel(T* n) const {
   return labels.value(n);
 }
 
+template<class T>
+int
+NodeAllocatorBase<T>::size() const {
+  return cur_b * NodeBlockSize + cur_t + 1;
+}
+
 inline unsigned int
 Node::getTag(void) const {
   return static_cast<unsigned int>

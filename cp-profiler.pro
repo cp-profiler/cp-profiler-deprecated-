@@ -81,6 +81,7 @@ HEADERS  += globalhelper.hh \
     nodevisitor.hpp \
     zoomToFitIcon.hpp \
     data.hh \
+    highlight_nodes_dialog.hpp \
     base_tree_dialog.hh \
     cmp_tree_dialog.hh \
     receiverthread.hh \

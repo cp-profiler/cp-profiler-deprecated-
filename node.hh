@@ -103,7 +103,10 @@ public:
   /// Remove label of node \a n
   void clearLabel(T* n);
   /// Get label of node \a n
+  /// Note(maxim): did I add this?
   QString getLabel(T* n) const;
+  /// returns the total number of nodes allocated
+  int size() const;
 
 };
 
