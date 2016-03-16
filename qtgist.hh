@@ -83,13 +83,7 @@ private:
   /// connect the signals as well as disconnect current_tc
   void connectCanvas(TreeCanvas* tc);
 
-    Execution* execution;
-
-public:
-
-  /// Reset treeCanvas ( reset TreeBuilder, reset Canvas itself)
-  /// This should be called instead of TreeCanvas::reset
-  // void resetCanvas(TreeCanvas* canvas, TreeBuilder* builder, bool isRestarts);
+  Execution* execution;
 
   /// ***********************************************
 private:

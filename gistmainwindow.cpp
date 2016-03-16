@@ -103,7 +103,6 @@ GistMainWindow::GistMainWindow(Execution* execution, QWidget* parent) : QMainWin
   nodeMenu->addAction(c->unhideAll);
   nodeMenu->addAction(c->labelBranches);
   nodeMenu->addAction(c->labelPath);
-  nodeMenu->addAction(c->analyzeSimilarSubtrees);
   nodeMenu->addAction(c->showNogoods);
   nodeMenu->addAction(c->showNodeInfo);
   // nodeMenu->addAction(c->toggleStop);
@@ -119,6 +118,7 @@ GistMainWindow::GistMainWindow(Execution* execution, QWidget* parent) : QMainWin
 
   QMenu* treeVisMenu = menuBar->addMenu(tr("Tree"));
 
+  treeVisMenu->addAction(c->analyzeSimilarSubtrees);
   treeVisMenu->addAction(c->showPixelTree);
   treeVisMenu->addAction(c->showIcicleTree);
   treeVisMenu->addAction(c->hideSize);

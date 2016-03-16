@@ -103,13 +103,6 @@ Gist::Gist(Execution* execution, QWidget* parent) : QWidget(parent), execution(e
     QMetaObject::connectSlotsByName(this);
 }
 
-
-// void
-// Gist::resetCanvas(TreeCanvas* canvas, TreeBuilder* builder, bool isRestarts) {
-//     canvas->reset(isRestarts);
-//     builder->reset(canvas->data, canvas->na);
-// }
-
 void
 Gist::resizeEvent(QResizeEvent*) {
     canvas->resizeToOuter();
@@ -222,7 +215,6 @@ Gist::on_canvas_statusChanged(VisualNode* n, const Statistics& stats,
 
         // labelBranches->setEnabled(false);
         // labelPath->setEnabled(false);
-        analyzeSimilarSubtrees->setEnabled(false);
 
         // toggleStop->setEnabled(false);
         // unstopAll->setEnabled(false);
@@ -265,7 +257,6 @@ Gist::on_canvas_statusChanged(VisualNode* n, const Statistics& stats,
 
         showNodeStats->setEnabled(true);
         labelPath->setEnabled(true);
-        analyzeSimilarSubtrees->setEnabled(true);
 
         VisualNode* root = n;
         while (!root->isRoot())
@@ -441,7 +432,7 @@ Gist::addActions(void) {
     labelPath->setShortcut(QKeySequence("Shift+L"));
     // labelPath->setShortcutContext(Qt::ApplicationShortcut);
 
-    analyzeSimilarSubtrees = new QAction("Analyse similar subtrees", this);
+    analyzeSimilarSubtrees = new QAction("Symilar Subtree Analysis", this);
     analyzeSimilarSubtrees->setShortcut(QKeySequence("Shift+s"));
 
     showNogoods = new QAction("Show no-goods", this);
@@ -569,7 +560,6 @@ Gist::addActions(void) {
     contextMenu->addAction(unhideAll);
     contextMenu->addAction(labelBranches);
     contextMenu->addAction(labelPath);
-    contextMenu->addAction(analyzeSimilarSubtrees);
     contextMenu->addAction(showNogoods);
     contextMenu->addAction(showNodeInfo);
     contextMenu->addAction(showNodeOnPixelTree);
@@ -635,7 +625,6 @@ Gist::connectCanvas(TreeCanvas* tc) {
         disconnect(labelPath, SIGNAL(triggered()), current_tc, SLOT(labelPath()));
         disconnect(showPixelTree, SIGNAL(triggered()), tc, SLOT(showPixelTree()));
         disconnect(showIcicleTree, SIGNAL(triggered()), tc, SLOT(showIcicleTree()));
-        disconnect(analyzeSimilarSubtrees, SIGNAL(triggered()), current_tc, SLOT(analyzeSimilarSubtrees()));
         disconnect(showNogoods, SIGNAL(triggered()), current_tc, SLOT(showNogoods()));
         disconnect(showNodeInfo, SIGNAL(triggered()), current_tc, SLOT(showNodeInfo()));
         disconnect(showNodeOnPixelTree, SIGNAL(triggered()), current_tc, SLOT(showNodeOnPixelTree()));

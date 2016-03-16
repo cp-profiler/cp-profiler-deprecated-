@@ -991,12 +991,9 @@ TreeCanvas::stopSearch(void) {
 }
 
 void
-TreeCanvas::reset(bool isRestarts) {
-    (void) isRestarts;
+TreeCanvas::reset() {
 
     QMutexLocker locker(&mutex);
-
-    qDebug() << "tc #" << _id << "is resetting";
 
     delete na;
     na = new Node::NodeAllocator(false);
@@ -1013,12 +1010,8 @@ TreeCanvas::reset(bool isRestarts) {
         emit removedBookmark(i);
     bookmarks.clear();
 
-    // delete _data;
-    // _data = new Data(this, na, isRestarts);
-
     _builder->reset(execution, na);
     _builder->start();
-    // ptr_receiver->receive(this);
 
     _isUsed = false;
 

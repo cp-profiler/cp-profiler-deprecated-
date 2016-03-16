@@ -223,8 +223,7 @@ private:
 
 public Q_SLOTS:
 
-  /// Reset, isRestarts true if we want a dummy node (needed for showing restarts)
-  void reset(bool isRestarts = false);
+  void reset();
 
 public:
   /// Constructor
