@@ -70,12 +70,11 @@ TreeCanvas::TreeCanvas(Execution* execution, QGridLayout* layout, CanvasType typ
     /// to distinguish between instances
     _id = TreeCanvas::counter++;
 
+    na = execution->_na.get();
+
     _isUsed = false;
 
     _builder = new TreeBuilder(this);
-    na = new Node::NodeAllocator(false);
-
-    // _data = new Data(this, na, false); // default data instance
 
     na->allocateRoot();
 
@@ -647,23 +646,15 @@ TreeCanvas::showNogoods(void) {
 
 void
 TreeCanvas::showNodeInfo(void) {
-  int gid = currentNode->getIndex(*na);
-  DbEntry* entry = execution->getEntry(gid);
-  if (entry == nullptr) {
-    qDebug() << "showNodeInfo: no entry";
-    return;
-  }
-  unsigned int sid = entry->sid;
-  std::unordered_map<unsigned long long, string>& sid2info = execution->getInfo();
-  //  const string& info_str = sid2info[sid];
-  auto info_item = sid2info.find(sid);
-  if (info_item == sid2info.end()) {
-    qDebug() << "showNodeInfo: no info item";
-    return;
-  }
-  const string& info_str = info_item->second;
 
-  NodeInfoDialog* nidialog = new NodeInfoDialog(this, info_str);
+  auto info = execution->getData()->getInfo(*currentNode);
+
+  if (!info) {
+    qDebug() << "no info item";
+    return;
+  }
+
+  NodeInfoDialog* nidialog = new NodeInfoDialog(this, *info);
   nidialog->show();
 }
 
@@ -1667,11 +1658,10 @@ TreeCanvas::applyToEachNodeIf(std::function<void (VisualNode*)> action,
   for (int i = 0; i < na->size(); ++i) {
     VisualNode* node = (*na)[i];
 
-    if (predicate(node)) { action(node);
-      qDebug() << "apply to node: " << node;
+    if (predicate(node)) {
+      action(node);
     }
   }
-  qDebug() << "na.size(): " << na->size();
 }
 
 void
@@ -1681,26 +1671,16 @@ TreeCanvas::highlightNodesWithInfo() {
     node->setHovered(true);
   };
 
-  /// TODO(maxim): make it easier to get Info field
-
   /// Does the node have non-empty info field?
   auto predicate = [this](VisualNode* node) {
-    auto gid = node->getIndex(*na);
-    auto entry = execution->getData()->getEntry(gid);
 
-    if (entry == nullptr) return false;
+    auto info = execution->getData()->getInfo(*node);
 
-    auto sid = entry->sid;
-    auto sid2info = execution->getInfo();
-
-    auto info = sid2info.find(sid);
-
-    if (info != sid2info.end()) {
-      qDebug() << "should highlight this node: " << node;
-      return true;
+    if (!info) {
+      return false;
     }
 
-    return false;
+    return true;
   };
 
   applyToEachNodeIf(action, predicate);

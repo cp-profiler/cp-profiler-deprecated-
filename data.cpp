@@ -193,10 +193,23 @@ std::string Data::getLabel(unsigned int gid) {
 
 }
 
-const DbEntry*
+DbEntry*
 Data::getEntry(const Node& node) const {
     auto gid = node.getIndex(*_na);
-    return gid2entry.at(gid);
+    return getEntry(gid);
+}
+
+const std::string*
+Data::getInfo(const Node& node) const {
+    auto entry = getEntry(node);
+
+    if (!entry) return nullptr;
+
+    auto info = sid2info.find(entry->sid);
+
+    if (info == sid2info.end()) return nullptr;
+
+    return &info->second;
 }
 
 unsigned long long Data::gid2sid(unsigned int gid) {

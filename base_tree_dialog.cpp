@@ -38,8 +38,6 @@ BaseTreeDialog::BaseTreeDialog(QWidget* parent, Execution* execution, const Canv
 
   scrollArea = new QAbstractScrollArea(this);
 
-
-  // data is created here
   _tc = new TreeCanvas(execution, layout, type, scrollArea->viewport());
 
   layout->addWidget(scrollArea, 0, 0, 1, 1);

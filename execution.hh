@@ -10,6 +10,8 @@
 
 class Execution : public QObject {
     Q_OBJECT
+
+    friend class TreeCanvas;
 public:
     Execution() {
         _na = std::unique_ptr<NodeAllocator>{new NodeAllocator(false)};

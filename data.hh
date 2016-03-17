@@ -199,7 +199,8 @@ public:
     unsigned long long getTotalTime(void); /// time in microseconds
 
     DbEntry* getEntry(unsigned int gid) const;
-    const DbEntry* getEntry(const Node& node) const; /// TODO(maxim): find out why this doesn't work
+    DbEntry* getEntry(const Node& node) const;
+    const string* getInfo(const Node& node) const;
 
     unsigned int getGidBySid(unsigned int sid) { return nodes_arr[sid2aid[sid]]->gid; }
 
