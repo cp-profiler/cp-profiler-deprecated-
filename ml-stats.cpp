@@ -26,6 +26,7 @@ public:
     int nogoodLength;
     int nogoodNumberVariables;
     int backjumpDistance;
+    int backjumpDestination;
     unsigned long long timestamp;
     string solutionString;
 };
@@ -47,6 +48,7 @@ void printStatsHeader(std::ostream& out = std::cout) {
         << "," << "nogoodLength"
         << "," << "nogoodNumberVariables"
         << "," << "backjumpDistance"
+        << "," << "backjumpDestination"
         << "," << "timestamp"
         << "," << "solutionString"
         << "\n";
@@ -84,6 +86,7 @@ void printStatsEntry(const StatsEntry& se, std::ostream& out = std::cout) {
         << "," << se.nogoodLength
         << "," << se.nogoodNumberVariables
         << "," << se.backjumpDistance
+        << "," << se.backjumpDestination
         << "," << se.timestamp
         << "," << csvquote(se.solutionString)
         << "\n";
@@ -98,16 +101,16 @@ private:
     Execution* execution;
     int depth;
     std::vector<StatsEntry> stack;
-    const std::unordered_map<VisualNode*, int>& backjumpDistanceMap;
+    const std::unordered_map<VisualNode*, int>& backjumpDestinationMap;
     std::ostream& out;
 public:
     StatsCursor(VisualNode* root, const VisualNode::NodeAllocator& na, Execution* execution_,
-                const std::unordered_map<VisualNode*, int>& backjumpDistanceMap_,
+                const std::unordered_map<VisualNode*, int>& backjumpDestinationMap_,
                 std::ostream& out_)
         : NodeCursor(root, na)
         , execution(execution_)
         , depth(0)
-        , backjumpDistanceMap(backjumpDistanceMap_)
+        , backjumpDestinationMap(backjumpDestinationMap_)
         , out(out_)
     {
         printStatsHeader(out);
@@ -188,12 +191,6 @@ public:
             break;
         }
         se.subtreeSolutions = se.status == SOLVED ? 1 : 0;
-        std::unordered_map<VisualNode*, int>::const_iterator it = backjumpDistanceMap.find(node());
-        if (it != backjumpDistanceMap.end()) {
-            se.backjumpDistance = it->second;
-        } else {
-            se.backjumpDistance = -1;
-        }
         int gid = node()->getIndex(na);
         // Some nodes (e.g. undetermined nodes) do not have entries;
         // be careful with those.
@@ -225,6 +222,14 @@ public:
             se.decisionLevel = -1;
             se.timestamp = 0;
             se.solutionString = "";
+        }
+        std::unordered_map<VisualNode*, int>::const_iterator it2 = backjumpDestinationMap.find(node());
+        if (it2 != backjumpDestinationMap.end()) {
+            se.backjumpDestination = it2->second;
+            se.backjumpDistance = se.decisionLevel - se.backjumpDestination;
+        } else {
+            se.backjumpDestination = -1;
+            se.backjumpDistance = -1;
         }
 
         stack.push_back(se);
@@ -272,15 +277,16 @@ public:
 // BackjumpCursor
 // **************************************************
 
-// The BackjumpCursor fills in a map from node to backjump distance.
-// Non-failure nodes are omitted.  The final failed node is also
-// omitted, because there is no following node to compute its distance
-// to.  (It could be assigned the distance to the root instead.)
+// The BackjumpCursor fills in a map from node to backjump
+// destination.  Non-failure nodes are omitted.  The final failed node
+// is also omitted, because there is no following node that would be
+// its destination.  (Decision level 0 could possibly be considered
+// the destination instead.)
 
 class BackjumpCursor : public NodeCursor<VisualNode> {
 private:
     const Execution* execution;
-    std::unordered_map<VisualNode*, int>& backjumpDistance;
+    std::unordered_map<VisualNode*, int>& backjumpDestination;
     VisualNode* mostRecentFailure;
     int mostRecentFailureDecisionLevel;
 public:
@@ -289,10 +295,10 @@ public:
     BackjumpCursor(VisualNode* root,
                    const VisualNode::NodeAllocator& na,
                    const Execution* execution_,
-                   std::unordered_map<VisualNode*, int>& bjd)
+                   std::unordered_map<VisualNode*, int>& bjdest)
         : NodeCursor(root, na)
         , execution(execution_)
-        , backjumpDistance(bjd)
+        , backjumpDestination(bjdest)
     {}
 
     void processCurrentNode() {
@@ -305,8 +311,7 @@ public:
             gid = node()->getIndex(na);
             decisionLevel = execution->getEntry(gid)->decisionLevel;
             if (mostRecentFailure) {
-                backjumpDistance[mostRecentFailure] =
-                    mostRecentFailureDecisionLevel - decisionLevel;
+                backjumpDestination[mostRecentFailure] = decisionLevel;
                 mostRecentFailure = nullptr;
             }
             mostRecentFailure = node();
@@ -317,8 +322,7 @@ public:
             if (mostRecentFailure) {
                 gid = node()->getIndex(na);
                 decisionLevel = execution->getEntry(gid)->decisionLevel;
-                backjumpDistance[mostRecentFailure] =
-                    mostRecentFailureDecisionLevel - decisionLevel;
+                backjumpDestination[mostRecentFailure] = decisionLevel;
                 mostRecentFailure = nullptr;
             }
             break;
@@ -339,21 +343,21 @@ public:
 // find the solver node id and branching/no-good information.
 void collectMLStats(VisualNode* root, const VisualNode::NodeAllocator& na, Execution* execution, std::ostream& out) {
     // We traverse the tree twice.  In the first pass we calculate
-    // backjump distance for failed nodes, using a BackjumpCursor.  In
-    // the second pass we calculate all the remaining node data.
+    // backjump destination for failed nodes, using a BackjumpCursor.
+    // In the second pass we calculate all the remaining node data.
 
     // This map is the only thing shared between the passes.  Note
     // that we pass it by reference to the BackjumpCursor, which
     // writes to it.
-    std::unordered_map<VisualNode*, int> backjumpDistance;
+    std::unordered_map<VisualNode*, int> backjumpDestination;
 
-    // First pass: construct the backjumpDistance map.
-    BackjumpCursor bjc(root, na, execution, backjumpDistance);
+    // First pass: construct the backjumpDestination map.
+    BackjumpCursor bjc(root, na, execution, backjumpDestination);
     PreorderNodeVisitor<BackjumpCursor> bjv(bjc);
     bjv.run();
 
     // Second pass: compute all the node statistics.
-    StatsCursor c(root, na, execution, backjumpDistance, out);
+    StatsCursor c(root, na, execution, backjumpDestination, out);
     PostorderNodeVisitor<StatsCursor> v(c);
     v.run();
 }
