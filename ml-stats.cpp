@@ -136,9 +136,9 @@ public:
     }
 
     string getSolutionString(int sid) {
-        std::unordered_map<unsigned long long, string>::const_iterator it = execution->getInfo().find(sid);
+        std::unordered_map<unsigned long long, string*>::const_iterator it = execution->getInfo().find(sid);
         if (it != execution->getInfo().end()) {
-            return it->second;
+            return *it->second;
         } else {
             return "";
         }

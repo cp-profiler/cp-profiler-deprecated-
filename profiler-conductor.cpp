@@ -344,7 +344,7 @@ void ProfilerConductor::saveExecutionClicked(bool) {
             node.set_nogood(ngit->second);
         auto infoit = data->sid2info.find(entry->sid);
         if (infoit != data->sid2info.end())
-            node.set_info(infoit->second);
+            node.set_info(*infoit->second);
         writeDelimitedTo(node, &raw_output);
     }
 }

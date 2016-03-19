@@ -30,8 +30,6 @@
 #include <utility>
 
 
-// Two stacks or a stack of pairs?
-
 class TreeCanvas;
 class Data;
 class VisualNode;
@@ -70,8 +68,8 @@ private: /// methods
   /// Initialize data source for obtaining labels etc.
   void setSource(NodeAllocator* na1, NodeAllocator* na2, Execution* ex1, Execution* ex2);
 
-  /// Return true/false depending on whether n1 ~ n2
-  bool copmareNodes(VisualNode* n1, VisualNode* n2); /// TODO: make it inline?
+  /// Returns true/false depending on whether n1 ~ n2
+  bool copmareNodes(VisualNode* n1, VisualNode* n2);
 
   /// 'which' is treated as a colour, usually 1 or 2 depending on which tree is a source
   unsigned int copyTree(VisualNode*, TreeCanvas*,

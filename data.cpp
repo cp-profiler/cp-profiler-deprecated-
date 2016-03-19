@@ -128,9 +128,8 @@ int Data::handleNodeCallback(message::Node& node) {
     }
 
     if (node.has_info() && node.info().length() > 0) {
-        // sid2info[id] = string("sid: ") + std::to_string(id) + "\n" + node.info();
-        sid2info[id] = node.info();
-        // qDebug() << "sid2info[" << id << "]: " << sid2info[id].c_str();
+
+        sid2info[id] = new std::string(node.info());
     }
 
     /// just so we don't have ugly numbers when not using restarts
@@ -209,7 +208,7 @@ Data::getInfo(const Node& node) const {
 
     if (info == sid2info.end()) return nullptr;
 
-    return &info->second;
+    return info->second;
 }
 
 unsigned long long Data::gid2sid(unsigned int gid) {
@@ -236,6 +235,11 @@ Data::~Data(void) {
     for (auto it = nodes_arr.begin(); it != nodes_arr.end();) {
         delete (*it);
         it = nodes_arr.erase(it);
+    }
+
+    for (auto it = sid2info.begin(); it != sid2info.end();) {
+        delete it->second;
+        it = sid2info.erase(it);
     }
 }
 

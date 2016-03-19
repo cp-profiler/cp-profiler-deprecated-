@@ -258,8 +258,23 @@ TreeComparison::copyTree(VisualNode* target, TreeCanvas* tc,
         unsigned int target_index = next->getIndex(*na);
 
         if (n->getStatus() != NodeStatus::UNDETERMINED) {
-            DbEntry* entry = tc_source->getExecution()->getData()->getEntry(source_index);
-            tc->getExecution()->getData()->connectNodeToEntry(target_index, entry);
+            auto source_data = tc_source->getExecution()->getData();
+            DbEntry* entry = source_data->getEntry(source_index);
+
+            auto this_data = tc->getExecution()->getData();
+            this_data->connectNodeToEntry(target_index, entry);
+
+            /// TODO(maxim): connect nogoods as well
+
+            auto sid = entry->sid;
+            auto info = source_data->sid2info.find(sid);
+
+            /// note(maxim): should have to maintain another map
+            /// (even though info is only a pointer)
+            if (info != source_data->sid2info.end()) {
+                this_data->sid2info[sid] = info->second;
+            }
+
         }
 
         next->dirtyUp(*na);

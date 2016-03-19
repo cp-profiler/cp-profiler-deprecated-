@@ -33,8 +33,7 @@
 
 #include <QDebug>
 
-// #include "treebuilder.hh"
-// #include "treecanvas.hh"
+
 #include "node.hh"
 #include "visualnode.hh"
 
@@ -117,12 +116,13 @@ public:
 
     /// Maps gist Id to dbEntry (possibly in the other Data instance);
     /// i.e. needed for a merged tree to show labels etc.
+    /// TODO(maixm): this should probably be a vector?
     std::unordered_map<unsigned int, DbEntry*> gid2entry;
 
     /// Map solver Id to no-good string
     std::unordered_map<unsigned long long, string> sid2nogood;
 
-    std::unordered_map<unsigned long long, string> sid2info;
+    std::unordered_map<unsigned long long, string*> sid2info;
 
     // Whether received DONE_SENDING message
     bool _isDone;
@@ -194,7 +194,7 @@ public:
     bool isRestarts(void) { return _isRestarts; }
     string getTitle(void) { return _title; }
     inline const std::unordered_map<unsigned long long, string>& getNogoods(void) { return sid2nogood; }
-    inline std::unordered_map<unsigned long long, string>& getInfo(void) { return sid2info; }
+    inline std::unordered_map<unsigned long long, string*>& getInfo(void) { return sid2info; }
 
     unsigned long long getTotalTime(void); /// time in microseconds
 
