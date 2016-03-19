@@ -26,6 +26,8 @@
 #include <algorithm>
 #include <cmath>
 
+/// TODO(maxim): use normal Gist window for comparison instead???
+
 CmpTreeDialog::CmpTreeDialog(QWidget* parent, Execution* execution, bool withLabels,
                              TreeCanvas* tc1, TreeCanvas* tc2)
     : BaseTreeDialog(parent, execution, CanvasType::MERGED),
@@ -41,10 +43,12 @@ comparison_{withLabels}, analysisMenu{nullptr}, pentListWindow{this} {
   nodeMenu->addAction(_navNextPentagon);
   nodeMenu->addAction(_navPrevPentagon);
   nodeMenu->addAction(_labelBranches);
+  nodeMenu->addAction(_showInfo);
   connect(_navFirstPentagon, SIGNAL(triggered()), this, SLOT(navFirstPentagon()));
   connect(_navNextPentagon, SIGNAL(triggered()), this, SLOT(navNextPentagon()));
   connect(_navPrevPentagon, SIGNAL(triggered()), this, SLOT(navPrevPentagon()));
   connect(_labelBranches, SIGNAL(triggered()), _tc, SLOT(labelBranches()));
+  connect(_showInfo, SIGNAL(triggered()), _tc, SLOT(showNodeInfo()));
 
 
   analysisMenu = menuBar->addMenu(tr("&Analysis"));
@@ -86,10 +90,14 @@ CmpTreeDialog::addActions(void) {
   _labelBranches = new QAction("Label/clear branches", this);
   _labelBranches->setShortcut(QKeySequence("L"));
 
+  _showInfo = new QAction("Show info", this);
+  _showInfo->setShortcut(QKeySequence("I"));
+
   addAction(_navFirstPentagon);
   addAction(_navNextPentagon);
   addAction(_navPrevPentagon);
   addAction(_labelBranches);
+  addAction(_showInfo);
 }
 
 void

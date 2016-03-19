@@ -97,6 +97,7 @@ HEADERS  += globalhelper.hh \
     pixelImage.hh \
     maybeCaller.hh \
     ml-stats.hh \
+    third-party\json.hpp \
     cpprofiler/analysis/backjumps.hh \
     cpprofiler/pixeltree/pixel_data.hh \
     cpprofiler/pixeltree/pixel_tree_dialog.hh \

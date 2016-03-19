@@ -73,6 +73,8 @@ private:
   QAction* _saveComparisonStats;
   /// Label/clear branches
   QAction* _labelBranches;
+  /// Show info
+  QAction* _showInfo;
 
   /// ***********************
 

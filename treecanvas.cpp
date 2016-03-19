@@ -38,6 +38,8 @@
 #include "nogood_dialog.hh"
 #include "node_info_dialog.hh"
 
+#include "third-party/json.hpp"
+
 #include "data.hh"
 
 #include "nodevisitor.hh"
@@ -1664,8 +1666,24 @@ TreeCanvas::applyToEachNodeIf(std::function<void (VisualNode*)> action,
   }
 }
 
+void unhighlightAllNodes(NodeAllocator* na) {
+  for (int i = 0; i < na->size(); ++i) {
+    (*na)[i]->setHovered(false);
+  }
+}
+
+void
+TreeCanvas::resetNodesHighlighting() {
+  unhighlightAllNodes(na);
+
+  update();
+}
+
 void
 TreeCanvas::highlightNodesWithInfo() {
+
+  /// TODO(maxim): unhighlight all nodes first
+  unhighlightAllNodes(na);
 
   auto action = [](VisualNode* node) {
     node->setHovered(true);
@@ -1681,6 +1699,39 @@ TreeCanvas::highlightNodesWithInfo() {
     }
 
     return true;
+  };
+
+  applyToEachNodeIf(action, predicate);
+
+  update();
+
+}
+
+void
+TreeCanvas::highlightFailedByNogoods() {
+
+  /// TODO(maxim): unhighlight all nodes first
+  unhighlightAllNodes(na);
+
+  auto action = [](VisualNode* node) {
+    node->setHovered(true);
+  };
+
+  auto predicate = [this](VisualNode* node) {
+    auto info = execution->getData()->getInfo(*node);
+
+    if (!info) return false;
+
+    auto info_json = nlohmann::json::parse(*info);
+
+    auto nogoods = info_json["nogoods"];
+
+    if (nogoods.is_array() && nogoods.size() > 0)
+      return true;
+
+    return false;
+
+
   };
 
   applyToEachNodeIf(action, predicate);

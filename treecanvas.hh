@@ -319,8 +319,13 @@ public Q_SLOTS:
   /// calls when clicking right mouse button on a shape
   void highlightShape(VisualNode* node);
 
-  /// TODO(maxim): turn this into method that takes a predicate
+  void resetNodesHighlighting();
+
+  /// highlight nodes with non-empty info field
   void highlightNodesWithInfo();
+
+  /// highlight failures caused by nogoods (nogoods in info)
+  void highlightFailedByNogoods();
 
   /// Loop through all nodes and add them to the multimap
   void addNodesToMap(void);
