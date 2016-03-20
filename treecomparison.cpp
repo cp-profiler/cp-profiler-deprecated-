@@ -23,49 +23,20 @@
 #include "treecanvas.hh"
 #include "node.hh"
 
-TreeComparison::TreeComparison(bool withLabels)
-    : withLabels_(withLabels) {}
-
-template <typename T, typename Compare>
-std::vector<std::size_t> sort_permutation(
-    const std::vector<T>& vec,
-    Compare compare)
-{
-    std::vector<std::size_t> p(vec.size());
-    std::iota(p.begin(), p.end(), 0);
-    std::sort(p.begin(), p.end(),
-        [&](std::size_t i, std::size_t j){ return compare(vec[i], vec[j]); });
-    return p;
-}
-
-template <typename T>
-std::vector<T> apply_permutation(
-    const std::vector<T>& vec,
-    const std::vector<std::size_t>& p)
-{
-    std::vector<T> sorted_vec(p.size());
-    std::transform(p.begin(), p.end(), sorted_vec.begin(),
-        [&](std::size_t i){ return vec[i]; });
-    return sorted_vec;
-}
+TreeComparison::TreeComparison(Execution& ex1, Execution& ex2, bool withLabels)
+    : _ex1(ex1), _ex2(ex2), _na1(ex1.na()), _na2(ex2.na()), withLabels_(withLabels) {}
 
 void
 TreeComparison::sortPentagons() {
-
-    /// Note(maxim): this will sort the two vectors together
-
-    auto p = sort_permutation(_pentagon_sizes,
-    [](const std::pair<unsigned int, unsigned int>& lhs,
-       const std::pair<unsigned int, unsigned int>& rhs){
-        return std::abs((int)lhs.first - (int)lhs.second) > std::abs((int)rhs.first - (int)rhs.second);  
+    std::sort(_pentagon_items.begin(), _pentagon_items.end(),
+        [](const PentagonItem& lhs, const PentagonItem& rhs){
+            return std::abs((int)lhs.l_size - (int)lhs.r_size)
+                 > std::abs((int)rhs.l_size - (int)rhs.r_size);
     });
-
-    _pentagon_sizes = apply_permutation(_pentagon_sizes, p);
-    _pentagon_nodes = apply_permutation(_pentagon_nodes, p);
 }
 
 void
-TreeComparison::compare(TreeCanvas* t1, TreeCanvas* t2, TreeCanvas* new_tc) {
+TreeComparison::compare(TreeCanvas* new_tc) {
 
     /// For source trees
     QStack<VisualNode*> stack1;
@@ -73,12 +44,8 @@ TreeComparison::compare(TreeCanvas* t1, TreeCanvas* t2, TreeCanvas* new_tc) {
     /// The stack used while building new_tc
     QStack<VisualNode*> stack;
 
-    Node::NodeAllocator* na1 = t1->na;
-    Node::NodeAllocator* na2 = t2->na;
-    VisualNode* root1 = (*na1)[0];
-    VisualNode* root2 = (*na2)[0];
-    Execution* execution1 = t1->execution;
-    Execution* execution2 = t2->execution;
+    VisualNode* root1 = _na1[0];
+    VisualNode* root2 = _na2[0];
 
     VisualNode* next;
 
@@ -91,8 +58,6 @@ TreeComparison::compare(TreeCanvas* t1, TreeCanvas* t2, TreeCanvas* new_tc) {
     bool rootBuilt = false;
 
     Node::NodeAllocator* na = new_tc->na;
-
-    TreeComparison::setSource(na1, na2, execution1, execution2);
 
     while (stack1.size() > 0) {
         VisualNode* node1 = stack1.pop();
@@ -113,7 +78,7 @@ TreeComparison::compare(TreeCanvas* t1, TreeCanvas* t2, TreeCanvas* new_tc) {
             for (unsigned int i = 0; i < kids; i++) {
 
                 int child_gid = node1->getChild(i);
-                std::string label = _ex1->getLabel(child_gid);
+                std::string label = _ex1.getLabel(child_gid);
 
                 /// check if label starts with "[i]"
 
@@ -127,7 +92,7 @@ TreeComparison::compare(TreeCanvas* t1, TreeCanvas* t2, TreeCanvas* new_tc) {
             /// if implied not found -> continue,
             /// otherwise skip this node
             if (implied_child != -1) {
-                node1 = node1->getChild(*na1, implied_child);
+                node1 = node1->getChild(_na1, implied_child);
             }
         } while (implied_child != -1);
 
@@ -141,7 +106,7 @@ TreeComparison::compare(TreeCanvas* t1, TreeCanvas* t2, TreeCanvas* new_tc) {
             for (unsigned int i = 0; i < kids; i++) {
 
                 int child_gid = node2->getChild(i);
-                std::string label = _ex2->getLabel(child_gid);
+                std::string label = _ex2.getLabel(child_gid);
 
                 /// check if label starts with "[i]"
 
@@ -155,7 +120,7 @@ TreeComparison::compare(TreeCanvas* t1, TreeCanvas* t2, TreeCanvas* new_tc) {
             /// if implied not found -> continue,
             /// otherwise skip this node
             if (implied_child != -1) {
-                node2 = node2->getChild(*na2, implied_child);
+                node2 = node2->getChild(_na2, implied_child);
             }
         } while (implied_child != -1);
 
@@ -166,8 +131,8 @@ TreeComparison::compare(TreeCanvas* t1, TreeCanvas* t2, TreeCanvas* new_tc) {
         if (equal) {
             uint kids = node1->getNumberOfChildren();
             for (uint i = 0; i < kids; ++i) {
-                stack1.push(node1->getChild(*na1, kids - i - 1));
-                stack2.push(node2->getChild(*na2, kids - i - 1));
+                stack1.push(node1->getChild(_na1, kids - i - 1));
+                stack2.push(node2->getChild(_na2, kids - i - 1));
             }
 
             /// if roots are equal
@@ -187,10 +152,10 @@ TreeComparison::compare(TreeCanvas* t1, TreeCanvas* t2, TreeCanvas* new_tc) {
 
             /// point to the source node
 
-            unsigned int source_index = node2->getIndex(*na2);
+            unsigned int source_index = node2->getIndex(_na2);
             unsigned int target_index = next->getIndex(*na);
 
-            DbEntry* entry = _ex2->getEntry(source_index);
+            DbEntry* entry = _ex2.getEntry(source_index);
             new_tc->getExecution()->getData()->connectNodeToEntry(target_index, entry);
 
             for (unsigned int i = 0; i < kids; ++i) {
@@ -208,15 +173,22 @@ TreeComparison::compare(TreeCanvas* t1, TreeCanvas* t2, TreeCanvas* new_tc) {
             next->setHidden(true);
             next->_tid = 0;
 
-            _pentagon_nodes.push_back(next);
-
             stack.push(next->getChild(*na, 1));
             stack.push(next->getChild(*na, 0));
 
-            unsigned int left = copyTree(stack.pop(), new_tc, node1, t1, 1);
-            unsigned int right = copyTree(stack.pop(), new_tc, node2, t2, 2);
+            int left = copyTree(stack.pop(), new_tc, node1, _ex1, 1);
+            int right = copyTree(stack.pop(), new_tc, node2, _ex2, 2);
 
-            _pentagon_sizes.push_back(std::make_pair(left, right));
+            const string* info_str = nullptr;
+            /// check if node1 is FAILED
+            if (node1->getStatus() == FAILED) {
+                node1->setHovered(true);
+                auto data = _ex1.getData();
+                info_str = data->getInfo(*node1);
+                qDebug() << "info_str" << info_str->c_str();
+            }
+
+            _pentagon_items.emplace_back(PentagonItem{left, right, next, info_str});
 
         }
 
@@ -225,12 +197,12 @@ TreeComparison::compare(TreeCanvas* t1, TreeCanvas* t2, TreeCanvas* new_tc) {
     }
 }
 
-unsigned int
+int
 TreeComparison::copyTree(VisualNode* target, TreeCanvas* tc,
-                         VisualNode* root,   TreeCanvas* tc_source, int which) {
+                         VisualNode* root, const Execution& ex_source, int which) {
 
     NodeAllocator* na = tc->na;
-    NodeAllocator* na_source = tc_source->na;
+    const NodeAllocator& na_source = ex_source.na();
 
     QStack<VisualNode*> source_stack;
     QStack<VisualNode*> target_stack;
@@ -238,7 +210,7 @@ TreeComparison::copyTree(VisualNode* target, TreeCanvas* tc,
     source_stack.push(root);
     target_stack.push(target);
 
-    unsigned int count = 0;
+    int count = 0;
 
     while (source_stack.size() > 0) {
         count++;
@@ -254,11 +226,11 @@ TreeComparison::copyTree(VisualNode* target, TreeCanvas* tc,
         next->nstatus = n->nstatus;
 
         /// point to the source node
-        unsigned int source_index = n->getIndex(*na_source);
+        unsigned int source_index = n->getIndex(na_source);
         unsigned int target_index = next->getIndex(*na);
 
         if (n->getStatus() != NodeStatus::UNDETERMINED) {
-            auto source_data = tc_source->getExecution()->getData();
+            auto source_data = ex_source.getData();
             DbEntry* entry = source_data->getEntry(source_index);
 
             auto this_data = tc->getExecution()->getData();
@@ -280,7 +252,7 @@ TreeComparison::copyTree(VisualNode* target, TreeCanvas* tc,
         next->dirtyUp(*na);
 
         for (uint i = 0; i < kids; ++i) {
-            source_stack.push(n->getChild(*na_source, i));
+            source_stack.push(n->getChild(na_source, i));
             target_stack.push(next->getChild(*na, i));
         }
     }
@@ -312,8 +284,8 @@ TreeComparison::copmareNodes(VisualNode* n1, VisualNode* n2) {
             int id1 = n1->getChild(i);
             int id2 = n2->getChild(i);
 
-            auto label1 = _ex1->getLabel(id1);
-            auto label2 = _ex2->getLabel(id2);
+            auto label1 = _ex1.getLabel(id1);
+            auto label2 = _ex2.getLabel(id2);
 
             /// NOTE(maxim): removes whitespaces before comparing;
             /// this will be necessary as long as Chuffed and Gecode don't agree
@@ -340,16 +312,7 @@ TreeComparison::copmareNodes(VisualNode* n1, VisualNode* n2) {
     return true;
 }
 
-void
-TreeComparison::setSource(NodeAllocator* na1, NodeAllocator* na2,
-                          Execution* ex1, Execution* ex2) {
-    _na1 = na1;
-    _na2 = na2;
-    _ex1 = ex1;
-    _ex2 = ex2;
-}
-
 int
 TreeComparison::get_no_pentagons(void) {
-    return static_cast<int>(_pentagon_nodes.size());
+    return static_cast<int>(_pentagon_items.size());
 }

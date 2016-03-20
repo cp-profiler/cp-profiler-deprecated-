@@ -46,7 +46,7 @@ class SpaceNode;
 typedef NodeAllocatorBase<VisualNode> NodeAllocator;
 
 namespace cpprofiler { namespace analysis {
-  class BackjumpItem;
+  struct BackjumpItem;
 }}
 
 namespace cpprofiler { namespace pixeltree {

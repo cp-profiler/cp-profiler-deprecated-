@@ -18,8 +18,8 @@ public:
         _data = std::unique_ptr<Data>{new Data(_na.get())};
     }
 
-    inline const std::unordered_map<unsigned long long, string>& getNogoods(void) { return _data->getNogoods(); }
-    inline std::unordered_map<unsigned long long, string*>& getInfo(void) { return _data->getInfo(); }
+    inline const std::unordered_map<unsigned long long, string>& getNogoods(void) const { return _data->getNogoods(); }
+    inline std::unordered_map<unsigned long long, string*>& getInfo(void) const { return _data->getInfo(); }
     DbEntry* getEntry(unsigned int gid) const { return _data->getEntry(gid); }
     unsigned int getGidBySid(unsigned int sid) { return _data->getGidBySid(sid); }
     std::string getLabel(unsigned int gid) const { return _data->getLabel(gid); }
@@ -35,8 +35,12 @@ public:
     }
 
 
-    Data* getData() {
+    Data* getData() const {
         return _data.get();
+    }
+
+    NodeAllocator& na() const {
+        return *_na.get();
     }
 
     void start(std::string label, bool isRestarts) {

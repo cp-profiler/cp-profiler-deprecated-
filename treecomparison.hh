@@ -35,45 +35,53 @@ class Data;
 class VisualNode;
 class Node;
 
+struct PentagonItem {
+  int l_size; /// left subtree size
+  int r_size; /// right subtree size
+  VisualNode* node; /// pentagon node
+  const std::string* info; /// pentagon info -> now used for nogoods
+  PentagonItem(int l_size, int r_size, VisualNode* node, const std::string* info = nullptr)
+    :l_size(l_size), r_size(r_size), node(node), info(info) {}
+};
+
 class TreeComparison {
 
 
 public:
-  TreeComparison(bool withLabels);
-  void compare(TreeCanvas* t1, TreeCanvas* t2, TreeCanvas* new_tc);
+  TreeComparison(Execution& ex1, Execution& ex2, bool withLabels);
+  void compare(TreeCanvas* new_tc);
   void sortPentagons();
+
+  const Execution& left_execution() const { return _ex1; }
+  const Execution& right_execution() const { return _ex2; }
 
   int get_no_pentagons(void);
 
-  inline const std::vector<VisualNode*>& pentagon_nodes(void) { return _pentagon_nodes; }
-  inline const std::vector<std::pair<unsigned int, unsigned int>>& pentagon_sizes(void) { return _pentagon_sizes;}
+  /// NOTE(maxim): if use a pointer to an item here and vector is modified -> could be a problem
+  inline const std::vector<PentagonItem>& pentagon_items() const { return _pentagon_items; } 
 
 private:
-  std::vector<VisualNode*> _pentagon_nodes;
-  std::vector<std::pair<unsigned int, unsigned int>> _pentagon_sizes;
+  std::vector<PentagonItem> _pentagon_items;
 
 private:
 
   /// The four needed for extracting labels
-  NodeAllocator* _na1;
-  NodeAllocator* _na2;
+  Execution& _ex1;
+  Execution& _ex2;
 
-  Execution* _ex1;
-  Execution* _ex2;
+  NodeAllocator& _na1;
+  NodeAllocator& _na2;
 
   bool withLabels_;
 
 private: /// methods
 
-  /// Initialize data source for obtaining labels etc.
-  void setSource(NodeAllocator* na1, NodeAllocator* na2, Execution* ex1, Execution* ex2);
-
   /// Returns true/false depending on whether n1 ~ n2
   bool copmareNodes(VisualNode* n1, VisualNode* n2);
 
   /// 'which' is treated as a colour, usually 1 or 2 depending on which tree is a source
-  unsigned int copyTree(VisualNode*, TreeCanvas*,
-                       VisualNode*, TreeCanvas*, int which = 0);
+  int copyTree(VisualNode*, TreeCanvas*,
+               VisualNode*, const Execution&, int which = 0);
 
 };
 

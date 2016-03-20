@@ -27,6 +27,8 @@
  #include "treecomparison.hh"
 
 class Gist;
+class TreeComparison;
+class CmpTreeDialog;
 
 class PentListWindow : public QDialog {
 Q_OBJECT
@@ -35,17 +37,19 @@ friend class CmpTreeDialog;
 
 private:
 
-  QTableWidget _histTable;
-  // const std::vector<VisualNode*>* p_pentagons;
+  QTableWidget _pentagonTable;
+  QTableWidget _nogoodTable;
+
+  const std::vector<PentagonItem>& _items;
+  const TreeComparison& comparison_;
 
 private:
-  // want a copy of a second vector here
-  void createList(const std::vector<VisualNode*>& pentagon_nodes,
-                  std::vector<std::pair<unsigned int, unsigned int>> pentSize);
+  void createList(); /// make this a free function
+  void populateNogoodTable(const std::vector<int>& nogoods);
 
 
 public:
-  explicit PentListWindow(QWidget* parent);
+  PentListWindow(CmpTreeDialog* parent, const std::vector<PentagonItem>& items);
 };
 
 class CmpTreeDialog : public BaseTreeDialog {
@@ -56,8 +60,6 @@ private:
   TreeComparison comparison_;
 
   QMenu* analysisMenu;
-
-  PentListWindow pentListWindow;
 
 
   /// ******* Actions *******
@@ -88,6 +90,9 @@ public:
                 TreeCanvas *tc1, TreeCanvas *tc2);
 
   void saveComparisonStatsTo(const QString& file_name);
+  void selectPentagon(int row);
+
+  const TreeComparison& comparison() { return comparison_; }
 
 private Q_SLOTS:
   void statusChanged(VisualNode*, const Statistics& stats, bool finished);
@@ -99,7 +104,7 @@ private Q_SLOTS:
 
   void showPentagonHist(void);
   void saveComparisonStats(void);
-  void selectPentagon(int row, int);
+
 
 };
 

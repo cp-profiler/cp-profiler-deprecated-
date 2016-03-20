@@ -211,6 +211,19 @@ Data::getInfo(const Node& node) const {
     return info->second;
 }
 
+const std::string*
+Data::getNogood(const Node& node) const {
+    auto entry = getEntry(node);
+
+    if (!entry) return nullptr;
+
+    auto nogood = sid2nogood.find(entry->sid);
+
+    if (nogood == sid2nogood.end()) return nullptr;
+
+    return &nogood->second;
+}
+
 unsigned long long Data::gid2sid(unsigned int gid) {
     QMutexLocker locker(&dataMutex);
 

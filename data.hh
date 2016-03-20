@@ -200,6 +200,8 @@ public:
 
     DbEntry* getEntry(unsigned int gid) const;
     DbEntry* getEntry(const Node& node) const;
+
+    const string* getNogood(const Node& node) const;
     const string* getInfo(const Node& node) const;
 
     unsigned int getGidBySid(unsigned int sid) { return nodes_arr[sid2aid[sid]]->gid; }

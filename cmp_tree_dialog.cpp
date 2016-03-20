@@ -22,7 +22,7 @@
 #include "cmp_tree_dialog.hh"
 #include "nodewidget.hh"
 
-#include <utility> // pair
+#include "third-party/json.hpp"
 #include <algorithm>
 #include <cmath>
 
@@ -31,7 +31,8 @@
 CmpTreeDialog::CmpTreeDialog(QWidget* parent, Execution* execution, bool withLabels,
                              TreeCanvas* tc1, TreeCanvas* tc2)
     : BaseTreeDialog(parent, execution, CanvasType::MERGED),
-comparison_{withLabels}, analysisMenu{nullptr}, pentListWindow{this} {
+      comparison_{*tc1->getExecution(), *tc2->getExecution(), withLabels},
+      analysisMenu{nullptr} {
 
   hbl->addWidget(new NodeWidget(MERGING));
   mergedLabel = new QLabel("0");
@@ -59,10 +60,7 @@ comparison_{withLabels}, analysisMenu{nullptr}, pentListWindow{this} {
 
   /// sort the pentagons by nodes diff:
 
-
-
-
-  comparison_.compare(tc1, tc2, _tc);
+  comparison_.compare(_tc);
 
   comparison_.sortPentagons();
 
@@ -109,14 +107,14 @@ CmpTreeDialog::statusChanged(VisualNode*, const Statistics&, bool finished) {
 
 void
 CmpTreeDialog::navFirstPentagon(void) {
-  const std::vector<VisualNode*>& pentagon_nodes = comparison_.pentagon_nodes();
+  const auto pentagon_items = comparison_.pentagon_items();
 
-  if (pentagon_nodes.size() == 0) {
+  if (pentagon_items.size() == 0) {
     qDebug() << "warning: pentagons.size() == 0";
     return;
   }
 
-  _tc->setCurrentNode(pentagon_nodes[0]);
+  _tc->setCurrentNode(pentagon_items[0].node);
   _tc->centerCurrentNode();
 
 }
@@ -136,8 +134,10 @@ CmpTreeDialog::navPrevPentagon(void) {
 
 void
 CmpTreeDialog::showPentagonHist(void) {
-  pentListWindow.createList(comparison_.pentagon_nodes(), comparison_.pentagon_sizes());
-  pentListWindow.show();
+
+  auto pentagon_window = new PentListWindow(this, comparison_.pentagon_items());
+  pentagon_window->createList();
+  pentagon_window->show();
 }
 
 void
@@ -147,10 +147,10 @@ CmpTreeDialog::saveComparisonStatsTo(const QString& file_name) {
         if (outputFile.open(QFile::WriteOnly | QFile::Truncate)) {
             QTextStream out(&outputFile);
 
-            auto pentagons_diff = comparison_.pentagon_sizes();
+            const auto pentagon_items = comparison_.pentagon_items();
 
-            for (auto& pair : pentagons_diff) {
-              out << pair.first << " " << pair.second << "\n";
+            for (auto& item : pentagon_items) {
+              out << item.l_size << " " << item.r_size << "\n";
             }
 
             qDebug() << "writing comp stats to the file: " << file_name;
@@ -167,53 +167,144 @@ CmpTreeDialog::saveComparisonStats(void) {
 
 /// *************** Pentagon List Window ****************
 
-PentListWindow::PentListWindow(QWidget* parent)
-: QDialog(parent), _histTable{this} {
 
-  resize(600, 400);
+void initNogoodTable(QTableWidget& ng_table) {
+  ng_table.setEditTriggers(QAbstractItemView::NoEditTriggers);
 
-  connect(&_histTable, SIGNAL(cellDoubleClicked (int, int)), parent, SLOT(selectPentagon(int, int)));
-  QHBoxLayout* layout = new QHBoxLayout(this);
+  ng_table.setColumnCount(2);
 
-  _histTable.setEditTriggers(QAbstractItemView::NoEditTriggers);
-  _histTable.setSelectionBehavior(QAbstractItemView::SelectRows);
+  QStringList table_header;
+  table_header << "Id" << "Literals";
+  ng_table.setHorizontalHeaderLabels(table_header);
 
-  layout->addWidget(&_histTable);
+
+}
+
+std::vector<int>
+infoToNogoodVector(const string& info) {
+  auto info_json = nlohmann::json::parse(info);
+
+  auto nogoods = info_json["nogoods"];
+
+  if (nogoods.is_array()) {
+    return nogoods;
+  }
+
+  return {};
 }
 
 void
-PentListWindow::createList(const std::vector<VisualNode*>& pentagon_nodes,
-                           std::vector<std::pair<unsigned int, unsigned int>> pentagon_sizes)
+PentListWindow::populateNogoodTable(const vector<int>& nogoods) {
+
+  _nogoodTable.setRowCount(nogoods.size());
+
+  for (unsigned int i = 0; i < nogoods.size(); i++) {
+
+    int ng_id = nogoods[i]; /// is this sid of gid???
+    _nogoodTable.setItem(i, 0, new QTableWidgetItem(QString::number(ng_id)));
+
+    auto nogood_map = comparison_.left_execution().getNogoods();
+
+    string nogood = "";
+
+    auto maybe_nogood = nogood_map.find(ng_id);
+
+    if (maybe_nogood != nogood_map.end()){
+      nogood = maybe_nogood->second;
+    }
+
+    _nogoodTable.setItem(i, 1, new QTableWidgetItem(nogood.c_str()));
+
+  }
+
+}
+
+PentListWindow::PentListWindow(CmpTreeDialog* parent, const std::vector<PentagonItem>& items)
+: QDialog(parent), _pentagonTable{this}, _items(items), comparison_(parent->comparison()) {
+
+  resize(600, 400);
+
+  setAttribute(Qt::WA_DeleteOnClose, true);
+
+  connect(&_pentagonTable, &QTableWidget::cellDoubleClicked, [this, parent](int row, int) {
+    static_cast<CmpTreeDialog*>(parent)->selectPentagon(row);
+
+    /// TODO(maxim): show nogoods for current pentagon
+    auto maybe_info = _items[row].info;
+
+    if (maybe_info) {
+      auto nogoods = infoToNogoodVector(*maybe_info);
+
+      populateNogoodTable(nogoods);
+    }
+  });
+
+  auto layout = new QVBoxLayout(this);
+
+  _pentagonTable.setEditTriggers(QAbstractItemView::NoEditTriggers);
+  _pentagonTable.setSelectionBehavior(QAbstractItemView::SelectRows);
+
+  initNogoodTable(_nogoodTable);
+
+  layout->addWidget(&_pentagonTable);
+  layout->addWidget(&_nogoodTable);
+}
+
+
+
+QString infoToNogoodStr(const string& info) {
+  QString result = "";
+
+  auto info_json = nlohmann::json::parse(info);
+
+  auto nogoods = info_json["nogoods"];
+
+  if (nogoods.is_array() && nogoods.size() > 0) {
+    for (auto nogood : nogoods) {
+      int ng = nogood;
+      result += QString::number(ng) + " ";
+    }
+  }
+
+  return result;
+}
+
+void
+PentListWindow::createList()
 {
 
-  assert(pentagon_nodes.size() == pentagon_sizes.size());
-
-  _histTable.setColumnCount(2);
-  _histTable.setRowCount(pentagon_sizes.size());
+  _pentagonTable.setColumnCount(3);
+  _pentagonTable.setRowCount(_items.size());
 
   QStringList table_header;
-  table_header << "Left" << "Right";
-  _histTable.setHorizontalHeaderLabels(table_header);
+  table_header << "Left" << "Right" << "Nogoods involved";
+  _pentagonTable.setHorizontalHeaderLabels(table_header);
 
-  for (unsigned int i = 0; i < pentagon_sizes.size(); i++) {
-    _histTable.setItem(i, 0, new QTableWidgetItem(QString::number(pentagon_sizes[i].first)));
-    _histTable.setItem(i, 1, new QTableWidgetItem(QString::number(pentagon_sizes[i].second)));
+  for (unsigned int i = 0; i < _items.size(); i++) {
+    _pentagonTable.setItem(i, 0, new QTableWidgetItem(QString::number(_items[i].l_size)));
+    _pentagonTable.setItem(i, 1, new QTableWidgetItem(QString::number(_items[i].r_size)));
+
+    auto maybe_info = _items[i].info;
+    if (maybe_info) {
+
+     QString nogood_str = infoToNogoodStr(*maybe_info);
+
+      _pentagonTable.setItem(i, 2, new QTableWidgetItem(nogood_str));
+    }
   }
 
 }
 
 void
-CmpTreeDialog::selectPentagon(int row, int) {
-  const std::vector<VisualNode*>& pentagon_nodes = comparison_.pentagon_nodes();
+CmpTreeDialog::selectPentagon(int row) {
+  const auto items = comparison_.pentagon_items();
 
-  auto* node = pentagon_nodes[row];
-
+  auto node = items[row].node;
 
   //TODO(maxim): this should unhide all nodes above
   // _tc->unhideNode(node); // <- does not work correctly
   _tc->setCurrentNode(node);
   _tc->centerCurrentNode();
-
   
 }
 
