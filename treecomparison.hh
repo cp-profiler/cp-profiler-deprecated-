@@ -58,10 +58,14 @@ public:
   int get_no_pentagons(void);
 
   /// NOTE(maxim): if use a pointer to an item here and vector is modified -> could be a problem
-  inline const std::vector<PentagonItem>& pentagon_items() const { return _pentagon_items; } 
+  const std::vector<PentagonItem>& pentagon_items() const { return _pentagon_items; }
+  const std::unordered_map<int, int>& responsible_nogood_counts() const {
+    return _responsible_nogood_counts;
+  }
 
 private:
   std::vector<PentagonItem> _pentagon_items;
+  std::unordered_map<int, int> _responsible_nogood_counts;
 
 private:
 
@@ -75,6 +79,8 @@ private:
   bool withLabels_;
 
 private: /// methods
+
+  void analyseNogoods(const std::string& info);
 
   /// Returns true/false depending on whether n1 ~ n2
   bool copmareNodes(VisualNode* n1, VisualNode* n2);

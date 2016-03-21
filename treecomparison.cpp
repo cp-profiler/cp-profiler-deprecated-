@@ -19,6 +19,7 @@
  *
  */
 
+
 #include "treecomparison.hh"
 #include "treecanvas.hh"
 #include "node.hh"
@@ -33,6 +34,20 @@ TreeComparison::sortPentagons() {
             return std::abs((int)lhs.l_size - (int)lhs.r_size)
                  > std::abs((int)rhs.l_size - (int)rhs.r_size);
     });
+}
+
+/// note(maxim): Defined in cmp_tree_dialog.cpp
+std::vector<int>
+infoToNogoodVector(const string& info);
+
+void
+TreeComparison::analyseNogoods(const string& info) {
+    auto ng_vec = infoToNogoodVector(info);
+
+    for (auto ng_id : ng_vec) {
+        _responsible_nogood_counts[ng_id]++;
+    }
+
 }
 
 void
@@ -56,6 +71,8 @@ TreeComparison::compare(TreeCanvas* new_tc) {
     stack.push(root);
 
     bool rootBuilt = false;
+
+    /// TODO(maxim): reset responsible nogood counts?
 
     Node::NodeAllocator* na = new_tc->na;
 
@@ -180,15 +197,18 @@ TreeComparison::compare(TreeCanvas* new_tc) {
             int right = copyTree(stack.pop(), new_tc, node2, _ex2, 2);
 
             const string* info_str = nullptr;
-            /// check if node1 is FAILED
+            /// if node1 is FAILED -> check nogoods
             if (node1->getStatus() == FAILED) {
                 node1->setHovered(true);
                 auto data = _ex1.getData();
                 info_str = data->getInfo(*node1);
-                qDebug() << "info_str" << info_str->c_str();
+
+                /// identify nogoods and increment counters
+                if (info_str) analyseNogoods(*info_str);
             }
 
             _pentagon_items.emplace_back(PentagonItem{left, right, next, info_str});
+
 
         }
 

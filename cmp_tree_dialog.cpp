@@ -171,11 +171,13 @@ CmpTreeDialog::saveComparisonStats(void) {
 void initNogoodTable(QTableWidget& ng_table) {
   ng_table.setEditTriggers(QAbstractItemView::NoEditTriggers);
 
-  ng_table.setColumnCount(2);
+  ng_table.setColumnCount(3);
 
   QStringList table_header;
-  table_header << "Id" << "Literals";
+  table_header << "Id" << "Occurrence" << "Literals";
   ng_table.setHorizontalHeaderLabels(table_header);
+  ng_table.setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
+  ng_table.setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
 
 
 }
@@ -196,6 +198,8 @@ infoToNogoodVector(const string& info) {
 void
 PentListWindow::populateNogoodTable(const vector<int>& nogoods) {
 
+  auto ng_counts = comparison_.responsible_nogood_counts();
+
   _nogoodTable.setRowCount(nogoods.size());
 
   for (unsigned int i = 0; i < nogoods.size(); i++) {
@@ -213,9 +217,16 @@ PentListWindow::populateNogoodTable(const vector<int>& nogoods) {
       nogood = maybe_nogood->second;
     }
 
-    _nogoodTable.setItem(i, 1, new QTableWidgetItem(nogood.c_str()));
+
+    int ng_count = ng_counts.at(ng_id);
+
+    _nogoodTable.setItem(i, 1, new QTableWidgetItem(QString::number(ng_count)));
+
+    _nogoodTable.setItem(i, 2, new QTableWidgetItem(nogood.c_str()));
 
   }
+
+  _nogoodTable.resizeColumnsToContents();
 
 }
 
@@ -229,8 +240,10 @@ PentListWindow::PentListWindow(CmpTreeDialog* parent, const std::vector<Pentagon
   connect(&_pentagonTable, &QTableWidget::cellDoubleClicked, [this, parent](int row, int) {
     static_cast<CmpTreeDialog*>(parent)->selectPentagon(row);
 
-    /// TODO(maxim): show nogoods for current pentagon
     auto maybe_info = _items[row].info;
+
+    /// clear nogood view
+    _nogoodTable.clearContents();
 
     if (maybe_info) {
       auto nogoods = infoToNogoodVector(*maybe_info);
@@ -273,12 +286,16 @@ void
 PentListWindow::createList()
 {
 
+
   _pentagonTable.setColumnCount(3);
   _pentagonTable.setRowCount(_items.size());
 
   QStringList table_header;
   table_header << "Left" << "Right" << "Nogoods involved";
   _pentagonTable.setHorizontalHeaderLabels(table_header);
+  _pentagonTable.setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
+  _pentagonTable.setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
+
 
   for (unsigned int i = 0; i < _items.size(); i++) {
     _pentagonTable.setItem(i, 0, new QTableWidgetItem(QString::number(_items[i].l_size)));
@@ -292,6 +309,7 @@ PentListWindow::createList()
       _pentagonTable.setItem(i, 2, new QTableWidgetItem(nogood_str));
     }
   }
+  _pentagonTable.resizeColumnsToContents();
 
 }
 
