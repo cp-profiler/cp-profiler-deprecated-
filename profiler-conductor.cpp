@@ -183,7 +183,8 @@ ProfilerConductor::compareButtonClicked(bool) {
 void
 ProfilerConductor::compareExecutions(bool auto_save) {
 
-    const bool withLabels = compareWithLabelsCB->isChecked();
+    /// NOTE(maxim): compare with labels when using a script (auto_save == true)
+    const bool withLabels = compareWithLabelsCB->isChecked() || auto_save;
 
     QList <QListWidgetItem*> selected = executionList->selectedItems();
     if (selected.size() != 2) return;

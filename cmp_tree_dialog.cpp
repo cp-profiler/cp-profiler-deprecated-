@@ -51,12 +51,17 @@ CmpTreeDialog::CmpTreeDialog(QWidget* parent, Execution* execution, bool withLab
   connect(_labelBranches, SIGNAL(triggered()), _tc, SLOT(labelBranches()));
   connect(_showInfo, SIGNAL(triggered()), _tc, SLOT(showNodeInfo()));
 
+  auto listNogoodsAction = new QAction("List Responsible Nogoods", this);
+
 
   analysisMenu = menuBar->addMenu(tr("&Analysis"));
   analysisMenu->addAction(_showPentagonHist);
   analysisMenu->addAction(_saveComparisonStats);
+  analysisMenu->addAction(listNogoodsAction);
+
   connect(_showPentagonHist, SIGNAL(triggered()), this, SLOT(showPentagonHist()));
   connect(_saveComparisonStats, SIGNAL(triggered()), this, SLOT(saveComparisonStats()));
+  connect(listNogoodsAction, &QAction::triggered, this, &CmpTreeDialog::showResponsibleNogoods);
 
   /// sort the pentagons by nodes diff:
 
@@ -90,6 +95,8 @@ CmpTreeDialog::addActions(void) {
 
   _showInfo = new QAction("Show info", this);
   _showInfo->setShortcut(QKeySequence("I"));
+
+
 
   addAction(_navFirstPentagon);
   addAction(_navNextPentagon);
@@ -324,6 +331,63 @@ CmpTreeDialog::selectPentagon(int row) {
   _tc->setCurrentNode(node);
   _tc->centerCurrentNode();
   
+}
+
+
+void
+CmpTreeDialog::showResponsibleNogoods() {
+
+  auto ng_dialog = new QDialog(this);
+  auto ng_layout = new QVBoxLayout();
+
+  ng_dialog->resize(600, 400);
+  ng_dialog->setLayout(ng_layout);
+  ng_dialog->show();
+
+
+  auto ng_table = new QTableWidget(ng_dialog);
+  ng_table->setEditTriggers(QAbstractItemView::NoEditTriggers);
+  ng_table->setColumnCount(2);
+  ng_table->setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
+  ng_table->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
+
+  QStringList table_header;  
+  table_header << "Id" << "Occurrence" << "Literals";
+  ng_table->setHorizontalHeaderLabels(table_header);
+
+  ng_layout->addWidget(ng_table);
+
+  /// *** edit table ***
+
+  auto ng_counts = comparison_.responsible_nogood_counts();
+
+  /// map to vector
+  std::vector<std::pair<int, int> > ng_counts_vector;
+  ng_counts_vector.reserve(ng_counts.size());
+
+  for (auto ng : ng_counts) {
+    ng_counts_vector.push_back(ng);
+  }
+
+  std::sort(ng_counts_vector.begin(), ng_counts_vector.end(),
+    [](const std::pair<int, int>& lhs, const std::pair<int, int>& rhs){
+      return lhs.second > rhs.second;
+  });
+
+  ng_table->setRowCount(ng_counts.size());
+
+
+  int row = 0;
+  for (auto ng : ng_counts_vector) {
+
+    ng_table->setItem(row, 0, new QTableWidgetItem(QString::number(ng.first)));
+    ng_table->setItem(row, 1, new QTableWidgetItem(QString::number(ng.second)));
+
+    ++row;
+  }
+
+
+
 }
 
 /// ******************************************************

@@ -199,7 +199,6 @@ TreeComparison::compare(TreeCanvas* new_tc) {
             const string* info_str = nullptr;
             /// if node1 is FAILED -> check nogoods
             if (node1->getStatus() == FAILED) {
-                node1->setHovered(true);
                 auto data = _ex1.getData();
                 info_str = data->getInfo(*node1);
 

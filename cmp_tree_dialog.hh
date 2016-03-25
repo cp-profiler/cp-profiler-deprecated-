@@ -105,6 +105,8 @@ private Q_SLOTS:
   void showPentagonHist(void);
   void saveComparisonStats(void);
 
+  void showResponsibleNogoods();
+
 
 };
 
