@@ -810,8 +810,7 @@ TreeCanvas::unhideNode(VisualNode* node) {
 
   auto* next = node;
   do {
-    next->setHidden(false);
-    // next = next->getParent(*na);
+      next->setHidden(false);
   } while ((next = next->getParent(*na)));
 }
 

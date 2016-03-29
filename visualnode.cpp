@@ -556,3 +556,14 @@ VisualNode::computeShape(const NodeAllocator& na) {
         heap.free<Extent>(currentShapeL,maxDepth);
     }
 }
+
+bool
+VisualNode::isNodeVisible(const NodeAllocator& na) const {
+  auto* next = this;
+
+  do {
+    if (next->isHidden()) { return false; }
+  } while ((next = next->getParent(na)));
+
+  return true;
+}

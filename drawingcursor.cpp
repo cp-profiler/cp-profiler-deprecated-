@@ -195,7 +195,11 @@ DrawingCursor::processCurrentNode(void) {
     if (n->isHidden() && ~_showHidden) {
 
         if (n->getStatus() == MERGING) {
-            painter.setBrush(orange);
+            if (n->isMarked()) {
+                painter.setBrush(gold);
+            } else {
+                painter.setBrush(orange);
+            }
             drawPentagon(myx, myy, false);
         } else {
             if (n->hasOpenChildren()) {
@@ -270,10 +274,11 @@ DrawingCursor::processCurrentNode(void) {
             painter.drawRect(myx - HALF_FAILED_WIDTH, myy, FAILED_WIDTH, FAILED_WIDTH);
             break;
         case MERGING:
-            if (n->isMarked())
+            if (n->isMarked()) {
                 painter.setBrush(QBrush(gold));
-            else
+            } else {
                 painter.setBrush(orange);
+            }
             drawPentagon(myx, myy, false);
             break;
         }

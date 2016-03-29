@@ -162,9 +162,10 @@ public:
   VisualNode(int p);
   /// Constructor for root node \a db_id
   VisualNode(bool);
-
+  /// Returns false if any of the nodes in ancestry are hidden
+  bool isNodeVisible(const NodeAllocator& na) const;
   /// Return if node is hidden
-  bool isHidden(void);
+  bool isHidden(void) const;
   /// Set hidden state to \a h
   void setHidden(bool h);
   /// Set stop state to \a h

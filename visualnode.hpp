@@ -131,7 +131,7 @@ Shape::getBoundingBox(void) const {
 }
 
 inline bool
-VisualNode::isHidden(void) {
+VisualNode::isHidden(void) const {
   return getFlag(HIDDEN);
 }
 

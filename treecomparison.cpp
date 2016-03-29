@@ -190,11 +190,25 @@ TreeComparison::compare(TreeCanvas* new_tc) {
             next->setHidden(true);
             next->_tid = 0;
 
+            new_tc->unhideNode(next); /// unhide pentagons if hidden
+
             stack.push(next->getChild(*na, 1));
             stack.push(next->getChild(*na, 0));
 
             int left = copyTree(stack.pop(), new_tc, node1, _ex1, 1);
             int right = copyTree(stack.pop(), new_tc, node2, _ex2, 2);
+
+            /// hide the nodes one level below a pentagon
+            /// if they are hidden on the original tree
+            assert(next->getNumberOfChildren() == 2);
+
+            if (!node1->isNodeVisible(_ex1.na())) {
+                next->getChild(*na, 0)->setHidden(true);
+            }
+
+            if (!node2->isNodeVisible(_ex2.na())) {
+                next->getChild(*na, 1)->setHidden(true);
+            }
 
             const string* info_str = nullptr;
             /// if node1 is FAILED -> check nogoods
