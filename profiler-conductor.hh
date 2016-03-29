@@ -29,7 +29,7 @@ public:
 public slots:
     void updateList();
     void onSomeFinishedReceiving();
-    void onSomeTreeReady();
+    void onSomeFinishedBuilding();
 };
 
 #endif

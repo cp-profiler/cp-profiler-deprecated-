@@ -40,6 +40,7 @@ double get_wall_time(){
 TreeBuilder::TreeBuilder(TreeCanvas* tc, QObject *parent)
     : QThread(parent), _tc(tc), read_queue(nullptr) {
         layout_mutex = &(_tc->layoutMutex);
+        connect(this, &TreeBuilder::doneBuilding, tc->getExecution(), &Execution::doneBuilding);
 }
 
 TreeBuilder::~TreeBuilder() {
@@ -56,7 +57,7 @@ void TreeBuilder::setDoneReceiving() {
 
 void TreeBuilder::reset(Execution* execution, NodeAllocator* na) {
 
-    /// old _data and _na are deleted by this point
+    /// old _data and _na are deleted by this point (where?)
     _data = execution->getData();
 	_na = na;
 
@@ -65,6 +66,9 @@ void TreeBuilder::reset(Execution* execution, NodeAllocator* na) {
 
     nodesCreated = 1;
     lastRead = 0;
+
+    /// TODO(maxim): is this needed?
+    // connect(this, &TreeBuilder::doneBuilding, execution, &Execution::doneBuilding);
 }
 
 bool TreeBuilder::processRoot(DbEntry& dbEntry) {

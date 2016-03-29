@@ -70,6 +70,7 @@ signals:
     void titleKnown();
     void startReceiving();
     void doneReceiving();
+    void doneBuilding();
 
 private:
     std::unique_ptr<Data> _data;

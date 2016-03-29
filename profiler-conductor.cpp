@@ -72,6 +72,9 @@ ProfilerConductor::ProfilerConductor()
     // this->setMinimumHeight(320);
     // this->setMinimumWidth(320);
 
+    /// NOTE(maxim): required by the comparison script
+    std::cout << "READY TO LISTEN" << std::endl;
+
     QWidget* centralWidget = new QWidget(this);
     setCentralWidget(centralWidget);
 
@@ -143,6 +146,7 @@ ProfilerConductor::newExecution(Execution* execution) {
 
     connect(execution, SIGNAL(titleKnown()), this, SLOT(updateList()));
     connect(execution, SIGNAL(doneReceiving()), this, SLOT(onSomeFinishedReceiving()));
+    connect(execution, SIGNAL(doneBuilding()), this, SLOT(onSomeFinishedBuilding()));
 }
 
 void
@@ -167,10 +171,6 @@ ProfilerConductor::gistButtonClicked(bool) {
         gistMW->show();
         gistMW->activateWindow();
         connect(item->execution_, SIGNAL(doneReceiving()), gistMW, SIGNAL(doneReceiving()));
-        /// TODO(maxim): connect doneBuilding (in TreeCanvas) to treeReady here
-
-        auto* tc = gistMW->getGist()->getCanvas();
-        connect(tc, SIGNAL(buildingFinished()), this, SLOT(onSomeTreeReady()));
     }
 }
 
@@ -265,21 +265,18 @@ void ProfilerConductor::gatherStatisticsClicked(bool) {
     }
 }
 
-void ProfilerConductor::onSomeFinishedReceiving() {
+void ProfilerConductor::onSomeFinishedBuilding() {
 
     /// ***** Save Search Log *****
     if (GlobalParser::isSet(GlobalParser::save_log)) {
 
         if (executions.size() == 1) {
-            gistButtonClicked(true);
 
             auto item = static_cast<ExecutionListItem*>(executionList->item(0));
-            GistMainWindow* g = item->gistWindow_;
 
-            /// TODO(maxim): show the labels (or fix the logger to read the labels from data)
             auto file_name = GlobalParser::value(GlobalParser::save_log);
 
-            /// NOTE(maxim): relative path will point to the executable's directory
+            GistMainWindow* g = item->gistWindow_;
             g->getGist()->getCanvas()->printSearchLogTo(file_name);
         }
 
@@ -288,21 +285,26 @@ void ProfilerConductor::onSomeFinishedReceiving() {
     if (GlobalParser::isSet(GlobalParser::auto_compare)) {
 
         if (executions.size() == 2) {
-            gistButtonClicked(true);
 
-            /// NOTE(maxim): the second tree is most likely not built yet here,
-            /// so the comparison will be initiated in onSomeTreeReady()
-
+            compareExecutions(true);
         }
 
     }
 
 }
 
-void ProfilerConductor::onSomeTreeReady() {
+void ProfilerConductor::onSomeFinishedReceiving() {
+// NOTE(maixm): if running in a script mode, build the trees
+// immediately after the data is fully received
+    if (GlobalParser::isSet(GlobalParser::save_log)) {
+        if (executions.size() == 1) {
+            gistButtonClicked(true);
+        }
+    }
+
     if (GlobalParser::isSet(GlobalParser::auto_compare)) {
         if (executions.size() == 2) {
-            compareExecutions(true);
+            gistButtonClicked(true);
         }
     }
 }

@@ -546,6 +546,8 @@ TreeCanvas::printSearchLogTo(const QString& file_name) {
             SearchLogCursor slc(root, out, *na, *execution);
             PreorderNodeVisitor<SearchLogCursor>(slc).run();
             qDebug() << "writing to the file: " << file_name;
+            /// NOTE(maxim): required by the comparison script
+            std::cout << "SEARCH LOG READY" << std::endl;
         } else {
           qDebug() << "could not open the file: " << file_name;
         }
