@@ -291,6 +291,18 @@ void ProfilerConductor::onSomeFinishedBuilding() {
 
     }
 
+    if (GlobalParser::isSet(GlobalParser::auto_stats)) {
+        if (executions.size() == 1) {
+            auto item = static_cast<ExecutionListItem*>(executionList->item(0));
+            auto file_name = GlobalParser::value(GlobalParser::auto_stats);
+            GistMainWindow* g = item->gistWindow_;
+            g->setStatsFilename(file_name);
+            g->gatherStatistics();
+            // bye bye
+            qDebug() << "auto stats, terminate";
+            qApp->exit();
+        }
+    }
 }
 
 void ProfilerConductor::onSomeFinishedReceiving() {
@@ -304,6 +316,12 @@ void ProfilerConductor::onSomeFinishedReceiving() {
 
     if (GlobalParser::isSet(GlobalParser::auto_compare)) {
         if (executions.size() == 2) {
+            gistButtonClicked(true);
+        }
+    }
+
+    if (GlobalParser::isSet(GlobalParser::auto_stats)) {
+        if (executions.size() == 1) {
             gistButtonClicked(true);
         }
     }

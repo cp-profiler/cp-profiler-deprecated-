@@ -50,6 +50,7 @@ public:
   static QCommandLineOption save_log;
   static QCommandLineOption auto_compare;
 
+  static QCommandLineOption auto_stats;
 
 
 public:

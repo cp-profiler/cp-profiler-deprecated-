@@ -56,6 +56,9 @@ ReceiverThread::run(void) {
     connect(worker, SIGNAL(doneReceiving(void)), this, SLOT(quit(void)));
     connect(worker, SIGNAL(doneReceiving(void)), this, SIGNAL(doneReceiving(void)));
 
+    connect(tcpSocket, SIGNAL(disconnected(void)), this, SLOT(quit(void)));
+    connect(tcpSocket, SIGNAL(disconnected(void)), this, SIGNAL(doneReceiving(void)));
+
     std::cerr << "Receiver thread " << this << " running event loop\n";
     exec();
     std::cerr << "Receiver thread " << this << " terminating\n";

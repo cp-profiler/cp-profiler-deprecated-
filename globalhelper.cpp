@@ -48,6 +48,9 @@ QCommandLineOption GlobalParser
 QCommandLineOption GlobalParser
       ::auto_compare{"auto_compare", "Compare the first two executions"};
 
+QCommandLineOption GlobalParser
+      ::auto_stats{"auto_stats", "Write statistics to <file_name>.", "file_name"};
+
 GlobalParser::GlobalParser()
 {
 
@@ -64,6 +67,7 @@ GlobalParser::GlobalParser()
   clParser.addOption(load_option);
   clParser.addOption(save_log);
   clParser.addOption(auto_compare);
+  clParser.addOption(auto_stats);
 
 
 }
