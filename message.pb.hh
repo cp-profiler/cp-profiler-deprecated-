@@ -309,6 +309,13 @@ class Node : public ::google::protobuf::Message {
   inline ::std::string* release_info();
   inline void set_allocated_info(::std::string* info);
 
+  // optional int32 nogood_bld = 15;
+  inline bool has_nogood_bld() const;
+  inline void clear_nogood_bld();
+  static const int kNogoodBldFieldNumber = 15;
+  inline ::google::protobuf::int32 nogood_bld() const;
+  inline void set_nogood_bld(::google::protobuf::int32 value);
+
   // @@protoc_insertion_point(class_scope:message.Node)
  private:
   inline void set_has_type();
@@ -339,6 +346,8 @@ class Node : public ::google::protobuf::Message {
   inline void clear_has_nogood();
   inline void set_has_info();
   inline void clear_has_info();
+  inline void set_has_nogood_bld();
+  inline void clear_has_nogood_bld();
 
   ::google::protobuf::UnknownFieldSet _unknown_fields_;
 
@@ -356,8 +365,9 @@ class Node : public ::google::protobuf::Message {
   ::std::string* label_;
   ::std::string* solution_;
   ::std::string* nogood_;
-  ::std::string* info_;
   float domain_size_;
+  ::google::protobuf::int32 nogood_bld_;
+  ::std::string* info_;
   friend void  protobuf_AddDesc_message_2eproto();
   friend void protobuf_AssignDesc_message_2eproto();
   friend void protobuf_ShutdownFile_message_2eproto();
@@ -916,6 +926,30 @@ inline void Node::set_allocated_info(::std::string* info) {
     info_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   }
   // @@protoc_insertion_point(field_set_allocated:message.Node.info)
+}
+
+// optional int32 nogood_bld = 15;
+inline bool Node::has_nogood_bld() const {
+  return (_has_bits_[0] & 0x00004000u) != 0;
+}
+inline void Node::set_has_nogood_bld() {
+  _has_bits_[0] |= 0x00004000u;
+}
+inline void Node::clear_has_nogood_bld() {
+  _has_bits_[0] &= ~0x00004000u;
+}
+inline void Node::clear_nogood_bld() {
+  nogood_bld_ = 0;
+  clear_has_nogood_bld();
+}
+inline ::google::protobuf::int32 Node::nogood_bld() const {
+  // @@protoc_insertion_point(field_get:message.Node.nogood_bld)
+  return nogood_bld_;
+}
+inline void Node::set_nogood_bld(::google::protobuf::int32 value) {
+  set_has_nogood_bld();
+  nogood_bld_ = value;
+  // @@protoc_insertion_point(field_set:message.Node.nogood_bld)
 }
 
 

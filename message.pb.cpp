@@ -36,7 +36,7 @@ void protobuf_AssignDesc_message_2eproto() {
       "message.proto");
   GOOGLE_CHECK(file != NULL);
   Node_descriptor_ = file->message_type(0);
-  static const int Node_offsets_[14] = {
+  static const int Node_offsets_[15] = {
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(Node, type_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(Node, sid_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(Node, pid_),
@@ -51,6 +51,7 @@ void protobuf_AssignDesc_message_2eproto() {
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(Node, solution_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(Node, nogood_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(Node, info_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(Node, nogood_bld_),
   };
   Node_reflection_ =
     new ::google::protobuf::internal::GeneratedMessageReflection(
@@ -95,18 +96,19 @@ void protobuf_AddDesc_message_2eproto() {
   GOOGLE_PROTOBUF_VERIFY_VERSION;
 
   ::google::protobuf::DescriptorPool::InternalAddGeneratedFile(
-    "\n\rmessage.proto\022\007message\"\261\003\n\004Node\022#\n\004typ"
+    "\n\rmessage.proto\022\007message\"\305\003\n\004Node\022#\n\004typ"
     "e\030\001 \002(\0162\025.message.Node.MsgType\022\013\n\003sid\030\002 "
     "\001(\005\022\013\n\003pid\030\003 \001(\005\022\013\n\003alt\030\004 \001(\005\022\014\n\004kids\030\005 "
     "\001(\005\022(\n\006status\030\006 \001(\0162\030.message.Node.NodeS"
     "tatus\022\022\n\nrestart_id\030\007 \001(\005\022\014\n\004time\030\010 \001(\004\022"
     "\021\n\tthread_id\030\t \001(\005\022\r\n\005label\030\n \001(\t\022\023\n\013dom"
     "ain_size\030\013 \001(\002\022\020\n\010solution\030\014 \001(\t\022\016\n\006nogo"
-    "od\030\r \001(\t\022\014\n\004info\030\016 \001(\t\"(\n\007MsgType\022\010\n\004NOD"
-    "E\020\000\022\010\n\004DONE\020\001\022\t\n\005START\020\002\"r\n\nNodeStatus\022\n"
-    "\n\006SOLVED\020\000\022\n\n\006FAILED\020\001\022\n\n\006BRANCH\020\002\022\020\n\014UN"
-    "DETERMINED\020\003\022\010\n\004STOP\020\004\022\n\n\006UNSTOP\020\005\022\013\n\007SK"
-    "IPPED\020\006\022\013\n\007MERGING\020\007", 460);
+    "od\030\r \001(\t\022\014\n\004info\030\016 \001(\t\022\022\n\nnogood_bld\030\017 \001"
+    "(\005\"(\n\007MsgType\022\010\n\004NODE\020\000\022\010\n\004DONE\020\001\022\t\n\005STA"
+    "RT\020\002\"r\n\nNodeStatus\022\n\n\006SOLVED\020\000\022\n\n\006FAILED"
+    "\020\001\022\n\n\006BRANCH\020\002\022\020\n\014UNDETERMINED\020\003\022\010\n\004STOP"
+    "\020\004\022\n\n\006UNSTOP\020\005\022\013\n\007SKIPPED\020\006\022\013\n\007MERGING\020\007"
+    "B\027\n\025com.github.cpprofiler", 505);
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedFile(
     "message.proto", &protobuf_RegisterTypes);
   Node::default_instance_ = new Node();
@@ -194,6 +196,7 @@ const int Node::kDomainSizeFieldNumber;
 const int Node::kSolutionFieldNumber;
 const int Node::kNogoodFieldNumber;
 const int Node::kInfoFieldNumber;
+const int Node::kNogoodBldFieldNumber;
 #endif  // !_MSC_VER
 
 Node::Node()
@@ -229,6 +232,7 @@ void Node::SharedCtor() {
   solution_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   nogood_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   info_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  nogood_bld_ = 0;
   ::memset(_has_bits_, 0, sizeof(_has_bits_));
 }
 
@@ -289,14 +293,14 @@ void Node::Clear() {
   if (_has_bits_[0 / 32] & 255) {
     ZR_(type_, restart_id_);
   }
-  if (_has_bits_[8 / 32] & 16128) {
+  if (_has_bits_[8 / 32] & 32512) {
+    ZR_(domain_size_, nogood_bld_);
     thread_id_ = 0;
     if (has_label()) {
       if (label_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
         label_->clear();
       }
     }
-    domain_size_ = 0;
     if (has_solution()) {
       if (solution_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
         solution_->clear();
@@ -554,6 +558,21 @@ bool Node::MergePartialFromCodedStream(
         } else {
           goto handle_unusual;
         }
+        if (input->ExpectTag(120)) goto parse_nogood_bld;
+        break;
+      }
+
+      // optional int32 nogood_bld = 15;
+      case 15: {
+        if (tag == 120) {
+         parse_nogood_bld:
+          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
+                   ::google::protobuf::int32, ::google::protobuf::internal::WireFormatLite::TYPE_INT32>(
+                 input, &nogood_bld_)));
+          set_has_nogood_bld();
+        } else {
+          goto handle_unusual;
+        }
         if (input->ExpectAtEnd()) goto success;
         break;
       }
@@ -675,6 +694,11 @@ void Node::SerializeWithCachedSizes(
       14, this->info(), output);
   }
 
+  // optional int32 nogood_bld = 15;
+  if (has_nogood_bld()) {
+    ::google::protobuf::internal::WireFormatLite::WriteInt32(15, this->nogood_bld(), output);
+  }
+
   if (!unknown_fields().empty()) {
     ::google::protobuf::internal::WireFormat::SerializeUnknownFields(
         unknown_fields(), output);
@@ -779,6 +803,11 @@ void Node::SerializeWithCachedSizes(
     target =
       ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
         14, this->info(), target);
+  }
+
+  // optional int32 nogood_bld = 15;
+  if (has_nogood_bld()) {
+    target = ::google::protobuf::internal::WireFormatLite::WriteInt32ToArray(15, this->nogood_bld(), target);
   }
 
   if (!unknown_fields().empty()) {
@@ -889,6 +918,13 @@ int Node::ByteSize() const {
           this->info());
     }
 
+    // optional int32 nogood_bld = 15;
+    if (has_nogood_bld()) {
+      total_size += 1 +
+        ::google::protobuf::internal::WireFormatLite::Int32Size(
+          this->nogood_bld());
+    }
+
   }
   if (!unknown_fields().empty()) {
     total_size +=
@@ -960,6 +996,9 @@ void Node::MergeFrom(const Node& from) {
     if (from.has_info()) {
       set_info(from.info());
     }
+    if (from.has_nogood_bld()) {
+      set_nogood_bld(from.nogood_bld());
+    }
   }
   mutable_unknown_fields()->MergeFrom(from.unknown_fields());
 }
@@ -998,6 +1037,7 @@ void Node::Swap(Node* other) {
     std::swap(solution_, other->solution_);
     std::swap(nogood_, other->nogood_);
     std::swap(info_, other->info_);
+    std::swap(nogood_bld_, other->nogood_bld_);
     std::swap(_has_bits_[0], other->_has_bits_[0]);
     _unknown_fields_.Swap(&other->_unknown_fields_);
     std::swap(_cached_size_, other->_cached_size_);

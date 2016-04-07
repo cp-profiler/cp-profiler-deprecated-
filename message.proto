@@ -39,4 +39,5 @@ message Node {
   optional string solution    = 12;
   optional string nogood      = 13;
   optional string info        = 14;
+  optional int32  nogood_bld  = 15;
 }

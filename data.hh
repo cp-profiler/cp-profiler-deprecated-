@@ -59,10 +59,10 @@ private:
 public:
     DbEntry(unsigned long long id, unsigned long long _p, int _alt, int _kids, char _tid,
             std::string _label, int _status, unsigned long long _time_stamp,
-            unsigned long long _node_time, float _domain) :
+            unsigned long long _node_time, float _domain, int _nogood_bld) :
         sid(id), gid(-1), parent_sid(_p), alt(_alt), numberOfKids(_kids),
         status(_status), label(_label), thread(_tid), depth(-1), time_stamp(_time_stamp), node_time(_node_time),
-        domain(_domain) {
+        domain(_domain), nogood_bld(_nogood_bld) {
     }
 
     friend ostream& operator<<(ostream& s, const DbEntry& e);
@@ -80,6 +80,7 @@ public:
     unsigned long long time_stamp;
     unsigned long long node_time;
     float domain;
+    int nogood_bld;
 };
 
 class Data : public QObject {

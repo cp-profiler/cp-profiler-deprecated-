@@ -112,6 +112,7 @@ int Data::handleNodeCallback(message::Node& node) {
     int restart_id = node.restart_id();
     char thread = node.thread_id();
     float domain = node.domain_size();
+    int nogood_bld = node.nogood_bld();
 
     // qDebug() << "Received node: \t" << id << " " << pid << " "
     //                 << alt << " " << kids << " " << status << " wid:"
@@ -157,7 +158,8 @@ int Data::handleNodeCallback(message::Node& node) {
                     status,
                     node.time(),
                     node_time,
-                    domain));
+                    domain,
+                    nogood_bld));
 
     _prev_node_timestamp = node.time();
 

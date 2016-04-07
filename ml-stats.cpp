@@ -25,6 +25,7 @@ public:
     string nogoodString;
     int nogoodLength;
     int nogoodNumberVariables;
+    int nogoodBLD;
     int backjumpDistance;
     int backjumpDestination;
     unsigned long long timestamp;
@@ -47,6 +48,7 @@ void printStatsHeader(std::ostream& out = std::cout) {
         << "," << "nogoodString"
         << "," << "nogoodLength"
         << "," << "nogoodNumberVariables"
+        << "," << "nogoodBLD"
         << "," << "backjumpDistance"
         << "," << "backjumpDestination"
         << "," << "timestamp"
@@ -85,6 +87,7 @@ void printStatsEntry(const StatsEntry& se, std::ostream& out = std::cout) {
         << "," << se.nogoodString
         << "," << se.nogoodLength
         << "," << se.nogoodNumberVariables
+        << "," << se.nogoodBLD
         << "," << se.backjumpDistance
         << "," << se.backjumpDestination
         << "," << se.timestamp
@@ -205,6 +208,7 @@ public:
             se.nogoodString = getNogoodString(sid);
             se.nogoodLength = calculateNogoodLength(se.nogoodString);
             se.nogoodNumberVariables = calculateNogoodNumberVariables(se.nogoodString);
+            se.nogoodBLD = entry->nogood_bld;
             se.label = entry->label;
             se.decisionLevel = entry->decisionLevel;
             se.timestamp = entry->time_stamp;
