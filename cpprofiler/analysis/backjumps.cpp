@@ -32,7 +32,7 @@ using std::cout;
 Backjumps::Backjumps() {}
 
 const BackjumpData
-Backjumps::findBackjumps(VisualNode* root, const VisualNode::NodeAllocator& na) {
+Backjumps::findBackjumps(VisualNode* root, const NodeAllocator& na) {
 
   // std::unordered_map<uint, BackjumpItem> bj_data;
   BackjumpData bj_data;
@@ -47,7 +47,7 @@ Backjumps::findBackjumps(VisualNode* root, const VisualNode::NodeAllocator& na) 
 }
 
 BackjumpsCursor::BackjumpsCursor(VisualNode* root,
-  const VisualNode::NodeAllocator& na,
+  const NodeAllocator& na,
   BackjumpData& bj_data)
   : NodeCursor<VisualNode>(root,na), bj_data(bj_data) {
 

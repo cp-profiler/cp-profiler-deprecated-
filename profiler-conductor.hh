@@ -4,8 +4,7 @@
 #include <QListWidget>
 #include <QMainWindow>
 
-#include "execution.hh"
-
+class Execution;
 class QCheckBox;
 
 class ProfilerConductor : public QMainWindow {

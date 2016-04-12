@@ -47,7 +47,7 @@ class LayoutCursor : public NodeCursor<VisualNode> {
 public:
     /// Constructor
     LayoutCursor(VisualNode* theNode,
-                 const VisualNode::NodeAllocator& na);
+                 const NodeAllocator& na);
 
     /// \name Cursor interface
     //@{

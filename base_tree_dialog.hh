@@ -25,8 +25,6 @@
 #include <QDialog>
 #include <QLayout>
 
-#include "execution.hh"
-
 class Gist;
 class QAbstractScrollArea;
 class QStatusBar;
@@ -37,6 +35,7 @@ class TreeCanvas;
 enum class CanvasType;
 class VisualNode;
 class Statistics;
+class Execution;
 
 /// Abstract class
 class BaseTreeDialog : public QDialog {
@@ -75,7 +74,7 @@ Q_OBJECT
 
   public:
 
-    BaseTreeDialog(QWidget* parent, Execution* execution, const CanvasType type);//, Gist* gist);
+    BaseTreeDialog(QWidget* parent, Execution* execution, const CanvasType type);
     ~BaseTreeDialog();
 
     /// **** GETTERS ****

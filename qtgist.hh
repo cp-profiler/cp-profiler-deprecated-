@@ -22,10 +22,7 @@
 #ifndef GIST_HH
 #define GIST_HH
 
-#include "treecanvas.hh"
-#include "treecomparison.hh"
 #include "nodestats.hh"
-#include "receiverthread.hh"
 #include <vector>
 
 /**
@@ -40,6 +37,8 @@
 
 class SolverTreeDialog;
 class CmpTreeDialog;
+class TreeCanvas;
+class Execution;
 
 using std::vector;
 

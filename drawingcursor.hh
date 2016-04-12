@@ -69,7 +69,7 @@ public:
 
     /// Constructor
     DrawingCursor(VisualNode* root,
-                  const VisualNode::NodeAllocator& na,
+                  const NodeAllocator& na,
                   QPainter& painter0,
                   const QRect& clippingRect0,
                   bool showHidden = false);

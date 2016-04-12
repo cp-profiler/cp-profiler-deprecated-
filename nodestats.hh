@@ -38,13 +38,17 @@
 #ifndef NODESTATS_HH
 #define NODESTATS_HH
 
-#include "visualnode.hh"
+// #include "visualnode.hh"
+ #include "node.hh"
+
 
 #include <QtGui>
 #if QT_VERSION >= 0x050000
 #include <QtWidgets>
 #endif
 
+class VisualNode;
+class Statistics;
 
 /**
    * \brief Display information about nodes
@@ -69,7 +73,7 @@ private:
 public:
     NodeStatInspector(QWidget* parent);
     /// Update display to reflect information about \a n
-    void node(const VisualNode::NodeAllocator&, VisualNode* n,
+    void node(const NodeAllocator&, VisualNode* n,
               const Statistics& stat, bool finished);
 public Q_SLOTS:
     /// Show this window and bring it to the front

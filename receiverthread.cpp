@@ -25,6 +25,7 @@
 #include "message.pb.hh"
 
 #include <QTcpSocket>
+#include "execution.hh"
 
 // This is a bit wrong.  We have both a separate thread and
 // asynchronous reading from the socket.  One or the other would

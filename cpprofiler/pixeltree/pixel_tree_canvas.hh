@@ -36,14 +36,11 @@
 class Data;
 class TreeCanvas;
 
-template<class T> class NodeAllocatorBase;
 class VisualNode;
 
 class QAbstractScrollArea;
 class QScrollBar;
 class SpaceNode;
-
-typedef NodeAllocatorBase<VisualNode> NodeAllocator;
 
 namespace cpprofiler { namespace analysis {
   struct BackjumpItem;

@@ -5,12 +5,17 @@
 #include <vector>
 
 class TreeCanvas;
-template<class T> class NodeAllocatorBase;
 class VisualNode;
 class SpaceNode;
+class NodeAllocator;
 
-typedef NodeAllocatorBase<VisualNode> NodeAllocator;
-
+class depth_analysis
+{
+public:
+  depth_analysis();
+  ~depth_analysis();
+  
+};
 
 namespace cpprofiler { namespace analysis {
 

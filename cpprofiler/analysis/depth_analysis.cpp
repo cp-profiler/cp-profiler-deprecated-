@@ -1,4 +1,4 @@
-#include "cpprofiler/analysis/depth_analysis.hh"
+#include "depth_analysis.hh"
 #include <QDebug>
 #include "treecanvas.hh"
 

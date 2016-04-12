@@ -37,8 +37,6 @@
 #include "node.hh"
 #include "visualnode.hh"
 
-typedef NodeAllocatorBase<VisualNode> NodeAllocator;
-
 using namespace std::chrono;
 using std::string;
 using std::ostream;

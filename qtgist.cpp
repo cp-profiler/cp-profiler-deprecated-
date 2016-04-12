@@ -25,10 +25,10 @@
 #include "nodecursor.hh"
 
 #include "solver_tree_dialog.hh"
-#include "cmp_tree_dialog.hh"
 
 #include "message.pb.hh"
 #include "execution.hh"
+#include "cmp_tree_dialog.hh"
 
 
 void

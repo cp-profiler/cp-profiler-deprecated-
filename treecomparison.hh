@@ -22,18 +22,16 @@
 #ifndef TREE_COMPARISON
 #define TREE_COMPARISON
 
-#include "treecanvas.hh"
-#include "data.hh"
-
 #include <QStack>
 #include <vector>
 #include <utility>
-
+#include <unordered_map>
 
 class TreeCanvas;
-class Data;
 class VisualNode;
 class Node;
+class NodeAllocator;
+class Execution;
 
 struct PentagonItem {
   int l_size; /// left subtree size

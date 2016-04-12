@@ -20,6 +20,7 @@
  */
 
 
+#include "treecanvas.hh"
 #include <QtGui/QPainter>
 #include <QPrinter>
 #include <QPrintDialog>
@@ -30,7 +31,6 @@
 #include <exception>
 #include <ctime>
 
-#include "treecanvas.hh"
 #include "treebuilder.hh"
 #include "cpprofiler/pixeltree/pixel_tree_dialog.hh"
 #include "cpprofiler/pixeltree/icicle_tree_dialog.hh"
@@ -998,7 +998,7 @@ TreeCanvas::reset() {
     QMutexLocker locker(&mutex);
 
     delete na;
-    na = new Node::NodeAllocator(false);
+    na = new NodeAllocator(false);
 
     int rootIdx = na->allocateRoot();
     assert(rootIdx == 0); (void) rootIdx;

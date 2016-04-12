@@ -74,7 +74,7 @@ TreeComparison::compare(TreeCanvas* new_tc) {
 
     /// TODO(maxim): reset responsible nogood counts?
 
-    Node::NodeAllocator* na = new_tc->na;
+    NodeAllocator* na = new_tc->na;
 
     while (stack1.size() > 0) {
         VisualNode* node1 = stack1.pop();
@@ -202,11 +202,11 @@ TreeComparison::compare(TreeCanvas* new_tc) {
             /// if they are hidden on the original tree
             assert(next->getNumberOfChildren() == 2);
 
-            if (!node1->isNodeVisible(_ex1.na())) {
+            if (node1->getNumberOfChildren() > 0 && !node1->isNodeVisible(_ex1.na())) {
                 next->getChild(*na, 0)->setHidden(true);
             }
 
-            if (!node2->isNodeVisible(_ex2.na())) {
+            if (node2->getNumberOfChildren() > 2 && !node2->isNodeVisible(_ex2.na())) {
                 next->getChild(*na, 1)->setHidden(true);
             }
 

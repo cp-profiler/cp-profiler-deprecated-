@@ -22,6 +22,7 @@
 #include "gistmainwindow.h"
 #include "preferences.hh"
 #include "nodewidget.hh"
+#include "treecanvas.hh"
 
 #include <cmath>
 #include <fstream>

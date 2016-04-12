@@ -27,14 +27,12 @@
 #include <vector>
 #include <queue>
 #include "data.hh"
-#include "treecanvas.hh"
-#include "readingQueue.hh"
-#include "execution.hh"
-
-typedef NodeAllocatorBase<VisualNode> NodeAllocator;
 
 class Data;
 class DbEntry;
+class Execution;
+class ReadingQueue;
+class TreeCanvas;
 
 class TreeBuilder : public QThread {
     Q_OBJECT
@@ -51,7 +49,7 @@ private:
 
     std::vector<DbEntry*> ignored_entries;
 
-    ReadingQueue* read_queue; /// TODO: init on stack
+    ReadingQueue* read_queue;
 
 private:
 

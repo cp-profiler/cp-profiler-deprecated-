@@ -18,12 +18,12 @@
  *  OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
  *  WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
+#include "icicle_tree_dialog.hh"
 #include <QAbstractScrollArea>
 #include <QComboBox>
 #include <climits>
 #include <functional>
 
-#include "icicle_tree_dialog.hh"
 #include "treecanvas.hh"
 #include "spacenode.hh"
 

@@ -413,7 +413,7 @@ protected:
   /// Flag signalling that Gist is ready to be closed
   bool finishedFlag;
   /// Allocator for nodes
-  Node::NodeAllocator* na = nullptr;
+  NodeAllocator* na = nullptr;
   /// The root node of the tree
   VisualNode* root;
   /// The currently selected node

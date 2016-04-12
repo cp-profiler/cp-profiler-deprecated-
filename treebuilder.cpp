@@ -23,6 +23,7 @@
 #include "treebuilder.hh"
 #include "globalhelper.hh"
 #include "readingQueue.hh"
+#include "treecanvas.hh"
 #include <cassert>
 
 #include <time.h>

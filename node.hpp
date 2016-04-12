@@ -38,9 +38,8 @@
 #ifndef NODE_HPP
 #define NODE_HPP
 
-template<class T>
-void
-NodeAllocatorBase<T>::allocate(void) {
+inline void
+NodeAllocator::allocate(void) {
   cur_b++;
   cur_t = 0;
   if (cur_b==n) {
@@ -51,8 +50,8 @@ NodeAllocatorBase<T>::allocate(void) {
   b[cur_b] = static_cast<Block*>(heap.ralloc(sizeof(Block)));
 }
 
-template<class T>
-NodeAllocatorBase<T>::NodeAllocatorBase(bool bab)
+inline
+NodeAllocator::NodeAllocator(bool bab)
   : _bab(bab) {
   b = heap.alloc<Block*>(10);
   n = 10;
@@ -60,100 +59,87 @@ NodeAllocatorBase<T>::NodeAllocatorBase(bool bab)
   cur_t = NodeBlockSize-1;
 }
 
-template<class T>
-NodeAllocatorBase<T>::~NodeAllocatorBase(void) {
+inline
+NodeAllocator::~NodeAllocator(void) {
   for (int i=cur_b+1; i--;)
     heap.rfree(b[i]);
   heap.free<Block*>(b,n);
 }
 
-template<class T>
 inline int
-NodeAllocatorBase<T>::allocate(int p) {
+NodeAllocator::allocate(int p) {
   cur_t++;
   if (cur_t==NodeBlockSize)
     allocate();
-  // new (&b[cur_b]->b[cur_t]) T(db_id, false); /// bookmark
-  new (&b[cur_b]->b[cur_t]) T(p); /// bookmark
+  new (&b[cur_b]->b[cur_t]) VisualNode(p); /// bookmark
   b[cur_b]->best[cur_t] = -1;
   return cur_b*NodeBlockSize+cur_t;
 }
 
-template<class T>
 inline int
-NodeAllocatorBase<T>::allocateRoot() {
+NodeAllocator::allocateRoot() {
   cur_t++;
   if (cur_t==NodeBlockSize)
     allocate();
-  new (&b[cur_b]->b[cur_t]) T(true);
+  new (&b[cur_b]->b[cur_t]) VisualNode(true);
   b[cur_b]->best[cur_t] = -1;
   return cur_b*NodeBlockSize+cur_t;
 }
 
-template<class T>
-inline T*
-NodeAllocatorBase<T>::operator [](int i) const {
+inline VisualNode*
+NodeAllocator::operator [](int i) const {
   assert(i/NodeBlockSize < n);
   assert(i/NodeBlockSize < cur_b || i%NodeBlockSize <= cur_t);
   return &(b[i/NodeBlockSize]->b[i%NodeBlockSize]);
 }
 
-template<class T>
-inline T*
-NodeAllocatorBase<T>::best(int i) const {
+inline VisualNode*
+NodeAllocator::best(int i) const {
   assert(i/NodeBlockSize < n);
   assert(i/NodeBlockSize < cur_b || i%NodeBlockSize <= cur_t);
   int bi = b[i/NodeBlockSize]->best[i%NodeBlockSize];
   return bi == -1 ? nullptr : (*this)[bi];
 }
 
-template<class T>
 inline void
-NodeAllocatorBase<T>::setBest(int i, int best) {
+NodeAllocator::setBest(int i, int best) {
   assert(i/NodeBlockSize < n);
   assert(i/NodeBlockSize < cur_b || i%NodeBlockSize <= cur_t);
   b[i/NodeBlockSize]->best[i%NodeBlockSize] = best;
 }
 
-template<class T>
 inline bool
-NodeAllocatorBase<T>::bab(void) const {
+NodeAllocator::bab(void) const {
   return _bab;
 }
 
-template<class T>
 inline bool
-NodeAllocatorBase<T>::showLabels(void) const {
+NodeAllocator::showLabels(void) const {
   return !labels.isEmpty();
 }
 
-template<class T>
-bool
-NodeAllocatorBase<T>::hasLabel(T* n) const {
+inline bool
+NodeAllocator::hasLabel(VisualNode* n) const {
   return labels.contains(n);
 }
 
-template<class T>
-void
-NodeAllocatorBase<T>::setLabel(T* n, const QString& l) {
+inline void
+NodeAllocator::setLabel(VisualNode* n, const QString& l) {
   labels[n] = l;
 }
 
-template<class T>
-void
-NodeAllocatorBase<T>::clearLabel(T* n) {
+inline void
+NodeAllocator::clearLabel(VisualNode* n) {
   labels.remove(n);
 }
 
-template<class T>
-QString
-NodeAllocatorBase<T>::getLabel(T* n) const {
+inline QString
+NodeAllocator::getLabel(VisualNode* n) const {
   return labels.value(n);
 }
 
-template<class T>
-int
-NodeAllocatorBase<T>::size() const {
+inline int
+NodeAllocator::size() const {
   return cur_b * NodeBlockSize + cur_t + 1;
 }
 

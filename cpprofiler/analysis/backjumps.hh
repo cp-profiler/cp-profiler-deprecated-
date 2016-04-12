@@ -46,7 +46,7 @@ namespace cpprofiler { namespace analysis {
     Backjumps();
 
     const BackjumpData
-      findBackjumps(VisualNode* root, const VisualNode::NodeAllocator& na);
+      findBackjumps(VisualNode* root, const NodeAllocator& na);
   };
 
 
@@ -69,7 +69,7 @@ namespace cpprofiler { namespace analysis {
   public:
 
       BackjumpsCursor(VisualNode* theNode,
-                       const VisualNode::NodeAllocator& na,
+                       const NodeAllocator& na,
                        BackjumpData& bj_data);
 
       void processCurrentNode();

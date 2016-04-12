@@ -19,11 +19,11 @@
  *
  */
 
+#include "pixel_tree_canvas.hh"
 #include <numeric>
 #include <stack>
 #include <utility>
 
-#include "pixel_tree_canvas.hh"
 #include "cpprofiler/analysis/backjumps.hh"
 
 using namespace cpprofiler::pixeltree;

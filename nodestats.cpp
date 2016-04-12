@@ -102,7 +102,7 @@ NodeStatInspector::NodeStatInspector(QWidget* parent)
 }
 
 void
-NodeStatInspector::node(const VisualNode::NodeAllocator& na,
+NodeStatInspector::node(const NodeAllocator& na,
                         VisualNode* n, const Statistics&, bool) {
     if (isVisible()) {
         int nd = -1;

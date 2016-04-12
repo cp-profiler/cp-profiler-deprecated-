@@ -43,7 +43,7 @@ LayoutCursor::mayMoveDownwards(void) {
 
 inline
 LayoutCursor::LayoutCursor(VisualNode* theNode,
-                           const VisualNode::NodeAllocator& na)
+                           const NodeAllocator& na)
     : NodeCursor<VisualNode>(theNode,na) {}
 
 inline void

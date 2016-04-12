@@ -23,12 +23,12 @@
 
 #include <QTableWidget>
 #include "base_tree_dialog.hh"
-#include "execution.hh"
- #include "treecomparison.hh"
 
 class Gist;
 class TreeComparison;
 class CmpTreeDialog;
+class Execution;
+class PentagonItem;
 
 class PentListWindow : public QDialog {
 Q_OBJECT
@@ -57,7 +57,7 @@ Q_OBJECT
 
 private:
 
-  TreeComparison comparison_;
+  TreeComparison* comparison_;
 
   QMenu* analysisMenu;
 
@@ -92,7 +92,7 @@ public:
   void saveComparisonStatsTo(const QString& file_name);
   void selectPentagon(int row);
 
-  const TreeComparison& comparison() { return comparison_; }
+  const TreeComparison& comparison() { return *comparison_; }
 
 private Q_SLOTS:
   void statusChanged(VisualNode*, const Statistics& stats, bool finished);

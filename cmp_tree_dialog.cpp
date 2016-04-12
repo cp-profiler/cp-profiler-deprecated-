@@ -21,6 +21,8 @@
 
 #include "cmp_tree_dialog.hh"
 #include "nodewidget.hh"
+#include "treecomparison.hh"
+#include "treecanvas.hh"
 
 #include "third-party/json.hpp"
 #include <algorithm>
@@ -31,11 +33,11 @@
 CmpTreeDialog::CmpTreeDialog(QWidget* parent, Execution* execution, bool withLabels,
                              TreeCanvas* tc1, TreeCanvas* tc2)
     : BaseTreeDialog(parent, execution, CanvasType::MERGED),
-      comparison_{*tc1->getExecution(), *tc2->getExecution(), withLabels},
       analysisMenu{nullptr} {
 
   hbl->addWidget(new NodeWidget(MERGING));
   mergedLabel = new QLabel("0");
+  comparison_ = new TreeComparison{*tc1->getExecution(), *tc2->getExecution(), withLabels};
   hbl->addWidget(mergedLabel);
 
   addActions();
@@ -65,11 +67,11 @@ CmpTreeDialog::CmpTreeDialog(QWidget* parent, Execution* execution, bool withLab
 
   /// sort the pentagons by nodes diff:
 
-  comparison_.compare(_tc);
+  comparison_->compare(_tc);
 
-  comparison_.sortPentagons();
+  comparison_->sortPentagons();
 
-  mergedLabel->setNum(comparison_.get_no_pentagons());
+  mergedLabel->setNum(comparison_->get_no_pentagons());
   // statusChangedShared(true);
 
 }
@@ -114,7 +116,7 @@ CmpTreeDialog::statusChanged(VisualNode*, const Statistics&, bool finished) {
 
 void
 CmpTreeDialog::navFirstPentagon(void) {
-  const auto pentagon_items = comparison_.pentagon_items();
+  const auto pentagon_items = comparison_->pentagon_items();
 
   if (pentagon_items.size() == 0) {
     qDebug() << "warning: pentagons.size() == 0";
@@ -142,7 +144,7 @@ CmpTreeDialog::navPrevPentagon(void) {
 void
 CmpTreeDialog::showPentagonHist(void) {
 
-  auto pentagon_window = new PentListWindow(this, comparison_.pentagon_items());
+  auto pentagon_window = new PentListWindow(this, comparison_->pentagon_items());
   pentagon_window->createList();
   pentagon_window->show();
 }
@@ -154,7 +156,7 @@ CmpTreeDialog::saveComparisonStatsTo(const QString& file_name) {
         if (outputFile.open(QFile::WriteOnly | QFile::Truncate)) {
             QTextStream out(&outputFile);
 
-            const auto pentagon_items = comparison_.pentagon_items();
+            const auto pentagon_items = comparison_->pentagon_items();
 
             for (auto& item : pentagon_items) {
               out << item.l_size << " " << item.r_size << "\n";
@@ -322,7 +324,7 @@ PentListWindow::createList()
 
 void
 CmpTreeDialog::selectPentagon(int row) {
-  const auto items = comparison_.pentagon_items();
+  const auto items = comparison_->pentagon_items();
 
   auto node = items[row].node;
 
@@ -359,7 +361,7 @@ CmpTreeDialog::showResponsibleNogoods() {
 
   /// *** edit table ***
 
-  auto ng_counts = comparison_.responsible_nogood_counts();
+  auto ng_counts = comparison_->responsible_nogood_counts();
 
   /// map to vector
   std::vector<std::pair<int, int> > ng_counts_vector;

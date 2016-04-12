@@ -1,8 +1,8 @@
-#include <unordered_map>
-
 #include "ml-stats.hh"
 #include "nodecursor.hh"
 #include "nodevisitor.hh"
+
+#include <unordered_map>
 
 // **************************************************
 // StatsEntry
@@ -110,7 +110,7 @@ private:
     const std::unordered_map<VisualNode*, int>& backjumpDestinationMap;
     std::ostream& out;
 public:
-    StatsCursor(VisualNode* root, const VisualNode::NodeAllocator& na, Execution* execution_,
+    StatsCursor(VisualNode* root, const NodeAllocator& na, Execution* execution_,
                 const std::unordered_map<VisualNode*, int>& backjumpDestinationMap_,
                 std::ostream& out_)
         : NodeCursor(root, na)
@@ -301,7 +301,7 @@ public:
     // Note that the map is passed in by reference so we can modify
     // it.
     BackjumpCursor(VisualNode* root,
-                   const VisualNode::NodeAllocator& na,
+                   const NodeAllocator& na,
                    const Execution* execution_,
                    std::unordered_map<VisualNode*, int>& bjdest)
         : NodeCursor(root, na)
@@ -349,7 +349,7 @@ public:
 // tree, as are the usual arguments to a NodeCursor.  The third
 // argument is the execution the subtree comes from, which is used to
 // find the solver node id and branching/no-good information.
-void collectMLStats(VisualNode* root, const VisualNode::NodeAllocator& na, Execution* execution, std::ostream& out) {
+void collectMLStats(VisualNode* root, const NodeAllocator& na, Execution* execution, std::ostream& out) {
     // We traverse the tree twice.  In the first pass we calculate
     // backjump destination for failed nodes, using a BackjumpCursor.
     // In the second pass we calculate all the remaining node data.

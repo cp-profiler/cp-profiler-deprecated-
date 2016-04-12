@@ -24,10 +24,10 @@
 
 #include <QStatusBar>
 #include "base_tree_dialog.hh"
-#include "execution.hh"
 
 class Gist;
 class ReceiverThread;
+class Execution;
 
 class SolverTreeDialog : public BaseTreeDialog {
 Q_OBJECT

@@ -263,6 +263,67 @@ public:
   void dispose(void);
 };
 
+class NodeAllocator {
+private:
+  /// Size of each block of nodes
+  static const int NodeBlockSize = 1<<14;
+  /// Blocks of nodes
+  class Block {
+  public:
+    /// The actual nodes
+    VisualNode b[NodeBlockSize];
+    /// The index of the best known previous solution for each node
+    int best[NodeBlockSize];
+  };
+  /// Array of blocks
+  Block** b;
+  /// Size of the array
+  int n;
+  /// Current block number
+  int cur_b;
+  /// Current node number in current block
+  int cur_t;
+  /// Allocate new block, potentially reallocate block array
+  void allocate(void);
+  /// Flag whether search uses branch-and-bound
+  bool _bab;
+  /// Hash table mapping nodes to label text
+  QHash<VisualNode*,QString> labels;
+public:
+  /// Constructor
+  explicit NodeAllocator(bool bab);
+  /// Destructor
+  ~NodeAllocator(void);
+  /// Allocate new node with parent \a p and database id
+  int allocate(int p);
+  /// Allocate new root node
+  int allocateRoot(void);
+  /// Return node for index \a i
+  VisualNode* operator [](int i) const;
+  /// Return index of best node before \a i
+  VisualNode* best(int i) const;
+  /// Set index of best node before \a i to \a b
+  void setBest(int i, int b);
+  /// Return branch-and-bound flag
+  bool bab(void) const;
+  /// Return branching label flag
+  bool showLabels(void) const;
+  /// Set branching label flag
+  void showLabels(bool b);
+  /// Return whether node \a n has a label
+  bool hasLabel(VisualNode* n) const;
+  /// Set label of node \a n to \a l
+  void setLabel(VisualNode* n, const QString& l);
+  /// Remove label of node \a n
+  void clearLabel(VisualNode* n);
+  /// Get label of node \a n
+  /// Note(maxim): did I add this?
+  QString getLabel(VisualNode* n) const;
+  /// returns the total number of nodes allocated
+  int size() const;
+
+};
+
 #include "node.hpp"
 #include "spacenode.hpp"
 #include "visualnode.hpp"

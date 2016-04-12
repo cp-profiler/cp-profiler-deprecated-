@@ -57,14 +57,14 @@ private:
     unsigned int _alternative;
 protected:
     /// The node allocator
-    const typename Node::NodeAllocator& na;
+    const NodeAllocator& na;
     /// Set current node to \a n
     void node(Node* n);
     /// Return start node
     Node* startNode(void);
 public:
     /// Construct cursor, initially set to \a theNode
-    NodeCursor(Node* theNode, const typename Node::NodeAllocator& na);
+    NodeCursor(Node* theNode, const NodeAllocator& na);
     /// Return current node
     Node* node(void);
     /// Return current alternative
@@ -96,7 +96,7 @@ private:
 public:
     /// Constructor
     HideFailedCursor(VisualNode* theNode,
-                     const VisualNode::NodeAllocator& na,
+                     const NodeAllocator& na,
                      bool onlyDirtyNodes);
     /// \name Cursor interface
     //@{
@@ -112,7 +112,7 @@ class UnhideAllCursor : public NodeCursor<VisualNode> {
 public:
     /// Constructor
     UnhideAllCursor(VisualNode* theNode,
-                    const VisualNode::NodeAllocator& na);
+                    const NodeAllocator& na);
     /// \name Cursor interface
     //@{
     /// Process node
@@ -125,7 +125,7 @@ class UnhideAncestorsCursor : public NodeCursor<VisualNode> {
 public:
     /// Constructor
     UnhideAncestorsCursor(VisualNode* theNode,
-                    const VisualNode::NodeAllocator& na);
+                    const NodeAllocator& na);
     /// \name Cursor interface
     //@{
     /// Test if the cursor may move to the parent node
@@ -140,7 +140,7 @@ class HideAllCursor : public NodeCursor<VisualNode> {
 public:
     /// Constructor
     HideAllCursor(VisualNode* theNode,
-                    const VisualNode::NodeAllocator& na);
+                    const NodeAllocator& na);
     /// \name Cursor interface
     //@{
     /// Process node
@@ -153,7 +153,7 @@ class UnstopAllCursor : public NodeCursor<VisualNode> {
 public:
     /// Constructor
     UnstopAllCursor(VisualNode* theNode,
-                    const VisualNode::NodeAllocator& na);
+                    const NodeAllocator& na);
     /// \name Cursor interface
     //@{
     /// Process node
@@ -171,7 +171,7 @@ private:
 public:
     /// Constructor
     NextSolCursor(VisualNode* theNode, bool backwards,
-                  const VisualNode::NodeAllocator& na);
+                  const NodeAllocator& na);
     /// \name Cursor interface
     //@{
     /// Do nothing
@@ -199,7 +199,7 @@ private:
 public:
     /// Constructor
     NextPentagonCursor(VisualNode* theNode, bool backwards,
-                  const VisualNode::NodeAllocator& na);
+                  const NodeAllocator& na);
     /// \name Cursor interface
     //@{
     /// Do nothing
@@ -236,7 +236,7 @@ public:
 
     /// Constructor
     StatCursor(VisualNode* theNode,
-               const VisualNode::NodeAllocator& na);
+               const NodeAllocator& na);
 
     /// \name Cursor interface
     //@{
@@ -256,7 +256,7 @@ protected:
   QHash<VisualNode*,int> nSols;
 public:
   //Constructor
-  AnalyzeCursor(VisualNode* root, const VisualNode::NodeAllocator& na, TreeCanvas* tc);
+  AnalyzeCursor(VisualNode* root, const NodeAllocator& na, TreeCanvas* tc);
   //Add node to the map
   void processCurrentNode(void);
 private:
@@ -266,7 +266,7 @@ private:
 class HighlightCursor : public NodeCursor<VisualNode> {
 public:
   // Constructor
-  HighlightCursor(VisualNode* startNode, const VisualNode::NodeAllocator& na);
+  HighlightCursor(VisualNode* startNode, const NodeAllocator& na);
   // Highlight all the nodes below
   void processCurrentNode(void);
 
@@ -275,7 +275,7 @@ public:
 class UnhighlightCursor : public NodeCursor<VisualNode> {
 public:
   // Constructor
-  UnhighlightCursor(VisualNode* root, const VisualNode::NodeAllocator& na);
+  UnhighlightCursor(VisualNode* root, const NodeAllocator& na);
   // Unhighlight all the nodes below
   void processCurrentNode(void);
 
@@ -284,7 +284,7 @@ public:
 class CountSolvedCursor : public NodeCursor<VisualNode> {
 public:
   // Constructor
-  CountSolvedCursor(VisualNode* startNode, const VisualNode::NodeAllocator& na, int &count);
+  CountSolvedCursor(VisualNode* startNode, const NodeAllocator& na, int &count);
   // Count solved leaves and store the nubmer in count variable
   void processCurrentNode(void);
 private:
@@ -295,11 +295,11 @@ private:
 class GetIndexesCursor : public NodeCursor<VisualNode> {
 public:
   // Constructor
-  GetIndexesCursor(VisualNode* startNode, const VisualNode::NodeAllocator& na, std::vector<int>& node_gids);
+  GetIndexesCursor(VisualNode* startNode, const NodeAllocator& na, std::vector<int>& node_gids);
   // Populate node_gids vector with gid of nodes
   void processCurrentNode(void);
 private:
-  const VisualNode::NodeAllocator& _na;
+  const NodeAllocator& _na;
   std::vector<int>& _node_gids;
 
 };
@@ -310,7 +310,7 @@ protected:
   QHash<VisualNode*,bool> onHighlightPath;
 public:
   /// Constructor
-  HideNotHighlightedCursor(VisualNode* startNode, const VisualNode::NodeAllocator& na);
+  HideNotHighlightedCursor(VisualNode* startNode, const NodeAllocator& na);
   /// Process node
   void processCurrentNode(void);
   /// Test if cursor may move to the first child node
@@ -322,7 +322,7 @@ public:
 class BranchLabelCursor : public NodeCursor<VisualNode> {
 private:
     /// The node allocator
-    VisualNode::NodeAllocator& _na;
+    NodeAllocator& _na;
     /// Current TreeCanvas instance (extract labels from data)
     TreeCanvas& _tc;
     /// Whether to clear labels
@@ -330,7 +330,7 @@ private:
 public:
     /// Constructor
     BranchLabelCursor(VisualNode* theNode, bool clear,
-                      VisualNode::NodeAllocator& na, TreeCanvas& tc);
+                      NodeAllocator& na, TreeCanvas& tc);
     /// \name Cursor interface
     //@{
     void processCurrentNode(void);
@@ -342,7 +342,7 @@ class DisposeCursor : public NodeCursor<VisualNode> {
 public:
     /// Constructor
     DisposeCursor(VisualNode* theNode,
-                  const VisualNode::NodeAllocator& na);
+                  const NodeAllocator& na);
 
     /// \name Cursor interface
     //@{
@@ -358,7 +358,7 @@ public:
   int threshold;
   SubtreeCountCursor(VisualNode *theNode,
                      int _threshold,
-                     const VisualNode::NodeAllocator& na);
+                     const NodeAllocator& na);
   void processCurrentNode(void);
   void moveSidewards(void);
   void moveUpwards(void);
@@ -369,13 +369,13 @@ class SearchLogCursor : public NodeCursor<VisualNode> {
 private:
     QTextStream& _out;
     /// The node allocator
-    const VisualNode::NodeAllocator& _na;
+    const NodeAllocator& _na;
     /// TODO(maxim): should have a reference to the execution here
     const Execution& _execution;
 public:
     SearchLogCursor(VisualNode *theNode,
                     QTextStream& outputStream,
-                    const VisualNode::NodeAllocator& na,
+                    const NodeAllocator& na,
                     const Execution& execution);
     void processCurrentNode(void);
 };

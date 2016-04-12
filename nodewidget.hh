@@ -38,6 +38,7 @@
 #define NODEWIDGET_HH
 
 #include "qtgist.hh"
+#include "spacenode.hh" // TODO(maxim): get rid of this eventually
 
 /// \brief Small node drawings for the status bar
 class NodeWidget : public QWidget {

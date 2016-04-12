@@ -112,7 +112,9 @@ win32:CONFIG(release, debug|release): LIBS += -L$$PWD/../../../../../../../usr/l
 else:win32:CONFIG(debug, debug|release): LIBS += -L$$PWD/../../../../../../../usr/local/lib/debug/
 else:unix: LIBS += -L$$PWD/../../../../../../usr/local/lib/ -ldl
 
-# LIBS += `pkg-config --cflags --libs protobuf` -lprotobuf
+INCLUDEPATH += /usr/local/include
 
-CONFIG += link_pkgconfig
-PKGCONFIG += protobuf
+LIBS += `pkg-config --cflags --libs protobuf` -lprotobuf
+
+#CONFIG += link_pkgconfig
+#PKGCONFIG += protobuf
