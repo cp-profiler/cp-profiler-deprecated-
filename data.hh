@@ -59,10 +59,12 @@ private:
 public:
     DbEntry(unsigned long long id, unsigned long long _p, int _alt, int _kids, char _tid,
             std::string _label, int _status, unsigned long long _time_stamp,
-            unsigned long long _node_time, float _domain, int _nogood_bld) :
+            unsigned long long _node_time, float _domain, int _nogood_bld,
+            bool _uses_assumptions) :
         sid(id), gid(-1), parent_sid(_p), alt(_alt), numberOfKids(_kids),
         status(_status), label(_label), thread(_tid), depth(-1), time_stamp(_time_stamp), node_time(_node_time),
-        domain(_domain), nogood_bld(_nogood_bld) {
+        domain(_domain), nogood_bld(_nogood_bld),
+        usesAssumptions(_uses_assumptions) {
     }
 
     friend ostream& operator<<(ostream& s, const DbEntry& e);
@@ -81,6 +83,7 @@ public:
     unsigned long long node_time;
     float domain;
     int nogood_bld;
+    bool usesAssumptions;
 };
 
 class Data : public QObject {

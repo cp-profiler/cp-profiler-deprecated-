@@ -40,4 +40,5 @@ message Node {
   optional string nogood      = 13;
   optional string info        = 14;
   optional int32  nogood_bld  = 15;
+  optional bool   uses_assumptions = 16;
 }

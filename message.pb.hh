@@ -316,6 +316,13 @@ class Node : public ::google::protobuf::Message {
   inline ::google::protobuf::int32 nogood_bld() const;
   inline void set_nogood_bld(::google::protobuf::int32 value);
 
+  // optional bool uses_assumptions = 16;
+  inline bool has_uses_assumptions() const;
+  inline void clear_uses_assumptions();
+  static const int kUsesAssumptionsFieldNumber = 16;
+  inline bool uses_assumptions() const;
+  inline void set_uses_assumptions(bool value);
+
   // @@protoc_insertion_point(class_scope:message.Node)
  private:
   inline void set_has_type();
@@ -348,6 +355,8 @@ class Node : public ::google::protobuf::Message {
   inline void clear_has_info();
   inline void set_has_nogood_bld();
   inline void clear_has_nogood_bld();
+  inline void set_has_uses_assumptions();
+  inline void clear_has_uses_assumptions();
 
   ::google::protobuf::UnknownFieldSet _unknown_fields_;
 
@@ -368,6 +377,7 @@ class Node : public ::google::protobuf::Message {
   float domain_size_;
   ::google::protobuf::int32 nogood_bld_;
   ::std::string* info_;
+  bool uses_assumptions_;
   friend void  protobuf_AddDesc_message_2eproto();
   friend void protobuf_AssignDesc_message_2eproto();
   friend void protobuf_ShutdownFile_message_2eproto();
@@ -950,6 +960,30 @@ inline void Node::set_nogood_bld(::google::protobuf::int32 value) {
   set_has_nogood_bld();
   nogood_bld_ = value;
   // @@protoc_insertion_point(field_set:message.Node.nogood_bld)
+}
+
+// optional bool uses_assumptions = 16;
+inline bool Node::has_uses_assumptions() const {
+  return (_has_bits_[0] & 0x00008000u) != 0;
+}
+inline void Node::set_has_uses_assumptions() {
+  _has_bits_[0] |= 0x00008000u;
+}
+inline void Node::clear_has_uses_assumptions() {
+  _has_bits_[0] &= ~0x00008000u;
+}
+inline void Node::clear_uses_assumptions() {
+  uses_assumptions_ = false;
+  clear_has_uses_assumptions();
+}
+inline bool Node::uses_assumptions() const {
+  // @@protoc_insertion_point(field_get:message.Node.uses_assumptions)
+  return uses_assumptions_;
+}
+inline void Node::set_uses_assumptions(bool value) {
+  set_has_uses_assumptions();
+  uses_assumptions_ = value;
+  // @@protoc_insertion_point(field_set:message.Node.uses_assumptions)
 }
 
 
