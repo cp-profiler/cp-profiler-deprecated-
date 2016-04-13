@@ -295,7 +295,8 @@ private:
 class GetIndexesCursor : public NodeCursor<VisualNode> {
 public:
   // Constructor
-  GetIndexesCursor(VisualNode* startNode, const NodeAllocator& na, std::vector<int>& node_gids);
+  GetIndexesCursor(VisualNode* startNode, const NodeAllocator& na,
+    std::vector<int>& node_gids);
   // Populate node_gids vector with gid of nodes
   void processCurrentNode(void);
 private:

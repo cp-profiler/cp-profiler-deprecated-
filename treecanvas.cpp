@@ -48,6 +48,10 @@
 
 #include "ml-stats.hh"
 
+#include <fstream>
+#include <iostream>
+
+
 int TreeCanvas::counter = 0;
 
 TreeCanvas::TreeCanvas(Execution* execution, QGridLayout* layout, CanvasType type, QWidget* parent)
@@ -637,15 +641,35 @@ TreeCanvas::highlightNodesMenu(void) {
 void
 TreeCanvas::showNogoods(void) {
 
-  // create an array of ids (sid) of nodes/nogoods to show
-  std::vector<int> selected;
+  std::vector<int> selected_gids;
 
-  GetIndexesCursor gic(currentNode, *na, selected);
+  GetIndexesCursor gic(currentNode, *na, selected_gids);
   PreorderNodeVisitor<GetIndexesCursor>(gic).run();
 
-  NogoodDialog* ngdialog = new NogoodDialog(this, *this, selected, execution->getNogoods());
+  NogoodDialog* ngdialog = new NogoodDialog(this, *this, selected_gids, execution->getNogoods());
 
   ngdialog->show();
+}
+
+void print_debug(const Data& data) {
+    std::ofstream file("debug.txt");
+
+    file << "---nodes_arr---" << '\n'; 
+    for (auto it = data.nodes_arr.cbegin(); it != data.nodes_arr.end(); it++) {
+        file << **(it) << "\n";
+    }
+    file << "---------------" << '\n';
+
+    file << "---sid2nogood---" << '\n'; 
+    for (auto it = data.sid2nogood.cbegin(); it != data.sid2nogood.end(); it++) {
+        file << it->first << " -> " << it->second << "\n";
+    }
+    file << "---------------" << '\n';
+}
+
+void TreeCanvas::printDebugInfo(void) {
+  print_debug(*execution->getData());
+  qDebug() << "debug info recorded into debug.txt";
 }
 
 void
@@ -1464,9 +1488,9 @@ TreeCanvas::setCurrentNode(VisualNode* n, bool finished, bool update) {
 }
 
 void
-TreeCanvas::navigateToNodeBySid(unsigned int sid) {
+TreeCanvas::navigateToNodeById(int gid) {
   QMutexLocker locker(&mutex);
-  unsigned int gid = execution->getGidBySid(sid);
+
   VisualNode* node = (*na)[gid];
 
   setCurrentNode(node, true, true);

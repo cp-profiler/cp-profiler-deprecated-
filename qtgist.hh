@@ -141,6 +141,8 @@ public:
   QAction* analyzeSimilarSubtrees;
   /// Show no-goods
   QAction* showNogoods;
+  /// Print debug info
+  QAction* printDebugInfo;
   /// Show node info
   QAction* showNodeInfo;
   /// Show on a pixel tree

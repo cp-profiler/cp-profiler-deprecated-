@@ -350,21 +350,21 @@ void ProfilerConductor::saveExecutionClicked(bool) {
         DbEntry* entry = data->gid2entry[*it];
         message::Node node;
         node.set_type(message::Node::NODE);
-        node.set_sid(entry->sid);
+        node.set_sid(entry->s_node_id);
         node.set_pid(entry->parent_sid);
         node.set_alt(entry->alt);
         node.set_kids(entry->numberOfKids);
         node.set_status(static_cast<message::Node::NodeStatus>(entry->status));
         //            node.set_restart_id
         node.set_time(entry->time_stamp);
-        node.set_thread_id(entry->thread);
+        node.set_thread_id(entry->thread_id);
         node.set_label(entry->label);
         node.set_domain_size(entry->domain);
         //            node.set_solution(entry->);
-        auto ngit = data->sid2nogood.find(entry->sid);
+        auto ngit = data->sid2nogood.find(entry->s_node_id);
         if (ngit != data->sid2nogood.end())
             node.set_nogood(ngit->second);
-        auto infoit = data->sid2info.find(entry->sid);
+        auto infoit = data->sid2info.find(entry->s_node_id);
         if (infoit != data->sid2info.end())
             node.set_info(*infoit->second);
         writeDelimitedTo(node, &raw_output);

@@ -18,8 +18,8 @@ public:
         _data = std::unique_ptr<Data>{new Data(_na.get())};
     }
 
-    inline const std::unordered_map<unsigned long long, string>& getNogoods(void) const { return _data->getNogoods(); }
-    inline std::unordered_map<unsigned long long, string*>& getInfo(void) const { return _data->getInfo(); }
+    inline const std::unordered_map<int64_t, string>& getNogoods(void) const { return _data->getNogoods(); }
+    inline std::unordered_map<int64_t, string*>& getInfo(void) const { return _data->getInfo(); }
     DbEntry* getEntry(unsigned int gid) const { return _data->getEntry(gid); }
     unsigned int getGidBySid(unsigned int sid) { return _data->getGidBySid(sid); }
     std::string getLabel(unsigned int gid) const { return _data->getLabel(gid); }

@@ -275,7 +275,7 @@ TreeComparison::copyTree(VisualNode* target, TreeCanvas* tc,
 
             /// TODO(maxim): connect nogoods as well
 
-            auto sid = entry->sid;
+            auto sid = entry->s_node_id;
             auto info = source_data->sid2info.find(sid);
 
             /// note(maxim): should have to maintain another map

@@ -73,8 +73,6 @@ void TreeBuilder::reset(Execution* execution, NodeAllocator* na) {
 }
 
 bool TreeBuilder::processRoot(DbEntry& dbEntry) {
-    std::cerr << "TreeBuilder::processRoot (" << dbEntry << ")\n";
-
     QMutexLocker locker(layout_mutex);
 
     std::cerr << "process root: " << dbEntry << "\n";
@@ -92,7 +90,7 @@ bool TreeBuilder::processRoot(DbEntry& dbEntry) {
     if (_data->isRestarts()) {
         int restart_root = (*_na)[0]->addChild(*_na); // create a node for a new root
         root = (*_na)[restart_root];
-        root->_tid = dbEntry.thread;
+        root->_tid = dbEntry.thread_id;
         dbEntry.gid = restart_root;
         dbEntry.depth = 2;
     } else {
@@ -126,13 +124,13 @@ bool TreeBuilder::processNode(DbEntry& dbEntry, bool is_delayed) {
     // std::cerr << "TreeBuilder::processNode (" << dbEntry << ")\n";
     QMutexLocker locker(layout_mutex);
 
-    unsigned long long pid = dbEntry.parent_sid; /// parent ID as it comes from Solver
+    int64_t pid = dbEntry.parent_sid; /// parent ID as it comes from Solver
     int alt      = dbEntry.alt;        /// which alternative the current node is
     int nalt     = dbEntry.numberOfKids; /// number of kids in current node
     int status   = dbEntry.status;
 
     std::vector<DbEntry*> &nodes_arr = _data->nodes_arr;
-    std::unordered_map<unsigned long long, int> &sid2aid = _data->sid2aid;
+    std::unordered_map<int64_t, int> &sid2aid = _data->sid2aid;
     auto& gid2entry = _data->gid2entry;
 
     Statistics &stats = _tc->stats;
@@ -205,7 +203,7 @@ bool TreeBuilder::processNode(DbEntry& dbEntry, bool is_delayed) {
         stats.maxDepth =
           std::max(stats.maxDepth, static_cast<int>(dbEntry.depth));
 
-        node._tid = dbEntry.thread; /// TODO: tid should be in node's flags
+        node._tid = dbEntry.thread_id; /// TODO: tid should be in node's flags
         node.setNumberOfChildren(nalt, *_na);
 
         switch (status) {
@@ -339,7 +337,7 @@ void TreeBuilder::run(void) {
         /// ask queue for an entry, note: is_delayed gets assigned here
         DbEntry* entry = read_queue->next(is_delayed);
 
-        bool isRoot = (entry->parent_sid == ~0u) ? true : false;
+        bool isRoot = (entry->parent_sid == -1) ? true : false;
 
         /// try to put node into the tree
         bool success = isRoot ? processRoot(*entry) : processNode(*entry, is_delayed);

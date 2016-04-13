@@ -27,6 +27,7 @@
 #include <unordered_map>
 #include <vector>
 #include <cassert>
+#include <cstdint>
 #include <QSortFilterProxyModel>
 
 class TreeCanvas;
@@ -65,14 +66,14 @@ private:
 
   // QTableWidget* _nogoodTable;
   QTableView* _nogoodTable;
-  const std::unordered_map<unsigned long long, std::string>& _sid2nogood;
+  const std::unordered_map<int64_t, std::string>& _sid2nogood;
 
   QStandardItemModel* _model;
   MyProxyModel* _proxy_model;
 
 private:
 
-  void populateTable(const std::vector<int>& selected_nodes);
+  void populateTable(const std::vector<int>& selected_gids);
 
 private Q_SLOTS:
 
@@ -82,7 +83,7 @@ public:
   /// Create a nogood dialog with nogoods for selected nodes
   NogoodDialog(QWidget* parent, TreeCanvas& tc,
     const std::vector<int>& selected,
-    const std::unordered_map<unsigned long long, std::string>& sid2nogood);
+    const std::unordered_map<int64_t, std::string>& sid2nogood);
 
   ~NogoodDialog();
 

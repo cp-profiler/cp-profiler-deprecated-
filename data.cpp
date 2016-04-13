@@ -35,11 +35,13 @@ int Data::instance_counter = 0;
 
 ostream& operator<<(ostream& s, const DbEntry& e) {
     s << "dbEntry: {";
-    s << " sid: " << e.sid;
-    s << " pid: " << e.parent_sid;
-    s << " alt: " << e.alt;
+    s << " sid: "  << e.restart_id << '_' << e.s_node_id;
+    s << " gid: "  << e.gid;
+    s << " pid: "  << e.restart_id << '_' << (int)e.parent_sid;
+    s << " alt: "  << e.alt;
     s << " kids: " << e.numberOfKids;
-    s << " tid: " << (int)e.thread;
+    s << " tid: "  << e.thread_id;
+    s << " restart: " << e.restart_id;
     s << " }";
     return s;
 }
@@ -64,17 +66,6 @@ Data::Data(NodeAllocator* na)
 
 }
 
-
-void Data::show_db(void) {
-    qDebug() << "***** SHOW_DB: *****";
-    for (auto it = nodes_arr.cbegin(); it != nodes_arr.end(); it++) {
-            qDebug() << "sid: " << (*it)->gid << " p: " << (*it)->parent_sid <<
-            " alt: " << (*it)->alt << " kids: " << (*it)->numberOfKids;
-    }
-    qDebug() << "***** _________________________ *****";
-}
-
-
 void Data::setDoneReceiving(void) {
     QMutexLocker locker(&dataMutex);
 
@@ -95,8 +86,6 @@ void Data::setDoneReceiving(void) {
 
 int Data::handleNodeCallback(message::Node& node) {
 
-    unsigned long long real_id, real_pid;
-
     auto prev_node_time = current_time;
     current_time = system_clock::now();
 
@@ -104,34 +93,31 @@ int Data::handleNodeCallback(message::Node& node) {
 
     if (nodes_arr.size() == 0) node_time = 0; /// ignore the first node
 
-    int id = node.sid();
+    int sid = node.sid();
     int pid = node.pid();
     int alt = node.alt();
     int kids = node.kids();
     int status = node.status();
     int restart_id = node.restart_id();
-    char thread = node.thread_id();
+    int tid = node.thread_id();
     float domain = node.domain_size();
     int nogood_bld = node.nogood_bld();
     bool usesAssumptions = node.uses_assumptions();
 
-    // qDebug() << "Received node: \t" << id << " " << pid << " "
+    // qDebug() << "Received node: \t" << sid << " " << pid << " "
     //                 << alt << " " << kids << " " << status << " wid:"
-    //                 << (int)thread << " restart:" << restart_id
+    //                 << (int)tid << " restart:" << restart_id
     //                 << "time:" << node.time()
     //                 << "label:" << node.label().c_str()
     //                 << "domain:" << domain
     //                 << "nogood:" << node.nogood().c_str();
 
 
-    if (node.has_nogood() && node.nogood().length() > 0) {
-        // qDebug() << "(!)" << id << " -> " << node.nogood().c_str();
-        sid2nogood[id] = node.nogood();
-    }
+    
 
     if (node.has_info() && node.info().length() > 0) {
 
-        sid2info[id] = new std::string(node.info());
+        sid2info[sid] = new std::string(node.info());
     }
 
     /// just so we don't have ugly numbers when not using restarts
@@ -139,29 +125,35 @@ int Data::handleNodeCallback(message::Node& node) {
 
     /// this way thread id and node id are stored in one variable
     /// TODO: shouldn't I make a custom hash function instead?
-    if (pid != -1)
-        real_pid = (pid | ((long long)restart_id << 32));
-    else
-        real_pid = ~0u;
-
-    real_id = (id | ((long long)restart_id << 32));
+    int64_t real_pid = -1;
+    if (pid != -1) {
+        real_pid = (pid | ((int64_t)restart_id << 32));
+    }
 
     std::string label = node.label();
 
-
-    pushInstance(real_id,
-        new DbEntry(real_id,
+    auto entry = new DbEntry(sid,
+                    restart_id,
                     real_pid,
                     alt,
                     kids,
-                    thread,
                     label,
+                    tid,
                     status,
                     node.time(),
                     node_time,
                     domain,
                     nogood_bld,
-                    usesAssumptions));
+                    usesAssumptions);
+
+    auto full_sid = entry->full_sid;
+
+    pushInstance(full_sid, entry);
+
+    if (node.has_nogood() && node.nogood().length() > 0) {
+        // qDebug() << "(!)" << sid << " -> " << node.nogood().c_str();
+        sid2nogood[full_sid] = node.nogood();
+    }
 
     _prev_node_timestamp = node.time();
 
@@ -208,7 +200,7 @@ Data::getInfo(const Node& node) const {
 
     if (!entry) return nullptr;
 
-    auto info = sid2info.find(entry->sid);
+    auto info = sid2info.find(entry->s_node_id);
 
     if (info == sid2info.end()) return nullptr;
 
@@ -221,20 +213,20 @@ Data::getNogood(const Node& node) const {
 
     if (!entry) return nullptr;
 
-    auto nogood = sid2nogood.find(entry->sid);
+    auto nogood = sid2nogood.find(entry->full_sid);
 
     if (nogood == sid2nogood.end()) return nullptr;
 
     return &nogood->second;
 }
 
-unsigned long long Data::gid2sid(unsigned int gid) {
+int64_t Data::gid2sid(int gid) {
     QMutexLocker locker(&dataMutex);
 
     /// not for any gid there is entry (TODO: there should be a 'default' one)
     auto it = gid2entry.find(gid);
     if (it != gid2entry.end())
-        return gid2entry.at(gid)->sid;
+        return gid2entry.at(gid)->full_sid;
     return -1;
 
 }
@@ -275,16 +267,16 @@ void Data::flush_node_rate(void) {
     // qDebug() << "flushed nr: " << nr << " at node: " << last_interval_nc;
 }
 
-void Data::pushInstance(unsigned long long sid, DbEntry* entry) {
+void Data::pushInstance(int64_t full_sid, DbEntry* entry) {
     QMutexLocker locker(&dataMutex);
 
     /// Note(maxim): `sid` != `nodes_arr.size`, because there are also
     /// '-1' nodes (backjumped) that dont get counted
     nodes_arr.push_back(entry);
 
-    sid2aid[sid] = nodes_arr.size() - 1;
+    sid2aid[full_sid] = nodes_arr.size() - 1;
 
-    // qDebug() << "sid2aid[" << sid << "] = " << sid2aid[sid];
+    // qDebug() << "sid2aid[" << full_sid << "] = " << sid2aid[full_sid];
 
 }
 

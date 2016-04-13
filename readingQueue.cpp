@@ -156,7 +156,7 @@ ReadingQueue::update(bool success) {
 
 void
 ReadingQueue::readLater(DbEntry* delayed) {
-  int tid = delayed->thread;
+  int tid = delayed->thread_id;
 
   if (delayed_treads.find(tid) == delayed_treads.end()) {
       std::cout << "create delayed_treads[" << tid << "] queue\n";

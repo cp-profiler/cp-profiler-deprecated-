@@ -510,6 +510,7 @@ public:
 
 
 public Q_SLOTS:
+  void printDebugInfo(void);
   void maybeUpdateCanvas(void);
   void updateCanvas(void);
   /// Update display
@@ -521,7 +522,7 @@ public Q_SLOTS:
   /// Set the selected node to \a n
   void setCurrentNode(VisualNode* n, bool finished=true, bool update=true);
   /// Set the selected not to a node by solver id (from no-good table)
-  void navigateToNodeBySid(unsigned int sid);
+  void navigateToNodeById(int gid);
   void statusFinished();
 private Q_SLOTS:
   /// Set isUsed to true and update

@@ -372,6 +372,9 @@ Gist::showStats(void) {
 
 void
 Gist::addActions(void) {
+    printDebugInfo = new QAction("Print Debug Info", this);
+    printDebugInfo->setShortcut(QKeySequence("Ctrl+Shift+D"));
+
     expand = new QAction("Expand", this);
     expand->setShortcut(QKeySequence("Return"));
 
@@ -506,6 +509,8 @@ Gist::addActions(void) {
 
     comparatorMenu = new QMenu("Comparators", this);
     comparatorMenu->addActions(comparatorGroup->actions());
+
+    addAction(printDebugInfo);
 
     addAction(expand);
     addAction(stop);
@@ -649,11 +654,10 @@ Gist::connectCanvas(TreeCanvas* tc) {
 
     current_tc = tc;
 
+    connect(printDebugInfo, &QAction::triggered, tc, &TreeCanvas::printDebugInfo);
+
     /// TODO: these 2 should not be here
-    // connect(execution, SIGNAL(startReceiving(void)),
-    //         tc->_builder, SLOT(startBuilding(void)));
-    // connect(execution, SIGNAL(doneReceiving(void)),
-    //         tc->_builder, SLOT(setDoneReceiving(void)));
+
     connect(expand, SIGNAL(triggered()), tc, SLOT(expandCurrentNode()));
     connect(stop, SIGNAL(triggered()), tc, SLOT(stopSearch()));
     connect(reset, SIGNAL(triggered()), tc, SLOT(reset()));

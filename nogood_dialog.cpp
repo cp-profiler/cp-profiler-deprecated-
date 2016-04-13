@@ -31,7 +31,7 @@ const int NogoodDialog::DEFAULT_HEIGHT = 400;
 
 NogoodDialog::NogoodDialog(QWidget* parent, TreeCanvas& tc,
     const std::vector<int>& selected_nodes,
-    const std::unordered_map<unsigned long long, std::string>& sid2nogood)
+    const std::unordered_map<int64_t, std::string>& sid2nogood)
 : QDialog(parent), _tc(tc), _sid2nogood(sid2nogood) {
 
   _model = new QStandardItemModel(0,2,this);
@@ -76,13 +76,18 @@ void NogoodDialog::populateTable(const std::vector<int>& selected_nodes) {
   int row = 0;
   for (auto it = selected_nodes.begin(); it != selected_nodes.end(); it++) {
 
-      unsigned long long sid = _tc.getExecution()->getData()->gid2sid(*it);
+    int gid = *it;
 
+    int64_t sid = _tc.getExecution()->getData()->gid2sid(gid);
+
+    /// TODO(maxim): check if a node is a failure node
 
     auto ng_item = _sid2nogood.find(sid);
-    if (ng_item == _sid2nogood.end()) continue; /// nogood not found
+    if (ng_item == _sid2nogood.end()) {
+      continue; /// nogood not found
+    }
 
-    _model->setItem(row, 0, new QStandardItem(QString::number(sid)));
+    _model->setItem(row, 0, new QStandardItem(QString::number(gid)));
     _model->setItem(row, 1, new QStandardItem((ng_item->second).c_str()));
     row++;
 
@@ -93,6 +98,7 @@ void NogoodDialog::populateTable(const std::vector<int>& selected_nodes) {
 
 void NogoodDialog::selectNode(const QModelIndex & index) {
 
-  unsigned int sid = index.sibling(index.row(), 0).data().toInt();
-  _tc.navigateToNodeBySid(sid); /// assuming that parent is TreeCanvas
+  int gid = index.sibling(index.row(), 0).data().toInt();
+  qDebug() << "gid: " << gid;
+  _tc.navigateToNodeById(gid);
 }

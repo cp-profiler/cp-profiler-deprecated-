@@ -33,7 +33,7 @@
 
 #include <QDebug>
 
-
+#include <cstdint>
 #include "node.hh"
 #include "visualnode.hh"
 
@@ -55,26 +55,32 @@ class DbEntry {
 private:
 
 public:
-    DbEntry(unsigned long long id, unsigned long long _p, int _alt, int _kids, char _tid,
-            std::string _label, int _status, unsigned long long _time_stamp,
+    DbEntry(int sid, int restart_id, int64_t parent_id, int _alt, int _kids,
+            std::string _label, int tid, int _status, unsigned long long _time_stamp,
             unsigned long long _node_time, float _domain, int _nogood_bld,
             bool _uses_assumptions) :
-        sid(id), gid(-1), parent_sid(_p), alt(_alt), numberOfKids(_kids),
-        status(_status), label(_label), thread(_tid), depth(-1), time_stamp(_time_stamp), node_time(_node_time),
+        s_node_id(sid), restart_id(restart_id), gid(-1), parent_sid(parent_id), alt(_alt), numberOfKids(_kids),
+        status(_status), label(_label), thread_id(tid), depth(-1), time_stamp(_time_stamp), node_time(_node_time),
         domain(_domain), nogood_bld(_nogood_bld),
         usesAssumptions(_uses_assumptions) {
     }
 
     friend ostream& operator<<(ostream& s, const DbEntry& e);
 
-    int sid; // solver id
+    union {
+        struct {
+            int32_t s_node_id; // solver node id
+            int32_t restart_id;
+        };
+        int64_t full_sid;
+    };
     int gid; // gist id, set to -1 so we don't forget to assign the real value
-    unsigned long long parent_sid; // parent id in database
+    int64_t parent_sid; // TODO(maxim): this needs only 32 bit integer, as restart_id is known
     int alt; // which child by order
     int numberOfKids;
     int status;
     std::string label;
-    char thread;
+    int thread_id; 
     int depth;
     int decisionLevel;
     unsigned long long time_stamp;
@@ -111,7 +117,7 @@ public:
 
     /// Mapping from solver Id to array Id (nodes_arr)
     /// can't use vector because sid is too big with threads
-    std::unordered_map<unsigned long long, int> sid2aid;
+    std::unordered_map<int64_t, int> sid2aid;
 
     /// Mapping from gist Id to array Id (nodes_arr)
     // std::vector<unsigned long long> gid2aid; /// use gid2entry instead
@@ -122,9 +128,9 @@ public:
     std::unordered_map<unsigned int, DbEntry*> gid2entry;
 
     /// Map solver Id to no-good string
-    std::unordered_map<unsigned long long, string> sid2nogood;
+    std::unordered_map<int64_t, string> sid2nogood;
 
-    std::unordered_map<unsigned long long, string*> sid2info;
+    std::unordered_map<int64_t, string*> sid2info;
 
     // Whether received DONE_SENDING message
     bool _isDone;
@@ -162,7 +168,7 @@ public:
 private:
 
     /// Populate nodes_arr with the data coming from
-    void pushInstance(unsigned long long sid, DbEntry* entry);
+    void pushInstance(int64_t sid, DbEntry* entry);
 
     /// Work out node rate for the last (incomplete) interval
     void flush_node_rate(void);
@@ -174,14 +180,12 @@ public:
 
     int handleNodeCallback(message::Node& node);
 
-    void show_db(void); /// TODO: write to a file
-
     /// TODO(maxim): Do I want a reference here?
     /// return label by gid (Gist ID)
     std::string getLabel(unsigned int gid);
 
     /// return solver id by gid (Gist ID)
-    unsigned long long gid2sid(unsigned int gid);
+    int64_t gid2sid(int gid);
 
     void connectNodeToEntry(unsigned int gid, DbEntry* const entry);
 
@@ -195,8 +199,8 @@ public:
     bool isDone(void) { return _isDone; }
     bool isRestarts(void) { return _isRestarts; }
     string getTitle(void) { return _title; }
-    inline const std::unordered_map<unsigned long long, string>& getNogoods(void) { return sid2nogood; }
-    inline std::unordered_map<unsigned long long, string*>& getInfo(void) { return sid2info; }
+    inline const std::unordered_map<int64_t, string>& getNogoods(void) { return sid2nogood; }
+    inline std::unordered_map<int64_t, string*>& getInfo(void) { return sid2info; }
 
     unsigned long long getTotalTime(void); /// time in microseconds
 
@@ -206,7 +210,7 @@ public:
     const string* getNogood(const Node& node) const;
     const string* getInfo(const Node& node) const;
 
-    unsigned int getGidBySid(unsigned int sid) { return nodes_arr[sid2aid[sid]]->gid; }
+    unsigned int getGidBySid(int64_t sid) { return nodes_arr[sid2aid[sid]]->gid; }
 
 
 /// ****************************
