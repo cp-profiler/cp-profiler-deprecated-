@@ -98,8 +98,6 @@ CmpTreeDialog::addActions(void) {
   _showInfo = new QAction("Show info", this);
   _showInfo->setShortcut(QKeySequence("I"));
 
-
-
   addAction(_navFirstPentagon);
   addAction(_navNextPentagon);
   addAction(_navPrevPentagon);
@@ -204,10 +202,24 @@ infoToNogoodVector(const string& info) {
   return {};
 }
 
+string getNogoodById(int ng_id, const Execution& e) {
+  auto nogood_map = e.getNogoods();
+
+  string nogood = "";
+
+  auto maybe_nogood = nogood_map.find(ng_id);
+
+  if (maybe_nogood != nogood_map.end()){
+    nogood = maybe_nogood->second;
+  }
+
+  return nogood;
+}
+
 void
 PentListWindow::populateNogoodTable(const vector<int>& nogoods) {
 
-  auto ng_counts = comparison_.responsible_nogood_counts();
+  auto ng_stats = comparison_.responsible_nogood_stats();
 
   _nogoodTable.setRowCount(nogoods.size());
 
@@ -216,18 +228,9 @@ PentListWindow::populateNogoodTable(const vector<int>& nogoods) {
     int ng_id = nogoods[i]; /// is this sid of gid???
     _nogoodTable.setItem(i, 0, new QTableWidgetItem(QString::number(ng_id)));
 
-    auto nogood_map = comparison_.left_execution().getNogoods();
+    string nogood = getNogoodById(ng_id, comparison_.left_execution());
 
-    string nogood = "";
-
-    auto maybe_nogood = nogood_map.find(ng_id);
-
-    if (maybe_nogood != nogood_map.end()){
-      nogood = maybe_nogood->second;
-    }
-
-
-    int ng_count = ng_counts.at(ng_id);
+    int ng_count = ng_stats.at(ng_id).occurrence;
 
     _nogoodTable.setItem(i, 1, new QTableWidgetItem(QString::number(ng_count)));
 
@@ -349,44 +352,52 @@ CmpTreeDialog::showResponsibleNogoods() {
 
   auto ng_table = new QTableWidget(ng_dialog);
   ng_table->setEditTriggers(QAbstractItemView::NoEditTriggers);
-  ng_table->setColumnCount(2);
+  ng_table->setColumnCount(4);
   ng_table->setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
   ng_table->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
 
   QStringList table_header;  
-  table_header << "Id" << "Occurrence" << "Literals";
+  table_header << "Id" << "Occurrence" << "Reduction Total" << "Literals";
   ng_table->setHorizontalHeaderLabels(table_header);
 
   ng_layout->addWidget(ng_table);
 
   /// *** edit table ***
 
-  auto ng_counts = comparison_->responsible_nogood_counts();
+  auto ng_stats = comparison_->responsible_nogood_stats();
 
   /// map to vector
-  std::vector<std::pair<int, int> > ng_counts_vector;
-  ng_counts_vector.reserve(ng_counts.size());
+  std::vector<std::pair<int, NogoodCmpStats> > ng_stats_vector;
+  ng_stats_vector.reserve(ng_stats.size());
 
-  for (auto ng : ng_counts) {
-    ng_counts_vector.push_back(ng);
+  for (auto ng : ng_stats) {
+    ng_stats_vector.push_back(ng);
   }
 
-  std::sort(ng_counts_vector.begin(), ng_counts_vector.end(),
-    [](const std::pair<int, int>& lhs, const std::pair<int, int>& rhs){
-      return lhs.second > rhs.second;
+  std::sort(ng_stats_vector.begin(), ng_stats_vector.end(),
+    [](const std::pair<int, NogoodCmpStats>& lhs, const std::pair<int, NogoodCmpStats>& rhs){
+      // return lhs.second.occurrence > rhs.second.occurrence;
+      return lhs.second.search_eliminated > rhs.second.search_eliminated;
   });
 
-  ng_table->setRowCount(ng_counts.size());
+  ng_table->setRowCount(ng_stats.size());
 
 
   int row = 0;
-  for (auto ng : ng_counts_vector) {
+  for (auto ng : ng_stats_vector) {
 
     ng_table->setItem(row, 0, new QTableWidgetItem(QString::number(ng.first)));
-    ng_table->setItem(row, 1, new QTableWidgetItem(QString::number(ng.second)));
+    ng_table->setItem(row, 1, new QTableWidgetItem(QString::number(ng.second.occurrence)));
+
+    string nogood = getNogoodById(ng.first, comparison_->left_execution());
+
+    ng_table->setItem(row, 2, new QTableWidgetItem(QString::number(ng.second.search_eliminated)));
+    ng_table->setItem(row, 3, new QTableWidgetItem(nogood.c_str()));
 
     ++row;
   }
+
+  ng_table->resizeColumnsToContents();
 
 
 

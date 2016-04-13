@@ -41,11 +41,13 @@ std::vector<int>
 infoToNogoodVector(const string& info);
 
 void
-TreeComparison::analyseNogoods(const string& info) {
+TreeComparison::analyseNogoods(const string& info, int search_reduction) {
     auto ng_vec = infoToNogoodVector(info);
 
     for (auto ng_id : ng_vec) {
-        _responsible_nogood_counts[ng_id]++;
+        auto& ng_stats = _responsible_nogood_stats[ng_id];
+        ng_stats.occurrence++;
+        ng_stats.search_eliminated += search_reduction;
     }
 
 }
@@ -216,8 +218,10 @@ TreeComparison::compare(TreeCanvas* new_tc) {
                 auto data = _ex1.getData();
                 info_str = data->getInfo(*node1);
 
+                int search_reduction = -1;
+                if (left == 1) search_reduction = right;
                 /// identify nogoods and increment counters
-                if (info_str) analyseNogoods(*info_str);
+                if (info_str) analyseNogoods(*info_str, search_reduction);
             }
 
             _pentagon_items.emplace_back(PentagonItem{left, right, next, info_str});

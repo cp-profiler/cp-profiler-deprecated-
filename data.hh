@@ -91,7 +91,7 @@ Q_OBJECT
 // friend class PixelTreeCanvas;
 
 /// step for node rate counter (in microseconds)
-static const int NODE_RATE_STEP = 1000;
+static constexpr int NODE_RATE_STEP = 1000;
 
 public:
     /// counts instances of Data

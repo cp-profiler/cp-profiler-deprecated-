@@ -27,8 +27,9 @@
 class Gist;
 class TreeComparison;
 class CmpTreeDialog;
+
 class Execution;
-class PentagonItem;
+struct PentagonItem;
 
 class PentListWindow : public QDialog {
 Q_OBJECT

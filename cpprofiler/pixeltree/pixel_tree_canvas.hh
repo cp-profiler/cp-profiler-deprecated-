@@ -128,8 +128,8 @@ private:
 
 public:
 
-  static const int HIST_HEIGHT = 6; // in fake pixels
-  static const int MARGIN = 2; // in fake pixels
+  static constexpr int HIST_HEIGHT = 6; // in fake pixels
+  static constexpr int MARGIN = 2; // in fake pixels
 
 private:
 

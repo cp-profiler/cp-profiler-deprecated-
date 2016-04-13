@@ -42,6 +42,11 @@ struct PentagonItem {
     :l_size(l_size), r_size(r_size), node(node), info(info) {}
 };
 
+struct NogoodCmpStats {
+  int occurrence;
+  int search_eliminated;
+};
+
 class TreeComparison {
 
 
@@ -57,13 +62,13 @@ public:
 
   /// NOTE(maxim): if use a pointer to an item here and vector is modified -> could be a problem
   const std::vector<PentagonItem>& pentagon_items() const { return _pentagon_items; }
-  const std::unordered_map<int, int>& responsible_nogood_counts() const {
-    return _responsible_nogood_counts;
+  const std::unordered_map<int, NogoodCmpStats>& responsible_nogood_stats() const {
+    return _responsible_nogood_stats;
   }
 
 private:
   std::vector<PentagonItem> _pentagon_items;
-  std::unordered_map<int, int> _responsible_nogood_counts;
+  std::unordered_map<int, NogoodCmpStats> _responsible_nogood_stats;
 
 private:
 
@@ -78,7 +83,7 @@ private:
 
 private: /// methods
 
-  void analyseNogoods(const std::string& info);
+  void analyseNogoods(const std::string& info, int search_reduction);
 
   /// Returns true/false depending on whether n1 ~ n2
   bool copmareNodes(VisualNode* n1, VisualNode* n2);
