@@ -178,7 +178,7 @@ int Data::handleNodeCallback(message::Node& node) {
     return 0;
 }
 
-std::string Data::getLabel(unsigned int gid) {
+std::string Data::getLabel(int gid) {
     QMutexLocker locker(&dataMutex);
 
     auto it = gid2entry.find(gid);
@@ -278,8 +278,4 @@ void Data::pushInstance(int64_t full_sid, DbEntry* entry) {
 
     // qDebug() << "sid2aid[" << full_sid << "] = " << sid2aid[full_sid];
 
-}
-
-unsigned int Data::size() {
-    return nodes_arr.size();
 }

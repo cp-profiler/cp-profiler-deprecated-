@@ -125,7 +125,7 @@ public:
     /// Maps gist Id to dbEntry (possibly in the other Data instance);
     /// i.e. needed for a merged tree to show labels etc.
     /// TODO(maixm): this should probably be a vector?
-    std::unordered_map<unsigned int, DbEntry*> gid2entry;
+    std::unordered_map<int, DbEntry*> gid2entry;
 
     /// Map solver Id to no-good string
     std::unordered_map<int64_t, string> sid2nogood;
@@ -182,19 +182,17 @@ public:
 
     /// TODO(maxim): Do I want a reference here?
     /// return label by gid (Gist ID)
-    std::string getLabel(unsigned int gid);
+    std::string getLabel(int gid);
 
     /// return solver id by gid (Gist ID)
     int64_t gid2sid(int gid);
 
-    void connectNodeToEntry(unsigned int gid, DbEntry* const entry);
+    void connectNodeToEntry(int gid, DbEntry* const entry);
 
     /// return total number of nodes
-    unsigned int size();
+    int size() const { return nodes_arr.size(); }
 
 /// ********* GETTERS **********
-
-    // int id(void) { return _id; }
 
     bool isDone(void) { return _isDone; }
     bool isRestarts(void) { return _isRestarts; }
@@ -204,13 +202,13 @@ public:
 
     unsigned long long getTotalTime(void); /// time in microseconds
 
-    DbEntry* getEntry(unsigned int gid) const;
+    DbEntry* getEntry(int gid) const;
     DbEntry* getEntry(const Node& node) const;
 
     const string* getNogood(const Node& node) const;
     const string* getInfo(const Node& node) const;
 
-    unsigned int getGidBySid(int64_t sid) { return nodes_arr[sid2aid[sid]]->gid; }
+    int getGidBySid(int64_t sid) { return nodes_arr[sid2aid[sid]]->gid; }
 
 
 /// ****************************
@@ -234,13 +232,13 @@ public:
 };
 
 inline
-void Data::connectNodeToEntry(unsigned int gid, DbEntry* entry) {
+void Data::connectNodeToEntry(int gid, DbEntry* entry) {
     gid2entry[gid] = entry;
 }
 
 inline
-DbEntry* Data::getEntry(unsigned int gid) const {
-    std::unordered_map<unsigned int, DbEntry*>::const_iterator it = gid2entry.find(gid);
+DbEntry* Data::getEntry(int gid) const {
+    auto it = gid2entry.find(gid);
     if (it != gid2entry.end()) {
         return it->second;
     } else {
