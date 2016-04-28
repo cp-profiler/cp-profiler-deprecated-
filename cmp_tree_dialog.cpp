@@ -147,6 +147,24 @@ CmpTreeDialog::showPentagonHist(void) {
   pentagon_window->show();
 }
 
+
+static string empty_string = "";
+
+// string& getNogoodById(int ng_id, const Execution& e) {
+string& getNogoodById(int ng_id, const std::unordered_map<int64_t, string>& ng_map) {
+
+
+  string& nogood = empty_string;
+
+  auto maybe_nogood = ng_map.find(ng_id);
+
+  if (maybe_nogood != ng_map.end()){
+    nogood = maybe_nogood->second;
+  }
+
+  return nogood;
+}
+
 void
 CmpTreeDialog::saveComparisonStatsTo(const QString& file_name) {
   if (file_name != "") {
@@ -154,10 +172,20 @@ CmpTreeDialog::saveComparisonStatsTo(const QString& file_name) {
         if (outputFile.open(QFile::WriteOnly | QFile::Truncate)) {
             QTextStream out(&outputFile);
 
-            const auto pentagon_items = comparison_->pentagon_items();
+            auto ng_stats = comparison_->responsible_nogood_stats();
+            auto nogood_map = comparison_->left_execution().getNogoods();
 
-            for (auto& item : pentagon_items) {
-              out << item.l_size << " " << item.r_size << "\n";
+            out << "id,occur,score,nogood\n";
+
+            for (auto& ng : ng_stats) {
+
+              out << ng.first << ",";
+              out << ng.second.occurrence << ",";
+              out << ng.second.search_eliminated << ",";
+
+              string& nogood = getNogoodById(ng.first, nogood_map);
+
+              out << nogood.c_str() << "\n";
             }
 
             qDebug() << "writing comp stats to the file: " << file_name;
@@ -169,7 +197,7 @@ CmpTreeDialog::saveComparisonStatsTo(const QString& file_name) {
 
 void
 CmpTreeDialog::saveComparisonStats(void) {
-  saveComparisonStatsTo("/home/maxim/temp_stats.txt");
+  saveComparisonStatsTo("temp_stats.txt");
 }
 
 /// *************** Pentagon List Window ****************
@@ -202,24 +230,11 @@ infoToNogoodVector(const string& info) {
   return {};
 }
 
-string getNogoodById(int ng_id, const Execution& e) {
-  auto nogood_map = e.getNogoods();
-
-  string nogood = "";
-
-  auto maybe_nogood = nogood_map.find(ng_id);
-
-  if (maybe_nogood != nogood_map.end()){
-    nogood = maybe_nogood->second;
-  }
-
-  return nogood;
-}
-
 void
 PentListWindow::populateNogoodTable(const vector<int>& nogoods) {
 
   auto ng_stats = comparison_.responsible_nogood_stats();
+  auto nogood_map = comparison_.left_execution().getNogoods();
 
   _nogoodTable.setRowCount(nogoods.size());
 
@@ -228,7 +243,7 @@ PentListWindow::populateNogoodTable(const vector<int>& nogoods) {
     int ng_id = nogoods[i]; /// is this sid of gid???
     _nogoodTable.setItem(i, 0, new QTableWidgetItem(QString::number(ng_id)));
 
-    string nogood = getNogoodById(ng_id, comparison_.left_execution());
+    string& nogood = getNogoodById(ng_id, nogood_map);
 
     int ng_count = ng_stats.at(ng_id).occurrence;
 
@@ -338,7 +353,6 @@ CmpTreeDialog::selectPentagon(int row) {
   
 }
 
-
 void
 CmpTreeDialog::showResponsibleNogoods() {
 
@@ -362,6 +376,15 @@ CmpTreeDialog::showResponsibleNogoods() {
 
   ng_layout->addWidget(ng_table);
 
+
+  auto save_btn = new QPushButton("Save as", ng_dialog);
+
+  connect(save_btn, &QPushButton::clicked, this, [this](){
+    saveComparisonStatsTo("temp_stats.txt");
+  });
+
+  ng_layout->addWidget(save_btn);
+
   /// *** edit table ***
 
   auto ng_stats = comparison_->responsible_nogood_stats();
@@ -382,17 +405,22 @@ CmpTreeDialog::showResponsibleNogoods() {
 
   ng_table->setRowCount(ng_stats.size());
 
+  auto nogood_map = comparison_->left_execution().getNogoods();
 
   int row = 0;
   for (auto ng : ng_stats_vector) {
 
+    qDebug() << "working or row: " << row;
+
     ng_table->setItem(row, 0, new QTableWidgetItem(QString::number(ng.first)));
     ng_table->setItem(row, 1, new QTableWidgetItem(QString::number(ng.second.occurrence)));
 
-    string nogood = getNogoodById(ng.first, comparison_->left_execution());
+    string& nogood = getNogoodById(ng.first, nogood_map);
 
     ng_table->setItem(row, 2, new QTableWidgetItem(QString::number(ng.second.search_eliminated)));
     ng_table->setItem(row, 3, new QTableWidgetItem(nogood.c_str()));
+
+    // if (row > 100) break;
 
     ++row;
   }

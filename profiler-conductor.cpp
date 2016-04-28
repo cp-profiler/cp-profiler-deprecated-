@@ -199,9 +199,9 @@ ProfilerConductor::compareExecutions(bool auto_save) {
                                            item1->gistWindow_->getGist()->getCanvas(),
                                            item2->gistWindow_->getGist()->getCanvas());
 
-    if (auto_save) {
-        ctd->saveComparisonStatsTo("/home/maxim/temp_stats.txt");
-    }
+    // if (auto_save) {
+    //     ctd->saveComparisonStatsTo("/home/maxim/temp_stats.txt");
+    // }
 }
 
 class StatsHelper {

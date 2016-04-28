@@ -47,7 +47,7 @@ TreeComparison::analyseNogoods(const string& info, int search_reduction) {
     for (auto ng_id : ng_vec) {
         auto& ng_stats = _responsible_nogood_stats[ng_id];
         ng_stats.occurrence++;
-        ng_stats.search_eliminated += search_reduction;
+        ng_stats.search_eliminated += search_reduction / ng_vec.size();
     }
 
 }
@@ -213,13 +213,14 @@ TreeComparison::compare(TreeCanvas* new_tc) {
             }
 
             const string* info_str = nullptr;
-            /// if node1 is FAILED -> check nogoods
+            /// if node1 is FAILED -> check nogoods // TODO(maxim): branch node?
             if (node1->getStatus() == FAILED) {
                 auto data = _ex1.getData();
                 info_str = data->getInfo(*node1);
 
                 int search_reduction = -1;
-                if (left == 1) search_reduction = right;
+                assert(left == 1);
+                search_reduction = right;
                 /// identify nogoods and increment counters
                 if (info_str) analyseNogoods(*info_str, search_reduction);
             }
