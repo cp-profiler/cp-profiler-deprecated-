@@ -51,6 +51,9 @@
 #include <fstream>
 #include <iostream>
 
+#include "cpprofiler/analysis/similar_shapes.hh"
+
+using namespace cpprofiler::analysis;
 
 int TreeCanvas::counter = 0;
 
@@ -68,8 +71,7 @@ TreeCanvas::TreeCanvas(Execution* execution, QGridLayout* layout, CanvasType typ
     , scrollTimeLine(1000), targetX(0), sourceX(0), targetY(0), sourceY(0)
     , targetW(0), targetH(0), targetScale(0)
     , layoutDoneTimerId(0)
-    , shapesWindow(parent,  this)
-    , shapesMap(CompareShapes(*this))
+    , shapesWindow{new SimilarShapesWindow{this}}
 {
     QMutexLocker locker(&mutex);
 
@@ -169,235 +171,6 @@ TreeCanvas::~TreeCanvas(void) {
     delete na;
 
     delete _builder;
-}
-
-///***********************
-/// SIMILAR SUBTREES
-///***********************
-ShapeRect::ShapeRect(qreal x, qreal y, qreal width,
- qreal height, VisualNode* node, SimilarShapesWindow* ssw,
- QGraphicsItem * parent = 0)
- :QGraphicsRectItem(x, y, 800, height, parent),
- selectionArea(x, y + 1, width, height - 2),
- _node(node), _shapeCanvas(ssw->shapeCanvas), _ssWindow(ssw)
- {
-  setBrush(Qt::white);
-  QPen whitepen(Qt::white);
-  setPen(whitepen);
-  setFlag(QGraphicsItem::ItemIsSelectable);
-  selectionArea.setBrush(Qt::red);
-  selectionArea.setPen(whitepen);
-}
-
-void
-ShapeRect::draw(QGraphicsScene* scene){
-  scene->addItem(this);
-  scene->addItem(&selectionArea);
-}
-
-VisualNode*
-ShapeRect::getNode(void){
-  return _node;
-}
-
-void
-ShapeRect::mousePressEvent (QGraphicsSceneMouseEvent* ) {
-  _shapeCanvas->_targetNode = _node;
-  _ssWindow->tc->highlightShape(_node);
-  _shapeCanvas->QWidget::update();
-}
-
-
-
-SimilarShapesWindow::SimilarShapesWindow(QWidget* parent, TreeCanvas* tc)
- : QDialog(parent), tc(tc), histScene(this), view(this),
-  scrollArea(this), filters(tc)
-{
-  view.setScene(&histScene);
-
-  applyLayouts();
-
-  scrollArea.setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
-  scrollArea.setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
-  scrollArea.setAutoFillBackground(true);
-
-  // for splitter to be centered
-  QList<int> list = QList<int>() << 1 << 1;
-  splitter.setSizes(list);
-
-  depthFilterSB.setMinimum(1);
-  countFilterSB.setMinimum(1);
-
-  QObject::connect(&depthFilterSB, SIGNAL(valueChanged(int)),
-    this, SLOT(depthFilterChanged(int)));
-  QObject::connect(&countFilterSB, SIGNAL(valueChanged(int)),
-    this, SLOT(countFilterChanged(int)));
-
-  shapeCanvas = new ShapeCanvas(&scrollArea, tc);
-  shapeCanvas->show();
-}
-
-SimilarShapesWindow::~SimilarShapesWindow(void){
-  delete shapeCanvas;
-}
-
-void
-SimilarShapesWindow::applyLayouts(void){
-  setLayout(&globalLayout);
-  splitter.addWidget(&view);
-  splitter.addWidget(&scrollArea);
-  view.setAlignment(Qt::AlignLeft | Qt::AlignTop);
-
-  globalLayout.addLayout(&filtersLayout);
-
-  filtersLayout.addLayout(&depthFilterLayout);
-  filtersLayout.addLayout(&countFilterLayout);
-  filtersLayout.addStretch();
-  globalLayout.addWidget(&splitter);
-
-  // depthFilterLayout.addWidget(&depthFilterLabel);
-  depthFilterLayout.addWidget(new QLabel("min depth"));
-  depthFilterLayout.addWidget(&depthFilterSB);
-  countFilterLayout.addWidget(new QLabel("min occurrence"));
-  countFilterLayout.addWidget(&countFilterSB);
-}
-
-void
-SimilarShapesWindow::drawHistogram(void) {
-  QPen blackPen(Qt::black);
-  ShapeRect * rect;
-
-  histScene.clear();
-
-  blackPen.setWidth(1);
-
-  int y = 0, x = 0;
-
-  std::multiset<ShapeI, CompareShapes>& smap = tc->shapesMap;
-
-  for(auto it = smap.begin(), end = smap.end(); it != end; it = smap.upper_bound(*it))
-  {
-
-    if (!filters.apply(*it)){
-      continue;
-    }
-
-   // qDebug() << "shape: " << it->first << "node: " << it;
-
-   // text = new QGraphicsTextItem;
-   // text->setPos(-30, y - 5);
-   // text->setPlainText(QString::number((it->node)->getShape()->depth()));
-   //
-   // histScene.addItem(text);
-
-    int nShapes = smap.count(*it);
-    x = 5 * nShapes;
-
-    rect = new ShapeRect(0, y, x, 20, it->node, this);
-    rect->draw(&histScene);
-
-    // text = new QGraphicsTextItem;
-    // text->setPos(x + 10, y - 5);
-    // text->setPlainText(QString::number(nShapes));
-    //
-    // histScene.addItem(text);
-    y += 25;
-
-  }
-
-}
-
-void
-SimilarShapesWindow::depthFilterChanged(int val){
-  filters.setMinDepth(static_cast<unsigned int>(val));
-  drawHistogram();
-}
-
-void
-SimilarShapesWindow::countFilterChanged(int val){
-  filters.setMinCount(static_cast<unsigned int>(val));
-  drawHistogram();
-}
-
-Filters::Filters(TreeCanvas* tc)
- : _minDepth(1), _minCount(1), _tc(tc) {}
-
-bool
-Filters::apply(const ShapeI& si){
-  if (si.s->depth() < static_cast<int>(_minDepth)) return false;
-  if (_tc->shapesMap.count(si) < _minCount) return false;
-  return true;
-}
-
-void
-Filters::setMinDepth(uint val){
-  _minDepth = val;
-}
-
-void
-Filters::setMinCount(uint val){
-  _minCount = val;
-}
-
-ShapeCanvas::ShapeCanvas(QWidget* parent, TreeCanvas* tc)
-: QWidget(parent), _targetNode(nullptr), _tc(tc) {
-}
-
-void
-ShapeCanvas::paintEvent(QPaintEvent* event) {
-  QPainter painter(this);
-  painter.setRenderHint(QPainter::Antialiasing);
-
-  std::multiset<ShapeI>::iterator it;
-  it = _tc->shapesMap.begin();
-  if (_targetNode == nullptr) {
-    _targetNode = it->node;
-  }
-
-  QAbstractScrollArea* sa =
-   static_cast<QAbstractScrollArea*>(parentWidget());
-
-  float scale = 1;
-  int view_w = sa->viewport()->width();
-  int view_h = sa->viewport()->height();
-
-  int xoff = sa->horizontalScrollBar()->value()/scale;
-  int yoff = sa->verticalScrollBar()->value()/scale;
-
-  BoundingBox bb = _targetNode->getBoundingBox();
-
-  int w = static_cast<int>((bb.right - bb.left + Layout::extent) * scale);
-  int h = static_cast<int>(2 * Layout::extent +
-      _targetNode->getShape()->depth() * Layout::dist_y * scale);
-
-  // center the shape if small
-  if (w < view_w) xoff -= (view_w - w)/2;
-
-  setFixedSize(view_w, view_h) ;
-
-  xtrans = -bb.left+(Layout::extent / 2);
-
-  sa->horizontalScrollBar()->setRange(0, w - view_w);
-  sa->verticalScrollBar()->setRange(0, h - view_h);
-  sa->horizontalScrollBar()->setPageStep(view_w);
-  sa->verticalScrollBar()->setPageStep(view_h);
-
-  QRect origClip = event->rect();
-  painter.translate(0, 30);
-  // painter.scale(scale,scale);
-  painter.translate(xtrans-xoff, -yoff);
-  QRect clip(static_cast<int>(origClip.x()/scale-xtrans+xoff),
-             static_cast<int>(origClip.y()/scale+yoff),
-             static_cast<int>(origClip.width()/scale),
-             static_cast<int>(origClip.height()/scale));
-
-  DrawingCursor dc(_targetNode, *_tc->na, painter, clip, false);
-  PreorderNodeVisitor<DrawingCursor>(dc).run();
-}
-
-void
-ShapeCanvas::scroll(void) {
-  QWidget::update();
 }
 
 ///***********************
@@ -628,8 +401,8 @@ void
 TreeCanvas::analyzeSimilarSubtrees(void) {
   /// NOTE(maxim): only do this once?
   addNodesToMap();
-  shapesWindow.drawHistogram();
-  shapesWindow.show();
+  shapesWindow->drawHistogram();
+  shapesWindow->show();
 }
 
 void
@@ -711,12 +484,11 @@ void
 TreeCanvas::addNodesToMap(void) {
   QMutexLocker locker_1(&mutex);
   QMutexLocker locker_2(&layoutMutex);
-  shapesMap.clear();
 
   root->unhideAll(*na);
   root->layout(*na);
-  AnalyzeCursor ac(root, *na, this);
-  PostorderNodeVisitor<AnalyzeCursor>(ac).run();
+  SimilarShapesCursor ac(root, *na, *shapesWindow);
+  PostorderNodeVisitor<SimilarShapesCursor>(ac).run();
 }
 
 void
@@ -736,11 +508,10 @@ TreeCanvas::highlightShape(VisualNode* node) {
     ShapeI toFind(getNoOfSolvedLeaves(node),node);
 
     // get all nodes with similar shape
-    std::pair <std::multiset<ShapeI>::iterator,
-    std::multiset<ShapeI>::iterator> range;
-    range = shapesMap.equal_range(toFind);
+    auto range = shapesWindow->shapesMap.equal_range(toFind);
 
-    for (std::multiset<ShapeI>::iterator it = range.first; it!=range.second; ++it){
+    // TODO(maxim): better foreach
+    for (auto it = range.first; it!=range.second; ++it){
       VisualNode* targetNode = it->node;
 
       targetNode->setHighlighted(true);

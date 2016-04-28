@@ -29,8 +29,7 @@
 // #include <QTimer>
 #endif
 
-#include <set>
- #include <functional>
+#include <functional>
 #include "visualnode.hh"
 #include "treebuilder.hh"
 #include "zoomToFitIcon.hpp"
@@ -49,7 +48,10 @@ namespace LayoutConfig {
 }
 
 class TreeCanvas;
-class SimilarShapesWindow;
+
+namespace cpprofiler { namespace analysis {
+  class SimilarShapesWindow;
+}}
 
 class TreeBuilder;
 class TreeDialog;
@@ -57,115 +59,6 @@ class TreeDialog;
 /// *********************
 /// SIMILAR SUBTREES
 /// *********************
-class ShapeCanvas : public QWidget {
-  Q_OBJECT
-public:
-  ShapeCanvas(QWidget* parent = 0, TreeCanvas* tc = 0);
-  VisualNode* _targetNode; // why _?
-
-private:
-  TreeCanvas* _tc;
-
-  int xtrans;
-
-  // width and height of the shape
-  int width, height;
-
-protected:
-  /// Paint the shape
-  void paintEvent(QPaintEvent* event);
-protected Q_SLOTS:
-  void scroll(void);
-};
-
-class ShapeI {
-public:
-  int sol;
-  VisualNode* node;
-  Shape* s;
-  ShapeI(int sol0, VisualNode* node0)
-    : sol(sol0), node(node0), s(Shape::copy(node->getShape())) {}
-  ~ShapeI(void) { Shape::deallocate(s); }
-  ShapeI(const ShapeI& sh) : sol(sh.sol), node(sh.node), s(Shape::copy(sh.s)) {}
-  ShapeI& operator =(const ShapeI& sh) {
-    if (this!=&sh) {
-      Shape::deallocate(s);
-      s = Shape::copy(sh.s);
-      sol = sh.sol;
-      node = sh.node;
-    }
-    return *this;
-  }
-};
-
-class Filters {
-public:
-  explicit Filters(TreeCanvas* tc);
-  void setMinDepth(unsigned int);
-  void setMinCount(unsigned int);
-  bool apply(const ShapeI& s);
-private:
-  unsigned int _minDepth;
-  unsigned int _minCount;
-  TreeCanvas* _tc;
-};
-
-class ShapeRect : public QGraphicsRectItem {
-public:
-  ShapeRect(qreal, qreal, qreal, qreal, VisualNode*, SimilarShapesWindow*, QGraphicsItem*);
-  VisualNode* getNode(void);
-  // add to the scene
-  void draw(QGraphicsScene* scene);
-  QGraphicsRectItem selectionArea;
-protected:
-  void mousePressEvent (QGraphicsSceneMouseEvent*);
-private:
-  VisualNode* _node;
-  ShapeCanvas* _shapeCanvas;
-  SimilarShapesWindow* _ssWindow;
-};
-
-class SimilarShapesWindow : public QDialog {
-  Q_OBJECT
-public:
-  SimilarShapesWindow(QWidget* parent = 0, TreeCanvas* tc = 0);
-  ~SimilarShapesWindow(void);
-  void drawHistogram(void);
-
-  TreeCanvas* tc;
-  ShapeCanvas* shapeCanvas;
-
-public Q_SLOTS:
-  void depthFilterChanged(int val);
-  void countFilterChanged(int val);
-private:
-  void applyLayouts(void);
-
-  QSplitter splitter;
-
-  QVBoxLayout globalLayout;
-  QHBoxLayout filtersLayout;
-  QHBoxLayout depthFilterLayout;
-  QHBoxLayout countFilterLayout;
-
-  QGraphicsScene histScene;
-  QGraphicsView view;
-  QAbstractScrollArea scrollArea;
-
-  Filters filters;
-
-  QSpinBox depthFilterSB;
-  QSpinBox countFilterSB;
-};
-
-/// less operator needed for the map
-struct CompareShapes {
-private:
-  TreeCanvas& _tc;
-public:
-  explicit CompareShapes(TreeCanvas& tc);
-  bool operator()(const ShapeI& s1, const ShapeI& s2) const;
-};
 
 enum class CanvasType {
   REGULAR,
@@ -494,15 +387,11 @@ protected:
 
   /// Timer invoked for smooth zooming and scrolling
   virtual void timerEvent(QTimerEvent* e);
-
   /// Similar shapes dialog
-  SimilarShapesWindow shapesWindow;
+  std::unique_ptr<cpprofiler::analysis::SimilarShapesWindow> shapesWindow;
   // Node that represents the shape currently selected
   VisualNode* shapeHighlighted;
 public:
-  std::multiset<int> tempset;
-  /// Map of nodes for analyzing
-  std::multiset<ShapeI, CompareShapes> shapesMap;
 
   /// traverse every node and set hidden
   void hideAll(void);

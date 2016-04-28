@@ -335,12 +335,15 @@ StatCursor::moveUpwards(void) {
 }
 
 inline
-AnalyzeCursor::AnalyzeCursor(VisualNode* root,
-  const NodeAllocator& na, TreeCanvas* tc)
-: NodeCursor<VisualNode>(root, na), _tc(tc) {}
+SimilarShapesCursor::SimilarShapesCursor(VisualNode* root,
+  const NodeAllocator& na, cpprofiler::analysis::SimilarShapesWindow& ssw)
+: NodeCursor<VisualNode>(root, na), m_ssWindow(ssw) {}
+
+//TODO(maxim): get rid of this
+#include "cpprofiler/analysis/similar_shapes.hh"
 
 inline void
-AnalyzeCursor::processCurrentNode(void) {
+SimilarShapesCursor::processCurrentNode(void) {
   VisualNode* n = node();
   int nSol = 0;
   switch (n->getStatus()) {
@@ -367,8 +370,9 @@ AnalyzeCursor::processCurrentNode(void) {
       break;    /// To avoid compiler warnings
   }
   nSols[n] = nSol;
-  if (n->getNumberOfChildren() > 0)
-    _tc->shapesMap.insert(ShapeI(nSol,n));
+  if (n->getNumberOfChildren() > 0) {
+    m_ssWindow.shapesMap.insert(cpprofiler::analysis::ShapeI(nSol,n));
+  }
 }
 
 inline

@@ -56,6 +56,7 @@ SOURCES += main.cpp\
     cpprofiler\pixeltree\icicle_tree_dialog.cpp \
     cpprofiler\pixeltree\pixel_tree_canvas.cpp \
     cpprofiler\analysis\depth_analysis.cpp \
+    cpprofiler\analysis\similar_shapes.cpp \
 
 HEADERS  += globalhelper.hh \
     qtgist.hh \
@@ -105,6 +106,7 @@ HEADERS  += globalhelper.hh \
     cpprofiler/pixeltree/pixel_tree_canvas.hh \
     cpprofiler/pixeltree/pixel_item.hh \
     cpprofiler/analysis/depth_analysis.hh \
+    cpprofiler/analysis/similar_shapes.hh \
 
 FORMS    +=
 
