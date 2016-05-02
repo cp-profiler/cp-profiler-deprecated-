@@ -51,8 +51,8 @@ class TreeComparison {
 
 
 public:
-  TreeComparison(Execution& ex1, Execution& ex2, bool withLabels);
-  void compare(TreeCanvas* new_tc);
+  TreeComparison(Execution& ex1, Execution& ex2);
+  void compare(TreeCanvas* new_tc, bool with_labels);
   void sortPentagons();
 
   const Execution& left_execution() const { return _ex1; }
@@ -61,36 +61,37 @@ public:
   int get_no_pentagons(void);
 
   /// NOTE(maxim): if use a pointer to an item here and vector is modified -> could be a problem
-  const std::vector<PentagonItem>& pentagon_items() const { return _pentagon_items; }
+  const std::vector<PentagonItem>& pentagon_items() const { return m_pentagonItems; }
   const std::unordered_map<int, NogoodCmpStats>& responsible_nogood_stats() const {
-    return _responsible_nogood_stats;
+    return m_responsibleNogoodStats;
   }
 
 private:
-  std::vector<PentagonItem> _pentagon_items;
-  std::unordered_map<int, NogoodCmpStats> _responsible_nogood_stats;
+  /// aggregate comparison stats
+  struct { 
+    int m_totalReduced;
+  };
 
-private:
+  std::vector<PentagonItem> m_pentagonItems;
+  std::unordered_map<int, NogoodCmpStats> m_responsibleNogoodStats;
 
   /// The four needed for extracting labels
-  Execution& _ex1;
-  Execution& _ex2;
+  const Execution& _ex1;
+  const Execution& _ex2;
 
-  NodeAllocator& _na1;
-  NodeAllocator& _na2;
-
-  bool withLabels_;
+  const NodeAllocator& _na1;
+  const NodeAllocator& _na2;
 
 private: /// methods
 
   void analyseNogoods(const std::string& info, int search_reduction);
 
   /// Returns true/false depending on whether n1 ~ n2
-  bool copmareNodes(VisualNode* n1, VisualNode* n2);
+  bool copmareNodes(const VisualNode* n1, const VisualNode* n2, bool with_labels);
 
   /// 'which' is treated as a colour, usually 1 or 2 depending on which tree is a source
   int copyTree(VisualNode*, TreeCanvas*,
-               VisualNode*, const Execution&, int which = 0);
+               const VisualNode*, const Execution&, int which = 0);
 
 };
 

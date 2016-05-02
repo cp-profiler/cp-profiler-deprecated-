@@ -195,8 +195,6 @@ PixelTreeCanvas::compressTimeHistogram(vector<float>& compressed, int compressio
 void
 PixelTreeCanvas::getDomainDataCompressed(vector<float>& compressed, int compression) {
 
-  auto time_begin = high_resolution_clock::now();
-
   auto& pixel_list = pixel_data.pixel_list;
   auto data_length = pixel_list.size();
   auto vlines = ceil(data_length / compression);
@@ -227,9 +225,6 @@ PixelTreeCanvas::getDomainDataCompressed(vector<float>& compressed, int compress
     compressed[vline_id] = group_value / group_count;
   }
 
-  auto time_end = high_resolution_clock::now();
-  auto time_span = duration_cast<duration<double>>(time_end - time_begin);
-  // std::cout << "getDomainDataCompressed: " << time_span.count() << " seconds." << std::endl;
 }
 
 void

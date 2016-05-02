@@ -30,14 +30,14 @@
 
 /// TODO(maxim): use normal Gist window for comparison instead???
 
-CmpTreeDialog::CmpTreeDialog(QWidget* parent, Execution* execution, bool withLabels,
+CmpTreeDialog::CmpTreeDialog(QWidget* parent, Execution* execution, bool with_labels,
                              TreeCanvas* tc1, TreeCanvas* tc2)
     : BaseTreeDialog(parent, execution, CanvasType::MERGED),
       analysisMenu{nullptr} {
 
   hbl->addWidget(new NodeWidget(MERGING));
   mergedLabel = new QLabel("0");
-  comparison_ = new TreeComparison{*tc1->getExecution(), *tc2->getExecution(), withLabels};
+  comparison_ = new TreeComparison{*tc1->getExecution(), *tc2->getExecution()};
   hbl->addWidget(mergedLabel);
 
   addActions();
@@ -67,7 +67,7 @@ CmpTreeDialog::CmpTreeDialog(QWidget* parent, Execution* execution, bool withLab
 
   /// sort the pentagons by nodes diff:
 
-  comparison_->compare(_tc);
+  comparison_->compare(_tc, with_labels);
 
   comparison_->sortPentagons();
 

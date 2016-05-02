@@ -24,12 +24,12 @@
 #include "treecanvas.hh"
 #include "node.hh"
 
-TreeComparison::TreeComparison(Execution& ex1, Execution& ex2, bool withLabels)
-    : _ex1(ex1), _ex2(ex2), _na1(ex1.na()), _na2(ex2.na()), withLabels_(withLabels) {}
+TreeComparison::TreeComparison(Execution& ex1, Execution& ex2)
+    : _ex1(ex1), _ex2(ex2), _na1(ex1.na()), _na2(ex2.na()) {}
 
 void
 TreeComparison::sortPentagons() {
-    std::sort(_pentagon_items.begin(), _pentagon_items.end(),
+    std::sort(m_pentagonItems.begin(), m_pentagonItems.end(),
         [](const PentagonItem& lhs, const PentagonItem& rhs){
             return std::abs((int)lhs.l_size - (int)lhs.r_size)
                  > std::abs((int)rhs.l_size - (int)rhs.r_size);
@@ -45,19 +45,21 @@ TreeComparison::analyseNogoods(const string& info, int search_reduction) {
     auto ng_vec = infoToNogoodVector(info);
 
     for (auto ng_id : ng_vec) {
-        auto& ng_stats = _responsible_nogood_stats[ng_id];
+        auto& ng_stats = m_responsibleNogoodStats[ng_id];
         ng_stats.occurrence++;
         ng_stats.search_eliminated += search_reduction / ng_vec.size();
     }
 
+    m_totalReduced += search_reduction;
+
 }
 
 void
-TreeComparison::compare(TreeCanvas* new_tc) {
+TreeComparison::compare(TreeCanvas* new_tc, bool with_labels) {
 
     /// For source trees
-    QStack<VisualNode*> stack1;
-    QStack<VisualNode*> stack2;
+    QStack<const VisualNode*> stack1;
+    QStack<const VisualNode*> stack2;
     /// The stack used while building new_tc
     QStack<VisualNode*> stack;
 
@@ -79,8 +81,8 @@ TreeComparison::compare(TreeCanvas* new_tc) {
     NodeAllocator* na = new_tc->na;
 
     while (stack1.size() > 0) {
-        VisualNode* node1 = stack1.pop();
-        VisualNode* node2 = stack2.pop();
+        auto node1 = stack1.pop();
+        auto node2 = stack2.pop();
 
 
         /// ---------- Skipping implied ---------------
@@ -146,7 +148,7 @@ TreeComparison::compare(TreeCanvas* new_tc) {
 
         /// ----------------------------------------------------
 
-        bool equal = TreeComparison::copmareNodes(node1, node2);
+        bool equal = TreeComparison::copmareNodes(node1, node2, with_labels);
         if (equal) {
             uint kids = node1->getNumberOfChildren();
             for (uint i = 0; i < kids; ++i) {
@@ -220,12 +222,12 @@ TreeComparison::compare(TreeCanvas* new_tc) {
 
                 int search_reduction = -1;
                 assert(left == 1);
-                search_reduction = right;
+                search_reduction = right - left;
                 /// identify nogoods and increment counters
                 if (info_str) analyseNogoods(*info_str, search_reduction);
             }
 
-            _pentagon_items.emplace_back(PentagonItem{left, right, next, info_str});
+            m_pentagonItems.emplace_back(PentagonItem{left, right, next, info_str});
 
 
         }
@@ -237,12 +239,12 @@ TreeComparison::compare(TreeCanvas* new_tc) {
 
 int
 TreeComparison::copyTree(VisualNode* target, TreeCanvas* tc,
-                         VisualNode* root, const Execution& ex_source, int which) {
+                         const VisualNode* root, const Execution& ex_source, int which) {
 
     NodeAllocator* na = tc->na;
     const NodeAllocator& na_source = ex_source.na();
 
-    QStack<VisualNode*> source_stack;
+    QStack<const VisualNode*> source_stack;
     QStack<VisualNode*> target_stack;
 
     source_stack.push(root);
@@ -253,7 +255,7 @@ TreeComparison::copyTree(VisualNode* target, TreeCanvas* tc,
     while (source_stack.size() > 0) {
         count++;
 
-        VisualNode* n = source_stack.pop();
+        const VisualNode* n = source_stack.pop();
         VisualNode* next = target_stack.pop();
 
         next->_tid = which; // treated as a colour
@@ -307,7 +309,7 @@ void find_and_replace_all(std::string& str, std::string substr_old, std::string 
 }
 
 bool
-TreeComparison::copmareNodes(VisualNode* n1, VisualNode* n2) {
+TreeComparison::copmareNodes(const VisualNode* n1, const VisualNode* n2, bool with_labels) {
     unsigned kids = n1->getNumberOfChildren();
     if (kids != n2->getNumberOfChildren())
         return false;
@@ -316,7 +318,7 @@ TreeComparison::copmareNodes(VisualNode* n1, VisualNode* n2) {
         return false;
 
     /// check labels
-    if (withLabels_) {
+    if (with_labels) {
         for (unsigned i = 0; i < kids; i++) {
 
             int id1 = n1->getChild(i);
@@ -352,5 +354,5 @@ TreeComparison::copmareNodes(VisualNode* n1, VisualNode* n2) {
 
 int
 TreeComparison::get_no_pentagons(void) {
-    return static_cast<int>(_pentagon_items.size());
+    return static_cast<int>(m_pentagonItems.size());
 }

@@ -11,20 +11,22 @@ namespace cpprofiler { namespace analysis {
 
 
 SimilarShapesWindow::SimilarShapesWindow(TreeCanvas* tc)
- : QDialog(tc), m_tc(tc), shapesMap(CompareShapes(*tc)),
+ : QDialog(tc), m_tc(tc), shapesMap(CompareShapes{}),
   filters(*this)
 {
 
-  auto view = new QGraphicsView{this};
-  view->setScene(&histScene);
+  scene.reset(new QGraphicsScene{});
+
+  view = new QGraphicsView{this};
+  view->setScene(scene.get());
   view->setAlignment(Qt::AlignLeft | Qt::AlignTop);
 
-  auto scrollArea = new QAbstractScrollArea{this};
+  auto m_scrollArea = new QAbstractScrollArea{this};
 
   auto splitter = new QSplitter{this};
 
   splitter->addWidget(view);
-  splitter->addWidget(scrollArea);
+  splitter->addWidget(m_scrollArea);
   splitter->setSizes(QList<int>{1, 1}); // for splitter to be centered
 
   auto depthFilterSB = new QSpinBox{this};
@@ -53,57 +55,55 @@ SimilarShapesWindow::SimilarShapesWindow(TreeCanvas* tc)
   globalLayout->addWidget(splitter);
   globalLayout->addLayout(filtersLayout);
 
-  scrollArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
-  scrollArea->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
-  scrollArea->setAutoFillBackground(true);
+  // m_scrollArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
+  // m_scrollArea->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
+  m_scrollArea->setAutoFillBackground(true);
 
-  shapeCanvas = new ShapeCanvas(scrollArea, tc, shapesMap);
+  shapeCanvas = new ShapeCanvas(m_scrollArea, tc, shapesMap);
   shapeCanvas->show();
 }
 
-SimilarShapesWindow::~SimilarShapesWindow(void){
-  delete shapeCanvas;
-}
+// constexpr int
+constexpr int TEXT_WIDTH = 30;
 
 void
-SimilarShapesWindow::drawHistogram(void) {
-  QPen blackPen(Qt::black);
+SimilarShapesWindow::drawHistogram() {
 
-  histScene.clear();
+  scene.reset(new QGraphicsScene{});
+  view->setScene(scene.get());
 
-  blackPen.setWidth(1);
+  int curr_y = 0;
+  int rects_displayed = 0;
 
-  int y = 0, x = 0;
-
-  for(auto it = shapesMap.begin(), end = shapesMap.end(); it != end; it = shapesMap.upper_bound(*it))
+  for(auto it = shapesMap.begin(), end = shapesMap.end();
+           it != end; it = shapesMap.upper_bound(*it))
   {
 
-    if (!filters.apply(*it)){
-      continue;
-    }
+    if (!filters.apply(*it)) { continue; }
 
-   // qDebug() << "shape: " << it->first << "node: " << it;
+    const int shapes_count = shapesMap.count(*it);
+    auto rect = new ShapeRect(TEXT_WIDTH, curr_y, shapes_count,
+                              it->node, shapeCanvas);
+    rect->draw(scene.get());
 
-   // text = new QGraphicsTextItem;
-   // text->setPos(-30, y - 5);
-   // text->setPlainText(QString::number((it->node)->getShape()->depth()));
-   //
-   // histScene.addItem(text);
+    auto depth_str = QString::number((it->node)->getShape()->depth());
+    auto text_item = new QGraphicsTextItem{depth_str};
 
-    int nShapes = shapesMap.count(*it);
-    x = 5 * nShapes;
+    int text_y_offset = ShapeRect::HEIGHT / 2 - text_item->boundingRect().height() / 2;
+    text_item->setPos(0, curr_y + text_y_offset);
+    scene->addItem(text_item);
 
-    auto rect = new ShapeRect(0, y, x, 20, it->node, this);
-    rect->draw(&histScene);
-
-    // text = new QGraphicsTextItem;
-    // text->setPos(x + 10, y - 5);
-    // text->setPlainText(QString::number(nShapes));
-    //
-    // histScene.addItem(text);
-    y += 25;
+    rects_displayed++;
+    curr_y += ShapeRect::HEIGHT + 1;
 
   }
+
+  // TODO(maxim): set scroll bar height
+
+  // view->verticalScrollBar()->setPageStep(ShapeRect::HEIGHT);
+  // view->verticalScrollBar()->setRange(0, rects_displayed);
+
+
 
 }
 
@@ -128,7 +128,7 @@ Filters::Filters(const SimilarShapesWindow& ssw)
 bool
 Filters::apply(const ShapeI& si){
   if (si.s->depth() < m_minDepth) return false;
-  if (m_ssWindow.shapesMap.count(si) < m_minCount) return false;
+  if ((int)m_ssWindow.shapesMap.count(si) < m_minCount) return false;
   return true;
 }
 
@@ -142,41 +142,39 @@ Filters::setMinCount(int val){
   m_minCount = val;
 }
 
-ShapeRect::ShapeRect(qreal x, qreal y, qreal width,
- qreal height, VisualNode* node, SimilarShapesWindow* ssw,
- QGraphicsItem * parent)
- :QGraphicsRectItem(x, y, 800, height, parent),
- selectionArea(x, y + 1, width, height - 2),
- _node(node), _ssWindow(ssw)
+ShapeRect::ShapeRect(int x, int y, int value,
+  VisualNode* node, ShapeCanvas* sc, QGraphicsItem * parent)
+ : QGraphicsRectItem(x, y, SELECTION_WIDTH, HEIGHT, parent),
+ visibleArea(x, y + 1, value * PIXELS_PER_VALUE, HEIGHT - 2),
+ m_node{node}, m_canvas{sc}
  {
   setBrush(Qt::white);
   QPen whitepen(Qt::white);
   setPen(whitepen);
   setFlag(QGraphicsItem::ItemIsSelectable);
-  selectionArea.setBrush(Qt::red);
-  selectionArea.setPen(whitepen);
+  visibleArea.setBrush(Qt::red);
+  visibleArea.setPen(whitepen);
 }
 
 void
 ShapeRect::draw(QGraphicsScene* scene){
   scene->addItem(this);
-  scene->addItem(&selectionArea);
+  scene->addItem(&visibleArea);
 }
 
 VisualNode*
-ShapeRect::getNode(void){
-  return _node;
+ShapeRect::getNode(){
+  return m_node;
 }
 
 void
 ShapeRect::mousePressEvent (QGraphicsSceneMouseEvent* ) {
-  _ssWindow->shapeCanvas->highlightShape(_node);
+  m_canvas->highlightShape(m_node);
 }
 
 ShapeCanvas::ShapeCanvas(QAbstractScrollArea* sa, TreeCanvas* tc,
     const std::multiset<ShapeI, CompareShapes>& sm)
-: QWidget(sa), m_sa(sa), m_targetNode(nullptr), m_tc(tc), m_shapesMap{sm} {
-}
+: QWidget{sa}, m_sa{sa}, m_tc{tc}, m_shapesMap{sm} {}
 
 void
 ShapeCanvas::paintEvent(QPaintEvent* event) {
@@ -188,23 +186,22 @@ ShapeCanvas::paintEvent(QPaintEvent* event) {
     m_targetNode = it->node;
   }
 
-  float scale = 1;
   int view_w = m_sa->viewport()->width();
   int view_h = m_sa->viewport()->height();
 
-  int xoff = m_sa->horizontalScrollBar()->value()/scale;
-  int yoff = m_sa->verticalScrollBar()->value()/scale;
+  int xoff = m_sa->horizontalScrollBar()->value();
+  int yoff = m_sa->verticalScrollBar()->value();
 
-  BoundingBox bb = m_targetNode->getBoundingBox();
+  const BoundingBox bb = m_targetNode->getBoundingBox();
 
-  int w = static_cast<int>((bb.right - bb.left + Layout::extent) * scale);
-  int h = static_cast<int>(2 * Layout::extent +
-      m_targetNode->getShape()->depth() * Layout::dist_y * scale);
+  int w = bb.right - bb.left + Layout::extent;
+  int h = 2 * Layout::extent +
+      m_targetNode->getShape()->depth() * Layout::dist_y;
 
   // center the shape if small
-  if (w < view_w) xoff -= (view_w - w)/2;
+  if (w < view_w) { xoff -= (view_w - w) / 2; }
 
-  setFixedSize(view_w, view_h) ;
+  setFixedSize(view_w, view_h);
 
   xtrans = -bb.left+(Layout::extent / 2);
 
@@ -215,14 +212,13 @@ ShapeCanvas::paintEvent(QPaintEvent* event) {
 
   QRect origClip = event->rect();
   painter.translate(0, 30);
-  // painter.scale(scale,scale);
-  painter.translate(xtrans-xoff, -yoff);
-  QRect clip(static_cast<int>(origClip.x()/scale-xtrans+xoff),
-             static_cast<int>(origClip.y()/scale+yoff),
-             static_cast<int>(origClip.width()/scale),
-             static_cast<int>(origClip.height()/scale));
+  painter.translate(xtrans - xoff, -yoff);
+  QRect clip{origClip.x() - xtrans + xoff,
+             origClip.y() + yoff,
+             origClip.width(),
+             origClip.height()};
 
-  DrawingCursor dc(m_targetNode, *m_tc->get_na(), painter, clip, false);
+  DrawingCursor dc{m_targetNode, *m_tc->get_na(), painter, clip, false};
   PreorderNodeVisitor<DrawingCursor>(dc).run();
 }
 
@@ -233,7 +229,7 @@ void ShapeCanvas::highlightShape(VisualNode* node) {
 }
 
 void
-ShapeCanvas::scroll(void) {
+ShapeCanvas::scroll() {
   QWidget::update();
 }
 
@@ -241,7 +237,7 @@ ShapeCanvas::scroll(void) {
 ShapeI::ShapeI(int sol0, VisualNode* node0)
   : sol(sol0), node(node0), s(Shape::copy(node->getShape())) {}
 
-ShapeI::~ShapeI(void) { Shape::deallocate(s); }
+ShapeI::~ShapeI() { Shape::deallocate(s); }
 
 ShapeI::ShapeI(const ShapeI& sh)
   : sol(sh.sol), node(sh.node), s(Shape::copy(sh.s)) {}
@@ -254,6 +250,26 @@ ShapeI& ShapeI::operator=(const ShapeI& sh) {
     node = sh.node;
   }
   return *this;
+}
+
+bool
+CompareShapes::operator()(const ShapeI& n1, const ShapeI& n2) const {
+  if (n1.sol > n2.sol) return false;
+  if (n1.sol < n2.sol) return true;
+
+  Shape* s1 = n1.s;
+  Shape* s2 = n2.s;
+
+  if (s1->depth() < s2->depth()) return true;
+  if (s1->depth() > s2->depth()) return false;
+
+  for (int i = 0; i < s1->depth(); i++) {
+    if ((*s1)[i].l < (*s2)[i].l) return false;
+    if ((*s1)[i].l > (*s2)[i].l) return true;
+    if ((*s1)[i].r < (*s2)[i].r) return true;
+    if ((*s1)[i].r > (*s2)[i].r) return false;
+  }
+  return false;
 }
 
 }}

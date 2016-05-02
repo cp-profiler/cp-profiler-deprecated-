@@ -3,6 +3,7 @@
 
 #include <QDialog>
 #include <set>
+#include <memory>
 
 #include <QGraphicsScene>
 #include <QGraphicsRectItem>
@@ -44,10 +45,7 @@ private:
 
 /// less operator needed for the map
 struct CompareShapes {
-private:
-  TreeCanvas& _tc;
 public:
-  explicit CompareShapes(TreeCanvas& tc);
   bool operator()(const ShapeI& s1, const ShapeI& s2) const;
 };
 
@@ -62,21 +60,20 @@ class SimilarShapesWindow : public QDialog {
 
 public:
   explicit SimilarShapesWindow(TreeCanvas* tc);
-  ~SimilarShapesWindow(void);
-  void drawHistogram(void);
+  void drawHistogram();
 
-  TreeCanvas* m_tc;
-  ShapeCanvas* shapeCanvas;
 
 public Q_SLOTS:
   void depthFilterChanged(int val);
   void countFilterChanged(int val);
 private:
 
-    /// Map of nodes for analyzing
+  TreeCanvas* m_tc;
+  ShapeCanvas* shapeCanvas;
   std::multiset<ShapeI, CompareShapes> shapesMap;
 
-  QGraphicsScene histScene;
+  QGraphicsView* view;
+  std::unique_ptr<QGraphicsScene> scene;
   Filters filters;
 
 };
@@ -90,7 +87,7 @@ public:
 
 private:
   const QAbstractScrollArea* m_sa;
-  VisualNode* m_targetNode; // what is it?
+  VisualNode* m_targetNode = nullptr; // what is it?
   TreeCanvas* m_tc;
   // TODO(maxim): maybe this isn't necessary here
   const std::multiset<ShapeI, CompareShapes>& m_shapesMap;
@@ -104,24 +101,26 @@ protected:
   /// Paint the shape
   void paintEvent(QPaintEvent* event);
 protected Q_SLOTS:
-  void scroll(void);
+  void scroll();
 };
-
-
 
 class ShapeRect : public QGraphicsRectItem {
 public:
-  ShapeRect(qreal, qreal, qreal, qreal, VisualNode*,
-  	SimilarShapesWindow*, QGraphicsItem* parent = nullptr);
-  VisualNode* getNode(void);
+  static constexpr int HEIGHT = 15;
+  static constexpr int PIXELS_PER_VALUE = 5;
+  static constexpr int SELECTION_WIDTH = 800;
+
+  ShapeRect(int x, int y, int value, VisualNode*,
+  	ShapeCanvas*, QGraphicsItem* parent = nullptr);
+  VisualNode* getNode();
   // add to the scene
   void draw(QGraphicsScene* scene);
-  QGraphicsRectItem selectionArea;
+  QGraphicsRectItem visibleArea;
 protected:
   void mousePressEvent (QGraphicsSceneMouseEvent*);
 private:
-  VisualNode* _node;
-  SimilarShapesWindow* _ssWindow;
+  VisualNode* m_node;
+  ShapeCanvas* m_canvas;
 };
 
 }}

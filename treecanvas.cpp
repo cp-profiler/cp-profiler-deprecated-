@@ -374,29 +374,6 @@ void TreeCanvas::followPath(void) {
   }
 }
 
-
-CompareShapes::CompareShapes(TreeCanvas& tc) : _tc(tc) {}
-
-bool
-CompareShapes::operator()(const ShapeI& n1, const ShapeI& n2) const {
-  if (n1.sol > n2.sol) return false;
-  if (n1.sol < n2.sol) return true;
-
-  Shape* s1 = n1.s;
-  Shape* s2 = n2.s;
-
-  if (s1->depth() < s2->depth()) return true;
-  if (s1->depth() > s2->depth()) return false;
-
-  for (int i = 0; i < s1->depth(); i++) {
-    if ((*s1)[i].l < (*s2)[i].l) return false;
-    if ((*s1)[i].l > (*s2)[i].l) return true;
-    if ((*s1)[i].r < (*s2)[i].r) return true;
-    if ((*s1)[i].r > (*s2)[i].r) return false;
-  }
-  return false;
-}
-
 void
 TreeCanvas::analyzeSimilarSubtrees(void) {
   /// NOTE(maxim): only do this once?
