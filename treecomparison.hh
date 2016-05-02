@@ -58,7 +58,8 @@ public:
   const Execution& left_execution() const { return _ex1; }
   const Execution& right_execution() const { return _ex2; }
 
-  int get_no_pentagons(void);
+  int get_no_pentagons();
+  int get_total_reduced() const { return m_totalReduced; }
 
   /// NOTE(maxim): if use a pointer to an item here and vector is modified -> could be a problem
   const std::vector<PentagonItem>& pentagon_items() const { return m_pentagonItems; }
@@ -69,7 +70,7 @@ public:
 private:
   /// aggregate comparison stats
   struct { 
-    int m_totalReduced;
+    int m_totalReduced = 0;
   };
 
   std::vector<PentagonItem> m_pentagonItems;

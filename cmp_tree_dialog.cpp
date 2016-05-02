@@ -370,9 +370,8 @@ CmpTreeDialog::showResponsibleNogoods() {
   ng_table->setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
   ng_table->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
 
-  QStringList table_header;  
-  table_header << "Id" << "Occurrence" << "Reduction Total" << "Literals";
-  ng_table->setHorizontalHeaderLabels(table_header);
+  ng_table->setHorizontalHeaderLabels({"Id", "Occurrence",
+                                       "Reduction Total", "Literals"});
 
   ng_layout->addWidget(ng_table);
 
@@ -410,8 +409,6 @@ CmpTreeDialog::showResponsibleNogoods() {
   int row = 0;
   for (auto ng : ng_stats_vector) {
 
-    qDebug() << "working or row: " << row;
-
     ng_table->setItem(row, 0, new QTableWidgetItem(QString::number(ng.first)));
     ng_table->setItem(row, 1, new QTableWidgetItem(QString::number(ng.second.occurrence)));
 
@@ -427,7 +424,15 @@ CmpTreeDialog::showResponsibleNogoods() {
 
   ng_table->resizeColumnsToContents();
 
+  auto total_reduced = comparison_->get_total_reduced();
+  auto total_nodes = comparison_->right_execution().getData()->size();
 
+  auto reduction_label = QString{"Nodes reduced: "} +
+                         QString::number(total_reduced) +
+                         QString{" out of "} +
+                         QString::number(total_nodes);
+
+  ng_layout->addWidget(new QLabel{reduction_label});
 
 }
 

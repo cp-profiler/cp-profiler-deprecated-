@@ -69,7 +69,7 @@ Data::Data(NodeAllocator* na)
 void Data::setDoneReceiving(void) {
     QMutexLocker locker(&dataMutex);
 
-    _total_nodes = nodes_arr.size();
+    // _total_nodes = nodes_arr.size();
     _total_time = nodes_arr.back()->time_stamp;
 
     if (_total_time != 0) {

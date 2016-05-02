@@ -142,7 +142,6 @@ public:
     unsigned long long _total_time;
 
     unsigned long int _prev_node_timestamp;
-    int _total_nodes;
 
     /// How many nodes received within each NODE_RATE_STEP interval
     std::vector<float> node_rate;
@@ -166,6 +165,7 @@ public:
     QMutex dataMutex;
 
 private:
+    // int _total_nodes;
 
     /// Populate nodes_arr with the data coming from
     void pushInstance(int64_t sid, DbEntry* entry);
