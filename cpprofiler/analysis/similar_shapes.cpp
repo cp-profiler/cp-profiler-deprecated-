@@ -31,10 +31,12 @@ SimilarShapesWindow::SimilarShapesWindow(TreeCanvas* tc)
 
   auto depthFilterSB = new QSpinBox{this};
   depthFilterSB->setMinimum(1);
+  depthFilterSB->setValue(2);
   QObject::connect(depthFilterSB, SIGNAL(valueChanged(int)),
     this, SLOT(depthFilterChanged(int)));
   auto countFilterSB = new QSpinBox{this};
   countFilterSB->setMinimum(1);
+  countFilterSB->setValue(2);
   QObject::connect(countFilterSB, SIGNAL(valueChanged(int)),
     this, SLOT(countFilterChanged(int)));
 
@@ -65,6 +67,7 @@ SimilarShapesWindow::SimilarShapesWindow(TreeCanvas* tc)
 
 // constexpr int
 constexpr int TEXT_WIDTH = 30;
+constexpr int RIGHT_MARGIN = 20;
 
 void
 SimilarShapesWindow::drawHistogram() {
@@ -75,6 +78,19 @@ SimilarShapesWindow::drawHistogram() {
   int curr_y = 0;
   int rects_displayed = 0;
 
+  using mset = std::multiset<ShapeI, CompareShapes>;
+
+  /// calculate maximum occurrence
+  auto max_count_it = std::max(shapesMap.begin(), shapesMap.end(),
+    [this](const mset::iterator it1, const mset::iterator it2)
+  {
+    return shapesMap.count(*it1) < shapesMap.count(*it2);
+  });
+
+  auto max_count = shapesMap.count(*max_count_it);
+
+  auto rect_max_w = ShapeRect::SELECTION_WIDTH;
+
   for(auto it = shapesMap.begin(), end = shapesMap.end();
            it != end; it = shapesMap.upper_bound(*it))
   {
@@ -82,7 +98,8 @@ SimilarShapesWindow::drawHistogram() {
     if (!filters.apply(*it)) { continue; }
 
     const int shapes_count = shapesMap.count(*it);
-    auto rect = new ShapeRect(TEXT_WIDTH, curr_y, shapes_count,
+    const int rect_width = rect_max_w * shapes_count / max_count;
+    auto rect = new ShapeRect(TEXT_WIDTH, curr_y, rect_width,
                               it->node, shapeCanvas);
     rect->draw(scene.get());
 
@@ -97,13 +114,6 @@ SimilarShapesWindow::drawHistogram() {
     curr_y += ShapeRect::HEIGHT + 1;
 
   }
-
-  // TODO(maxim): set scroll bar height
-
-  // view->verticalScrollBar()->setPageStep(ShapeRect::HEIGHT);
-  // view->verticalScrollBar()->setRange(0, rects_displayed);
-
-
 
 }
 
@@ -142,10 +152,10 @@ Filters::setMinCount(int val){
   m_minCount = val;
 }
 
-ShapeRect::ShapeRect(int x, int y, int value,
+ShapeRect::ShapeRect(int x, int y, int width,
   VisualNode* node, ShapeCanvas* sc, QGraphicsItem * parent)
- : QGraphicsRectItem(x, y, SELECTION_WIDTH, HEIGHT, parent),
- visibleArea(x, y + 1, value * PIXELS_PER_VALUE, HEIGHT - 2),
+ : QGraphicsRectItem(x - 1, y, SELECTION_WIDTH + 2, HEIGHT, parent),
+ visibleArea(x, y + 1, width, HEIGHT - 2),
  m_node{node}, m_canvas{sc}
  {
   setBrush(Qt::white);

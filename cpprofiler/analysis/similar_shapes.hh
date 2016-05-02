@@ -38,8 +38,8 @@ public:
   void setMinCount(int);
   bool apply(const ShapeI& s);
 private:
-  int m_minDepth = 1;
-  int m_minCount = 1;
+  int m_minDepth = 2;
+  int m_minCount = 2;
   const SimilarShapesWindow& m_ssWindow;
 };
 
@@ -108,9 +108,9 @@ class ShapeRect : public QGraphicsRectItem {
 public:
   static constexpr int HEIGHT = 15;
   static constexpr int PIXELS_PER_VALUE = 5;
-  static constexpr int SELECTION_WIDTH = 800;
+  static constexpr int SELECTION_WIDTH = 600;
 
-  ShapeRect(int x, int y, int value, VisualNode*,
+  ShapeRect(int x, int y, int width, VisualNode*,
   	ShapeCanvas*, QGraphicsItem* parent = nullptr);
   VisualNode* getNode();
   // add to the scene
