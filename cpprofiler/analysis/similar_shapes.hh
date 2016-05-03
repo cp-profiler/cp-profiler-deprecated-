@@ -49,6 +49,10 @@ public:
   bool operator()(const ShapeI& s1, const ShapeI& s2) const;
 };
 
+enum class ShapeProperty {
+	SIZE, OCCURRENCE
+};
+
 
 
 class SimilarShapesWindow : public QDialog {
@@ -62,11 +66,15 @@ public:
   explicit SimilarShapesWindow(TreeCanvas* tc);
   void drawHistogram();
 
-
 public Q_SLOTS:
   void depthFilterChanged(int val);
   void countFilterChanged(int val);
 private:
+
+  /// Loop through all nodes and add them to the multimap
+  void addNodesToMap();
+
+  bool m_done = false;
 
   TreeCanvas* m_tc;
   ShapeCanvas* shapeCanvas;
@@ -75,6 +83,9 @@ private:
   QGraphicsView* view;
   std::unique_ptr<QGraphicsScene> scene;
   Filters filters;
+
+  ShapeProperty m_histType = ShapeProperty::SIZE;
+  // ShapeProperty m_histType = ShapeProperty::OCCURRENCE;
 
 };
 

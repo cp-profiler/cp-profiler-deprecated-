@@ -220,9 +220,6 @@ public Q_SLOTS:
   /// highlight failures caused by nogoods (nogoods in info)
   void highlightFailedByNogoods();
 
-  /// Loop through all nodes and add them to the multimap
-  void addNodesToMap(void);
-
   /// Stop current search
   void stopSearch(void);
 

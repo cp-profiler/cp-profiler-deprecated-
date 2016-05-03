@@ -71,7 +71,6 @@ TreeCanvas::TreeCanvas(Execution* execution, QGridLayout* layout, CanvasType typ
     , scrollTimeLine(1000), targetX(0), sourceX(0), targetY(0), sourceY(0)
     , targetW(0), targetH(0), targetScale(0)
     , layoutDoneTimerId(0)
-    , shapesWindow{new SimilarShapesWindow{this}}
 {
     QMutexLocker locker(&mutex);
 
@@ -376,9 +375,11 @@ void TreeCanvas::followPath(void) {
 
 void
 TreeCanvas::analyzeSimilarSubtrees(void) {
-  /// NOTE(maxim): only do this once?
-  addNodesToMap();
-  shapesWindow->drawHistogram();
+
+  QMutexLocker locker_1(&mutex);
+  QMutexLocker locker_2(&layoutMutex);
+
+  shapesWindow.reset(new SimilarShapesWindow{this});
   shapesWindow->show();
 }
 
@@ -455,17 +456,6 @@ TreeCanvas::collectMLStats(VisualNode* node) {
 void
 TreeCanvas::collectMLStatsRoot(std::ostream& out) {
   ::collectMLStats(root, *na, execution, out);
-}
-
-void
-TreeCanvas::addNodesToMap(void) {
-  QMutexLocker locker_1(&mutex);
-  QMutexLocker locker_2(&layoutMutex);
-
-  root->unhideAll(*na);
-  root->layout(*na);
-  SimilarShapesCursor ac(root, *na, *shapesWindow);
-  PostorderNodeVisitor<SimilarShapesCursor>(ac).run();
 }
 
 void
