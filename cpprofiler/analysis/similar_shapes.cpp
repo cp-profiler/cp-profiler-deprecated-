@@ -8,16 +8,16 @@
 #include "visualnode.hh"
 #include <algorithm>
 
-namespace cpprofiler { namespace analysis {
+namespace cpprofiler {
+namespace analysis {
 
 /// TODO(maxim): show all subtrees of a particular shape
 /// TODO(maxim): find 'exact' subtrees
 
-SimilarShapesWindow::SimilarShapesWindow(TreeCanvas* tc)
- : QDialog(tc), m_tc(tc), shapesMap(CompareShapes{}),
-  filters(*this)
-{
+/// TODO(maxim): normalize only using currently shown shapes
 
+SimilarShapesWindow::SimilarShapesWindow(TreeCanvas* tc)
+    : QDialog(tc), m_tc(tc), shapesMap(CompareShapes{}), filters(*this) {
   addNodesToMap();
 
   scene.reset(new QGraphicsScene{});
@@ -32,25 +32,25 @@ SimilarShapesWindow::SimilarShapesWindow(TreeCanvas* tc)
 
   splitter->addWidget(view);
   splitter->addWidget(m_scrollArea);
-  splitter->setSizes(QList<int>{1, 1}); // for splitter to be centered
+  splitter->setSizes(QList<int>{1, 1});  // for splitter to be centered
 
   auto depthFilterSB = new QSpinBox{this};
   depthFilterSB->setMinimum(1);
   depthFilterSB->setValue(2);
-  QObject::connect(depthFilterSB, SIGNAL(valueChanged(int)),
-    this, SLOT(depthFilterChanged(int)));
+  QObject::connect(depthFilterSB, SIGNAL(valueChanged(int)), this,
+                   SLOT(depthFilterChanged(int)));
 
   auto countFilterSB = new QSpinBox{this};
   countFilterSB->setMinimum(1);
   countFilterSB->setValue(2);
-  QObject::connect(countFilterSB, SIGNAL(valueChanged(int)),
-    this, SLOT(countFilterChanged(int)));
+  QObject::connect(countFilterSB, SIGNAL(valueChanged(int)), this,
+                   SLOT(countFilterChanged(int)));
 
   auto histChoiceCB = new QComboBox();
   histChoiceCB->addItem("size");
   histChoiceCB->addItem("occurrence");
   connect(histChoiceCB, &QComboBox::currentTextChanged,
-          [this](const QString& str){
+          [this](const QString& str) {
             if (str == "size") {
               m_histType = ShapeProperty::SIZE;
             } else if (str == "occurrence") {
@@ -88,9 +88,7 @@ SimilarShapesWindow::SimilarShapesWindow(TreeCanvas* tc)
   drawHistogram();
 }
 
-void
-SimilarShapesWindow::addNodesToMap() {
-
+void SimilarShapesWindow::addNodesToMap() {
   auto na = m_tc->get_na();
   VisualNode* root = (*na)[0];
 
@@ -100,51 +98,25 @@ SimilarShapesWindow::addNodesToMap() {
   PostorderNodeVisitor<SimilarShapesCursor>(ac).run();
 }
 
-
-// constexpr int
-constexpr int TEXT_WIDTH = 30;
-constexpr int RIGHT_MARGIN = 20;
-
-int shapeSize(const Shape& s) {
-
-  int total_size = 0;
-
-  int prev_l = 0;
-  int prev_r = 0;
-
-  for (int i = 0; i < s.depth(); ++i) {
-    total_size += std::abs( (s[i].r + prev_r) - (s[i].l + prev_l) );
-    prev_l = s[i].l;
-    prev_r = s[i].r;
-  }
-
-  return total_size;
-}
-
-int maxShapeValue(const std::multiset<ShapeI, CompareShapes>& shapesMap, ShapeProperty prop) {
-
+int maxShapeValue(const std::multiset<ShapeI, CompareShapes>& shapesMap,
+                  ShapeProperty prop) {
   if (prop == ShapeProperty::SIZE) {
-
     /// calculate max size
-    auto max_size_shape = std::max_element(
-      std::begin(shapesMap), std::end(shapesMap),
-      [](const ShapeI& s1, const ShapeI& s2)
-      {
-        return shapeSize(*s1.s) < shapeSize(*s2.s);
-      }
-    );
+    auto max_size_shape =
+        std::max_element(std::begin(shapesMap), std::end(shapesMap),
+                         [](const ShapeI& s1, const ShapeI& s2) {
+                           return s1.shape_size < s2.shape_size;
+                         });
 
-    return shapeSize(*max_size_shape->s);
+    return max_size_shape->shape_size;
 
   } else if (prop == ShapeProperty::OCCURRENCE) {
-
     /// calculate max occurrence
-    auto max_count_it = std::max_element(
-      std::begin(shapesMap), std::end(shapesMap),
-      [&shapesMap](const ShapeI& s1, const ShapeI& s2)
-    {
-      return shapesMap.count(s1) < shapesMap.count(s2);
-    });
+    auto max_count_it =
+        std::max_element(std::begin(shapesMap), std::end(shapesMap),
+                         [&shapesMap](const ShapeI& s1, const ShapeI& s2) {
+                           return shapesMap.count(s1) < shapesMap.count(s2);
+                         });
 
     return shapesMap.count(*max_count_it);
   }
@@ -152,109 +124,118 @@ int maxShapeValue(const std::multiset<ShapeI, CompareShapes>& shapesMap, ShapePr
   return -1;
 }
 
-void
-SimilarShapesWindow::drawHistogram() {
+namespace detail {
+
+inline void addText(QGraphicsTextItem* text_item, int x, int y,
+                    QGraphicsScene& scene) {
+  // center the item vertically at y
+  int text_y_offset = text_item->boundingRect().height() / 2;
+  text_item->setPos(x, y - text_y_offset);
+  scene.addItem(text_item);
+}
+};
+
+inline void addText(const char* text, int x, int y, QGraphicsScene& scene) {
+  /// will this memory be released?
+  auto str_text_item = new QGraphicsTextItem{text};
+  detail::addText(str_text_item, x, y, scene);
+}
+
+// constexpr int
+constexpr int NUMBER_WIDTH = 50;
+constexpr int COLUMN_WIDTH = NUMBER_WIDTH + 10;
+
+inline void addText(int value, int x, int y, QGraphicsScene& scene) {
+  auto int_text_item = new QGraphicsTextItem{QString::number(value)};
+  // alignment to the right
+  x += COLUMN_WIDTH - int_text_item->boundingRect().width();
+  detail::addText(int_text_item, x, y, scene);
+}
+
+void SimilarShapesWindow::drawHistogram() {
+  qDebug() << "draw histogram\n";
 
   scene.reset(new QGraphicsScene{});
   view->setScene(scene.get());
 
-  int curr_y = 0;
+  int curr_y = 40;
   int rects_displayed = 0;
 
   /// calculate maximum occurrence
-  int max_value = maxShapeValue(shapesMap, m_histType);
+  /// TODO(maxim): this is super slow!
+  // int max_value = maxShapeValue(shapesMap, m_histType);
+  int max_value = 1000;
 
   qDebug() << "max_value: " << max_value;
 
   auto rect_max_w = ShapeRect::SELECTION_WIDTH;
 
-  for(auto it = shapesMap.begin(), end = shapesMap.end();
-           it != end; it = shapesMap.upper_bound(*it))
-  {
+  addText("hight", 10, 10, *scene);
+  addText("count", 10 + COLUMN_WIDTH, 10, *scene);
+  addText("size", 10 + COLUMN_WIDTH * 2, 10, *scene);
 
-    if (!filters.apply(*it)) { continue; }
+  for (auto it = shapesMap.begin(), end = shapesMap.end(); it != end;
+       it = shapesMap.upper_bound(*it)) {
+    if (!filters.apply(*it)) {
+      continue;
+    }
 
-    const int shapes_count = shapesMap.count(*it);
-    const int shape_size = shapeSize(*it->s);
+    const int shape_count = shapesMap.count(*it);
+    const int shape_size = it->shape_size;
+    const int shape_depth = (it->node)->getShape()->depth();
 
     int value;
     if (m_histType == ShapeProperty::SIZE) {
       value = shape_size;
     } else {
-      value = shapes_count;
+      value = shape_count;
     }
 
     const int rect_width = rect_max_w * value / max_value;
-    auto rect = new ShapeRect( 0, curr_y, rect_width,
-                              it->node, shapeCanvas);
+    auto rect = new ShapeRect(0, curr_y, rect_width, it->node, shapeCanvas);
     rect->draw(scene.get());
 
-    auto depth_str = QString::number((it->node)->getShape()->depth());
-    auto text_item = new QGraphicsTextItem{depth_str};
-
-    int text_y_offset = ShapeRect::HEIGHT / 2 - text_item->boundingRect().height() / 2;
-    text_item->setPos(10, curr_y + text_y_offset);
-    scene->addItem(text_item);
-
-
-    auto count_text = new QGraphicsTextItem{QString::number(shapes_count)};
-    count_text->setPos(50, curr_y + text_y_offset);
-    scene->addItem(count_text);
-
-    auto size_text = new QGraphicsTextItem{QString::number(shape_size)};
-    size_text->setPos(90, curr_y + text_y_offset);
-    scene->addItem(size_text);
+    addText(shape_depth, 10 + COLUMN_WIDTH * 0, curr_y, *scene);
+    addText(shape_count, 10 + COLUMN_WIDTH * 1, curr_y, *scene);
+    addText(shape_size, 10 + COLUMN_WIDTH * 2, curr_y, *scene);
 
     rects_displayed++;
     curr_y += ShapeRect::HEIGHT + 1;
-
   }
-
 }
 
-void
-SimilarShapesWindow::depthFilterChanged(int val){
+void SimilarShapesWindow::depthFilterChanged(int val) {
   filters.setMinDepth(val);
   drawHistogram();
 }
 
-void
-SimilarShapesWindow::countFilterChanged(int val){
+void SimilarShapesWindow::countFilterChanged(int val) {
   filters.setMinCount(val);
   drawHistogram();
 }
 
-
 // ---------------------------------------
 
-Filters::Filters(const SimilarShapesWindow& ssw)
- : m_ssWindow(ssw) {}
+Filters::Filters(const SimilarShapesWindow& ssw) : m_ssWindow(ssw) {}
 
-bool
-Filters::apply(const ShapeI& si){
+bool Filters::apply(const ShapeI& si) {
   if (si.s->depth() < m_minDepth) return false;
   if ((int)m_ssWindow.shapesMap.count(si) < m_minCount) return false;
   return true;
 }
 
-void
-Filters::setMinDepth(int val){
-  m_minDepth = val;
-}
+void Filters::setMinDepth(int val) { m_minDepth = val; }
 
-void
-Filters::setMinCount(int val){
-  m_minCount = val;
-}
+void Filters::setMinCount(int val) { m_minCount = val; }
 
 static const QColor transparent_red{255, 0, 0, 50};
 
-ShapeRect::ShapeRect(int x, int y, int width,
-  VisualNode* node, ShapeCanvas* sc, QGraphicsItem * parent)
- : QGraphicsRectItem(x, y, SELECTION_WIDTH, HEIGHT, parent),
- visibleArea(x, y + 1, width, HEIGHT - 2),
- m_node{node}, m_canvas{sc}
- {
+ShapeRect::ShapeRect(int x, int y, int width, VisualNode* node, ShapeCanvas* sc,
+                     QGraphicsItem* parent)
+    : QGraphicsRectItem(x, y - HALF_HEIGHT, SELECTION_WIDTH, HEIGHT, parent),
+      visibleArea(x, y - HALF_HEIGHT + 1, width, HEIGHT - 2),
+      m_node{node},
+      m_canvas{sc} {
   setBrush(Qt::white);
   QPen whitepen(Qt::white);
   setPen(whitepen);
@@ -263,28 +244,22 @@ ShapeRect::ShapeRect(int x, int y, int width,
   visibleArea.setPen(whitepen);
 }
 
-void
-ShapeRect::draw(QGraphicsScene* scene){
+void ShapeRect::draw(QGraphicsScene* scene) {
   scene->addItem(this);
   scene->addItem(&visibleArea);
 }
 
-VisualNode*
-ShapeRect::getNode(){
-  return m_node;
-}
+VisualNode* ShapeRect::getNode() { return m_node; }
 
-void
-ShapeRect::mousePressEvent (QGraphicsSceneMouseEvent* ) {
+void ShapeRect::mousePressEvent(QGraphicsSceneMouseEvent*) {
   m_canvas->highlightShape(m_node);
 }
 
 ShapeCanvas::ShapeCanvas(QAbstractScrollArea* sa, TreeCanvas* tc,
-    const std::multiset<ShapeI, CompareShapes>& sm)
-: QWidget{sa}, m_sa{sa}, m_tc{tc}, m_shapesMap{sm} {}
+                         const std::multiset<ShapeI, CompareShapes>& sm)
+    : QWidget{sa}, m_sa{sa}, m_tc{tc}, m_shapesMap{sm} {}
 
-void
-ShapeCanvas::paintEvent(QPaintEvent* event) {
+void ShapeCanvas::paintEvent(QPaintEvent* event) {
   QPainter painter(this);
   painter.setRenderHint(QPainter::Antialiasing);
 
@@ -302,15 +277,17 @@ ShapeCanvas::paintEvent(QPaintEvent* event) {
   const BoundingBox bb = m_targetNode->getBoundingBox();
 
   int w = bb.right - bb.left + Layout::extent;
-  int h = 2 * Layout::extent +
-      m_targetNode->getShape()->depth() * Layout::dist_y;
+  int h =
+      2 * Layout::extent + m_targetNode->getShape()->depth() * Layout::dist_y;
 
   // center the shape if small
-  if (w < view_w) { xoff -= (view_w - w) / 2; }
+  if (w < view_w) {
+    xoff -= (view_w - w) / 2;
+  }
 
   setFixedSize(view_w, view_h);
 
-  xtrans = -bb.left+(Layout::extent / 2);
+  xtrans = -bb.left + (Layout::extent / 2);
 
   m_sa->horizontalScrollBar()->setRange(0, w - view_w);
   m_sa->verticalScrollBar()->setRange(0, h - view_h);
@@ -320,10 +297,8 @@ ShapeCanvas::paintEvent(QPaintEvent* event) {
   QRect origClip = event->rect();
   painter.translate(0, 30);
   painter.translate(xtrans - xoff, -yoff);
-  QRect clip{origClip.x() - xtrans + xoff,
-             origClip.y() + yoff,
-             origClip.width(),
-             origClip.height()};
+  QRect clip{origClip.x() - xtrans + xoff, origClip.y() + yoff,
+             origClip.width(), origClip.height()};
 
   DrawingCursor dc{m_targetNode, *m_tc->get_na(), painter, clip, false};
   PreorderNodeVisitor<DrawingCursor>(dc).run();
@@ -335,22 +310,38 @@ void ShapeCanvas::highlightShape(VisualNode* node) {
   QWidget::update();
 }
 
-void
-ShapeCanvas::scroll() {
-  QWidget::update();
+void ShapeCanvas::scroll() { QWidget::update(); }
+
+int shapeSize(const Shape& s) {
+  int total_size = 0;
+
+  int prev_l = 0;
+  int prev_r = 0;
+
+  for (int i = 0; i < s.depth(); ++i) {
+    total_size += std::abs((s[i].r + prev_r) - (s[i].l + prev_l));
+    prev_l = s[i].l;
+    prev_r = s[i].r;
+  }
+
+  return total_size;
 }
 
-
 ShapeI::ShapeI(int sol0, VisualNode* node0)
-  : sol(sol0), node(node0), s(Shape::copy(node->getShape())) {}
+    : sol(sol0), node(node0), s(Shape::copy(node->getShape())) {
+  shape_size = shapeSize(*s);
+}
 
 ShapeI::~ShapeI() { Shape::deallocate(s); }
 
 ShapeI::ShapeI(const ShapeI& sh)
-  : sol(sh.sol), node(sh.node), s(Shape::copy(sh.s)) {}
+    : sol(sh.sol),
+      shape_size(sh.shape_size),
+      node(sh.node),
+      s(Shape::copy(sh.s)) {}
 
 ShapeI& ShapeI::operator=(const ShapeI& sh) {
-  if (this!=&sh) {
+  if (this != &sh) {
     Shape::deallocate(s);
     s = Shape::copy(sh.s);
     sol = sh.sol;
@@ -359,8 +350,7 @@ ShapeI& ShapeI::operator=(const ShapeI& sh) {
   return *this;
 }
 
-bool
-CompareShapes::operator()(const ShapeI& n1, const ShapeI& n2) const {
+bool CompareShapes::operator()(const ShapeI& n1, const ShapeI& n2) const {
   if (n1.sol > n2.sol) return false;
   if (n1.sol < n2.sol) return true;
 
@@ -378,5 +368,5 @@ CompareShapes::operator()(const ShapeI& n1, const ShapeI& n2) const {
   }
   return false;
 }
-
-}}
+}
+}
