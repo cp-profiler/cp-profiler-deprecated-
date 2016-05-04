@@ -20,8 +20,7 @@ namespace analysis {
 class ShapeCanvas;
 class SimilarShapesWindow;
 
-class ShapeI {
- public:
+struct ShapeI {
   int sol;
   int shape_size;
   VisualNode* node;
@@ -29,7 +28,7 @@ class ShapeI {
   ShapeI(int sol0, VisualNode* node0);
   ~ShapeI();
   ShapeI(const ShapeI& sh);
-  ShapeI& operator=(const ShapeI& sh);
+  ShapeI& operator=(const ShapeI& sh) = delete;
 };
 
 class Filters {
@@ -76,14 +75,15 @@ class SimilarShapesWindow : public QDialog {
 
   TreeCanvas* m_tc;
   ShapeCanvas* shapeCanvas;
-  std::multiset<ShapeI, CompareShapes> shapesMap;
+  std::multiset<ShapeI, CompareShapes> shapeSet;
+  std::vector<ShapeI> shapesShown;
 
   QGraphicsView* view;
   std::unique_ptr<QGraphicsScene> scene;
   Filters filters;
 
-  // ShapeProperty m_histType = ShapeProperty::SIZE;
-  ShapeProperty m_histType = ShapeProperty::OCCURRENCE;
+  ShapeProperty m_histType = ShapeProperty::SIZE;
+  // ShapeProperty m_histType = ShapeProperty::OCCURRENCE;
 };
 
 class ShapeCanvas : public QWidget {
@@ -98,7 +98,7 @@ class ShapeCanvas : public QWidget {
   VisualNode* m_targetNode = nullptr;  // what is it?
   TreeCanvas* m_tc;
   // TODO(maxim): maybe this isn't necessary here
-  const std::multiset<ShapeI, CompareShapes>& m_shapesMap;
+  const std::multiset<ShapeI, CompareShapes>& m_shapesSet;
 
   int xtrans;
 

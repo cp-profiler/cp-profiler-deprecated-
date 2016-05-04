@@ -371,7 +371,7 @@ SimilarShapesCursor::processCurrentNode(void) {
   }
   nSols[n] = nSol;
   if (n->getNumberOfChildren() > 0) {
-    m_ssWindow.shapesMap.insert(cpprofiler::analysis::ShapeI(nSol,n));
+    m_ssWindow.shapeSet.insert(cpprofiler::analysis::ShapeI(nSol,n));
   }
 }
 

@@ -475,7 +475,7 @@ TreeCanvas::highlightShape(VisualNode* node) {
     ShapeI toFind(getNoOfSolvedLeaves(node),node);
 
     // get all nodes with similar shape
-    auto range = shapesWindow->shapesMap.equal_range(toFind);
+    auto range = shapesWindow->shapeSet.equal_range(toFind);
 
     // TODO(maxim): better foreach
     for (auto it = range.first; it!=range.second; ++it){
