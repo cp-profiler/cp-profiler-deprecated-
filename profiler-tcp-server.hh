@@ -5,16 +5,16 @@
 #include "profiler-conductor.hh"
 
 class ProfilerTcpServer : public QTcpServer {
-    Q_OBJECT
+  Q_OBJECT
 
-public:
-    ProfilerTcpServer(ProfilerConductor* parent = 0);
+ public:
+  ProfilerTcpServer(ProfilerConductor* parent = 0);
 
-protected:
-    void incomingConnection(qintptr socketDescriptor) Q_DECL_OVERRIDE;
+ protected:
+  void incomingConnection(qintptr socketDescriptor) Q_DECL_OVERRIDE;
 
-private:
-    ProfilerConductor* _parent;
+ private:
+  ProfilerConductor* _parent;
 };
 
 #endif

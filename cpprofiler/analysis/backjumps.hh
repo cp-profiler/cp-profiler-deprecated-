@@ -25,59 +25,54 @@
 
 class VisualNode;
 
-namespace cpprofiler { namespace analysis {
+namespace cpprofiler {
+namespace analysis {
 
-  struct BackjumpItem {
-    int level_from;
-    int level_to;
-    int nodes_skipped;
-  };
+struct BackjumpItem {
+  int level_from;
+  int level_to;
+  int nodes_skipped;
+};
 
-  struct BackjumpData {
-    std::unordered_map<uint, BackjumpItem> bj_map;
-    int max_from = 0;
-    int max_to = 0;
-    int max_skipped = 0;
-  };
+struct BackjumpData {
+  std::unordered_map<uint, BackjumpItem> bj_map;
+  int max_from = 0;
+  int max_to = 0;
+  int max_skipped = 0;
+};
 
-  class Backjumps
-  {
-  public:
-    Backjumps();
+class Backjumps {
+ public:
+  Backjumps();
 
-    const BackjumpData
-      findBackjumps(VisualNode* root, const NodeAllocator& na);
-  };
+  const BackjumpData findBackjumps(VisualNode* root, const NodeAllocator& na);
+};
 
+/// A cursor that prints backjumps
+class BackjumpsCursor : public NodeCursor<VisualNode> {
+ private:
+  int cur_level = 0;  /// depth
+  int last_failure_level =
+      0;  /// can be a solution as well (for the purpose of bj)
+  bool is_backjumping =
+      false;  /// whether the cursor on a backjumped part of the tree
+  int skipped_count = 0;  /// counts how many skipped nodes for every bj
+  int bj_gid = 0;         /// gid of a node the current backjump started from
+  /// temp bj_item to be copied into the map after having been constructed
+  BackjumpItem bj_item;
 
-  /// A cursor that prints backjumps
-  class BackjumpsCursor : public NodeCursor<VisualNode> {
+  /// contains a map from gid to backjump item
+  BackjumpData& bj_data;
 
-  private:
+ public:
+  BackjumpsCursor(VisualNode* theNode, const NodeAllocator& na,
+                  BackjumpData& bj_data);
 
-    int cur_level = 0; /// depth
-    int last_failure_level = 0; /// can be a solution as well (for the purpose of bj)
-    bool is_backjumping = false; /// whether the cursor on a backjumped part of the tree
-    int skipped_count = 0; /// counts how many skipped nodes for every bj
-    int bj_gid = 0; /// gid of a node the current backjump started from
-    /// temp bj_item to be copied into the map after having been constructed
-    BackjumpItem bj_item;
-
-    /// contains a map from gid to backjump item
-    BackjumpData& bj_data;
-
-  public:
-
-      BackjumpsCursor(VisualNode* theNode,
-                       const NodeAllocator& na,
-                       BackjumpData& bj_data);
-
-      void processCurrentNode();
-      void moveDownwards();
-      void moveUpwards();
-  };
-
-
-}}
+  void processCurrentNode();
+  void moveDownwards();
+  void moveUpwards();
+};
+}
+}
 
 #endif

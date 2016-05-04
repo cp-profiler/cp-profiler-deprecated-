@@ -34,12 +34,13 @@ class NodeAllocator;
 class Execution;
 
 struct PentagonItem {
-  int l_size; /// left subtree size
-  int r_size; /// right subtree size
-  VisualNode* node; /// pentagon node
-  const std::string* info; /// pentagon info -> now used for nogoods
-  PentagonItem(int l_size, int r_size, VisualNode* node, const std::string* info = nullptr)
-    :l_size(l_size), r_size(r_size), node(node), info(info) {}
+  int l_size;               /// left subtree size
+  int r_size;               /// right subtree size
+  VisualNode* node;         /// pentagon node
+  const std::string* info;  /// pentagon info -> now used for nogoods
+  PentagonItem(int l_size, int r_size, VisualNode* node,
+               const std::string* info = nullptr)
+      : l_size(l_size), r_size(r_size), node(node), info(info) {}
 };
 
 struct NogoodCmpStats {
@@ -48,9 +49,7 @@ struct NogoodCmpStats {
 };
 
 class TreeComparison {
-
-
-public:
+ public:
   TreeComparison(Execution& ex1, Execution& ex2);
   void compare(TreeCanvas* new_tc, bool with_labels);
   void sortPentagons();
@@ -61,15 +60,19 @@ public:
   int get_no_pentagons();
   int get_total_reduced() const { return m_totalReduced; }
 
-  /// NOTE(maxim): if use a pointer to an item here and vector is modified -> could be a problem
-  const std::vector<PentagonItem>& pentagon_items() const { return m_pentagonItems; }
-  const std::unordered_map<int, NogoodCmpStats>& responsible_nogood_stats() const {
+  /// NOTE(maxim): if use a pointer to an item here and vector is modified ->
+  /// could be a problem
+  const std::vector<PentagonItem>& pentagon_items() const {
+    return m_pentagonItems;
+  }
+  const std::unordered_map<int, NogoodCmpStats>& responsible_nogood_stats()
+      const {
     return m_responsibleNogoodStats;
   }
 
-private:
+ private:
   /// aggregate comparison stats
-  struct { 
+  struct {
     int m_totalReduced = 0;
   };
 
@@ -84,16 +87,16 @@ private:
   const NodeAllocator& _na2;
 
 private: /// methods
+ void analyseNogoods(const std::string& info, int search_reduction);
 
-  void analyseNogoods(const std::string& info, int search_reduction);
+ /// Returns true/false depending on whether n1 ~ n2
+ bool copmareNodes(const VisualNode* n1, const VisualNode* n2,
+                   bool with_labels);
 
-  /// Returns true/false depending on whether n1 ~ n2
-  bool copmareNodes(const VisualNode* n1, const VisualNode* n2, bool with_labels);
-
-  /// 'which' is treated as a colour, usually 1 or 2 depending on which tree is a source
-  int copyTree(VisualNode*, TreeCanvas*,
-               const VisualNode*, const Execution&, int which = 0);
-
+ /// 'which' is treated as a colour, usually 1 or 2 depending on which tree is a
+ /// source
+ int copyTree(VisualNode*, TreeCanvas*, const VisualNode*, const Execution&,
+              int which = 0);
 };
 
 #endif

@@ -30,10 +30,9 @@ class ReceiverThread;
 class Execution;
 
 class SolverTreeDialog : public BaseTreeDialog {
-Q_OBJECT
+  Q_OBJECT
 
-private:
-
+ private:
   /// Status bar label for number of solutions
   QLabel* depthLabel;
   QLabel* solvedLabel;
@@ -41,17 +40,14 @@ private:
   QLabel* choicesLabel;
   QLabel* openLabel;
 
-public:
-
-    SolverTreeDialog(QWidget* parent, Execution* execution, const CanvasType type, Gist* gist);
+ public:
+  SolverTreeDialog(QWidget* parent, Execution* execution, const CanvasType type,
+                   Gist* gist);
 
   ~SolverTreeDialog();
 
-
-private Q_SLOTS:
+ private Q_SLOTS:
   void statusChanged(VisualNode*, const Statistics& stats, bool finished);
-
 };
-
 
 #endif

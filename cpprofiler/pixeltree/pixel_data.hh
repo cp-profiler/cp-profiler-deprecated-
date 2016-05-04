@@ -29,35 +29,31 @@
 
 #include "pixel_item.hh"
 
-namespace cpprofiler { namespace pixeltree {
+namespace cpprofiler {
+namespace pixeltree {
 
 /// ***********************************
 
 class PixelData {
-
-private:
+ private:
   unsigned compression_;
 
-public:
+ public:
   PixelData() {}
 
-  explicit PixelData(unsigned node_count): compression_(1) {
+  explicit PixelData(unsigned node_count) : compression_(1) {
     pixel_list.reserve(node_count);
   }
 
-  void setCompression(unsigned compression) {
-    compression_ = compression;
-  }
+  void setCompression(unsigned compression) { compression_ = compression; }
 
   unsigned compression() const { return compression_; }
 
   std::vector<PixelItem> pixel_list;
-
 };
-
-}}
+}
+}
 
 /// ***********************************
-
 
 #endif

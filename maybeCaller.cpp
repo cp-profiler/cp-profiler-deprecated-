@@ -28,8 +28,7 @@ MaybeCaller::MaybeCaller() {
   last_call_time = std::chrono::system_clock::now();
 }
 
-void
-MaybeCaller::call(std::function<void (void)> fn) {
+void MaybeCaller::call(std::function<void(void)> fn) {
   using namespace std::chrono;
 
   auto now = system_clock::now();
@@ -45,7 +44,4 @@ MaybeCaller::call(std::function<void (void)> fn) {
   }
 }
 
-void
-MaybeCaller::callViaTimer() {
-  delayed_fn();
-}
+void MaybeCaller::callViaTimer() { delayed_fn(); }

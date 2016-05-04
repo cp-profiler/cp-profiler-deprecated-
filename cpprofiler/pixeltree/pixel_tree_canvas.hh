@@ -42,11 +42,14 @@ class QAbstractScrollArea;
 class QScrollBar;
 class SpaceNode;
 
-namespace cpprofiler { namespace analysis {
-  struct BackjumpItem;
-}}
+namespace cpprofiler {
+namespace analysis {
+struct BackjumpItem;
+}
+}
 
-namespace cpprofiler { namespace pixeltree {
+namespace cpprofiler {
+namespace pixeltree {
 
 using cpprofiler::analysis::DepthAnalysis;
 using cpprofiler::analysis::BackjumpItem;
@@ -57,36 +60,37 @@ class PixelItem;
 class PixelTreeCanvas : public QWidget {
   Q_OBJECT
 
-private:
-  TreeCanvas&     _tc;
-  Data&           _data;
-  NodeAllocator*  _na;
-  QPixmap         pixmap;
+ private:
+  TreeCanvas& _tc;
+  Data& _data;
+  NodeAllocator* _na;
+  QPixmap pixmap;
 
-  QAbstractScrollArea*  _sa;
+  QAbstractScrollArea* _sa;
 
   /// Constants for a particular execution
   unsigned _nodeCount;
 
   /// Pixel Tree settings (changed through GUI)
 
-  unsigned approx_size = 1; // how many nodes per vertical line
+  unsigned approx_size = 1;  // how many nodes per vertical line
 
-  unsigned   vline_idx;  // same as x when _step = 1
+  unsigned vline_idx;  // same as x when _step = 1
 
   /// Stuff specific for a particular pixel tree
   // unsigned vlines; /// width of pixel tree
   unsigned tree_depth;
 
-  std::vector<float> time_arr; // time for each vline
-  std::vector<float> domain_arr; // domain for each vline
-  std::vector<float> domain_red_arr; /// domain reduction for each vline
+  std::vector<float> time_arr;        // time for each vline
+  std::vector<float> domain_arr;      // domain for each vline
+  std::vector<float> domain_red_arr;  /// domain reduction for each vline
 
   std::vector<std::string> vars;
 
-  std::vector<PixelItem*> pixels_selected; // to know which pixels to deselect
+  std::vector<PixelItem*> pixels_selected;  // to know which pixels to deselect
 
-  std::vector<PixelItem*> pixels_mouse_over; // to know which pixels to unhighlight
+  std::vector<PixelItem*>
+      pixels_mouse_over;  // to know which pixels to unhighlight
 
   std::vector<int> var_decisions;
   std::vector<std::vector<int>> var_decisions_compressed;
@@ -96,9 +100,9 @@ private:
 
   /// Depth analysis data
   DepthAnalysis depthAnalysis;
-  int da_data_max = 0; // to be assigned
-  std::vector< std::vector<unsigned> > da_data;
-  std::vector< std::vector<unsigned> > da_data_compressed;
+  int da_data_max = 0;  // to be assigned
+  std::vector<std::vector<unsigned>> da_data;
+  std::vector<std::vector<unsigned>> da_data_compressed;
 
   /// Backjumps analysis data
   BackjumpData bj_data;
@@ -113,7 +117,7 @@ private:
   bool show_depth_analysis_histogram = true;
   bool show_bj_analysis_histogram = true;
 
-  unsigned current_image_height; /// in 'squares'
+  unsigned current_image_height;  /// in 'squares'
 
   MaybeCaller maybeCaller;
 
@@ -125,28 +129,26 @@ private:
   bool mouse_pressed = false;
   unsigned mouse_pressed_vline;
 
+ public:
+  static constexpr int HIST_HEIGHT = 6;  // in fake pixels
+  static constexpr int MARGIN = 2;       // in fake pixels
 
-public:
-
-  static constexpr int HIST_HEIGHT = 6; // in fake pixels
-  static constexpr int MARGIN = 2; // in fake pixels
-
-private:
-
+ private:
   void drawPixelTree(const PixelData& pixel_data);
 
   /// Decision variables
   void gatherVarData();
-  void compressVarData(std::vector<std::vector<int> >&, int value);
+  void compressVarData(std::vector<std::vector<int>>&, int value);
 
   void gatherNogoodData();
   void compressNogoodData(int value);
   void drawNogoodData();
 
-  void constructPixelTree(); /// Initial Search Tree traversal
+  void constructPixelTree();  /// Initial Search Tree traversal
   /// Apply compression (to get vlineData)
   void compressPixelTree(int value);
-  void compressDepthAnalysis(std::vector< std::vector<unsigned int> >& data, int value);
+  void compressDepthAnalysis(std::vector<std::vector<unsigned int>>& data,
+                             int value);
   void compressTimeHistogram(std::vector<float>&, int value);
   void getDomainDataCompressed(std::vector<float>&, int value);
   PixelData traverseTree(VisualNode* node);
@@ -179,16 +181,16 @@ private:
 
   PixelItem& gid2PixelItem(int gid);
 
-public:
+ public:
   PixelTreeCanvas(QWidget* parent, TreeCanvas& tc);
 
-protected:
+ protected:
   void paintEvent(QPaintEvent* event);
   void mousePressEvent(QMouseEvent* me);
   void mouseReleaseEvent(QMouseEvent* me);
   void mouseMoveEvent(QMouseEvent* me);
 
-public Q_SLOTS:
+ public Q_SLOTS:
   void scaleUp(void);
   void scaleDown(void);
   void compressionChanged(int value);
@@ -202,8 +204,7 @@ public Q_SLOTS:
   void toggleBjHistogram(int state);
   void setPixelSelected(int gid);
 };
-
-}}
-
+}
+}
 
 #endif

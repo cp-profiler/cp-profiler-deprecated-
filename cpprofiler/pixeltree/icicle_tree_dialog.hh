@@ -32,92 +32,86 @@ class SpaceNode;
 class QAbstractScrollArea;
 class QComboBox;
 
- namespace cpprofiler { namespace pixeltree {
+namespace cpprofiler {
+namespace pixeltree {
 
-  class IcicleTreeCanvas;
-  class IcicleTreeDialog;
-  class IcicleCursor;
+class IcicleTreeCanvas;
+class IcicleTreeDialog;
+class IcicleCursor;
 
-  struct IcicleRect {
-    int x;
-    int y;
-    int width;
-    int height;
-    SpaceNode& node;
-    IcicleRect(int x, int y, int width, int height, SpaceNode& node)
+struct IcicleRect {
+  int x;
+  int y;
+  int width;
+  int height;
+  SpaceNode& node;
+  IcicleRect(int x, int y, int width, int height, SpaceNode& node)
       : x(x), y(y), width(width), height(height), node(node) {}
-  };
+};
 
-  class IcicleTreeDialog : public QDialog {
-    Q_OBJECT
+class IcicleTreeDialog : public QDialog {
+  Q_OBJECT
 
-  private:
-    /// TODO(maxim): make sure this gets deleted
-    QAbstractScrollArea* scrollArea_;
-    IcicleTreeCanvas* canvas_;
+ private:
+  /// TODO(maxim): make sure this gets deleted
+  QAbstractScrollArea* scrollArea_;
+  IcicleTreeCanvas* canvas_;
 
-  Q_SIGNALS:
-    void windowResized(void);
+  Q_SIGNALS : void windowResized(void);
 
-  public:
-    explicit IcicleTreeDialog(TreeCanvas* tc);
+ public:
+  explicit IcicleTreeDialog(TreeCanvas* tc);
 
-    static const int INIT_WIDTH = 600;
-    static const int INIT_HEIGHT = 400;
+  static const int INIT_WIDTH = 600;
+  static const int INIT_HEIGHT = 400;
 
-  protected:
-    void resizeEvent(QResizeEvent * re);
+ protected:
+  void resizeEvent(QResizeEvent* re);
+};
 
-  };
+enum class ColorMappingType { DEFAULT, DOMAIN_REDUCTION, NODE_TIME };
 
-  enum class ColorMappingType {
-    DEFAULT,
-    DOMAIN_REDUCTION,
-    NODE_TIME
-  };
+class IcicleTreeCanvas : public QWidget {
+  Q_OBJECT
+ private:
+  QAbstractScrollArea& sa_;
+  TreeCanvas& tc_;
+  PixelImage icicle_image_;
+  std::vector<IcicleRect> icicle_rects_;
+  std::vector<SpaceNode*> nodes_selected;  // to know which nodes to deselect
 
-  class IcicleTreeCanvas : public QWidget {
-    Q_OBJECT
-  private:
-    QAbstractScrollArea&  sa_;
-    TreeCanvas& tc_;
-    PixelImage icicle_image_;
-    std::vector<IcicleRect> icicle_rects_;
-    std::vector<SpaceNode*> nodes_selected; // to know which nodes to deselect
+  ColorMappingType color_mapping_type = ColorMappingType::DEFAULT;
 
-    ColorMappingType color_mapping_type = ColorMappingType::DEFAULT;
+  MaybeCaller maybeCaller;
 
-    MaybeCaller maybeCaller;
+  /// TODO(maxim): make this only accessable from within processNode
+  int cur_depth_;
+  int x_global_;
 
-    /// TODO(maxim): make this only accessable from within processNode
-    int cur_depth_;
-    int x_global_;
+  /// TODO(maxim): temporarily here
+  float domain_red_sum;
+  int icicle_width;
 
-    /// TODO(maxim): temporarily here
-    float domain_red_sum;
-    int icicle_width;
+  void redrawAll();
+  void drawIcicleTree();
+  std::pair<int, int> processNode(SpaceNode&);
 
-    void redrawAll();
-    void drawIcicleTree();
-    std::pair<int, int> processNode(SpaceNode&);
+  SpaceNode* getNodeByXY(int x, int y) const;
 
-    SpaceNode* getNodeByXY(int x, int y) const;
+ protected:
+  void paintEvent(QPaintEvent* event);
+  void mousePressEvent(QMouseEvent* me);
+  void mouseMoveEvent(QMouseEvent* me);
 
-  protected:
-    void paintEvent(QPaintEvent* event);
-    void mousePressEvent(QMouseEvent* me);
-    void mouseMoveEvent(QMouseEvent* me);
+ public:
+  IcicleTreeCanvas(QAbstractScrollArea* parent, TreeCanvas* tc);
 
-  public:
-    IcicleTreeCanvas(QAbstractScrollArea* parent, TreeCanvas* tc);
-
-  public Q_SLOTS:
-    void resizeCanvas(void);
-    void sliderChanged(int value);
-    void changeColorMapping(const QString& text);
-  };
-
-}}
-
+ public Q_SLOTS:
+  void resizeCanvas(void);
+  void sliderChanged(int value);
+  void changeColorMapping(const QString& text);
+};
+}
+}
 
 #endif

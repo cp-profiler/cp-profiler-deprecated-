@@ -19,7 +19,6 @@
  *
  */
 
-
 #ifndef TREEBUILDER_H
 #define TREEBUILDER_H
 
@@ -35,42 +34,40 @@ class ReadingQueue;
 class TreeCanvas;
 
 class TreeBuilder : public QThread {
-    Q_OBJECT
+  Q_OBJECT
 
-private:
-	Data* _data;
-	NodeAllocator* _na;
-	TreeCanvas* _tc;
-	QMutex* layout_mutex;
+ private:
+  Data* _data;
+  NodeAllocator* _na;
+  TreeCanvas* _tc;
+  QMutex* layout_mutex;
 
-	unsigned long long lastRead;
-    int delayed_count = 0;
-    int nodesCreated;
+  unsigned long long lastRead;
+  int delayed_count = 0;
+  int nodesCreated;
 
-    std::vector<DbEntry*> ignored_entries;
+  std::vector<DbEntry*> ignored_entries;
 
-    ReadingQueue* read_queue;
+  ReadingQueue* read_queue;
 
-private:
+ private:
+  inline bool processRoot(DbEntry& dbEntry);
+  inline bool processNode(DbEntry& dbEntry, bool is_delayed);
 
-    inline bool processRoot(DbEntry& dbEntry);
-    inline bool processNode(DbEntry& dbEntry, bool is_delayed);
+ public:
+  TreeBuilder(TreeCanvas* tc, QObject* parent = 0);
+  ~TreeBuilder();
+  void reset(Execution* execution, NodeAllocator* na);
 
-public:
-    TreeBuilder(TreeCanvas* tc, QObject *parent = 0);
-    ~TreeBuilder();
-    void reset(Execution* execution, NodeAllocator *na);
+  Q_SIGNALS : void doneBuilding(bool finished);
+  void addedNode(void);
 
-Q_SIGNALS:
-	void doneBuilding(bool finished);
-    void addedNode(void);
+ public Q_SLOTS:
+  void startBuilding(void);
+  void setDoneReceiving(void);
 
-public Q_SLOTS:
-    void startBuilding(void);
-    void setDoneReceiving(void);
-
-protected:
-    void run();
+ protected:
+  void run();
 };
 
-#endif // TREEBUILDER_H
+#endif  // TREEBUILDER_H

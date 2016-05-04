@@ -23,47 +23,45 @@
 #include "profiler-conductor.hh"
 #include <QApplication>
 
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]) {
+#ifdef QT_OPENGL_SUPPORT
+  QGL::setPreferredPaintEngine(QPaintEngine::OpenGL);
+#endif
 
-    #ifdef QT_OPENGL_SUPPORT
-        QGL::setPreferredPaintEngine(QPaintEngine::OpenGL);
-    #endif
+  QApplication a(argc, argv);
 
-    QApplication a(argc, argv);
+  // qDebug() << "scroll bar size: " <<
+  // a.style()->pixelMetric(QStyle::PM_ScrollBarExtent);
 
-    // qDebug() << "scroll bar size: " << a.style()->pixelMetric(QStyle::PM_ScrollBarExtent);
+  QCoreApplication::setApplicationName("cpprof");
+  QCoreApplication::setApplicationVersion("0.1");
 
-    QCoreApplication::setApplicationName("cpprof");
-    QCoreApplication::setApplicationVersion("0.1");
+  GlobalParser clParser;
 
-    GlobalParser clParser;
+  clParser.process(a);
 
-    clParser.process(a);
+  if (GlobalParser::isSet(GlobalParser::version_option) ||
+      GlobalParser::isSet(GlobalParser::help_option)) {
+    return 0;
+  }
 
-    if (GlobalParser::isSet(GlobalParser::version_option) ||
-        GlobalParser::isSet(GlobalParser::help_option)) {
-      return 0;
-    }
+  ProfilerConductor w;
 
-    ProfilerConductor w;
+  // GistMainWindow w;
+  w.show();
 
-    // GistMainWindow w;
-    w.show();
+  /// NOTE(maxim): only can load 1 execution for now
+  if (GlobalParser::isSet(GlobalParser::load_option)) {
+    auto file_name = GlobalParser::value(GlobalParser::load_option);
+    qDebug() << "loading execuiton: " << file_name;
+    w.loadExecution(file_name.toStdString());
+  }
+  // for (int i = 1 ; i < argc ; i++) {
+  //     w.loadExecution(argv[i]);
+  // }
 
-    /// NOTE(maxim): only can load 1 execution for now
-    if (GlobalParser::isSet(GlobalParser::load_option)) {
-        auto file_name = GlobalParser::value(GlobalParser::load_option);
-        qDebug() << "loading execuiton: " << file_name;
-        w.loadExecution(file_name.toStdString());
-    }
-    // for (int i = 1 ; i < argc ; i++) {
-    //     w.loadExecution(argv[i]);
-    // }
+  // QObject::connect(&a, SIGNAL(focusChanged(QWidget*,QWidget*)),
+  //                   w.getGist(), SLOT(onFocusChanged(QWidget*,QWidget*)));
 
-    // QObject::connect(&a, SIGNAL(focusChanged(QWidget*,QWidget*)),
-    //                   w.getGist(), SLOT(onFocusChanged(QWidget*,QWidget*)));
-
-    return a.exec();
-
+  return a.exec();
 }

@@ -24,16 +24,16 @@
 
 #include <iostream>
 
-/// TODO(maxim): fix backjump histogram going out of vertical boundary when zooming in
+/// TODO(maxim): fix backjump histogram going out of vertical boundary when
+/// zooming in
 
 using namespace cpprofiler::analysis;
 using std::cout;
 
 Backjumps::Backjumps() {}
 
-const BackjumpData
-Backjumps::findBackjumps(VisualNode* root, const NodeAllocator& na) {
-
+const BackjumpData Backjumps::findBackjumps(VisualNode* root,
+                                            const NodeAllocator& na) {
   // std::unordered_map<uint, BackjumpItem> bj_data;
   BackjumpData bj_data;
 
@@ -43,36 +43,27 @@ Backjumps::findBackjumps(VisualNode* root, const NodeAllocator& na) {
   visitor.run();
 
   return bj_data;
-
 }
 
-BackjumpsCursor::BackjumpsCursor(VisualNode* root,
-  const NodeAllocator& na,
-  BackjumpData& bj_data)
-  : NodeCursor<VisualNode>(root,na), bj_data(bj_data) {
+BackjumpsCursor::BackjumpsCursor(VisualNode* root, const NodeAllocator& na,
+                                 BackjumpData& bj_data)
+    : NodeCursor<VisualNode>(root, na), bj_data(bj_data) {}
 
+void BackjumpsCursor::moveDownwards() {
+  ++cur_level;
+  NodeCursor<VisualNode>::moveDownwards();
 }
 
-void
-BackjumpsCursor::moveDownwards() {
-    ++cur_level;
-    NodeCursor<VisualNode>::moveDownwards();
+void BackjumpsCursor::moveUpwards() {
+  --cur_level;
+  NodeCursor<VisualNode>::moveUpwards();
 }
 
-
-void
-BackjumpsCursor::moveUpwards() {
-    --cur_level;
-    NodeCursor<VisualNode>::moveUpwards();
-}
-
-void
-BackjumpsCursor::processCurrentNode() {
+void BackjumpsCursor::processCurrentNode() {
   auto n = node();
   auto status = n->getStatus();
 
   if (status == NodeStatus::SKIPPED) {
-
     ++skipped_count;
 
     if (!is_backjumping) {
@@ -84,26 +75,25 @@ BackjumpsCursor::processCurrentNode() {
     }
 
   } else {
-
     if (is_backjumping) {
       is_backjumping = false;
       /// One level above a non-skipped node (branch node)
-      cout << " to: " << cur_level - 1 << " skipping: " << skipped_count << std::endl;
+      cout << " to: " << cur_level - 1 << " skipping: " << skipped_count
+           << std::endl;
       bj_item.level_to = cur_level - 1;
       bj_item.nodes_skipped = skipped_count;
 
       bj_data.max_to = std::max(bj_data.max_to, bj_item.level_to);
-      bj_data.max_skipped = std::max(bj_data.max_skipped, bj_item.nodes_skipped);
+      bj_data.max_skipped =
+          std::max(bj_data.max_skipped, bj_item.nodes_skipped);
 
       bj_data.bj_map[bj_gid] = bj_item;
       skipped_count = 0;
     }
-
   }
 
   if (status == NodeStatus::FAILED || status == NodeStatus::SOLVED) {
     last_failure_level = cur_level;
-    bj_gid = n->getIndex(na); /// this node can potentially initiate a backjump
+    bj_gid = n->getIndex(na);  /// this node can potentially initiate a backjump
   }
-
 }

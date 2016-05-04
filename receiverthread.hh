@@ -38,32 +38,31 @@ class ReceiverThread : public QThread {
 
   // friend Gist;
 
-public:
-
-    ReceiverThread(int socketDescriptor, Execution* execution, QObject* parent = 0);
+ public:
+  ReceiverThread(int socketDescriptor, Execution* execution,
+                 QObject* parent = 0);
   // void switchCanvas(TreeCanvas* tc);
   // void receive(TreeCanvas* tc);
 
-
-    //private:
+  // private:
   // TreeCanvas* _t;
   // Gist* ptr_gist;
 
-    // Execution* execution;
+  // Execution* execution;
 
-//   volatile bool _quit;
+  //   volatile bool _quit;
 
   int socketDescriptor;
 
-    ~ReceiverThread() {
-        std::cerr << "Receiver thread " << this << " being destroyed\n";
-    }
+  ~ReceiverThread() {
+    std::cerr << "Receiver thread " << this << " being destroyed\n";
+  }
 
-// public Q_SLOTS:
-//   void updateCanvas(void); /// TODO: should be moved to TreeCanvas
-//   void stopThread(void);
+  // public Q_SLOTS:
+  //   void updateCanvas(void); /// TODO: should be moved to TreeCanvas
+  //   void stopThread(void);
 
-signals:
+ signals:
   // void update(int w, int h, int scale0);
   void startReceiving(void);
   void doneReceiving(void);
@@ -73,65 +72,44 @@ signals:
   /// Emit when receives new nodes to update Status Bar
   // void receivedNodes(bool finished);
 
-    // void newNode(message::Node& node);
+  // void newNode(message::Node& node);
 
-// private slots:
-//     void readyRead();
+  // private slots:
+  //     void readyRead();
 
-protected:
+ protected:
   void run(void);
 
-    QByteArray* buffer;
-    QTcpSocket* tcpSocket;
-    int size;
-    Execution* execution;
+  QByteArray* buffer;
+  QTcpSocket* tcpSocket;
+  int size;
+  Execution* execution;
 };
 
-
-
-
-inline
-quint32 ArrayToInt(const QByteArray& ba) {
-    const char* p = ba.data();
-    return *(reinterpret_cast<const quint32*>(p));
+inline quint32 ArrayToInt(const QByteArray& ba) {
+  const char* p = ba.data();
+  return *(reinterpret_cast<const quint32*>(p));
 }
 
-
 class ReceiverWorker : public QObject {
-    Q_OBJECT
-public:
-    ReceiverWorker(QTcpSocket* socket, Execution* execution) : execution(execution), tcpSocket(socket) {
-        size = 0;
-    }
+  Q_OBJECT
+ public:
+  ReceiverWorker(QTcpSocket* socket, Execution* execution)
+      : execution(execution), tcpSocket(socket) {
+    size = 0;
+  }
 
-signals:
-    void startReceiving(void);
-    void doneReceiving(void);
-private:
-    Execution* execution;
-    QByteArray buffer;
-    int size;
-    QTcpSocket* tcpSocket;
-public slots:
-    void doRead();
+ signals:
+  void startReceiving(void);
+  void doneReceiving(void);
+
+ private:
+  Execution* execution;
+  QByteArray buffer;
+  int size;
+  QTcpSocket* tcpSocket;
+ public slots:
+  void doRead();
 };
 
-
 #endif
-
-
-
-/// ***************************************
-/// some of the stuff I got rid of for now:
-
-// private:
-// int depth
-// bool a
-
-// Q_SIGNALS:
-// void scaleChanged(int);     // seems like scale works even without int
-// void solution(void);        // got rid of since don't have Space
-// void searchFinished(void);  // dont have the function in TreeCanvas anymore
-// void moveToNode(VisualNode* n, bool); //
-
-/// **************************************

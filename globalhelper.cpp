@@ -22,38 +22,32 @@
 #include "globalhelper.hh"
 #include <iostream>
 
-
 GlobalParser* GlobalParser::_self = nullptr;
 
-
 QCommandLineParser GlobalParser::clParser{};
-QCommandLineOption GlobalParser
-      ::help_option{clParser.addHelpOption()};
+QCommandLineOption GlobalParser::help_option{clParser.addHelpOption()};
 
-QCommandLineOption GlobalParser
-      ::version_option{clParser.addVersionOption()};
+QCommandLineOption GlobalParser::version_option{clParser.addVersionOption()};
 
-QCommandLineOption GlobalParser
-      ::test_option{"test", "Terminates right after getting DONE RECEIVING"};
+QCommandLineOption GlobalParser::test_option{
+    "test", "Terminates right after getting DONE RECEIVING"};
 
-QCommandLineOption GlobalParser
-      ::port_option{{"p", "port"}, "Send nodes via port <port>.", "port"};
+QCommandLineOption GlobalParser::port_option{
+    {"p", "port"}, "Send nodes via port <port>.", "port"};
 
-QCommandLineOption GlobalParser
-      ::load_option{{"l", "load"}, "Load execution <file_name>.", "file_name"};
+QCommandLineOption GlobalParser::load_option{
+    {"l", "load"}, "Load execution <file_name>.", "file_name"};
 
-QCommandLineOption GlobalParser
-      ::save_log{"save_log", "Save search log to <file_name>.", "file_name"};
+QCommandLineOption GlobalParser::save_log{
+    "save_log", "Save search log to <file_name>.", "file_name"};
 
-QCommandLineOption GlobalParser
-      ::auto_compare{"auto_compare", "Compare the first two executions"};
+QCommandLineOption GlobalParser::auto_compare{
+    "auto_compare", "Compare the first two executions"};
 
-QCommandLineOption GlobalParser
-      ::auto_stats{"auto_stats", "Write statistics to <file_name>.", "file_name"};
+QCommandLineOption GlobalParser::auto_stats{
+    "auto_stats", "Write statistics to <file_name>.", "file_name"};
 
-GlobalParser::GlobalParser()
-{
-
+GlobalParser::GlobalParser() {
   if (_self) {
     std::cerr << "Can't have two of GlobalParser, terminate\n";
     abort();
@@ -68,25 +62,18 @@ GlobalParser::GlobalParser()
   clParser.addOption(save_log);
   clParser.addOption(auto_compare);
   clParser.addOption(auto_stats);
-
-
 }
 
-bool
-GlobalParser::isSet(const QCommandLineOption& opt) {
+bool GlobalParser::isSet(const QCommandLineOption& opt) {
   return _self->clParser.isSet(opt);
 }
 
-void
-GlobalParser::process(const QCoreApplication & app) {
+void GlobalParser::process(const QCoreApplication& app) {
   _self->clParser.process(app);
 }
 
-QString
-GlobalParser::value(const QCommandLineOption& opt) {
+QString GlobalParser::value(const QCommandLineOption& opt) {
   return _self->clParser.value(opt);
 }
 
-GlobalParser::~GlobalParser() {
-
-}
+GlobalParser::~GlobalParser() {}

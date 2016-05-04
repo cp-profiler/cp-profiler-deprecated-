@@ -30,8 +30,7 @@
 typedef uint32_t uint32;
 
 class PixelImage {
-
-private:
+ private:
   std::vector<uint32> buffer_;
   std::vector<uint32> background_buffer_;
   std::vector<uint32> guidlines_buffer_;
@@ -53,7 +52,7 @@ private:
 
   void scalePixelBy(int value);
 
-public:
+ public:
   PixelImage();
 
   void drawPixel(int x, int y, QRgb color);
@@ -77,8 +76,8 @@ public:
   void setPixelHeight(int height);
   void setPixelSize(int width, int height);
 
-  void update(); /// updates image_ from buffer_
-  void clear(); /// fills the image with (white) color
+  void update();  /// updates image_ from buffer_
+  void clear();   /// fills the image with (white) color
 
   // void resetContentHeight() { content_height_ = 0; }
   // void addToContentHeight(int fake_pixels) { content_height_ += fake_pixels }
@@ -106,7 +105,6 @@ public:
     GRID = qRgb(230, 230, 230),
     WHITE = qRgb(255, 255, 255)
   };
-
 };
 
 #endif

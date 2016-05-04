@@ -19,7 +19,6 @@
  *
  */
 
-
 #ifndef GLOBALHELPER_HH
 #define GLOBALHELPER_HH
 
@@ -31,16 +30,12 @@
 class QCoreApplication;
 
 class GlobalParser {
-
-private:
-
+ private:
   static GlobalParser* _self;
 
   static QCommandLineParser clParser;
 
-
-public:
-
+ public:
   static QCommandLineOption help_option;
   static QCommandLineOption version_option;
 
@@ -52,9 +47,7 @@ public:
 
   static QCommandLineOption auto_stats;
 
-
-public:
-
+ public:
   GlobalParser();
   ~GlobalParser();
 
@@ -62,9 +55,7 @@ public:
 
   static QString value(const QCommandLineOption& opt);
 
-  static void process(const QCoreApplication & app);
-
-
+  static void process(const QCoreApplication& app);
 };
 
 #endif

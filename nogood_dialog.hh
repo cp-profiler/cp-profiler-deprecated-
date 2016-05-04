@@ -33,32 +33,38 @@
 class TreeCanvas;
 class QStandardItemModel;
 
-class MyProxyModel: public QSortFilterProxyModel
-{
-public:
+class MyProxyModel : public QSortFilterProxyModel {
+ public:
   explicit MyProxyModel(QWidget* parent) : QSortFilterProxyModel(parent) {}
 
-protected:
-  bool lessThan ( const QModelIndex & left, const QModelIndex & right ) const {
+ protected:
+  bool lessThan(const QModelIndex& left, const QModelIndex& right) const {
     if (left.column() == 0) {
-      int lhs = sourceModel()->data(sourceModel()->index(left.row(), 0)).toInt();
-      int rhs = sourceModel()->data(sourceModel()->index(right.row(), 0)).toInt();
+      int lhs =
+          sourceModel()->data(sourceModel()->index(left.row(), 0)).toInt();
+      int rhs =
+          sourceModel()->data(sourceModel()->index(right.row(), 0)).toInt();
       return lhs < rhs;
     } else if (left.column() == 1) {
-      int lhs = sourceModel()->data(sourceModel()->index(left.row(), 1)).toString().size();
-      int rhs = sourceModel()->data(sourceModel()->index(right.row(), 1)).toString().size();
+      int lhs = sourceModel()
+                    ->data(sourceModel()->index(left.row(), 1))
+                    .toString()
+                    .size();
+      int rhs = sourceModel()
+                    ->data(sourceModel()->index(right.row(), 1))
+                    .toString()
+                    .size();
       return lhs < rhs;
     }
     assert(true);
-    return false; /// should not reach here; to prevent a warning
+    return false;  /// should not reach here; to prevent a warning
   }
 };
 
 class NogoodDialog : public QDialog {
   Q_OBJECT
 
-private:
-
+ private:
   static const int DEFAULT_WIDTH;
   static const int DEFAULT_HEIGHT;
 
@@ -71,25 +77,20 @@ private:
   QStandardItemModel* _model;
   MyProxyModel* _proxy_model;
 
-private:
-
+ private:
   void populateTable(const std::vector<int>& selected_gids);
 
-private Q_SLOTS:
+ private Q_SLOTS:
 
-  void selectNode(const QModelIndex & index);
+  void selectNode(const QModelIndex& index);
 
-public:
+ public:
   /// Create a nogood dialog with nogoods for selected nodes
   NogoodDialog(QWidget* parent, TreeCanvas& tc,
-    const std::vector<int>& selected,
-    const std::unordered_map<int64_t, std::string>& sid2nogood);
+               const std::vector<int>& selected,
+               const std::unordered_map<int64_t, std::string>& sid2nogood);
 
   ~NogoodDialog();
-
-
 };
-
-
 
 #endif

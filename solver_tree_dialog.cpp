@@ -22,11 +22,9 @@
 #include "nodewidget.hh"
 #include "execution.hh"
 
-SolverTreeDialog::SolverTreeDialog(QWidget* parent, Execution* execution, const CanvasType type, Gist* gist)
-    : BaseTreeDialog(parent, execution, type, gist)
-{
-
-
+SolverTreeDialog::SolverTreeDialog(QWidget* parent, Execution* execution,
+                                   const CanvasType type, Gist* gist)
+    : BaseTreeDialog(parent, execution, type, gist) {
   hbl->addWidget(new QLabel("Depth:"));
   depthLabel = new QLabel("0");
   hbl->addWidget(depthLabel);
@@ -46,18 +44,14 @@ SolverTreeDialog::SolverTreeDialog(QWidget* parent, Execution* execution, const 
   hbl->addWidget(new NodeWidget(UNDETERMINED));
   openLabel = new QLabel("0");
   hbl->addWidget(openLabel);
-
 }
 
-SolverTreeDialog::~SolverTreeDialog() {
-
-}
+SolverTreeDialog::~SolverTreeDialog() {}
 
 /// SLOTS
 
-void
-SolverTreeDialog::statusChanged(VisualNode*, const Statistics& stats, bool finished) {
-
+void SolverTreeDialog::statusChanged(VisualNode*, const Statistics& stats,
+                                     bool finished) {
   depthLabel->setNum(stats.maxDepth);
   solvedLabel->setNum(stats.solutions);
   failedLabel->setNum(stats.failures);
@@ -65,5 +59,4 @@ SolverTreeDialog::statusChanged(VisualNode*, const Statistics& stats, bool finis
   openLabel->setNum(stats.undetermined);
 
   statusChangedShared(finished);
-
 }

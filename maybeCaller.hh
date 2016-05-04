@@ -26,29 +26,24 @@
 #ifndef MAYBE_CALL_HH
 #define MAYBE_CALL_HH
 
-
 class MaybeCaller : public QObject {
-Q_OBJECT
-private:
-
-  const int MIN_ELAPSED = 16; /// milliseconds
+  Q_OBJECT
+ private:
+  const int MIN_ELAPSED = 16;  /// milliseconds
 
   std::chrono::system_clock::time_point last_call_time;
 
   QTimer updateTimer;
 
-  std::function<void (void)> delayed_fn;
+  std::function<void(void)> delayed_fn;
 
-  private Q_SLOTS:
+ private Q_SLOTS:
 
   void callViaTimer();
 
-public:
-
+ public:
   MaybeCaller();
-  void call(std::function<void (void)> fn);
-
+  void call(std::function<void(void)> fn);
 };
-
 
 #endif

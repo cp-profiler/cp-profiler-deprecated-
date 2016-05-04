@@ -30,45 +30,44 @@ class QCheckBox;
 class QAbstractScrollArea;
 class TreeCanvas;
 
-namespace cpprofiler { namespace pixeltree {
+namespace cpprofiler {
+namespace pixeltree {
 
-  class PixelTreeCanvas;
+class PixelTreeCanvas;
 
-  class PixelTreeDialog : public QDialog {
-    Q_OBJECT
+class PixelTreeDialog : public QDialog {
+  Q_OBJECT
 
-  private:
+ private:
+  QAbstractScrollArea scrollArea;
 
-    QAbstractScrollArea scrollArea;
+  QCheckBox* time_cb;
+  QCheckBox* domains_cb;
+  QCheckBox* decision_vars_cb;
+  QCheckBox* depth_analysis_cb;
 
-    QCheckBox* time_cb;
-    QCheckBox* domains_cb;
-    QCheckBox* decision_vars_cb;
-    QCheckBox* depth_analysis_cb;
+  PixelTreeCanvas* canvas_;
 
-    PixelTreeCanvas* canvas_;
+  Q_SIGNALS :
 
-  Q_SIGNALS:
+      void
+      windowResized(void);
+  void signalPixelSelected(int);
 
-    void windowResized(void);
-    void signalPixelSelected(int);
+ public:
+  static const int INIT_WIDTH = 600;
+  static const int INIT_HEIGHT = 400;
 
-  public:
+  explicit PixelTreeDialog(TreeCanvas* tc);
 
-    static const int INIT_WIDTH = 600;
-    static const int INIT_HEIGHT = 400;
+ protected:
+  void resizeEvent(QResizeEvent* re);
 
-    explicit PixelTreeDialog(TreeCanvas* tc);
+ public Q_SLOTS:
 
-  protected:
-    void resizeEvent(QResizeEvent * re);
-
-  public Q_SLOTS:
-
-    void setPixelSelected(int);
-  };
-
-
-}}
+  void setPixelSelected(int);
+};
+}
+}
 
 #endif
