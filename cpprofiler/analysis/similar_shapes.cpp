@@ -16,8 +16,6 @@ namespace analysis {
 /// TODO(maxim): show all subtrees of a particular shape
 /// TODO(maxim): find 'exact' subtrees
 
-/// TODO(maxim): normalize only using currently shown shapes
-
 ShapeProperty interpretShapeProperty(const QString& str) {
   if (str == "size") return ShapeProperty::SIZE;
   if (str == "count") return ShapeProperty::COUNT;
@@ -107,6 +105,56 @@ SimilarShapesWindow::SimilarShapesWindow(TreeCanvas* tc)
   drawHistogram();
 }
 
+/// TODO(maxim): see if any of these could be reused in tree comparison
+///              (or vice versa)
+namespace detail {
+
+/// equal if:
+/// 1. same node type
+/// 2. same number of children
+inline bool compareNodes(const VisualNode& n1, const VisualNode& n2) {
+  if (n2.getStatus() != n2.getStatus()) {
+    return false;
+  }
+  if (n1.getNumberOfChildren() != n2.getNumberOfChildren()) {
+    return false;
+  }
+
+  return true;
+}
+
+bool compareSubtrees(const NodeAllocator& na, const VisualNode& root1,
+                     const VisualNode& root2) {
+  // if (root1.getNumberOfChildren() > 0)
+  // compare roots
+  bool equal = compareNodes(root1, root2);
+  if (!equal) return false;
+
+  // if nodes have children, compare them recursively:
+  for (uint i = 0; i < root1.getNumberOfChildren(); ++i) {
+    auto new_root1 = root1.getChild(na, i);
+    auto new_root2 = root2.getChild(na, i);
+    bool equal = compareSubtrees(na, new_root1, new_root2);
+    if (!equal) return false;
+  }
+
+  return true;
+}
+
+// compare subtrees of the same shape
+bool areShapesIdentical(const NodeAllocator& na,
+                        const std::multiset<ShapeI, CompareShapes>& set,
+                        const ShapeI& shape) {
+  auto first_it = set.lower_bound(shape);
+
+  for (auto it = ++first_it; it != set.upper_bound(shape); ++it) {
+    auto equal = compareSubtrees(na, first_it->node, it->node);
+    if (!equal) return false;
+  }
+  return true;
+}
+}
+
 void SimilarShapesWindow::addNodesToMap() {
   auto na = m_tc->get_na();
   VisualNode* root = (*na)[0];
@@ -156,7 +204,7 @@ void sortShapes(std::vector<ShapeI>& shapes, ShapeProperty prop,
               });
   } else if (prop == ShapeProperty::HEIGHT) {
     std::sort(begin(shapes), end(shapes),
-              [&set](const ShapeI& s1, const ShapeI& s2) {
+              [](const ShapeI& s1, const ShapeI& s2) {
                 return s1.s->depth() > s2.s->depth();
               });
   }
@@ -239,6 +287,9 @@ void SimilarShapesWindow::drawHistogram() {
     const int shape_size = it->shape_size;
     const int shape_height = (it->node)->getShape()->depth();
 
+    auto equal = detail::areShapesIdentical(*m_tc->get_na(), shapeSet, *it);
+    qDebug() << "Are equal: " << equal;
+
     int value;
     if (m_histType == ShapeProperty::SIZE) {
       value = shape_size;
@@ -246,6 +297,9 @@ void SimilarShapesWindow::drawHistogram() {
       value = shape_count;
     } else if (m_histType == ShapeProperty::HEIGHT) {
       value = shape_height;
+    } else {
+      abort();
+      value = -1;
     }
 
     const int rect_width = rect_max_w * value / max_value;
