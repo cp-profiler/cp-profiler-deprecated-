@@ -28,7 +28,7 @@ struct ShapeI {
   ShapeI(int sol0, VisualNode* node0);
   ~ShapeI();
   ShapeI(const ShapeI& sh);
-  ShapeI& operator=(const ShapeI& sh) = delete;
+  ShapeI& operator=(const ShapeI& other);
 };
 
 class Filters {
@@ -50,7 +50,7 @@ struct CompareShapes {
   bool operator()(const ShapeI& s1, const ShapeI& s2) const;
 };
 
-enum class ShapeProperty { SIZE, OCCURRENCE };
+enum class ShapeProperty { SIZE, COUNT, HEIGHT };
 
 class SimilarShapesWindow : public QDialog {
   Q_OBJECT
@@ -83,7 +83,7 @@ class SimilarShapesWindow : public QDialog {
   Filters filters;
 
   ShapeProperty m_histType = ShapeProperty::SIZE;
-  // ShapeProperty m_histType = ShapeProperty::OCCURRENCE;
+  ShapeProperty m_sortType = ShapeProperty::SIZE;
 };
 
 class ShapeCanvas : public QWidget {

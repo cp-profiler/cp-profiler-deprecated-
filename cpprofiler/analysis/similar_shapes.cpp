@@ -18,6 +18,14 @@ namespace analysis {
 
 /// TODO(maxim): normalize only using currently shown shapes
 
+ShapeProperty interpretShapeProperty(const QString& str) {
+  if (str == "size") return ShapeProperty::SIZE;
+  if (str == "count") return ShapeProperty::COUNT;
+  if (str == "height") return ShapeProperty::HEIGHT;
+  abort();
+  return {};
+}
+
 SimilarShapesWindow::SimilarShapesWindow(TreeCanvas* tc)
     : QDialog(tc), m_tc(tc), shapeSet(CompareShapes{}), filters(*this) {
   addNodesToMap();
@@ -50,29 +58,38 @@ SimilarShapesWindow::SimilarShapesWindow(TreeCanvas* tc)
 
   auto histChoiceCB = new QComboBox();
   histChoiceCB->addItem("size");
-  histChoiceCB->addItem("occurrence");
+  histChoiceCB->addItem("count");
+  histChoiceCB->addItem("height");
   connect(histChoiceCB, &QComboBox::currentTextChanged,
           [this](const QString& str) {
-            if (str == "size") {
-              m_histType = ShapeProperty::SIZE;
-            } else if (str == "occurrence") {
-              m_histType = ShapeProperty::OCCURRENCE;
-            }
+            m_histType = interpretShapeProperty(str);
+            drawHistogram();
+          });
+
+  auto sortChoiceCB = new QComboBox();
+  sortChoiceCB->addItem("size");
+  sortChoiceCB->addItem("count");
+  sortChoiceCB->addItem("height");
+  connect(sortChoiceCB, &QComboBox::currentTextChanged,
+          [this](const QString& str) {
+            m_sortType = interpretShapeProperty(str);
             drawHistogram();
           });
 
   auto depthFilterLayout = new QHBoxLayout{};
-  depthFilterLayout->addWidget(new QLabel("min depth"));
+  depthFilterLayout->addWidget(new QLabel("min height"));
   depthFilterLayout->addWidget(depthFilterSB);
 
   auto countFilterLayout = new QHBoxLayout{};
-  countFilterLayout->addWidget(new QLabel("min occurrence"));
+  countFilterLayout->addWidget(new QLabel("min count"));
   countFilterLayout->addWidget(countFilterSB);
 
   auto filtersLayout = new QHBoxLayout{};
   filtersLayout->addLayout(depthFilterLayout);
   filtersLayout->addLayout(countFilterLayout);
   filtersLayout->addStretch();
+  filtersLayout->addWidget(new QLabel{"sort by: "});
+  filtersLayout->addWidget(sortChoiceCB);
   filtersLayout->addWidget(new QLabel{"histogram: "});
   filtersLayout->addWidget(histChoiceCB);
 
@@ -103,32 +120,46 @@ void SimilarShapesWindow::addNodesToMap() {
 int maxShapeValue(const std::vector<ShapeI>& shapes, ShapeProperty prop,
                   const std::multiset<ShapeI, CompareShapes>& set) {
   if (prop == ShapeProperty::SIZE) {
-    auto cur_max = 0;
-
-    for (auto it = shapes.begin(), end = shapes.end(); it != end; ++it) {
-      auto size = it->shape_size;
-      if (cur_max < size) {
-        cur_max = size;
-      }
-    }
-
-    return cur_max;
-  }
-
-  if (prop == ShapeProperty::OCCURRENCE) {
-    unsigned cur_max = 0;
-
-    for (auto it = shapes.begin(), end = shapes.end(); it != end; ++it) {
-      auto count = set.count(*it);
-      if (cur_max < count) {
-        cur_max = count;
-      }
-    }
-
-    return cur_max;
+    const ShapeI& max_shape = *std::max_element(
+        begin(shapes), end(shapes), [](const ShapeI& s1, const ShapeI& s2) {
+          return s1.shape_size < s2.shape_size;
+        });
+    return max_shape.shape_size;
+  } else if (prop == ShapeProperty::COUNT) {
+    const ShapeI& max_shape = *std::max_element(
+        begin(shapes), end(shapes), [&set](const ShapeI& s1, const ShapeI& s2) {
+          return set.count(s1) < set.count(s2);
+        });
+    return set.count(max_shape);
+  } else if (prop == ShapeProperty::HEIGHT) {
+    const ShapeI& max_shape = *std::max_element(
+        begin(shapes), end(shapes), [&set](const ShapeI& s1, const ShapeI& s2) {
+          return s1.s->depth() < s2.s->depth();
+        });
+    return max_shape.s->depth();
   }
 
   return 1;
+}
+
+void sortShapes(std::vector<ShapeI>& shapes, ShapeProperty prop,
+  const std::multiset<ShapeI, CompareShapes>& set) {
+  if (prop == ShapeProperty::SIZE) {
+    std::sort(begin(shapes), end(shapes),
+              [](const ShapeI& s1, const ShapeI& s2) {
+                return s1.shape_size > s2.shape_size;
+              });
+  } else if (prop == ShapeProperty::COUNT) {
+    std::sort(begin(shapes), end(shapes),
+              [&set](const ShapeI& s1, const ShapeI& s2) {
+                return set.count(s1) > set.count(s2);
+              });
+  } else if (prop == ShapeProperty::HEIGHT) {
+    std::sort(begin(shapes), end(shapes),
+              [&set](const ShapeI& s1, const ShapeI& s2) {
+                return s1.s->depth() > s2.s->depth();
+              });
+  }
 }
 
 namespace detail {
@@ -191,24 +222,30 @@ void SimilarShapesWindow::drawHistogram() {
   perfHelper.end();
 
   perfHelper.begin("finding max");
-
   int max_value = maxShapeValue(shapesShown, m_histType, shapeSet);
   qDebug() << "max_value: " << max_value;
+  perfHelper.end();
+
+  perfHelper.begin("sorting a histogram");
+
+  sortShapes(shapesShown, m_sortType, shapeSet);
 
   perfHelper.end();
 
-  perfHelper.begin("building a histogram");
+  perfHelper.begin("displaying a histogram");
   for (auto it = shapesShown.begin(), end = shapesShown.end(); it != end;
        ++it) {
     const int shape_count = shapeSet.count(*it);
     const int shape_size = it->shape_size;
-    const int shape_depth = (it->node)->getShape()->depth();
+    const int shape_height = (it->node)->getShape()->depth();
 
     int value;
     if (m_histType == ShapeProperty::SIZE) {
       value = shape_size;
-    } else {
+    } else if (m_histType == ShapeProperty::COUNT) {
       value = shape_count;
+    } else if (m_histType == ShapeProperty::HEIGHT) {
+      value = shape_height;
     }
 
     const int rect_width = rect_max_w * value / max_value;
@@ -220,7 +257,7 @@ void SimilarShapesWindow::drawHistogram() {
 
     // auto sb_value = view->verticalScrollBar()->value();
 
-    addText(shape_depth, 10 + COLUMN_WIDTH * 0, curr_y, *scene);
+    addText(shape_height, 10 + COLUMN_WIDTH * 0, curr_y, *scene);
     addText(shape_count, 10 + COLUMN_WIDTH * 1, curr_y, *scene);
     addText(shape_size, 10 + COLUMN_WIDTH * 2, curr_y, *scene);
 
@@ -366,6 +403,17 @@ ShapeI::ShapeI(const ShapeI& sh)
       shape_size(sh.shape_size),
       node(sh.node),
       s(Shape::copy(sh.s)) {}
+
+ShapeI& ShapeI::operator=(const ShapeI& sh) {
+  if (this != &sh) {
+    Shape::deallocate(s);
+    s = Shape::copy(sh.s);
+    sol = sh.sol;
+    shape_size = sh.shape_size;
+    node = sh.node;
+  }
+  return *this;
+}
 
 bool CompareShapes::operator()(const ShapeI& n1, const ShapeI& n2) const {
   if (n1.sol > n2.sol) return false;
