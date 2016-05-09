@@ -181,9 +181,9 @@ int maxShapeValue(const std::vector<ShapeI>& shapes, ShapeProperty prop,
   } else if (prop == ShapeProperty::HEIGHT) {
     const ShapeI& max_shape = *std::max_element(
         begin(shapes), end(shapes), [&set](const ShapeI& s1, const ShapeI& s2) {
-          return s1.s->depth() < s2.s->depth();
+          return s1.shape_height < s2.shape_height;
         });
-    return max_shape.s->depth();
+    return max_shape.shape_height;
   }
 
   return 1;
@@ -204,7 +204,7 @@ void sortShapes(std::vector<ShapeI>& shapes, ShapeProperty prop,
   } else if (prop == ShapeProperty::HEIGHT) {
     std::sort(begin(shapes), end(shapes),
               [](const ShapeI& s1, const ShapeI& s2) {
-                return s1.s->depth() > s2.s->depth();
+                return s1.shape_height > s2.shape_height;
               });
   }
 }
@@ -284,7 +284,7 @@ void SimilarShapesWindow::drawHistogram() {
        ++it) {
     const int shape_count = shapeSet.count(*it);
     const int shape_size = it->shape_size;
-    const int shape_height = (it->node)->getShape()->depth();
+    const int shape_height = it->shape_height;
 
     auto equal = detail::areShapesIdentical(*m_tc->get_na(), shapeSet, *it);
 
@@ -342,7 +342,7 @@ void SimilarShapesWindow::countFilterChanged(int val) {
 Filters::Filters(const SimilarShapesWindow& ssw) : m_ssWindow(ssw) {}
 
 bool Filters::apply(const ShapeI& si) {
-  if (si.s->depth() < m_minDepth) return false;
+  if (si.shape_height < m_minDepth) return false;
   if ((int)m_ssWindow.shapeSet.count(si) < m_minCount) return false;
   return true;
 }
@@ -383,6 +383,8 @@ ShapeCanvas::ShapeCanvas(QAbstractScrollArea* sa, TreeCanvas* tc,
     : QWidget{sa}, m_sa{sa}, m_tc{tc}, m_shapesSet{set} {}
 
 void ShapeCanvas::paintEvent(QPaintEvent* event) {
+  /// TODO(maxim): make a copy of a subtree to display here
+  /// (so that it is never hidden)
   QPainter painter(this);
   painter.setRenderHint(QPainter::Antialiasing);
 
@@ -429,6 +431,7 @@ void ShapeCanvas::paintEvent(QPaintEvent* event) {
 
 void ShapeCanvas::highlightShape(VisualNode* node) {
   m_targetNode = node;
+  /// NOTE(maxim): this will change layout -> shape depth!
   m_tc->highlightShape(node);
   QWidget::update();
 }
@@ -453,6 +456,7 @@ int shapeSize(const Shape& s) {
 ShapeI::ShapeI(int sol0, VisualNode* node0)
     : sol(sol0), node(node0), s(Shape::copy(node->getShape())) {
   shape_size = shapeSize(*s);
+  shape_height = s->depth();
 }
 
 ShapeI::~ShapeI() { Shape::deallocate(s); }
@@ -460,6 +464,7 @@ ShapeI::~ShapeI() { Shape::deallocate(s); }
 ShapeI::ShapeI(const ShapeI& sh)
     : sol(sh.sol),
       shape_size(sh.shape_size),
+      shape_height(sh.shape_height),
       node(sh.node),
       s(Shape::copy(sh.s)) {}
 
@@ -469,6 +474,7 @@ ShapeI& ShapeI::operator=(const ShapeI& sh) {
     s = Shape::copy(sh.s);
     sol = sh.sol;
     shape_size = sh.shape_size;
+    shape_height = sh.shape_height;
     node = sh.node;
   }
   return *this;
@@ -481,10 +487,10 @@ bool CompareShapes::operator()(const ShapeI& n1, const ShapeI& n2) const {
   const Shape& s1 = *n1.s;
   const Shape& s2 = *n2.s;
 
-  if (s1.depth() < s2.depth()) return true;
-  if (s1.depth() > s2.depth()) return false;
+  if (n1.shape_height < n2.shape_height) return true;
+  if (n1.shape_height > n2.shape_height) return false;
 
-  for (int i = 0; i < s1.depth(); ++i) {
+  for (int i = 0; i < n1.shape_height; ++i) {
     if (s1[i].l < s2[i].l) return false;
     if (s1[i].l > s2[i].l) return true;
     if (s1[i].r < s2[i].r) return true;

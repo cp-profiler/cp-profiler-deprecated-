@@ -23,6 +23,7 @@ class SimilarShapesWindow;
 struct ShapeI {
   int sol;
   int shape_size;
+  int shape_height;
   VisualNode* node;
   Shape* s;
   ShapeI(int sol0, VisualNode* node0);
