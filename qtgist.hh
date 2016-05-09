@@ -286,10 +286,6 @@ private Q_SLOTS:
   /// Shows node status information
   void showStats(void);
 
-
-public Q_SLOTS:
-  void onFocusChanged(QWidget*, QWidget*);
-
 };
 
 

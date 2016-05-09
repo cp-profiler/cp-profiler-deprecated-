@@ -66,9 +66,6 @@ Gist::Gist(Execution* execution, QWidget* parent) : QWidget(parent), execution(e
 
     connectCanvas(canvas);
 
-    // connect(execution, SIGNAL(newNode()), current_tc, SLOT(maybeUpdateCanvas()));
-
-
     connect(scrollArea->horizontalScrollBar(), SIGNAL(valueChanged(int)),
             canvas, SLOT(scroll(void)));
     connect(scrollArea->verticalScrollBar(), SIGNAL(valueChanged(int)),
@@ -172,14 +169,14 @@ Gist::updateActions(VisualNode* n, bool finished) {
             navDown->setEnabled(false);
         }
 
-        VisualNode* p = n->getParent(*current_tc->na);
+        VisualNode* p = n->getParent(*canvas->na);
         if (p == nullptr) {
             navUp->setEnabled(false);
             navRight->setEnabled(false);
             navLeft->setEnabled(false);
         } else {
             navUp->setEnabled(true);
-            unsigned int alt = n->getAlternative(*current_tc->na);
+            unsigned int alt = n->getAlternative(*canvas->na);
             navRight->setEnabled(alt + 1 < p->getNumberOfChildren());
             navLeft->setEnabled(alt > 0);
         }
@@ -584,29 +581,9 @@ Gist::addActions(void) {
 }
 
 void
-Gist::onFocusChanged(QWidget* a, QWidget* b) {
-
-  /// TODO(maxim): is this still needed? (no)
-  return;
-  (void) a; // unused
-  if (b) {
-    if (QString(b->metaObject()->className()) == "QAbstractScrollArea"){
-      QAbstractScrollArea* sa = static_cast<QAbstractScrollArea*>(b);
-      QString window = sa->parentWidget()->metaObject()->className();
-      if (window == "Gist") {
-        Gist* gist = static_cast<Gist*>(sa->parentWidget());
-        connectCanvas(gist->getCanvas());
-      } else if (window == "QDialog" || window == "CmpTreeDialog" || window == "SolverTreeDialog")  {
-        BaseTreeDialog* td = static_cast<BaseTreeDialog*>(sa->parentWidget());
-        connectCanvas(td->getCanvas());
-      }
-
-    }
-  }
-}
-
-void
 Gist::connectCanvas(TreeCanvas* tc) {
+
+    qDebug() << "--- connectCanvas\n";
 
 
     connect(this, SIGNAL(doneReceiving()), tc, SLOT(statusFinished()));
@@ -615,41 +592,9 @@ Gist::connectCanvas(TreeCanvas* tc) {
 
     if (current_tc && current_tc->_builder) {
 
-        disconnect(expand, SIGNAL(triggered()), current_tc, SLOT(expandCurrentNode()));
-        disconnect(stop, SIGNAL(triggered()), current_tc, SLOT(stopSearch()));
-        disconnect(reset, SIGNAL(triggered()), current_tc, SLOT(reset()));
-        disconnect(navUp, SIGNAL(triggered()), current_tc, SLOT(navUp()));
-        disconnect(navDown, SIGNAL(triggered()), current_tc, SLOT(navDown()));
-        disconnect(navLeft, SIGNAL(triggered()), current_tc, SLOT(navLeft()));
-        disconnect(navRight, SIGNAL(triggered()), current_tc, SLOT(navRight()));
-        disconnect(navRoot, SIGNAL(triggered()), current_tc, SLOT(navRoot()));
-        disconnect(navNextSol, SIGNAL(triggered()), current_tc, SLOT(navNextSol()));
-        disconnect(navPrevSol, SIGNAL(triggered()), current_tc, SLOT(navPrevSol()));
-        disconnect(toggleHidden, SIGNAL(triggered()), current_tc, SLOT(toggleHidden()));
-        disconnect(hideFailed, SIGNAL(triggered()), current_tc, SLOT(hideFailed()));
-        disconnect(hideSize, SIGNAL(triggered()), current_tc, SLOT(hideSize()));
-        disconnect(labelBranches, SIGNAL(triggered()), current_tc, SLOT(labelBranches()));
-        disconnect(unhideAll, SIGNAL(triggered()), current_tc, SLOT(unhideAll()));
-        disconnect(labelPath, SIGNAL(triggered()), current_tc, SLOT(labelPath()));
-        disconnect(showPixelTree, SIGNAL(triggered()), tc, SLOT(showPixelTree()));
-        disconnect(showIcicleTree, SIGNAL(triggered()), tc, SLOT(showIcicleTree()));
-        disconnect(showNogoods, SIGNAL(triggered()), current_tc, SLOT(showNogoods()));
-        disconnect(showNodeInfo, SIGNAL(triggered()), current_tc, SLOT(showNodeInfo()));
-        disconnect(showNodeOnPixelTree, SIGNAL(triggered()), current_tc, SLOT(showNodeOnPixelTree()));
-        disconnect(collectMLStats, SIGNAL(triggered()), current_tc, SLOT(collectMLStats()));
-        disconnect(toggleStop, SIGNAL(triggered()), current_tc, SLOT(toggleStop()));
-        disconnect(unstopAll, SIGNAL(triggered()), current_tc, SLOT(unstopAll()));
-        disconnect(zoomToFit, SIGNAL(triggered()), current_tc, SLOT(zoomToFit()));
-        disconnect(center, SIGNAL(triggered()), current_tc, SLOT(centerCurrentNode()));
-        disconnect(exportWholeTreePDF, SIGNAL(triggered()), current_tc, SLOT(exportWholeTreePDF()));
-        disconnect(exportPDF, SIGNAL(triggered()), current_tc, SLOT(exportPDF()));
-        disconnect(print, SIGNAL(triggered()), current_tc, SLOT(print()));
-        disconnect(printSearchLog, SIGNAL(triggered()), current_tc, SLOT(printSearchLog()));
-        disconnect(bookmarkNode, SIGNAL(triggered()), current_tc, SLOT(bookmarkNode()));
-        disconnect(current_tc, SIGNAL(addedBookmark(const QString&)), this, SLOT(addBookmark(const QString&)));
-        disconnect(current_tc, SIGNAL(removedBookmark(int)), this, SLOT(removeBookmark(int)));
-        disconnect(current_tc, SIGNAL(needActionsUpdate(VisualNode*, bool)),
-            this, SLOT(updateActions(VisualNode*, bool)));
+        qDebug() << "--- disconnecting stuff\n";
+
+        abort();
     }
 
     current_tc = tc;

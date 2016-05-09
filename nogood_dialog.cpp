@@ -25,31 +25,30 @@
 #include <QHBoxLayout>
 #include <QStandardItemModel>
 
-
 const int NogoodDialog::DEFAULT_WIDTH = 600;
 const int NogoodDialog::DEFAULT_HEIGHT = 400;
 
-NogoodDialog::NogoodDialog(QWidget* parent, TreeCanvas& tc,
-    const std::vector<int>& selected_nodes,
+NogoodDialog::NogoodDialog(
+    QWidget* parent, TreeCanvas& tc, const std::vector<int>& selected_nodes,
     const std::unordered_map<int64_t, std::string>& sid2nogood)
-: QDialog(parent), _tc(tc), _sid2nogood(sid2nogood) {
-
-  _model = new QStandardItemModel(0,2,this);
-
+    : QDialog(parent), _tc(tc), _sid2nogood(sid2nogood) {
+  _model = new QStandardItemModel(0, 2, this);
 
   _nogoodTable = new QTableView(this);
   _nogoodTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
   _nogoodTable->setSelectionBehavior(QAbstractItemView::SelectRows);
 
-  QStringList tableHeaders; tableHeaders << "node id" << "clause";
+  QStringList tableHeaders;
+  tableHeaders << "node id"
+               << "clause";
   _model->setHorizontalHeaderLabels(tableHeaders);
-
 
   _nogoodTable->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
   _nogoodTable->setSortingEnabled(true);
   _nogoodTable->horizontalHeader()->setStretchLastSection(true);
 
-  connect(_nogoodTable, SIGNAL(doubleClicked(const QModelIndex&)), this, SLOT(selectNode(const QModelIndex&)));
+  connect(_nogoodTable, SIGNAL(doubleClicked(const QModelIndex&)), this,
+          SLOT(selectNode(const QModelIndex&)));
 
   resize(DEFAULT_WIDTH, DEFAULT_HEIGHT);
 
@@ -62,20 +61,14 @@ NogoodDialog::NogoodDialog(QWidget* parent, TreeCanvas& tc,
 
   _nogoodTable->setModel(_proxy_model);
 
-
   layout->addWidget(_nogoodTable);
-
 }
 
-NogoodDialog::~NogoodDialog() {
-
-}
+NogoodDialog::~NogoodDialog() {}
 
 void NogoodDialog::populateTable(const std::vector<int>& selected_nodes) {
-
   int row = 0;
   for (auto it = selected_nodes.begin(); it != selected_nodes.end(); it++) {
-
     int gid = *it;
 
     int64_t sid = _tc.getExecution()->getData()->gid2sid(gid);
@@ -84,20 +77,18 @@ void NogoodDialog::populateTable(const std::vector<int>& selected_nodes) {
 
     auto ng_item = _sid2nogood.find(sid);
     if (ng_item == _sid2nogood.end()) {
-      continue; /// nogood not found
+      continue;  /// nogood not found
     }
 
     _model->setItem(row, 0, new QStandardItem(QString::number(gid)));
     _model->setItem(row, 1, new QStandardItem((ng_item->second).c_str()));
     row++;
-
   }
 
   _nogoodTable->resizeColumnsToContents();
 }
 
-void NogoodDialog::selectNode(const QModelIndex & index) {
-
+void NogoodDialog::selectNode(const QModelIndex& index) {
   int gid = index.sibling(index.row(), 0).data().toInt();
   qDebug() << "gid: " << gid;
   _tc.navigateToNodeById(gid);
