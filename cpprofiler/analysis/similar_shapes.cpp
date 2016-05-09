@@ -113,7 +113,7 @@ namespace detail {
 /// 1. same node type
 /// 2. same number of children
 inline bool compareNodes(const VisualNode& n1, const VisualNode& n2) {
-  if (n2.getStatus() != n2.getStatus()) {
+  if (n1.getStatus() != n2.getStatus()) {
     return false;
   }
   if (n1.getNumberOfChildren() != n2.getNumberOfChildren()) {
@@ -125,7 +125,6 @@ inline bool compareNodes(const VisualNode& n1, const VisualNode& n2) {
 
 bool compareSubtrees(const NodeAllocator& na, const VisualNode& root1,
                      const VisualNode& root2) {
-  // if (root1.getNumberOfChildren() > 0)
   // compare roots
   bool equal = compareNodes(root1, root2);
   if (!equal) return false;
@@ -134,7 +133,7 @@ bool compareSubtrees(const NodeAllocator& na, const VisualNode& root1,
   for (uint i = 0; i < root1.getNumberOfChildren(); ++i) {
     auto new_root1 = root1.getChild(na, i);
     auto new_root2 = root2.getChild(na, i);
-    bool equal = compareSubtrees(na, new_root1, new_root2);
+    bool equal = compareSubtrees(na, *new_root1, *new_root2);
     if (!equal) return false;
   }
 
@@ -148,7 +147,7 @@ bool areShapesIdentical(const NodeAllocator& na,
   auto first_it = set.lower_bound(shape);
 
   for (auto it = ++first_it; it != set.upper_bound(shape); ++it) {
-    auto equal = compareSubtrees(na, first_it->node, it->node);
+    auto equal = compareSubtrees(na, *first_it->node, *it->node);
     if (!equal) return false;
   }
   return true;
@@ -288,7 +287,6 @@ void SimilarShapesWindow::drawHistogram() {
     const int shape_height = (it->node)->getShape()->depth();
 
     auto equal = detail::areShapesIdentical(*m_tc->get_na(), shapeSet, *it);
-    qDebug() << "Are equal: " << equal;
 
     int value;
     if (m_histType == ShapeProperty::SIZE) {
@@ -305,6 +303,13 @@ void SimilarShapesWindow::drawHistogram() {
     const int rect_width = rect_max_w * value / max_value;
     auto rect = new ShapeRect(0, curr_y, rect_width, it->node, shapeCanvas);
     rect->draw(scene.get());
+
+    if (!equal) {
+      auto flag = new QGraphicsRectItem(0, curr_y - 5, 10, 10);
+      // flag.setPen(transparent_red);
+      flag->setBrush(Qt::yellow);
+      scene->addItem(flag);
+    }
 
     /// NOTE(maxim): drawing text is really expensive
     /// TODO(maxim): only draw if visible
