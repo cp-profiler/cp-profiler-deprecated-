@@ -26,6 +26,7 @@
 
 #include "treecanvas.hh"
 #include "spacenode.hh"
+#include "globalhelper.hh"
 
 using namespace cpprofiler::pixeltree;
 
@@ -104,7 +105,9 @@ void IcicleTreeCanvas::resizeCanvas() {
 void IcicleTreeCanvas::redrawAll() {
   icicle_image_.clear();
 
+  perfHelper.begin("icicle tree: draw");
   drawIcicleTree();
+  perfHelper.end();
 
   icicle_image_.update();
   /// added 10 of padding here
@@ -245,7 +248,7 @@ void IcicleTreeCanvas::sliderChanged(int) {
 
 SpaceNode* IcicleTreeCanvas::getNodeByXY(int x, int y) const {
   // Find rectangle by x and y (binary or linear search)
-  for (int i = 0; i < icicle_rects_.size(); i++) {
+  for (uint i = 0; i < icicle_rects_.size(); i++) {
     auto& rect = icicle_rects_[i];
 
     if ((rect.x <= x) && (x <= rect.x + rect.width) && (rect.y <= y) &&
@@ -281,7 +284,7 @@ void IcicleTreeCanvas::mouseMoveEvent(QMouseEvent* event) {
   });
 }
 
-void IcicleTreeCanvas::mousePressEvent(QMouseEvent* event) {
+void IcicleTreeCanvas::mousePressEvent(QMouseEvent*) {
   /// do nothing for now
 }
 

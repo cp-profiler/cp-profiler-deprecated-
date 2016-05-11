@@ -305,6 +305,8 @@ void TreeBuilder::run(void) {
 
   bool is_delayed;
 
+  perfHelper.begin("building a tree");
+
   while (true) {
     while (!dataMutex.tryLock()) {/* qDebug() << "Can't lock, trying again"; */
     };
@@ -336,6 +338,8 @@ void TreeBuilder::run(void) {
 
     dataMutex.unlock();
   }
+
+  perfHelper.end();
 
   emit doneBuilding(true);
 

@@ -25,6 +25,7 @@
 #include <utility>
 
 #include "cpprofiler/analysis/backjumps.hh"
+#include "globalhelper.hh"
 
 using namespace cpprofiler::pixeltree;
 // using namespace std::chrono;
@@ -78,6 +79,7 @@ PixelTreeCanvas::PixelTreeCanvas(QWidget* parent, TreeCanvas& tc)
   Backjumps bj;
   bj_data = bj.findBackjumps((*_na)[0], *_na);
 
+  perfHelper.begin("construct/compress pixel tree");
   constructPixelTree();
   compressPixelTree(1);
   compressDepthAnalysis(da_data_compressed, 1);
@@ -87,15 +89,17 @@ PixelTreeCanvas::PixelTreeCanvas(QWidget* parent, TreeCanvas& tc)
   compressVarData(var_decisions_compressed, 1);
   gatherNogoodData();
   compressNogoodData(1);
-  // resizeCanvas();
+  perfHelper.end();
+
 }
 
 void PixelTreeCanvas::paintEvent(QPaintEvent*) {
   if (pixel_image.image() == nullptr) return;
 
-  QPainter painter(this);
+  QPainter painter{this};
 
   painter.drawImage(QPoint{0, 0}, *pixel_image.image());
+
 }
 
 void PixelTreeCanvas::constructPixelTree(void) {
@@ -506,7 +510,9 @@ void PixelTreeCanvas::drawPixelTree(const PixelData& pixel_data) {
 
 /// Make sure no redundant work is done
 void PixelTreeCanvas::redrawAll() {
+  perfHelper.begin("pixel tree: clear image");
   pixel_image.clear();
+  perfHelper.end();
 
   /// TODO(maxim): this should probably also be in the pixelImage class
   current_image_height = 0;
@@ -520,7 +526,10 @@ void PixelTreeCanvas::redrawAll() {
       0, current_image_height -
              _sa->viewport()->height() / pixel_image.pixel_height());
 
+
+  perfHelper.begin("pixel tree: draw pizel tree");
   drawPixelTree(pixel_data);
+  perfHelper.end();
 
   /// All Histograms
 
@@ -540,7 +549,9 @@ void PixelTreeCanvas::redrawAll() {
   if (show_bj_analysis_histogram) drawBjData();
   // drawNogoodData();
 
+  perfHelper.begin("pixel tree: update pixel image");
   pixel_image.update();
+  perfHelper.end();
 
   repaint();
 }

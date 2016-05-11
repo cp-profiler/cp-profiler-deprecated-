@@ -16,6 +16,17 @@ namespace analysis {
 /// TODO(maxim): show all subtrees of a particular shape
 /// TODO(maxim): find 'exact' subtrees
 
+
+class TreeStructure {
+  // NodeAllocator m_na;
+
+public:
+  TreeStructure() {
+
+  }
+
+};
+
 ShapeProperty interpretShapeProperty(const QString& str) {
   if (str == "size") return ShapeProperty::SIZE;
   if (str == "count") return ShapeProperty::COUNT;
@@ -26,7 +37,9 @@ ShapeProperty interpretShapeProperty(const QString& str) {
 
 SimilarShapesWindow::SimilarShapesWindow(TreeCanvas* tc)
     : QDialog(tc), m_tc(tc), shapeSet(CompareShapes{}), filters(*this) {
+  perfHelper.begin("shapes: analyse");
   addNodesToMap();
+  perfHelper.end();
 
   scene.reset(new QGraphicsScene{});
 

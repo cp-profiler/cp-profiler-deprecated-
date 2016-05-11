@@ -80,7 +80,6 @@ public:
 
 /// each new consequent Canvas will get an id
   int _id;
-  bool _isUsed; /// TODO: make private
 
   const CanvasType canvasType;
 

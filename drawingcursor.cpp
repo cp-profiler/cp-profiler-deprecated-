@@ -40,17 +40,15 @@ const QColor DrawingCursor::lightGreen(11, 118, 70, 120);
 /// Blue color for expanded choice nodes
 const QColor DrawingCursor::lightBlue(0, 92, 161, 120);
 
-const double NODE_WIDTH = 20.0;
-const double HALF_NODE_WIDTH = NODE_WIDTH / 2.0;
-const double THIRD_NODE_WIDTH = NODE_WIDTH / 3.0;
-const double TWO_THIRDS_NODE_WIDTH = 2.0 * NODE_WIDTH / 3.0;
-const double QUARTER_NODE_WIDTH = HALF_NODE_WIDTH / 2.0;
-const double FAILED_WIDTH = 14.0;
-const double HALF_FAILED_WIDTH = FAILED_WIDTH / 2.0;
-const double QUARTER_FAILED_WIDTH = FAILED_WIDTH / 4.0;
-const double SHADOW_OFFSET = 3.0;
-const double HIDDEN_DEPTH =
-  static_cast<double>(Layout::dist_y) + FAILED_WIDTH;
+constexpr double NODE_WIDTH = 20.0;
+constexpr double HALF_NODE_WIDTH = NODE_WIDTH / 2.0;
+constexpr double THIRD_NODE_WIDTH = NODE_WIDTH / 3.0;
+constexpr double FAILED_WIDTH = 14.0;
+constexpr double HALF_FAILED_WIDTH = FAILED_WIDTH / 2.0;
+constexpr double QUARTER_FAILED_WIDTH = FAILED_WIDTH / 4.0;
+constexpr double SHADOW_OFFSET = 3.0;
+constexpr double HIDDEN_DEPTH =
+    static_cast<double>(Layout::dist_y) + FAILED_WIDTH;
 
 namespace Pens {
     const QPen hovered = QPen{Qt::black, 3};

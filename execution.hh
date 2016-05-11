@@ -14,7 +14,7 @@ class Execution : public QObject {
     friend class TreeCanvas;
 public:
     Execution() {
-        _na = std::unique_ptr<NodeAllocator>{new NodeAllocator(false)};
+        _na = std::unique_ptr<NodeAllocator>{new NodeAllocator{}};
         _data = std::unique_ptr<Data>{new Data(_na.get())};
     }
 
