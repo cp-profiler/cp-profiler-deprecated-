@@ -38,47 +38,31 @@
 #ifndef VISUALNODE_HPP
 #define VISUALNODE_HPP
 
-inline void NodeAllocator::allocateBlock(void) {
-  cur_b++;
-  cur_t = 0;
-  if (cur_b == block_count) {
-    int oldn = block_count;
-    block_count = static_cast<int>(block_count * 1.5 + 1.0);
-    blocks = heap.realloc<Block*>(blocks, oldn, block_count);
-  }
-  blocks[cur_b] = static_cast<Block*>(heap.ralloc(sizeof(Block)));
-}
+#include <iostream>
 
 inline NodeAllocator::NodeAllocator() {
-  blocks = heap.alloc<Block*>(10);
-  block_count = 10;
-  cur_b = -1;
-  cur_t = NodeBlockSize - 1;
+  nodes.reserve(1000);
 }
 
 inline NodeAllocator::~NodeAllocator(void) {
-  for (int i = cur_b + 1; i--;) heap.rfree(blocks[i]);
-  heap.free<Block*>(blocks, block_count);
+  for (auto &node : nodes) {
+    delete node;
+  }
 }
 
 inline int NodeAllocator::allocate(int p) {
-  cur_t++;
-  if (cur_t == NodeBlockSize) allocateBlock();
-  new (&blocks[cur_b]->nodes[cur_t]) VisualNode(p);  /// bookmark
-  return cur_b * NodeBlockSize + cur_t;
+  nodes.push_back(new VisualNode{p});
+  return nodes.size() - 1;
 }
 
 inline int NodeAllocator::allocateRoot() {
-  cur_t++;
-  if (cur_t == NodeBlockSize) allocateBlock();
-  new (&blocks[cur_b]->nodes[cur_t]) VisualNode(true);
-  return cur_b * NodeBlockSize + cur_t;
+  nodes.push_back(new VisualNode{});
+  return nodes.size() - 1;
 }
 
 inline VisualNode* NodeAllocator::operator[](int i) const {
-  assert(i / NodeBlockSize < block_count);
-  assert(i / NodeBlockSize < cur_b || i % NodeBlockSize <= cur_t);
-  return &(blocks[i / NodeBlockSize]->nodes[i % NodeBlockSize]);
+  assert(static_cast<uint>(i) < nodes.size());
+  return nodes[i];
 }
 
 inline bool NodeAllocator::showLabels(void) const { return !labels.isEmpty(); }
@@ -98,7 +82,7 @@ inline QString NodeAllocator::getLabel(VisualNode* n) const {
 }
 
 inline int NodeAllocator::size() const {
-  return cur_b * NodeBlockSize + cur_t + 1;
+  return nodes.size();
 }
 
 inline Extent::Extent(void) : l(-1), r(-1) {}

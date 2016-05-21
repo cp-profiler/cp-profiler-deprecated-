@@ -161,7 +161,7 @@ public:
   /// Construct with parent \a p
   VisualNode(int p);
   /// Constructor for root node \a db_id
-  VisualNode(bool);
+  VisualNode();
   /// Returns false if any of the nodes in ancestry are hidden
   bool isNodeVisible(const NodeAllocator& na) const;
   /// Return if node is hidden
@@ -263,33 +263,20 @@ public:
   void dispose(void);
 };
 
+
+/// TODO(maxim): move anything to do with labels out
 class NodeAllocator {
 private:
-  /// Size of each block of nodes
-  static constexpr int NodeBlockSize = 1<<14;
-  /// Blocks of nodes
-  class Block {
-  public:
-    /// The actual nodes
-    VisualNode nodes[NodeBlockSize];
-  };
-  /// Array of blocks
-  Block** blocks;
-  /// Size of the array
-  int block_count;
-  /// Current block number
-  int cur_b;
-  /// Current node number in current block
-  int cur_t;
-  /// Allocate new block, potentially reallocate block array
-  void allocateBlock(void);
+
+  std::vector<VisualNode*> nodes;
+
   /// Hash table mapping nodes to label text
-  QHash<VisualNode*,QString> labels;
+  QHash<VisualNode*, QString> labels;
 public:
-  /// Constructor
-  explicit NodeAllocator();
-  /// Destructor
-  ~NodeAllocator(void);
+  NodeAllocator();
+  ~NodeAllocator();
+  NodeAllocator(const NodeAllocator&) = delete;
+  NodeAllocator& operator=(const NodeAllocator&) = delete;
   /// Allocate new node with parent \a p and database id
   int allocate(int p);
   /// Allocate new root node

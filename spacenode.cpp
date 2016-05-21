@@ -87,18 +87,12 @@
 
   }
 
-  SpaceNode::SpaceNode(bool)
+  SpaceNode::SpaceNode()
   : Node(-1, false),
     nstatus(0) {
-//    if (root == nullptr) {
-//      setStatus(FAILED);
-//      setHasSolvedChildren(false);
-//      setHasFailedChildren(true);
-//    } else {
       setStatus(UNDETERMINED);
       setHasSolvedChildren(false);
       setHasFailedChildren(false);
-//    }
   }
 
 

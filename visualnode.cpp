@@ -78,7 +78,7 @@ public:
 ShapeAllocator shapeAllocator;
 
 VisualNode::VisualNode(int p)
-    : SpaceNode(p)
+    : SpaceNode{p}
     , offset(0)
 {
     shape = nullptr;
@@ -91,8 +91,8 @@ VisualNode::VisualNode(int p)
     setSubtreeSizeUnknown();
 }
 
-VisualNode::VisualNode( bool)
-    : SpaceNode(true)
+VisualNode::VisualNode()
+    : SpaceNode{}
     , offset(0)
 {
     shape = nullptr;

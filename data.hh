@@ -99,6 +99,9 @@ Q_OBJECT
 /// step for node rate counter (in microseconds)
 static constexpr int NODE_RATE_STEP = 1000;
 
+    const NodeAllocator* _na; /// Node allocator of _tc
+
+
 public:
     /// counts instances of Data
     static int instance_counter;
@@ -106,8 +109,6 @@ public:
     // const TreeCanvas* _tc; /// TreeCanvas instance it belongs to
     // const int _id; /// Id of the TreeCanvas instance it belongs to
 
-    /// TODO: do I even need NodeAllocator in Data?
-    const NodeAllocator* _na; /// Node allocator of _tc
 
     /// True if we want a dummy node (needed for showing restarts)
     bool _isRestarts = false;

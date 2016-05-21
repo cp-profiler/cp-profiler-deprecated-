@@ -1021,10 +1021,10 @@ void TreeCanvas::paintEvent(QPaintEvent* event) {
              static_cast<int>(origClip.width() / scale),
              static_cast<int>(origClip.height() / scale));
 
-  perfHelper.begin("TreeCanvas: paint");
+  // perfHelper.begin("TreeCanvas: paint");
   DrawingCursor dc(root, *na, painter, clip);
   PreorderNodeVisitor<DrawingCursor>(dc).run();
-  perfHelper.end();
+  // perfHelper.end();
   // int nodesLayouted = 1;
   // clock_t t0 = clock();
   // while (v.next()) { nodesLayouted++; }

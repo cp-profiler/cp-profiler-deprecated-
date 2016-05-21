@@ -388,7 +388,10 @@ void ShapeRect::draw(QGraphicsScene* scene) {
 VisualNode* ShapeRect::getNode() { return m_node; }
 
 void ShapeRect::mousePressEvent(QGraphicsSceneMouseEvent*) {
+  /// TODO(maxim): this should run in a parallel thread
+  // perfHelper.begin("similar shapes: highlight on a tree");
   m_canvas->highlightShape(m_node);
+  // perfHelper.end();
 }
 
 ShapeCanvas::ShapeCanvas(QAbstractScrollArea* sa, TreeCanvas* tc,

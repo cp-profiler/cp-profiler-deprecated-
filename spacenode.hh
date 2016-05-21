@@ -161,7 +161,7 @@ public:
   /// Construct node with parent \a p
   SpaceNode(int p);
   /// Construct root node
-  SpaceNode(bool);
+  SpaceNode();
 
   /// Free allocated memory
   void dispose(void);
