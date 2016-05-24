@@ -41,6 +41,7 @@
 #include "spacenode.hh"
 //#include "treecanvas.hh"
 #include <string>
+#include <vector>
 
 class Data;
 //class TreeCanvas;
