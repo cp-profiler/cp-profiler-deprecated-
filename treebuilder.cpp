@@ -95,7 +95,8 @@ bool TreeBuilder::processRoot(DbEntry& dbEntry) {
     dbEntry.gid = 0;
     dbEntry.depth = 1;
   }
-  dbEntry.decisionLevel = 0;
+  // Assume the solver sends this.
+  // dbEntry.decisionLevel = 0;
 
   gid2entry[dbEntry.gid] = &dbEntry;
 
@@ -184,13 +185,15 @@ bool TreeBuilder::processNode(DbEntry& dbEntry, bool is_delayed) {
     dbEntry.gid = gid;
     dbEntry.depth = parentEntry.depth + 1;  /// parent's depth + 1
 
-    // It is not always clear how to compute a node's decision
-    // level with respect to its parent.  For now, let us say that
-    // the right-most branch is not a decision, and all other
-    // branches are decisions.
-    bool thisIsRightmost = (alt == parentEntry.numberOfKids - 1);
-    dbEntry.decisionLevel =
-        parentEntry.decisionLevel + (thisIsRightmost ? 0 : 1);
+    // For now, assume that the solver sends the decision level.
+
+    // // It is not always clear how to compute a node's decision
+    // // level with respect to its parent.  For now, let us say that
+    // // the right-most branch is not a decision, and all other
+    // // branches are decisions.
+    // bool thisIsRightmost = (alt == parentEntry.numberOfKids - 1);
+    // dbEntry.decisionLevel =
+    //     parentEntry.decisionLevel + (thisIsRightmost ? 0 : 1);
 
     gid2entry[gid] = &dbEntry;
 

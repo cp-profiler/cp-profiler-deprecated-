@@ -103,6 +103,8 @@ int Data::handleNodeCallback(message::Node& node) {
     float domain = node.domain_size();
     int nogood_bld = node.nogood_bld();
     bool usesAssumptions = node.uses_assumptions();
+    int backjump_distance = node.backjump_distance();
+    int decision_level = node.decision_level();
 
     // qDebug() << "Received node: \t" << sid << " " << pid << " "
     //                 << alt << " " << kids << " " << status << " wid:"
@@ -144,7 +146,9 @@ int Data::handleNodeCallback(message::Node& node) {
                     node_time,
                     domain,
                     nogood_bld,
-                    usesAssumptions);
+                    usesAssumptions,
+                    backjump_distance,
+                    decision_level);
 
     auto full_sid = entry->full_sid;
 

@@ -58,11 +58,14 @@ public:
     DbEntry(int sid, int restart_id, int64_t parent_id, int _alt, int _kids,
             std::string _label, int tid, int _status, unsigned long long _time_stamp,
             unsigned long long _node_time, float _domain, int _nogood_bld,
-            bool _uses_assumptions) :
+            bool _uses_assumptions, int _backjump_distance, int _decision_level) :
         s_node_id(sid), restart_id(restart_id), gid(-1), parent_sid(parent_id), alt(_alt), numberOfKids(_kids),
         status(_status), label(_label), thread_id(tid), depth(-1), time_stamp(_time_stamp), node_time(_node_time),
         domain(_domain), nogood_bld(_nogood_bld),
-        usesAssumptions(_uses_assumptions) {
+        usesAssumptions(_uses_assumptions),
+        backjump_distance(_backjump_distance),
+        decision_level(_decision_level)
+    {
     }
 
     friend ostream& operator<<(ostream& s, const DbEntry& e);
@@ -82,12 +85,13 @@ public:
     std::string label;
     int thread_id; 
     int depth;
-    int decisionLevel;
     unsigned long long time_stamp;
     unsigned long long node_time;
     float domain;
     int nogood_bld;
     bool usesAssumptions;
+    int backjump_distance;
+    int decision_level;
 };
 
 class Data : public QObject {

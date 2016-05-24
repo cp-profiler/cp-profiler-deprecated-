@@ -323,6 +323,20 @@ class Node : public ::google::protobuf::Message {
   inline bool uses_assumptions() const;
   inline void set_uses_assumptions(bool value);
 
+  // optional int32 backjump_distance = 17;
+  inline bool has_backjump_distance() const;
+  inline void clear_backjump_distance();
+  static const int kBackjumpDistanceFieldNumber = 17;
+  inline ::google::protobuf::int32 backjump_distance() const;
+  inline void set_backjump_distance(::google::protobuf::int32 value);
+
+  // optional int32 decision_level = 18;
+  inline bool has_decision_level() const;
+  inline void clear_decision_level();
+  static const int kDecisionLevelFieldNumber = 18;
+  inline ::google::protobuf::int32 decision_level() const;
+  inline void set_decision_level(::google::protobuf::int32 value);
+
   // @@protoc_insertion_point(class_scope:message.Node)
  private:
   inline void set_has_type();
@@ -357,6 +371,10 @@ class Node : public ::google::protobuf::Message {
   inline void clear_has_nogood_bld();
   inline void set_has_uses_assumptions();
   inline void clear_has_uses_assumptions();
+  inline void set_has_backjump_distance();
+  inline void clear_has_backjump_distance();
+  inline void set_has_decision_level();
+  inline void clear_has_decision_level();
 
   ::google::protobuf::UnknownFieldSet _unknown_fields_;
 
@@ -378,6 +396,8 @@ class Node : public ::google::protobuf::Message {
   ::google::protobuf::int32 nogood_bld_;
   ::std::string* info_;
   bool uses_assumptions_;
+  ::google::protobuf::int32 backjump_distance_;
+  ::google::protobuf::int32 decision_level_;
   friend void  protobuf_AddDesc_message_2eproto();
   friend void protobuf_AssignDesc_message_2eproto();
   friend void protobuf_ShutdownFile_message_2eproto();
@@ -984,6 +1004,54 @@ inline void Node::set_uses_assumptions(bool value) {
   set_has_uses_assumptions();
   uses_assumptions_ = value;
   // @@protoc_insertion_point(field_set:message.Node.uses_assumptions)
+}
+
+// optional int32 backjump_distance = 17;
+inline bool Node::has_backjump_distance() const {
+  return (_has_bits_[0] & 0x00010000u) != 0;
+}
+inline void Node::set_has_backjump_distance() {
+  _has_bits_[0] |= 0x00010000u;
+}
+inline void Node::clear_has_backjump_distance() {
+  _has_bits_[0] &= ~0x00010000u;
+}
+inline void Node::clear_backjump_distance() {
+  backjump_distance_ = 0;
+  clear_has_backjump_distance();
+}
+inline ::google::protobuf::int32 Node::backjump_distance() const {
+  // @@protoc_insertion_point(field_get:message.Node.backjump_distance)
+  return backjump_distance_;
+}
+inline void Node::set_backjump_distance(::google::protobuf::int32 value) {
+  set_has_backjump_distance();
+  backjump_distance_ = value;
+  // @@protoc_insertion_point(field_set:message.Node.backjump_distance)
+}
+
+// optional int32 decision_level = 18;
+inline bool Node::has_decision_level() const {
+  return (_has_bits_[0] & 0x00020000u) != 0;
+}
+inline void Node::set_has_decision_level() {
+  _has_bits_[0] |= 0x00020000u;
+}
+inline void Node::clear_has_decision_level() {
+  _has_bits_[0] &= ~0x00020000u;
+}
+inline void Node::clear_decision_level() {
+  decision_level_ = 0;
+  clear_has_decision_level();
+}
+inline ::google::protobuf::int32 Node::decision_level() const {
+  // @@protoc_insertion_point(field_get:message.Node.decision_level)
+  return decision_level_;
+}
+inline void Node::set_decision_level(::google::protobuf::int32 value) {
+  set_has_decision_level();
+  decision_level_ = value;
+  // @@protoc_insertion_point(field_set:message.Node.decision_level)
 }
 
 

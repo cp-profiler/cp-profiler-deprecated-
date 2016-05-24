@@ -33,6 +33,8 @@ public:
     string solutionString;
 };
 
+#define INCLUDE_NOGOOD_STRING 0
+
 void printStatsHeader(std::ostream& out = std::cout) {
     out <<        "id"
         << "," << "parentId"
@@ -46,7 +48,9 @@ void printStatsHeader(std::ostream& out = std::cout) {
         << "," << "subtreeSize"
         << "," << "subtreeSolutions"
         << "," << "nogoodStringLength"
+#if INCLUDE_NOGOOD_STRING
         << "," << "nogoodString"
+#endif
         << "," << "nogoodLength"
         << "," << "nogoodNumberVariables"
         << "," << "nogoodBLD"
@@ -86,7 +90,9 @@ void printStatsEntry(const StatsEntry& se, std::ostream& out = std::cout) {
         << "," << se.subtreeSize
         << "," << se.subtreeSolutions
         << "," << se.nogoodStringLength
+#if INCLUDE_NOGOOD_STRING
         << "," << se.nogoodString
+#endif
         << "," << se.nogoodLength
         << "," << se.nogoodNumberVariables
         << "," << se.nogoodBLD
@@ -213,10 +219,13 @@ public:
             se.nogoodNumberVariables = calculateNogoodNumberVariables(se.nogoodString);
             se.nogoodBLD = entry->nogood_bld;
             se.usesAssumptions = entry->usesAssumptions;
+            se.backjumpDistance = entry->backjump_distance;
             se.label = entry->label;
-            se.decisionLevel = entry->decisionLevel;
+            se.decisionLevel = entry->decision_level;
             se.timestamp = entry->time_stamp;
             se.solutionString = getSolutionString(sid);
+
+            se.backjumpDestination = se.decisionLevel - se.backjumpDistance;
         } else {
             se.nodeid = -1;
             se.parentid = -1;
@@ -233,8 +242,12 @@ public:
         }
         std::unordered_map<VisualNode*, int>::const_iterator it2 = backjumpDestinationMap.find(node());
         if (it2 != backjumpDestinationMap.end()) {
-            se.backjumpDestination = it2->second;
-            se.backjumpDistance = se.decisionLevel - se.backjumpDestination;
+            //            se.backjumpDestination = it2->second;
+            if (se.backjumpDistance != se.decisionLevel - it2->second) {
+                std::cerr << "BACKJUMP DISTANCE DISCREPANCY\n";
+                printStatsEntry(se, std::cerr);
+            }
+            // se.backjumpDistance = se.decisionLevel - se.backjumpDestination;
         } else {
             se.backjumpDestination = -1;
             se.backjumpDistance = -1;
@@ -317,7 +330,7 @@ public:
         switch (node()->getStatus()) {
         case FAILED:
             gid = node()->getIndex(na);
-            decisionLevel = execution->getEntry(gid)->decisionLevel;
+            decisionLevel = execution->getEntry(gid)->decision_level;
             if (mostRecentFailure) {
                 backjumpDestination[mostRecentFailure] = decisionLevel;
                 mostRecentFailure = nullptr;
@@ -329,7 +342,7 @@ public:
         case SOLVED:
             if (mostRecentFailure) {
                 gid = node()->getIndex(na);
-                decisionLevel = execution->getEntry(gid)->decisionLevel;
+                decisionLevel = execution->getEntry(gid)->decision_level;
                 backjumpDestination[mostRecentFailure] = decisionLevel;
                 mostRecentFailure = nullptr;
             }
@@ -343,6 +356,11 @@ public:
 // **************************************************
 // Module interface
 // **************************************************
+
+// TODO: This can be simplified.  We now expect the solver to send the
+// backjump distance with a failure, so we don't need to calculate it
+// any more.  The way we did it was wrong anyway; it didn't account
+// for restarts, so these appeared as very long backjumps.
 
 // Collect the machine-learning statistics for a (sub)tree.  The first
 // argument are the root of the subtree and the node-allocator for the
@@ -358,6 +376,9 @@ void collectMLStats(VisualNode* root, const NodeAllocator& na, Execution* execut
     // that we pass it by reference to the BackjumpCursor, which
     // writes to it.
     std::unordered_map<VisualNode*, int> backjumpDestination;
+
+    // TODO: remove this pass, and the backjump destination map
+    // altogether
 
     // First pass: construct the backjumpDestination map.
     BackjumpCursor bjc(root, na, execution, backjumpDestination);

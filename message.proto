@@ -41,4 +41,6 @@ message Node {
   optional string info        = 14;
   optional int32  nogood_bld  = 15;
   optional bool   uses_assumptions = 16;
+  optional int32  backjump_distance = 17;
+  optional int32  decision_level = 18;
 }
