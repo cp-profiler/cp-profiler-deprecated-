@@ -383,6 +383,7 @@ Gist::addActions(void) {
 
     showPixelTree = new QAction("Pixel Tree View", this);
     showIcicleTree = new QAction("Icicle Tree View", this);
+    showWebscript = new QAction("Webscript View", this);
     followPath = new QAction("Follow Path", this);
 
     navUp = new QAction("Up", this);
@@ -530,6 +531,7 @@ Gist::addActions(void) {
     addAction(labelPath);
     addAction(showPixelTree);
     addAction(showIcicleTree);
+    addAction(showWebscript);
     addAction(followPath);
     addAction(analyzeSimilarSubtrees);
     addAction(highlightNodesMenu);
@@ -621,6 +623,7 @@ Gist::connectCanvas(TreeCanvas* tc) {
     connect(labelPath, SIGNAL(triggered()), tc, SLOT(labelPath()));
     connect(showPixelTree, SIGNAL(triggered()), tc, SLOT(showPixelTree()));
     connect(showIcicleTree, SIGNAL(triggered()), tc, SLOT(showIcicleTree()));
+    connect(showWebscript, SIGNAL(triggered()), tc, SLOT(showWebscript()));
     connect(followPath, SIGNAL(triggered()), tc, SLOT(followPath()));
     connect(analyzeSimilarSubtrees, SIGNAL(triggered()), tc, SLOT(analyzeSimilarSubtrees()));
     connect(highlightNodesMenu, SIGNAL(triggered()), tc, SLOT(highlightNodesMenu()));

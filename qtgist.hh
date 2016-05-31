@@ -179,6 +179,9 @@ public:
     /// Show Icicle Search Tree
   QAction* showIcicleTree;
 
+  /// Show webscript view
+  QAction* showWebscript;
+
   /// Follow path
   QAction* followPath;
 

@@ -1,0 +1,126 @@
+body {
+  background-color: white;
+}
+text {
+  font-family: sans-serif;
+  fill: black;
+  font-size: 11px;
+}
+
+text.active {
+  fill: red;
+}
+
+
+p {
+  font-family: sans-serif;
+  font-size: 11px;
+  fill: black;
+}
+
+#breadcrumb,
+#stats {
+  font-family: sans-serif;
+  font-size: 12px;
+  fill: black;
+}
+#breadcrumb {
+  height: 40px;
+  width: 1400px;
+}
+
+#vis {
+  width: 100%;
+    margin:0 auto;
+    background-color: #ffe;
+}
+
+#vis2 {
+  height:900px;
+  width: 20%;
+  float: right;
+}
+#vis1{
+  width: 80%;;
+  float: left;
+  }
+#vis3 {
+  width: 80%;;
+  float: left;
+}
+
+
+
+.node {
+  font: 8px sans-serif;
+  fill: #6a6969;
+/*//  fill: #dfdddd;*/
+}
+
+.gVar,
+.ice {
+  fill: #dfdddd;
+}
+.link {
+  fill: none;
+  stroke: #6a6969;
+  stroke-width: 1px;
+}
+
+.line {
+  fill: none;
+  stroke: #6a6969;
+  stroke-width: 1px;
+}
+.selected {
+  stroke: #ff00cf;
+  fill: #ff00cf;
+  stroke-width: 1px;
+}
+.nogoodSelected {
+  fill: #a523f5;
+  stroke:  #a523f5;
+  stroke-width: 1px;
+}
+.futureNogoodSelected {
+  fill: #f96a7a;
+  stroke: #f96a7a;
+  stroke-width: 1px;
+}
+
+
+.highlight {
+  fill: blue;
+  stroke: blue;
+  stroke-width: 1px;
+}
+.nogoodHighlight {
+  fill: #8104ff;
+  stroke: #8104ff;
+  stroke-width: 1px;
+}
+.futureNogoodHighlight {
+  fill: #04d2ff;
+  stroke: #04d2ff;
+  stroke-width: 1px;
+}
+
+line {
+  stroke: #fff;
+  stroke-width: 1px;
+}
+
+.axis {
+  font: 10px sans-serif;
+}
+
+.axis path,
+.axis line {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
+}
+
+.x.axis path {
+  display: none;
+}

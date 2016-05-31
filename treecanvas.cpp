@@ -48,6 +48,8 @@
 #include "ml-stats.hh"
 #include "globalhelper.hh"
 
+#include "webscript.hh"
+
 #include <fstream>
 #include <iostream>
 
@@ -323,6 +325,30 @@ void TreeCanvas::showIcicleTree(void) {
   auto icicleTreeDialog = new IcicleTreeDialog(this);
 
   icicleTreeDialog->show();
+}
+
+void TreeCanvas::showWebscript(void) {
+    const char* paths[] = { "../webscripts/sunburst.html", "../webscripts/icicle.html" };
+    for (int i = 0 ; i < 2 ; i++) {
+        QDialog* dialog = new QDialog(this);
+
+        std::stringstream ss;
+        ::collectMLStats(currentNode, *na, execution, ss);
+
+        WebscriptView* web = new WebscriptView(dialog, paths[i], this->execution, this, ss.str());
+        webscriptViews.append(web);
+
+        QHBoxLayout* layout = new QHBoxLayout;
+        layout->addWidget(web);
+        dialog->setLayout(layout);
+
+        dialog->show();
+    }
+}
+
+void TreeCanvas::tellWebscripts(int nodeid) {
+    for (int i = 0 ; i < webscriptViews.size() ; i++)
+        webscriptViews[i]->select(nodeid);
 }
 
 void TreeCanvas::followPath(void) {

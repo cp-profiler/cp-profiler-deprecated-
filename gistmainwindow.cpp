@@ -123,6 +123,7 @@ GistMainWindow::GistMainWindow(Execution* execution, QWidget* parent) : QMainWin
   treeVisMenu->addAction(c->analyzeSimilarSubtrees);
   treeVisMenu->addAction(c->showPixelTree);
   treeVisMenu->addAction(c->showIcicleTree);
+  treeVisMenu->addAction(c->showWebscript);
   treeVisMenu->addAction(c->hideSize);
   treeVisMenu->addAction(c->followPath);
 
