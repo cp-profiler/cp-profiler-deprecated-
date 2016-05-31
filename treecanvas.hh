@@ -92,7 +92,6 @@ public:
   string getTitle() { return execution->getTitle(); }
   DbEntry* getEntry(unsigned int gid) { return execution->getEntry(gid); }
 
-  NodeAllocator* get_na() { return na; }
   const Statistics& get_stats() { return stats; }
 
   Execution* getExecution() { return execution; }
@@ -308,8 +307,6 @@ protected:
   bool stopSearchFlag;
   /// Flag signalling that Gist is ready to be closed
   bool finishedFlag;
-  /// Allocator for nodes
-  NodeAllocator* na = nullptr;
   /// The root node of the tree
   VisualNode* root;
   /// The currently selected node

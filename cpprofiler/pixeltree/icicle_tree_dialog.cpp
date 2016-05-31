@@ -122,7 +122,7 @@ void IcicleTreeCanvas::redrawAll() {
 void IcicleTreeCanvas::drawIcicleTree() {
   icicle_rects_.clear();
 
-  auto& na = *tc_.get_na();
+  auto& na = tc_.getExecution()->getNA();
 
   auto& root = *na[0];
 
@@ -167,7 +167,7 @@ std::pair<int, int> IcicleTreeCanvas::processNode(SpaceNode& node) {
 
   const int kids = node.getNumberOfChildren();
   // qDebug() << "kids: " << kids;
-  auto& na = *tc_.get_na();
+  auto& na = tc_.getExecution()->getNA();
 
   int x_begin = INT_MAX;
 

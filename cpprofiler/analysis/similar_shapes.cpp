@@ -168,12 +168,12 @@ bool areShapesIdentical(const NodeAllocator& na,
 }
 
 void SimilarShapesWindow::addNodesToMap() {
-  auto na = m_tc->get_na();
-  VisualNode* root = (*na)[0];
+  auto& na = m_tc->getExecution()->getNA();
+  VisualNode* root = (na)[0];
 
-  root->unhideAll(*na);
-  root->layout(*na);
-  SimilarShapesCursor ac(root, *na, *this);
+  root->unhideAll(na);
+  root->layout(na);
+  SimilarShapesCursor ac(root, na, *this);
   PostorderNodeVisitor<SimilarShapesCursor>(ac).run();
 }
 
@@ -299,7 +299,7 @@ void SimilarShapesWindow::drawHistogram() {
     const int shape_size = it->shape_size;
     const int shape_height = it->shape_height;
 
-    auto equal = detail::areShapesIdentical(*m_tc->get_na(), shapeSet, *it);
+    auto equal = detail::areShapesIdentical(m_tc->getExecution()->getNA(), shapeSet, *it);
 
     int value;
     if (m_histType == ShapeProperty::SIZE) {
@@ -441,7 +441,7 @@ void ShapeCanvas::paintEvent(QPaintEvent* event) {
   QRect clip{origClip.x() - xtrans + xoff, origClip.y() + yoff,
              origClip.width(), origClip.height()};
 
-  DrawingCursor dc{m_targetNode, *m_tc->get_na(), painter, clip, false};
+  DrawingCursor dc{m_targetNode, m_tc->getExecution()->getNA(), painter, clip, false};
   PreorderNodeVisitor<DrawingCursor>(dc).run();
 }
 

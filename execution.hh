@@ -15,7 +15,6 @@ class Execution : public QObject {
     friend class TreeCanvas;
 public:
     Execution() {
-        _na = std::unique_ptr<NodeAllocator>{new NodeAllocator{}};
         _data = std::unique_ptr<Data>{new Data()};
     }
 
@@ -38,8 +37,14 @@ public:
     }
     DbEntry* getEntry(int gid) const { return _data->getEntry(gid); }
     DbEntry* getEntry(const Node& node) const {
-        auto gid = node.getIndex(*_na);
+        auto gid = node.getIndex(getNA());
         return getEntry(gid);
+    }
+    const NodeAllocator& getNA() const {
+        return nodeTree.getNA();
+    }
+    NodeAllocator& getNA() {
+        return nodeTree.getNA();
     }
     unsigned int getGidBySid(int sid) { return _data->getGidBySid(sid); }
     std::string getLabel(int gid) const { return _data->getLabel(gid); }
@@ -57,10 +62,6 @@ public:
 
     Data* getData() const {
         return _data.get();
-    }
-
-    NodeAllocator& na() const {
-        return *_na.get();
     }
 
     void start(std::string label, bool isRestarts) {
@@ -89,6 +90,10 @@ public:
         return _is_done;
     }
 
+    VisualNode* getRootNode() const {
+        return nodeTree.getRootNode();
+    }
+
 
 signals:
     void newNode();
@@ -99,7 +104,7 @@ signals:
 
 private:
     std::unique_ptr<Data> _data;
-    std::unique_ptr<NodeAllocator> _na;
+    NodeTree nodeTree;
     bool _is_done;
 public Q_SLOTS:
     void handleNewNode(message::Node& node) {

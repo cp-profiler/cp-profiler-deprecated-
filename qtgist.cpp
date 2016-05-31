@@ -169,14 +169,14 @@ Gist::updateActions(VisualNode* n, bool finished) {
             navDown->setEnabled(false);
         }
 
-        VisualNode* p = n->getParent(*canvas->na);
+        VisualNode* p = n->getParent(execution->getNA());
         if (p == nullptr) {
             navUp->setEnabled(false);
             navRight->setEnabled(false);
             navLeft->setEnabled(false);
         } else {
             navUp->setEnabled(true);
-            unsigned int alt = n->getAlternative(*canvas->na);
+            unsigned int alt = n->getAlternative(execution->getNA());
             navRight->setEnabled(alt + 1 < p->getNumberOfChildren());
             navLeft->setEnabled(alt > 0);
         }
@@ -195,7 +195,7 @@ Gist::updateActions(VisualNode* n, bool finished) {
 void
 Gist::on_canvas_statusChanged(VisualNode* n, const Statistics& stats,
                               bool finished) {
-    nodeStatInspector->node(*canvas->na,n,stats,finished); /// for single node stats
+    nodeStatInspector->node(execution->getNA(),n,stats,finished); /// for single node stats
     if (!finished) {
         showNodeStats->setEnabled(false);
         // stop-> setEnabled(true);
@@ -257,13 +257,13 @@ Gist::on_canvas_statusChanged(VisualNode* n, const Statistics& stats,
 
         VisualNode* root = n;
         while (!root->isRoot())
-            root = root->getParent(*canvas->na);
-        NextSolCursor nsc(n, false, *canvas->na);
+            root = root->getParent(execution->getNA());
+        NextSolCursor nsc(n, false, execution->getNA());
         PreorderNodeVisitor<NextSolCursor> nsv(nsc);
         nsv.run();
         navNextSol->setEnabled(nsv.getCursor().node() != root);
 
-        NextSolCursor psc(n, true, *canvas->na);
+        NextSolCursor psc(n, true, execution->getNA());
         PreorderNodeVisitor<NextSolCursor> psv(psc);
         psv.run();
         navPrevSol->setEnabled(psv.getCursor().node() != root);
