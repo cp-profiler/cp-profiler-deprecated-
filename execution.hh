@@ -7,6 +7,7 @@
 #include <sstream>
 #include <ctime>
 #include <memory>
+#include "nodetree.hh"
 
 class Execution : public QObject {
     Q_OBJECT
@@ -15,12 +16,31 @@ class Execution : public QObject {
 public:
     Execution() {
         _na = std::unique_ptr<NodeAllocator>{new NodeAllocator{}};
-        _data = std::unique_ptr<Data>{new Data(_na.get())};
+        _data = std::unique_ptr<Data>{new Data()};
     }
 
     inline const std::unordered_map<int64_t, string>& getNogoods(void) const { return _data->getNogoods(); }
+    const std::string* getNogood(const Node& node) const {
+        auto entry = getEntry(node);
+        if (!entry) return nullptr;
+        auto nogood = _data->sid2nogood.find(entry->full_sid);
+        if (nogood == _data->sid2nogood.end()) return nullptr;
+        return &nogood->second;
+    }
+
     inline std::unordered_map<int64_t, string*>& getInfo(void) const { return _data->getInfo(); }
+    const std::string* getInfo(const Node& node) const {
+        auto entry = getEntry(node);
+        if (!entry) return nullptr;
+        auto info = _data->sid2info.find(entry->s_node_id);
+        if (info == _data->sid2info.end()) return nullptr;
+        return info->second;
+    }
     DbEntry* getEntry(int gid) const { return _data->getEntry(gid); }
+    DbEntry* getEntry(const Node& node) const {
+        auto gid = node.getIndex(*_na);
+        return getEntry(gid);
+    }
     unsigned int getGidBySid(int sid) { return _data->getGidBySid(sid); }
     std::string getLabel(int gid) const { return _data->getLabel(gid); }
     unsigned long long getTotalTime() { return _data->getTotalTime(); }
@@ -55,7 +75,12 @@ public:
         _data->setTitle(label + " (" + ts + ")");
 
         connect(this, SIGNAL(doneReceiving(void)), _data.get(), SLOT(setDoneReceiving(void)));
-        connect(this, &Execution::doneReceiving, [this](){ _is_done = true; });
+        connect(this, &Execution::doneReceiving, [this]() {
+                _is_done = true;
+                std::cerr << "execution " << this << " done receiving\n";
+            });
+
+        std::cerr << "Execution::start on " << this << "\n";
 
         emit titleKnown();
     }

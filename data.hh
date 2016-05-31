@@ -34,8 +34,7 @@
 #include <QDebug>
 
 #include <cstdint>
-#include "node.hh"
-#include "visualnode.hh"
+#include <cassert>
 
 using namespace std::chrono;
 using std::string;
@@ -102,9 +101,6 @@ Q_OBJECT
 
 /// step for node rate counter (in microseconds)
 static constexpr int NODE_RATE_STEP = 1000;
-
-    const NodeAllocator* _na; /// Node allocator of _tc
-
 
 public:
     /// counts instances of Data
@@ -180,7 +176,7 @@ private:
 
 public:
 
-    Data(NodeAllocator* na);
+    Data();
     ~Data(void);
 
     int handleNodeCallback(message::Node& node);
@@ -207,13 +203,8 @@ public:
 
     unsigned long long getTotalTime(void); /// time in microseconds
 
-    DbEntry* getEntry(int gid) const;
-    DbEntry* getEntry(const Node& node) const;
-
-    const string* getNogood(const Node& node) const;
-    const string* getInfo(const Node& node) const;
-
     int getGidBySid(int64_t sid) { return nodes_arr[sid2aid[sid]]->gid; }
+    DbEntry* getEntry(int gid) const;
 
 
 /// ****************************

@@ -49,8 +49,7 @@ bool readDelimitedFrom(google::protobuf::io::ZeroCopyInputStream* rawInput,
 
 using google::protobuf::io::IstreamInputStream;
 
-Execution* loadSaved(std::string path) {
-  Execution* e = new Execution();
+Execution* loadSaved(Execution* e, std::string path) {
   std::ifstream inputFile(path, std::ios::in | std::ios::binary);
   IstreamInputStream raw_input(&inputFile);
   while (true) {
@@ -188,6 +187,7 @@ void ProfilerConductor::compareExecutions(bool auto_save) {
   CmpTreeDialog* ctd = new CmpTreeDialog(
       this, e, withLabels, item1->gistWindow_->getGist()->getCanvas(),
       item2->gistWindow_->getGist()->getCanvas());
+  (void)ctd;
 
   // if (auto_save) {
   //     ctd->saveComparisonStatsTo("/home/maxim/temp_stats.txt");
@@ -355,10 +355,11 @@ void ProfilerConductor::loadExecutionClicked(bool) {
 }
 
 void ProfilerConductor::loadExecution(std::string filename) {
-  Execution* e = loadSaved(filename);
+  Execution* e = new Execution();
   newExecution(e);
   /// TODO(maxim): should somehow know if it was restarts, TRUE for now
   e->start("loaded from " + filename, true);
+  loadSaved(e, filename);
 }
 
 void ProfilerConductor::deleteExecutionClicked(bool checked) {

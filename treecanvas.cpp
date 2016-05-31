@@ -429,7 +429,7 @@ void TreeCanvas::printDebugInfo(void) {
 }
 
 void TreeCanvas::showNodeInfo(void) {
-  auto info = execution->getData()->getInfo(*currentNode);
+  auto info = execution->getInfo(*currentNode);
 
   if (!info) {
     qDebug() << "no info item";
@@ -1318,7 +1318,7 @@ void TreeCanvas::highlightNodesWithInfo() {
   /// Does the node have non-empty info field?
   auto predicate = [this](VisualNode* node) {
 
-    auto info = execution->getData()->getInfo(*node);
+    auto info = execution->getInfo(*node);
 
     if (!info) {
       return false;
@@ -1339,7 +1339,7 @@ void TreeCanvas::highlightFailedByNogoods() {
   auto action = [](VisualNode* node) { node->setHovered(true); };
 
   auto predicate = [this](VisualNode* node) {
-    auto info = execution->getData()->getInfo(*node);
+    auto info = execution->getInfo(*node);
 
     if (!info) return false;
 

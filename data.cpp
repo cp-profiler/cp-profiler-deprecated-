@@ -47,9 +47,7 @@ ostream& operator<<(ostream& s, const DbEntry& e) {
 }
 
 
-Data::Data(NodeAllocator* na)
- : _na(na) {
-
+Data::Data() {
     _isDone = false;
     _prev_node_timestamp = 0;
     _time_per_node = -1; // unassigned
@@ -67,6 +65,7 @@ Data::Data(NodeAllocator* na)
 }
 
 void Data::setDoneReceiving(void) {
+    std::cerr << "Data::setDoneReceiving\n";
     QMutexLocker locker(&dataMutex);
 
     // _total_nodes = nodes_arr.size();
@@ -190,38 +189,6 @@ std::string Data::getLabel(int gid) {
         return it->second->label;
     return "";
 
-}
-
-DbEntry*
-Data::getEntry(const Node& node) const {
-    auto gid = node.getIndex(*_na);
-    return getEntry(gid);
-}
-
-const std::string*
-Data::getInfo(const Node& node) const {
-    auto entry = getEntry(node);
-
-    if (!entry) return nullptr;
-
-    auto info = sid2info.find(entry->s_node_id);
-
-    if (info == sid2info.end()) return nullptr;
-
-    return info->second;
-}
-
-const std::string*
-Data::getNogood(const Node& node) const {
-    auto entry = getEntry(node);
-
-    if (!entry) return nullptr;
-
-    auto nogood = sid2nogood.find(entry->full_sid);
-
-    if (nogood == sid2nogood.end()) return nullptr;
-
-    return &nogood->second;
 }
 
 int64_t Data::gid2sid(int gid) {

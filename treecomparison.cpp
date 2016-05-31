@@ -217,8 +217,7 @@ TreeComparison::compare(TreeCanvas* new_tc, bool with_labels) {
             const string* info_str = nullptr;
             /// if node1 is FAILED -> check nogoods // TODO(maxim): branch node?
             if (node1->getStatus() == FAILED) {
-                auto data = _ex1.getData();
-                info_str = data->getInfo(*node1);
+                info_str = _ex1.getInfo(*node1);
 
                 int search_reduction = -1;
                 assert(left == 1);
