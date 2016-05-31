@@ -38,7 +38,7 @@ var size = Math.min(treeWidth, treeHeight);
     var path = svgSunburst.selectAll("path")
        .data(nodes)
        .enter().append("g")
-       .attr("class", function(d) { return "ice r" + d.restartId + " " +d.variableGroup + " " + d.variable + " " + "n" + d.id + " ng" + d.visId_t; });
+       .attr("class", function(d) { return "ice r" + d.restartId + " " +d.variableGroup + " " + d.variable + " " + "g" + d.gid + " ng" + d.visId_t; });
        path.append("path")
           .attr("d", arc)
           .attr("display", function(d) { if (d.id <= -1) return display ="none" }) // hide inner ring
@@ -70,8 +70,8 @@ var size = Math.min(treeWidth, treeHeight);
 
 }
 
-function select(nodeid) {
-    var n = ".n" + nodeid;
+function select(gid) {
+    var n = ".g" + gid;
     d3.selectAll(".highlight")
       .classed("highlight", false);
     d3.selectAll(n).classed("highlight", true);

@@ -21,10 +21,9 @@ public:
           dataString(_dataString)
     {}
     
-    Q_INVOKABLE void message(int nodeid) {
-        int gid = execution->getGidBySid(nodeid);
+    Q_INVOKABLE void message(int gid) {
         treeCanvas->navigateToNodeById(gid);
-        treeCanvas->tellWebscripts(nodeid);
+        treeCanvas->tellWebscripts(gid);
     }
 
     Q_INVOKABLE QString getCSV(void) {

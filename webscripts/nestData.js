@@ -125,8 +125,6 @@ function nestData(data) {
             // add node to child array
             .push(node);
 
-              if (node.id == 9) console.warn("pushed number 9 onto parent " + parent.id);
-
              // if (!node.restartId) node.restartId = restart;
           } else //(the children)
           {

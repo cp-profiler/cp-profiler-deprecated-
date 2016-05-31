@@ -20,7 +20,6 @@ function drawIcicle2(data) {
 
   var partNodes = partition.nodes(treeData);
 
-console.warn(partition.nodes(treeData));
       // var yAxis = d3.svg.axis()
       //     .scale(xScale)
       //     .orient("left")
@@ -44,7 +43,7 @@ console.warn(partition.nodes(treeData));
  var rect = svgIcicle.selectAll("rect")
             .data(partition.nodes(treeData))
             .enter().append("g")
-            .attr("class", function(d) { return "ice " + "r" + d.restartId + " " + d.variableGroup + " " + d.variable + " n" + d.id + " ng" + d.visId_t; })
+            .attr("class", function(d) { return "ice " + "r" + d.restartId + " " + d.variableGroup + " " + d.variable + " g" + d.gid + " ng" + d.visId_t; })
            //.attr("display", function(d) { return d.parent ? null : "none"; }) // hide inner ring
            .attr("display", function(d) { if (d.id <= -1) return display ="none" }) // hide inner ring
 
@@ -74,12 +73,12 @@ console.warn(partition.nodes(treeData));
 //        rect.on("click", function(d) { clicked(d);});
         rect.on("mouseover", function(d) {
         //    highlight(d, "node");
-               window.profiler.message(d.id);
+               window.profiler.message(d.gid);
         })
             .on("mouseout", function(d) {highlight(d, "off"); })
             .on("click", function(d) {
 //                clicked(d, "p");
-                window.profiler.message(d.id);
+                window.profiler.message(d.gid);
             }); // want to choose children get type working..
         rect.append("title") // add label to all them for the hoverover
                   .text(function(d, i) {
@@ -116,7 +115,7 @@ console.warn(partition.nodes(treeData));
 }
 
 function select(nodeid) {
-    var n = ".n" + nodeid;
+    var n = ".g" + nodeid;
     d3.selectAll(".highlight")
       .classed("highlight", false);
     d3.selectAll(n).classed("highlight", true);

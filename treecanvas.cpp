@@ -337,9 +337,9 @@ void TreeCanvas::showWebscript(void) {
     }
 }
 
-void TreeCanvas::tellWebscripts(int nodeid) {
+void TreeCanvas::tellWebscripts(int gid) {
     for (int i = 0 ; i < webscriptViews.size() ; i++)
-        webscriptViews[i]->select(nodeid);
+        webscriptViews[i]->select(gid);
 }
 
 void TreeCanvas::followPath(void) {
