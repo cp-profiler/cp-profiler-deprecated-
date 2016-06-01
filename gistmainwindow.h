@@ -73,7 +73,7 @@ Q_SIGNALS:
   /// stops the receiver thread
   void stopReceiver(void);
 
-  void buildingFinished(void);
+  /* void buildingFinished(void); */
 
   void doneReceiving(void);
 
@@ -90,6 +90,8 @@ protected Q_SLOTS:
 public Q_SLOTS:
   void changeTitle(QString file_name);
   void gatherStatistics(void);
+
+  void selectNode(int gid);
 public:
   /// Constructor
   GistMainWindow(Execution* execution, QWidget* parent);

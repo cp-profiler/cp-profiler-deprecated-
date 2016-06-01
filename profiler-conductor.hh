@@ -14,6 +14,12 @@ public:
     WebscriptView* sunburstView;
     WebscriptView* icicleView;
     GistMainWindow* gistWindow;
+
+    ExecutionInfo()
+        : sunburstView(NULL),
+          icicleView(NULL),
+          gistWindow(NULL)
+    {}
 };
 
 class ProfilerConductor : public QMainWindow {
@@ -39,7 +45,8 @@ class ProfilerConductor : public QMainWindow {
   void compareExecutions(bool auto_save);
 
   void registerWebscriptView(Execution* execution, std::string id, WebscriptView* webView);
-  void tellWebscriptsSelectNode(Execution* execution, int gid);
+  WebscriptView* getWebscriptView(Execution* execution, std::string id);
+  void tellVisualisationsSelectNode(Execution* execution, int gid);
   
  public slots:
   void updateList();

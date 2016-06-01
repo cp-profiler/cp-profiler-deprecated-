@@ -178,8 +178,8 @@ GistMainWindow::GistMainWindow(Execution* execution, QWidget* parent) : QMainWin
   connect(c, SIGNAL(changeMainTitle(QString)),
           this, SLOT(changeTitle(QString)));
 
-  connect(c, SIGNAL(buildingFinished(void)),
-          this, SIGNAL(buildingFinished(void)));
+  // connect(c, SIGNAL(buildingFinished(void)),
+  //         this, SIGNAL(buildingFinished(void)));
 
   connect(this, SIGNAL(doneReceiving()), c, SIGNAL(doneReceiving()));
 
@@ -277,4 +277,9 @@ GistMainWindow::gatherStatistics(void) {
   out.open(statsFilename.toStdString(), std::ofstream::out);
   c->getCanvas()->collectMLStatsRoot(out);
   out.close();
+}
+
+void
+GistMainWindow::selectNode(int gid) {
+    c->getCanvas()->navigateToNodeById(gid);
 }

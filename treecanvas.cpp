@@ -30,7 +30,6 @@
 #include <exception>
 #include <ctime>
 
-#include "treebuilder.hh"
 #include "cpprofiler/pixeltree/pixel_tree_dialog.hh"
 #include "cpprofiler/pixeltree/icicle_tree_dialog.hh"
 #include "highlight_nodes_dialog.hpp"
@@ -88,8 +87,6 @@ TreeCanvas::TreeCanvas(Execution* execution, QGridLayout* layout,
 
   root = execution->getRootNode();
 
-  _builder = new TreeBuilder(this);
-
   scale = LayoutConfig::defScale / 100.0;
 
   setAutoFillBackground(true);
@@ -110,15 +107,15 @@ TreeCanvas::TreeCanvas(Execution* execution, QGridLayout* layout,
   connect(this, SIGNAL(autoZoomChanged(bool)), autoZoomButton,
           SLOT(setChecked(bool)));
 
-  connect(_builder, SIGNAL(addedNode()), this, SLOT(maybeUpdateCanvas()));
-  connect(_builder, SIGNAL(doneBuilding(bool)), this,
-          SLOT(finalizeCanvas(void)));
-  connect(_builder, SIGNAL(doneBuilding(bool)), this,
-          SLOT(statusChanged(bool)));
+  // connect(_builder, SIGNAL(addedNode()), this, SLOT(maybeUpdateCanvas()));
+  // connect(_builder, SIGNAL(doneBuilding(bool)), this,
+  //         SLOT(finalizeCanvas(void)));
+  // connect(_builder, SIGNAL(doneBuilding(bool)), this,
+  //         SLOT(statusChanged(bool)));
 
-  // NOTE(maxim): this connects to conductor later
-  connect(_builder, SIGNAL(doneBuilding(bool)), this,
-          SIGNAL(buildingFinished(void)));
+  // // NOTE(maxim): this connects to conductor later
+  // connect(_builder, SIGNAL(doneBuilding(bool)), this,
+  //         SIGNAL(buildingFinished(void)));
 
   // connect(ptr_receiver, SIGNAL(update(int,int,int)), this,
   //         SLOT(layoutDone(int,int,int)));
@@ -167,7 +164,6 @@ TreeCanvas::~TreeCanvas(void) {
     DisposeCursor dc(root, execution->getNA());
     PreorderNodeVisitor<DisposeCursor>(dc).run();
   }
-  delete _builder;
 }
 
 ///***********************
@@ -703,8 +699,8 @@ void TreeCanvas::reset() {
   for (int i = bookmarks.size(); i--;) emit removedBookmark(i);
   bookmarks.clear();
 
-  _builder->reset(execution, &execution->getNA());
-  _builder->start();
+  // _builder->reset(execution, &execution->getNA());
+  // _builder->start();
 
   emit statusChanged(currentNode, stats, false);
 
@@ -1084,8 +1080,8 @@ bool TreeCanvas::finish(void) {
 }
 
 void TreeCanvas::finalizeCanvas(void) {
-  disconnect(_builder, SIGNAL(doneBuilding(bool)), this,
-             SLOT(statusChanged(bool)));
+  // disconnect(_builder, SIGNAL(doneBuilding(bool)), this,
+  //            SLOT(statusChanged(bool)));
 }
 
 void TreeCanvas::setCurrentNode(VisualNode* n, bool finished, bool update) {
@@ -1093,10 +1089,14 @@ void TreeCanvas::setCurrentNode(VisualNode* n, bool finished, bool update) {
 
   if (n != nullptr) {
     currentNode->setMarked(false);
+    bool changed = (n != currentNode);
     currentNode = n;
     currentNode->setMarked(true);
     emit statusChanged(currentNode, stats, finished);
     emit needActionsUpdate(currentNode, finished);
+    if (changed) {
+        emit announceSelectNode(n->getIndex(execution->getNA()));
+    }
     if (update) {
       setCursor(QCursor(Qt::ArrowCursor));
       QWidget::update();

@@ -32,7 +32,6 @@ class Data;
 class DbEntry;
 class Execution;
 class ReadingQueue;
-class TreeCanvas;
 
 class TreeBuilder : public QThread {
   Q_OBJECT
@@ -40,8 +39,7 @@ class TreeBuilder : public QThread {
  private:
   Data* _data;
   NodeAllocator* _na;
-  TreeCanvas* _tc;
-  QMutex* layout_mutex;
+  Execution* execution;
 
   unsigned long long lastRead;
   int delayed_count = 0;
@@ -56,15 +54,14 @@ class TreeBuilder : public QThread {
   inline bool processNode(DbEntry& dbEntry, bool is_delayed);
 
  public:
-  TreeBuilder(TreeCanvas* tc, QObject* parent = 0);
+  TreeBuilder(Execution* execution, QObject* parent = 0);
   ~TreeBuilder();
-  void reset(Execution* execution, NodeAllocator* na);
 
-  Q_SIGNALS : void doneBuilding(bool finished);
+Q_SIGNALS:
+  void doneBuilding(bool finished);
   void addedNode(void);
 
  public Q_SLOTS:
-  void startBuilding(void);
   void setDoneReceiving(void);
 
  protected:

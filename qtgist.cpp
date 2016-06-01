@@ -79,7 +79,7 @@ Gist::Gist(Execution* execution, QWidget* parent) : QWidget(parent), execution(e
     // connect(receiver, SIGNAL(newCanvasNeeded()), this, SLOT(createNewCanvas(void)),
     //    Qt::BlockingQueuedConnection);
 
-    connect(canvas, SIGNAL(buildingFinished()), this, SIGNAL(buildingFinished()));
+    // connect(canvas, SIGNAL(buildingFinished()), this, SIGNAL(buildingFinished()));
 
 
     nodeStatInspector = new NodeStatInspector(this);
@@ -592,12 +592,12 @@ Gist::connectCanvas(TreeCanvas* tc) {
 
     if (current_tc == tc) return;
 
-    if (current_tc && current_tc->_builder) {
+    // if (current_tc && current_tc->_builder) {
 
-        qDebug() << "--- disconnecting stuff\n";
+    //     qDebug() << "--- disconnecting stuff\n";
 
-        abort();
-    }
+    //     abort();
+    // }
 
     current_tc = tc;
 

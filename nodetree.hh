@@ -27,6 +27,10 @@ public:
     VisualNode* getRootNode() const {
         return root;
     }
+
+    Statistics& getStatistics() {
+        return stats;
+    }
 };
 
 #endif

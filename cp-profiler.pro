@@ -52,6 +52,7 @@ SOURCES += main.cpp\
     profiler-conductor.cpp \
     profiler-tcp-server.cpp \
     ml-stats.cpp \
+    execution.cpp \
     cpprofiler\analysis\backjumps.cpp \
     cpprofiler\pixeltree\pixel_tree_dialog.cpp \
     cpprofiler\pixeltree\icicle_tree_dialog.cpp \

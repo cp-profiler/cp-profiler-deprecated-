@@ -8,6 +8,9 @@
 #include <ctime>
 #include <memory>
 #include "nodetree.hh"
+#include "treebuilder.hh"
+
+class TreeBuilder;
 
 class Execution : public QObject {
     Q_OBJECT
@@ -64,27 +67,7 @@ public:
         return _data.get();
     }
 
-    void start(std::string label, bool isRestarts) {
-
-        _data->setIsRestarts(isRestarts);
-
-        std::time_t t = std::time(nullptr);
-        string ts = std::asctime(std::localtime(&t));
-
-        // asctime puts a newline at the end; remove it
-        ts.pop_back();
-        _data->setTitle(label + " (" + ts + ")");
-
-        connect(this, SIGNAL(doneReceiving(void)), _data.get(), SLOT(setDoneReceiving(void)));
-        connect(this, &Execution::doneReceiving, [this]() {
-                _is_done = true;
-                std::cerr << "execution " << this << " done receiving\n";
-            });
-
-        std::cerr << "Execution::start on " << this << "\n";
-
-        emit titleKnown();
-    }
+    void start(std::string label, bool isRestarts);
 
     bool isDone() const {
         return _is_done;
@@ -94,6 +77,9 @@ public:
         return nodeTree.getRootNode();
     }
 
+    Statistics& getStatistics() {
+        return nodeTree.getStatistics();
+    }
 
 signals:
     void newNode();
@@ -106,6 +92,7 @@ private:
     std::unique_ptr<Data> _data;
     NodeTree nodeTree;
     bool _is_done;
+    TreeBuilder* builder;
 public Q_SLOTS:
     void handleNewNode(message::Node& node) {
         // std::cerr << "execution::newNode\n";

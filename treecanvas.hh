@@ -31,7 +31,6 @@
 
 #include <functional>
 #include "visualnode.hh"
-#include "treebuilder.hh"
 #include "zoomToFitIcon.hpp"
 #include "execution.hh"
 
@@ -53,7 +52,6 @@ namespace cpprofiler { namespace analysis {
   class SimilarShapesWindow;
 }}
 
-class TreeBuilder;
 class TreeDialog;
 
 /// *********************
@@ -71,7 +69,6 @@ class TreeCanvas : public QWidget {
 
   /// TODO: try to reduce the number of these
   friend class Gist;
-  friend class TreeBuilder;
   friend class ShapeCanvas;
   friend class TreeComparison;
   friend class BaseTreeDialog;
@@ -105,8 +102,6 @@ private:
 
   /// Pointer to Data Object
   // Data* _data = nullptr;
-
-  TreeBuilder* _builder;
 
   Execution* execution;
 
@@ -291,6 +286,8 @@ Q_SIGNALS:
   void buildingFinished(void);
 
   void showNodeOnPixelTree(int gid);
+
+  void announceSelectNode(int gid);
 protected:
   /// Mutex for synchronizing acccess to the tree
   QMutex mutex;

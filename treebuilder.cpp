@@ -22,7 +22,6 @@
 #include "treebuilder.hh"
 #include "globalhelper.hh"
 #include "readingQueue.hh"
-#include "treecanvas.hh"
 #include <cassert>
 
 #include <time.h>
@@ -37,43 +36,36 @@ double get_wall_time() {
   return (double)time.tv_sec + (double)time.tv_usec * .000001;
 }
 
-TreeBuilder::TreeBuilder(TreeCanvas* tc, QObject* parent)
-    : QThread(parent), _tc(tc), read_queue(nullptr) {
-  layout_mutex = &(_tc->layoutMutex);
-  connect(this, &TreeBuilder::doneBuilding, tc->getExecution(),
-          &Execution::doneBuilding);
-}
+TreeBuilder::TreeBuilder(Execution* execution_, QObject* parent)
+    : QThread(parent), execution(execution_) {
+  // layout_mutex = &(_tc->layoutMutex);
 
-TreeBuilder::~TreeBuilder() { delete read_queue; }
+  qDebug() << "starting TreeBuilder on execution" << execution;
+    
+  connect(this, &TreeBuilder::doneBuilding,
+          execution, &Execution::doneBuilding);
 
-void TreeBuilder::startBuilding() { start(); }
-
-void TreeBuilder::setDoneReceiving() { _data->setDoneReceiving(); }
-
-void TreeBuilder::reset(Execution* execution, NodeAllocator* na) {
-  /// old _data and _na are deleted by this point (where?)
   _data = execution->getData();
-  _na = na;
+  _na = &execution->getNA();
 
-  delete read_queue;
   read_queue = new ReadingQueue(_data->nodes_arr);
 
   nodesCreated = 1;
   lastRead = 0;
-
-  /// TODO(maxim): is this needed?
-  // connect(this, &TreeBuilder::doneBuilding, execution,
-  // &Execution::doneBuilding);
 }
 
+TreeBuilder::~TreeBuilder() { delete read_queue; }
+
+void TreeBuilder::setDoneReceiving() { _data->setDoneReceiving(); }
+
 bool TreeBuilder::processRoot(DbEntry& dbEntry) {
-  QMutexLocker locker(layout_mutex);
+  // QMutexLocker locker(layout_mutex);
 
   std::cerr << "process root: " << dbEntry << "\n";
 
   auto& gid2entry = _data->gid2entry;
 
-  Statistics& stats = _tc->stats;
+  Statistics& stats = execution->getStatistics();
 
   stats.choices++;
 
@@ -119,7 +111,7 @@ bool TreeBuilder::processRoot(DbEntry& dbEntry) {
 
 bool TreeBuilder::processNode(DbEntry& dbEntry, bool is_delayed) {
   // std::cerr << "TreeBuilder::processNode (" << dbEntry << ")\n";
-  QMutexLocker locker(layout_mutex);
+  // QMutexLocker locker(layout_mutex);
 
   int64_t pid = dbEntry.parent_sid;  /// parent ID as it comes from Solver
   int alt = dbEntry.alt;             /// which alternative the current node is
@@ -130,7 +122,7 @@ bool TreeBuilder::processNode(DbEntry& dbEntry, bool is_delayed) {
   std::unordered_map<int64_t, int>& sid2aid = _data->sid2aid;
   auto& gid2entry = _data->gid2entry;
 
-  Statistics& stats = _tc->stats;
+  Statistics& stats = execution->getStatistics();
 
   /// find out if node exists
 
@@ -303,7 +295,7 @@ void TreeBuilder::run(void) {
 
   QMutex& dataMutex = _data->dataMutex;
 
-  Statistics& stats = _tc->stats;
+  Statistics& stats = execution->getStatistics();
   stats.undetermined = 1;
 
   bool is_delayed;
@@ -319,8 +311,8 @@ void TreeBuilder::run(void) {
       dataMutex.unlock();
 
       if (_data->isDone()) {
-        qDebug() << "stop because done "
-                 << "tc_id: " << _tc->_id;
+        qDebug() << "stop because done ";
+                 // << "tc_id: " << _tc->_id;
         break;
       }
       /// can't read, but receiving not done, waiting...
