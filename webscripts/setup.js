@@ -47,6 +47,7 @@ function initialise(obj) {
 
 function type(d) {
   d.id = +d.id;
+  d.gid = +d.gid;
   d.parentId = +d.parentId;
   d.status = +d.status;
   d.alternative = +d.alternative;

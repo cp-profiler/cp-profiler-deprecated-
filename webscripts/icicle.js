@@ -78,7 +78,7 @@ function drawIcicle2(data) {
             // .on("mouseout", function(d) {highlight(d, "off"); })
             .on("click", function(d) {
 //                clicked(d, "p");
-                window.profiler.message(d.gid);
+                window.profiler.messageMany([d.gid, d.gid+1]);
             }); // want to choose children get type working..
         rect.append("title") // add label to all them for the hoverover
                   .text(function(d, i) {
@@ -119,4 +119,13 @@ function select(nodeid) {
     d3.selectAll(".highlight")
       .classed("highlight", false);
     d3.selectAll(n).classed("highlight", true);
+}
+
+function selectMany(gids) {
+    d3.selectAll(".highlight")
+        .classed("highlight", false);
+    for (gid of gids) {
+        var n = ".g" + gid;
+        d3.selectAll(n).classed("highlight", true);
+    }
 }

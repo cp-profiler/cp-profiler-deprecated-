@@ -47,6 +47,7 @@ class ProfilerConductor : public QMainWindow {
   void registerWebscriptView(Execution* execution, std::string id, WebscriptView* webView);
   WebscriptView* getWebscriptView(Execution* execution, std::string id);
   void tellVisualisationsSelectNode(Execution* execution, int gid);
+  void tellVisualisationsSelectManyNodes(Execution* execution, QList<QVariant> gids);
   
  public slots:
   void updateList();

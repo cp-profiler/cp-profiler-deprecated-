@@ -78,3 +78,12 @@ function select(gid) {
       .classed("highlight", false);
     d3.selectAll(n).classed("highlight", true);
 }
+
+function selectMany(gids) {
+    d3.selectAll(".highlight")
+        .classed("highlight", false);
+    for (gid of gids) {
+        var n = ".g" + gid;
+        d3.selectAll(n).classed("highlight", true);
+    }
+}

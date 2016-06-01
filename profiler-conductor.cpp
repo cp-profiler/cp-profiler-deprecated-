@@ -291,6 +291,10 @@ void ProfilerConductor::webscriptClicked(bool) {
 
                 connect(web, &WebscriptView::announceSelectNode,
                         this, [this, execution](int gid){this->tellVisualisationsSelectNode(execution, gid);});
+                connect(web, &WebscriptView::announceSelectManyNodes,
+                        this, [this, execution](QList<QVariant> gids){
+                            this->tellVisualisationsSelectManyNodes(execution, gids);
+                        });
             
                 dialog->show();
             }
@@ -308,6 +312,14 @@ void ProfilerConductor::tellVisualisationsSelectNode(Execution* execution, int g
     p = executionInfoHash[execution]->icicleView;   if (p) p->select(gid);
     GistMainWindow* g;
     g = executionInfoHash[execution]->gistWindow;   if (g) g->selectNode(gid);
+}
+
+void ProfilerConductor::tellVisualisationsSelectManyNodes(Execution* execution, QList<QVariant> gids) {
+    WebscriptView* p;
+    p = executionInfoHash[execution]->sunburstView; if (p) p->selectMany(gids);
+    p = executionInfoHash[execution]->icicleView;   if (p) p->selectMany(gids);
+    // GistMainWindow* g;
+    // g = executionInfoHash[execution]->gistWindow;   if (g) g->selectManyNode(gids);
 }
 
 void ProfilerConductor::onSomeFinishedBuilding() {

@@ -22,8 +22,10 @@ public:
     
     Q_INVOKABLE void message(int gid) {
         announceSelectNode(gid);
-        // treeCanvas->navigateToNodeById(gid);
-        // treeCanvas->tellWebscripts(gid);
+    }
+
+    Q_INVOKABLE void messageMany(QList<QVariant> gidsV) {
+        announceSelectManyNodes(gidsV);
     }
 
     Q_INVOKABLE QString getCSV(void) {
@@ -32,6 +34,7 @@ public:
 
 Q_SIGNALS:
     void announceSelectNode(int);
+    void announceSelectManyNodes(QList<QVariant>);
 
 private:
     Execution* execution;
@@ -49,6 +52,8 @@ public:
     {
         connect(this, &WebscriptView::loadFinished, this, &WebscriptView::onload);
         connect(&messenger, &WebMessenger::announceSelectNode, this, &WebscriptView::announceSelectNode);
+        connect(&messenger, &WebMessenger::announceSelectManyNodes,
+                this, &WebscriptView::announceSelectManyNodes);
 
         // We want the web engine view to expand to fill the dialog
         // window it inhabits.  When the dialog window is resized, so
@@ -68,8 +73,14 @@ public:
         QTextStream(&js) << "select(" << nodeid << ")";
         page()->runJavaScript(js);
     }
+    void selectMany(QList<QVariant> nodeids) {
+        QString js;
+        QTextStream(&js) << "selectMany(" << QJsonDocument(QJsonArray::fromVariantList(nodeids)).toJson() << ")";
+        page()->runJavaScript(js);
+    }
 Q_SIGNALS:
     void announceSelectNode(int);
+    void announceSelectManyNodes(QList<QVariant>);
 private:
     Execution* execution;
     std::string dataString;
