@@ -12,6 +12,9 @@
 
 #include "message.pb.hh"
 
+#include "ml-stats.hh"
+#include "webscript.hh"
+
 #include <fstream>
 
 #include <QPushButton>
@@ -89,6 +92,10 @@ ProfilerConductor::ProfilerConductor() : QMainWindow() {
   connect(gatherStatisticsButton, SIGNAL(clicked(bool)), this,
           SLOT(gatherStatisticsClicked(bool)));
 
+  QPushButton* webscriptButton = new QPushButton("webscript view");
+  connect(webscriptButton, SIGNAL(clicked(bool)), this,
+          SLOT(webscriptClicked(bool)));
+
   QPushButton* saveExecutionButton = new QPushButton("save execution");
   connect(saveExecutionButton, SIGNAL(clicked(bool)), this,
           SLOT(saveExecutionClicked(bool)));
@@ -110,9 +117,10 @@ ProfilerConductor::ProfilerConductor() : QMainWindow() {
   layout->addWidget(compareWithLabelsCB, 2, 1, 1, 1);
 
   layout->addWidget(gatherStatisticsButton, 3, 0, 1, 2);
-  layout->addWidget(saveExecutionButton, 4, 0, 1, 2);
-  layout->addWidget(loadExecutionButton, 5, 0, 1, 2);
-  layout->addWidget(deleteExecutionButton, 6, 0, 1, 2);
+  layout->addWidget(webscriptButton, 4, 0, 1, 2);
+  layout->addWidget(saveExecutionButton, 5, 0, 1, 2);
+  layout->addWidget(loadExecutionButton, 6, 0, 1, 2);
+  layout->addWidget(deleteExecutionButton, 7, 0, 1, 2);
 
   centralWidget->setLayout(layout);
 
@@ -139,6 +147,8 @@ void ProfilerConductor::newExecution(Execution* execution) {
   executionList->addItem(newItem);
   executions << execution;
 
+  executionInfoHash.insert(execution, new ExecutionInfo);
+
   connect(execution, SIGNAL(titleKnown()), this, SLOT(updateList()));
   connect(execution, SIGNAL(doneReceiving()), this,
           SLOT(onSomeFinishedReceiving()));
@@ -162,6 +172,7 @@ void ProfilerConductor::gistButtonClicked(bool) {
       gistMW = new GistMainWindow(item->execution_, this);
       item->gistWindow_ = gistMW;
       gistMW->changeTitle(item->text());
+      executionInfoHash[item->execution_]->gistWindow = gistMW;
     }
     gistMW->show();
     gistMW->activateWindow();
@@ -250,6 +261,40 @@ void ProfilerConductor::gatherStatisticsClicked(bool) {
     // g->show();
     // g->activateWindow();
   }
+}
+
+void ProfilerConductor::webscriptClicked(bool) {
+    QList<QListWidgetItem*> selected = executionList->selectedItems();
+    for (int i = 0; i < selected.size(); i++) {
+        ExecutionListItem* item = static_cast<ExecutionListItem*>(selected[i]);
+        Execution* execution = item->execution_;
+
+        const char* paths[] = { "../webscripts/sunburst.html", "../webscripts/icicle.html" };
+        const char* ids[] = { "sunburst", "icicle" };
+        std::stringstream ss;
+        ::collectMLStats(execution->getRootNode(), execution->getNA(), execution, ss);
+
+        for (int i = 0 ; i < 2 ; i++) {
+            QDialog* dialog = new QDialog(this);
+            WebscriptView* web = new WebscriptView(dialog, paths[i], execution, ss.str());
+            registerWebscriptView(execution, ids[i], web);
+            
+            QHBoxLayout* layout = new QHBoxLayout;
+            layout->addWidget(web);
+            dialog->setLayout(layout);
+
+            connect(web, &WebscriptView::announceSelectNode,
+                    this, [this, execution](int gid){this->tellWebscriptsSelectNode(execution, gid);});
+            
+            dialog->show();
+        }
+    }
+}
+
+void ProfilerConductor::tellWebscriptsSelectNode(Execution* execution, int gid) {
+    WebscriptView* p;
+    p = executionInfoHash[execution]->sunburstView; if (p) p->select(gid);
+    p = executionInfoHash[execution]->icicleView;   if (p) p->select(gid);
 }
 
 void ProfilerConductor::onSomeFinishedBuilding() {
@@ -373,4 +418,9 @@ void ProfilerConductor::deleteExecutionClicked(bool checked) {
     delete item->gistWindow_;
     delete item;
   }
+}
+
+void ProfilerConductor::registerWebscriptView(Execution* execution, std::string id, WebscriptView* webView) {
+    if      (id == "sunburst") executionInfoHash[execution]->sunburstView = webView;
+    else if (id == "icicle") executionInfoHash[execution]->icicleView = webView;
 }

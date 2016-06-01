@@ -35,8 +35,6 @@
 #include "zoomToFitIcon.hpp"
 #include "execution.hh"
 
-class WebscriptView;
-
 /// \brief Parameters for the tree layout
 namespace LayoutConfig {
   /// Minimum scale factor
@@ -115,8 +113,6 @@ private:
   int nodeCount = 0;
   QTimer* updateTimer;
 
-  QList<WebscriptView*> webscriptViews;
-
 public Q_SLOTS:
 
   void reset();
@@ -185,9 +181,6 @@ public Q_SLOTS:
 
   /// Show Icicle Tree View
   void showIcicleTree(void);
-
-  /// Show webscript
-  void showWebscript(void);
 
   /// Follow path from root
   void followPath(void);
@@ -412,7 +405,6 @@ public Q_SLOTS:
   void setCurrentNode(VisualNode* n, bool finished=true, bool update=true);
   /// Set the selected not to a node by solver id (from no-good table)
   void navigateToNodeById(int gid);
-  void tellWebscripts(int nodeid);
   void statusFinished();
 private Q_SLOTS:
   /// Set isUsed to true and update

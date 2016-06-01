@@ -10,42 +10,45 @@
 #include <iostream>
 
 #include "execution.hh"
-#include "treecanvas.hh"
 
 class WebMessenger : public QObject {
     Q_OBJECT
 public:
-    WebMessenger(Execution* _execution, TreeCanvas* _treeCanvas, std::string _dataString)
+    WebMessenger(Execution* _execution, std::string _dataString)
         : execution(_execution),
-          treeCanvas(_treeCanvas),
+          // treeCanvas(_treeCanvas),
           dataString(_dataString)
     {}
     
     Q_INVOKABLE void message(int gid) {
-        treeCanvas->navigateToNodeById(gid);
-        treeCanvas->tellWebscripts(gid);
+        announceSelectNode(gid);
+        // treeCanvas->navigateToNodeById(gid);
+        // treeCanvas->tellWebscripts(gid);
     }
 
     Q_INVOKABLE QString getCSV(void) {
         return QString::fromStdString(dataString);
     }
 
+Q_SIGNALS:
+    void announceSelectNode(int);
+
 private:
     Execution* execution;
-    TreeCanvas* treeCanvas;
     std::string dataString;
 };
 
 class WebscriptView : public QWebEngineView {
     Q_OBJECT
 public:
-    WebscriptView(QWidget* parent, QString htmlPath, Execution* _execution, TreeCanvas* _treeCanvas, std::string _dataString)
+    WebscriptView(QWidget* parent, QString htmlPath, Execution* _execution, std::string _dataString)
         : QWebEngineView(parent),
           execution(_execution),
           dataString(_dataString),
-          messenger(_execution, _treeCanvas, _dataString)
+          messenger(_execution, _dataString)
     {
         connect(this, &WebscriptView::loadFinished, this, &WebscriptView::onload);
+        connect(&messenger, &WebMessenger::announceSelectNode, this, &WebscriptView::announceSelectNode);
 
         // We want the web engine view to expand to fill the dialog
         // window it inhabits.  When the dialog window is resized, so
@@ -65,6 +68,8 @@ public:
         QTextStream(&js) << "select(" << nodeid << ")";
         page()->runJavaScript(js);
     }
+Q_SIGNALS:
+    void announceSelectNode(int);
 private:
     Execution* execution;
     std::string dataString;

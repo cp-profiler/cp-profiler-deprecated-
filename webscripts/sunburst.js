@@ -45,6 +45,8 @@ var size = Math.min(treeWidth, treeHeight);
 
          //.attr("fill", function(d) { return colorVG(d.variableGroup, d.parentId, d.status); })
 
+       path.on("click", function(d) { window.profiler.message(d.gid);});
+       path.on("mouseover", function(d) { window.profiler.message(d.gid);});
       // path.on("click", function(d) { clicked(d, "n"); })
       // //.on("click", click)
       //     .on("mouseover", function(d) { highlight(d, "node"); })

@@ -75,7 +75,7 @@ function drawIcicle2(data) {
         //    highlight(d, "node");
                window.profiler.message(d.gid);
         })
-            .on("mouseout", function(d) {highlight(d, "off"); })
+            // .on("mouseout", function(d) {highlight(d, "off"); })
             .on("click", function(d) {
 //                clicked(d, "p");
                 window.profiler.message(d.gid);
