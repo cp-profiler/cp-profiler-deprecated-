@@ -274,12 +274,12 @@ void ProfilerConductor::webscriptClicked(bool) {
         ExecutionListItem* item = static_cast<ExecutionListItem*>(selected[i]);
         Execution* execution = item->execution_;
 
-        const char* paths[] = { "../webscripts/sunburst.html", "../webscripts/icicle.html" };
-        const char* ids[] = { "sunburst", "icicle" };
+        const char* paths[] = { "../webscripts/sunburst.html", "../webscripts/icicle.html", "../webscripts/variables.html" };
+        const char* ids[] = { "sunburst", "icicle", "variables" };
         std::stringstream ss;
         ::collectMLStats(execution->getRootNode(), execution->getNA(), execution, ss);
 
-        for (int i = 0 ; i < 2 ; i++) {
+        for (int i = 0 ; i < 3 ; i++) {
             if (getWebscriptView(execution, ids[i]) == NULL) {
                 QDialog* dialog = new QDialog(this);
                 WebscriptView* web = new WebscriptView(dialog, paths[i], execution, ss.str());
@@ -308,16 +308,18 @@ void ProfilerConductor::webscriptClicked(bool) {
 
 void ProfilerConductor::tellVisualisationsSelectNode(Execution* execution, int gid) {
     WebscriptView* p;
-    p = executionInfoHash[execution]->sunburstView; if (p) p->select(gid);
-    p = executionInfoHash[execution]->icicleView;   if (p) p->select(gid);
+    p = executionInfoHash[execution]->sunburstView;  if (p) p->select(gid);
+    p = executionInfoHash[execution]->icicleView;    if (p) p->select(gid);
+    p = executionInfoHash[execution]->variablesView; if (p) p->select(gid);
     GistMainWindow* g;
-    g = executionInfoHash[execution]->gistWindow;   if (g) g->selectNode(gid);
+    g = executionInfoHash[execution]->gistWindow;    if (g) g->selectNode(gid);
 }
 
 void ProfilerConductor::tellVisualisationsSelectManyNodes(Execution* execution, QList<QVariant> gids) {
     WebscriptView* p;
-    p = executionInfoHash[execution]->sunburstView; if (p) p->selectMany(gids);
-    p = executionInfoHash[execution]->icicleView;   if (p) p->selectMany(gids);
+    p = executionInfoHash[execution]->sunburstView;  if (p) p->selectMany(gids);
+    p = executionInfoHash[execution]->icicleView;    if (p) p->selectMany(gids);
+    p = executionInfoHash[execution]->variablesView; if (p) p->selectMany(gids);
     // GistMainWindow* g;
     // g = executionInfoHash[execution]->gistWindow;   if (g) g->selectManyNode(gids);
 }
@@ -449,12 +451,14 @@ void ProfilerConductor::deleteExecutionClicked(bool checked) {
 
 WebscriptView*
 ProfilerConductor::getWebscriptView(Execution* execution, std::string id) {
-    if      (id == "sunburst") return executionInfoHash[execution]->sunburstView;
-    else if (id == "icicle")   return executionInfoHash[execution]->icicleView;
+    if      (id == "sunburst")  return executionInfoHash[execution]->sunburstView;
+    else if (id == "icicle")    return executionInfoHash[execution]->icicleView;
+    else if (id == "variables") return executionInfoHash[execution]->variablesView;
     return NULL;
 }
 
 void ProfilerConductor::registerWebscriptView(Execution* execution, std::string id, WebscriptView* webView) {
-    if      (id == "sunburst") executionInfoHash[execution]->sunburstView = webView;
-    else if (id == "icicle") executionInfoHash[execution]->icicleView = webView;
+    if      (id == "sunburst")  executionInfoHash[execution]->sunburstView = webView;
+    else if (id == "icicle")    executionInfoHash[execution]->icicleView = webView;
+    else if (id == "variables") executionInfoHash[execution]->variablesView = webView;
 }

@@ -13,11 +13,13 @@ class ExecutionInfo {
 public:
     WebscriptView* sunburstView;
     WebscriptView* icicleView;
+    WebscriptView* variablesView;
     GistMainWindow* gistWindow;
 
     ExecutionInfo()
         : sunburstView(NULL),
           icicleView(NULL),
+          variablesView(NULL),
           gistWindow(NULL)
     {}
 };

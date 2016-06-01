@@ -14,6 +14,7 @@ function getData(callback) {
         var data = rows;
         data[data.length] = {id: -1, gid: -1, parentId: -(data.length*2), visId: 0, root: true, timetaken: 0, restartId: 0}
         data.forEach(type);
+        data.forEach(getVariables);
         data.sort(function(a,b) {return a.id-b.id;});
         callback(data);
     });
@@ -65,4 +66,41 @@ function type(d) {
   d.timestamp = +d.timestamp;
 //  d.solutionString = d.solutionString;
   return d;
+}
+
+
+function getVariables(data) {
+  if (typeof data.solutionString != "undefined" && data.solutionString != "" )
+  {
+    data.solutionObject = JSON.parse(data.solutionString);
+  }
+    data.variable = data.label;
+    data.variableGroup = "NA";
+   if (typeof data.variable == "undefined" | data.variable == "")
+   {data.variable = "NA";}
+   if (data.variable != "NA") {
+   data.variable = data.variable.split("==")[0];
+   data.variable = data.variable.split(">=")[0];
+   data.variable = data.variable.split("<=")[0];
+   data.variable = data.variable.split(">")[0];
+   data.variable = data.variable.split("<")[0];
+   data.variable = data.variable.split("!=")[0];
+   data.variable = data.variable.split("=")[0];
+   data.variableGroup = data.variable.split("_")[0];
+   data.varArray1 = data.variable.split("_")[1]
+      if (data.variable.split("_").length > 1) data.varArray2 = data.variable.split("_")[2];
+      if (data.variable.split("_").length  > 2) data.isInt = data.variable.split("_")[3];
+
+  if (data.variableGroup =="X" & data.varArray1 == "INTRODUCED") {
+    data.isIntroduced = 1;
+    data.variableGroup = "X_INTRODUCED";
+    data.varArray1 = data.varArray2;
+    data.varArray2 = null;
+    }
+  if (data.variable.slice(data.variable.length-2, data.variable.length) == "_i")
+  { data.isInt = 1;
+    data.variable =  data.variable.slice(0, data.variable.length-2);
+  }
+  else data.isInt = 0;
+  }
 }
