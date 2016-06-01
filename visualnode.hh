@@ -232,6 +232,8 @@ public:
   void hideSize(int threshold, const NodeAllocator& na);
   /// Unhide all nodes in the subtree of this node
   void unhideAll(const NodeAllocator& na);
+  /// Unselect all nodes in the subtree of this node
+  void unselectAll(const NodeAllocator& na);
   /// Do not stop at this node
   void toggleStop(const NodeAllocator& na);
   /// Do not stop at any stop node in the subtree of this node

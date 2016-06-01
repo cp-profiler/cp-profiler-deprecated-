@@ -92,6 +92,7 @@ public Q_SLOTS:
   void gatherStatistics(void);
 
   void selectNode(int gid);
+  void selectManyNodes(QVariantList gids);
 public:
   /// Constructor
   GistMainWindow(Execution* execution, QWidget* parent);

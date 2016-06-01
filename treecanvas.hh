@@ -145,6 +145,8 @@ public Q_SLOTS:
   void hideSize(void);
   /// Unhide all nodes below selected node
   void unhideAll(void);
+  /// Unselect all nodes
+  void unselectAll(void);
   /// Sets the node and its ancestry as not hidden;
   /// marks the path as dirty
   void unhideNode(VisualNode* node);

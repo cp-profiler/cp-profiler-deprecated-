@@ -518,6 +518,16 @@ void TreeCanvas::unhideAll(void) {
   emit needActionsUpdate(currentNode, true);
 }
 
+void TreeCanvas::unselectAll(void) {
+  QMutexLocker locker(&mutex);
+  QMutexLocker layoutLocker(&layoutMutex);
+  root->unselectAll(execution->getNA());
+  update();
+  centerCurrentNode();
+  emit statusChanged(currentNode, stats, true);
+  emit needActionsUpdate(currentNode, true);
+}
+
 void TreeCanvas::unhideNode(VisualNode* node) {
   node->dirtyUp(execution->getNA());
 

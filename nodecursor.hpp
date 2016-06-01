@@ -158,6 +158,20 @@ UnhideAllCursor::processCurrentNode(void) {
     }
 }
 
+inline
+UnselectAllCursor::UnselectAllCursor(VisualNode* root,
+                                     const NodeAllocator& na)
+    : NodeCursor<VisualNode>(root,na) {}
+
+inline void
+UnselectAllCursor::processCurrentNode(void) {
+    VisualNode* n = node();
+    if (n->isSelected()) {
+        n->setSelected(false);
+        n->dirtyUp(na);
+    }
+}
+
 
 inline
 HideAllCursor::HideAllCursor(VisualNode* root,

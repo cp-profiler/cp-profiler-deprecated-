@@ -120,6 +120,19 @@ public:
     //@}
 };
 
+/// \brief A cursor that marks all nodes in the tree as not selected
+class UnselectAllCursor : public NodeCursor<VisualNode> {
+public:
+    /// Constructor
+    UnselectAllCursor(VisualNode* theNode,
+                      const NodeAllocator& na);
+    /// \name Cursor interface
+    //@{
+    /// Process node
+    void processCurrentNode(void);
+    //@}
+};
+
 /// \brief A cursor that marks ancestor nodes in the tree as not hidden
 class UnhideAncestorsCursor : public NodeCursor<VisualNode> {
 public:

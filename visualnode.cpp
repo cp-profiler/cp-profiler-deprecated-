@@ -231,6 +231,13 @@ VisualNode::unhideAll(const NodeAllocator& na) {
 }
 
 void
+VisualNode::unselectAll(const NodeAllocator& na) {
+    UnselectAllCursor c(this,na);
+    PreorderNodeVisitor<UnselectAllCursor>(c).run();
+    dirtyUp(na);
+}
+
+void
 VisualNode::toggleStop(const NodeAllocator& na) {
     if (getStatus() == STOP)
         setStatus(UNSTOP);

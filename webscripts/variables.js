@@ -363,3 +363,4 @@ function aggregateData(data, group, group2) {
   }
 
 function selectMany(gids) {}
+function select(gid) {}

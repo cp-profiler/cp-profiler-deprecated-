@@ -320,8 +320,8 @@ void ProfilerConductor::tellVisualisationsSelectManyNodes(Execution* execution, 
     p = executionInfoHash[execution]->sunburstView;  if (p) p->selectMany(gids);
     p = executionInfoHash[execution]->icicleView;    if (p) p->selectMany(gids);
     p = executionInfoHash[execution]->variablesView; if (p) p->selectMany(gids);
-    // GistMainWindow* g;
-    // g = executionInfoHash[execution]->gistWindow;   if (g) g->selectManyNode(gids);
+    GistMainWindow* g;
+    g = executionInfoHash[execution]->gistWindow;    if (g) g->selectManyNodes(gids);
 }
 
 void ProfilerConductor::onSomeFinishedBuilding() {

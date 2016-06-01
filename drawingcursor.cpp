@@ -182,7 +182,7 @@ DrawingCursor::processCurrentNode(void) {
         }
     }
 
-    if (n->isHovered()) {
+    if (n->isHovered() || n->isSelected()) {
         /// TODO(maxim): maybe make the brush color darker as well
         // pen.set
         painter.setPen(Pens::hovered);

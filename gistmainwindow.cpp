@@ -283,3 +283,15 @@ void
 GistMainWindow::selectNode(int gid) {
     c->getCanvas()->navigateToNodeById(gid);
 }
+
+void
+GistMainWindow::selectManyNodes(QVariantList gids) {
+    c->getCanvas()->unselectAll();
+    for (int i = 0 ; i < gids.size() ; i++) {
+        double d = gids[i].toDouble();
+        int gid = (int) d;
+        VisualNode* node = (c->getCanvas()->getExecution()->getNA())[gid];
+        node->setSelected(true);
+    }
+    c->getCanvas()->updateCanvas();
+}
