@@ -19,6 +19,8 @@ class Execution : public QObject {
 public:
     Execution() {
         _data = std::unique_ptr<Data>{new Data()};
+        builder = NULL;
+        _is_done = false;
     }
 
     inline const std::unordered_map<int64_t, string>& getNogoods(void) const { return _data->getNogoods(); }
@@ -80,6 +82,9 @@ public:
     Statistics& getStatistics() {
         return nodeTree.getStatistics();
     }
+
+    QMutex& getMutex() { return nodeTree.getMutex(); }
+    QMutex& getLayoutMutex() { return nodeTree.getLayoutMutex(); }
 
 signals:
     void newNode();

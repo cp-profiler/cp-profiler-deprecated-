@@ -645,4 +645,6 @@ Gist::connectCanvas(TreeCanvas* tc) {
     connect(tc, SIGNAL(needActionsUpdate(VisualNode*, bool)),
             this, SLOT(updateActions(VisualNode*, bool)));
 
+    connect(tc, SIGNAL(statusChanged(VisualNode*, const Statistics&, bool)),
+            this, SLOT(on_canvas_statusChanged(VisualNode*, const Statistics&, bool)));
 }

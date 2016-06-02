@@ -5,12 +5,17 @@
 
 class NodeTree {
 private:
+    /// Mutex for synchronizing acccess to the tree
+    QMutex mutex;
+    /// Mutex for synchronizing layout and drawing
+    QMutex layoutMutex;
     NodeAllocator na;
     VisualNode* root;
     Statistics stats;
-
 public:
-    NodeTree() {
+    NodeTree()
+        : mutex(QMutex::Recursive),
+          layoutMutex(QMutex::Recursive) {
         int rootIdx = na.allocateRoot();
         assert(rootIdx == 0);
         (void)rootIdx;
@@ -31,6 +36,9 @@ public:
     Statistics& getStatistics() {
         return stats;
     }
+
+    QMutex& getMutex() { return mutex; }
+    QMutex& getLayoutMutex() { return layoutMutex; }
 };
 
 #endif

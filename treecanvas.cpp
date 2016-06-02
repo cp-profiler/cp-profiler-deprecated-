@@ -61,8 +61,8 @@ TreeCanvas::TreeCanvas(Execution* execution, QGridLayout* layout,
     : QWidget(parent),
       canvasType(type),
       execution(execution),
-      mutex(QMutex::Recursive),
-      layoutMutex(QMutex::Recursive),
+      mutex(execution->getMutex()),
+      layoutMutex(execution->getLayoutMutex()),
       finishedFlag(false),
       autoHideFailed(true),
       autoZoom(false),
@@ -106,6 +106,8 @@ TreeCanvas::TreeCanvas(Execution* execution, QGridLayout* layout,
 
   connect(this, SIGNAL(autoZoomChanged(bool)), autoZoomButton,
           SLOT(setChecked(bool)));
+
+  connect(execution, SIGNAL(newNode()), this, SLOT(maybeUpdateCanvas()));
 
   // connect(_builder, SIGNAL(addedNode()), this, SLOT(maybeUpdateCanvas()));
   // connect(_builder, SIGNAL(doneBuilding(bool)), this,
@@ -168,7 +170,7 @@ TreeCanvas::~TreeCanvas(void) {
 
 ///***********************
 
-unsigned TreeCanvas::getTreeDepth() { return stats.maxDepth; }
+unsigned TreeCanvas::getTreeDepth() { return get_stats().maxDepth; }
 
 void TreeCanvas::scaleTree(int scale0, int zoomx, int zoomy) {
   QMutexLocker locker(&layoutMutex);
@@ -264,7 +266,7 @@ void TreeCanvas::statusChanged(bool finished) {
     update();
     centerCurrentNode();
   }
-  emit statusChanged(currentNode, stats, finished);
+  emit statusChanged(currentNode, get_stats(), finished);
   emit needActionsUpdate(currentNode, finished);
 }
 
@@ -471,7 +473,7 @@ void TreeCanvas::toggleHidden(void) {
   currentNode->toggleHidden(execution->getNA());
   update();
   centerCurrentNode();
-  emit statusChanged(currentNode, stats, true);
+  emit statusChanged(currentNode, get_stats(), true);
   emit needActionsUpdate(currentNode, true);
 }
 
@@ -480,7 +482,7 @@ void TreeCanvas::hideFailed(void) {
   currentNode->hideFailed(execution->getNA());
   update();
   centerCurrentNode();
-  emit statusChanged(currentNode, stats, true);
+  emit statusChanged(currentNode, get_stats(), true);
   emit needActionsUpdate(currentNode, true);
 }
 
@@ -491,7 +493,7 @@ void TreeCanvas::hideSize() {
   currentNode->hideSize(threshold, execution->getNA());
   update();
   centerCurrentNode();
-  emit statusChanged(currentNode, stats, true);
+  emit statusChanged(currentNode, get_stats(), true);
   emit needActionsUpdate(currentNode, true);
 }
 
@@ -504,7 +506,7 @@ void TreeCanvas::hideAll(void) {
 
   update();
   centerCurrentNode();
-  emit statusChanged(currentNode, stats, true);
+  emit statusChanged(currentNode, get_stats(), true);
   emit needActionsUpdate(currentNode, true);
 }
 
@@ -514,7 +516,7 @@ void TreeCanvas::unhideAll(void) {
   currentNode->unhideAll(execution->getNA());
   update();
   centerCurrentNode();
-  emit statusChanged(currentNode, stats, true);
+  emit statusChanged(currentNode, get_stats(), true);
   emit needActionsUpdate(currentNode, true);
 }
 
@@ -524,7 +526,7 @@ void TreeCanvas::unselectAll(void) {
   root->unselectAll(execution->getNA());
   update();
   centerCurrentNode();
-  emit statusChanged(currentNode, stats, true);
+  emit statusChanged(currentNode, get_stats(), true);
   emit needActionsUpdate(currentNode, true);
 }
 
@@ -542,7 +544,7 @@ void TreeCanvas::toggleStop(void) {
   currentNode->toggleStop(execution->getNA());
   update();
   centerCurrentNode();
-  emit statusChanged(currentNode, stats, true);
+  emit statusChanged(currentNode, get_stats(), true);
   emit needActionsUpdate(currentNode, true);
 }
 
@@ -552,7 +554,7 @@ void TreeCanvas::unstopAll(void) {
   currentNode->unstopAll(execution->getNA());
   update();
   centerCurrentNode();
-  emit statusChanged(currentNode, stats, true);
+  emit statusChanged(currentNode, get_stats(), true);
   emit needActionsUpdate(currentNode, true);
 }
 
@@ -681,7 +683,7 @@ void TreeCanvas::labelBranches(void) {
   currentNode->labelBranches(execution->getNA(), *this);
   update();
   centerCurrentNode();
-  emit statusChanged(currentNode, stats, true);
+  emit statusChanged(currentNode, get_stats(), true);
   emit needActionsUpdate(currentNode, true);
 }
 void TreeCanvas::labelPath(void) {
@@ -689,7 +691,7 @@ void TreeCanvas::labelPath(void) {
   currentNode->labelPath(execution->getNA(), *this);
   update();
   centerCurrentNode();
-  emit statusChanged(currentNode, stats, true);
+  emit statusChanged(currentNode, get_stats(), true);
   emit needActionsUpdate(currentNode, true);
 }
 
@@ -705,14 +707,13 @@ void TreeCanvas::reset() {
   currentNode = root;
   pathHead = root;
   scale = 1.0;
-  stats = Statistics();
   for (int i = bookmarks.size(); i--;) emit removedBookmark(i);
   bookmarks.clear();
 
   // _builder->reset(execution, &execution->getNA());
   // _builder->start();
 
-  emit statusChanged(currentNode, stats, false);
+  emit statusChanged(currentNode, get_stats(), false);
 
   updateCanvas();
 }
@@ -741,7 +742,7 @@ void TreeCanvas::bookmarkNode(void) {
 }
 
 void TreeCanvas::emitStatusChanged(void) {
-  emit statusChanged(currentNode, stats, true);
+  emit statusChanged(currentNode, get_stats(), true);
   emit needActionsUpdate(currentNode, true);
 }
 
@@ -1102,7 +1103,7 @@ void TreeCanvas::setCurrentNode(VisualNode* n, bool finished, bool update) {
     bool changed = (n != currentNode);
     currentNode = n;
     currentNode->setMarked(true);
-    emit statusChanged(currentNode, stats, finished);
+    emit statusChanged(currentNode, get_stats(), finished);
     emit needActionsUpdate(currentNode, finished);
     if (changed) {
         emit announceSelectNode(n->getIndex(execution->getNA()));

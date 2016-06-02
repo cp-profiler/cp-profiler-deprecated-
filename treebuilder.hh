@@ -38,7 +38,7 @@ class TreeBuilder : public QThread {
 
  private:
   Data* _data;
-  NodeAllocator* _na;
+  NodeAllocator& _na;
   Execution* execution;
 
   unsigned long long lastRead;

@@ -87,7 +87,7 @@ public:
   string getTitle() { return execution->getTitle(); }
   DbEntry* getEntry(unsigned int gid) { return execution->getEntry(gid); }
 
-  const Statistics& get_stats() { return stats; }
+  const Statistics& get_stats() { return execution->getStatistics(); }
 
   Execution* getExecution() { return execution; }
 
@@ -292,9 +292,9 @@ Q_SIGNALS:
   void announceSelectNode(int gid);
 protected:
   /// Mutex for synchronizing acccess to the tree
-  QMutex mutex;
+  QMutex& mutex;
   /// Mutex for synchronizing layout and drawing
-  QMutex layoutMutex;
+  QMutex& layoutMutex;
   /// Flag signalling the search to stop
   bool stopSearchFlag;
   /// Flag signalling that Gist is ready to be closed
@@ -314,9 +314,6 @@ protected:
 
   /// Box for selecting "small subtree" size
   QLineEdit* smallBox;
-
-  /// Statistics about the search tree
-  Statistics stats;
 
   /// Current scale factor
   double scale;
