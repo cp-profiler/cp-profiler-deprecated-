@@ -38,6 +38,7 @@
 #ifndef GECODE_GIST_NODECURSOR_HH
 #define GECODE_GIST_NODECURSOR_HH
 
+#include "nodecursor_base.hh"
 #include "visualnode.hh"
 #include "data.hh"
 
@@ -73,23 +74,6 @@ public:
     unsigned int alternative(void);
     /// Set current alternative
     void alternative(unsigned int a);
-
-    /// \name Cursor interface
-    //@{
-    /// Test if the cursor may move to the parent node
-    bool mayMoveUpwards(void);
-    /// Move cursor to the parent node
-    void moveUpwards(void);
-    /// Test if cursor may move to the first child node
-    bool mayMoveDownwards(void);
-    /// Move cursor to the first child node
-    void moveDownwards(void);
-    /// Test if cursor may move to the first sibling
-    bool mayMoveSidewards(void);
-    /// Move cursor to the first sibling
-    void moveSidewards(void);
-    //@}
-};
 
 /// \brief A cursor that marks failed subtrees as hidden
 class HideFailedCursor : public NodeCursor<VisualNode> {

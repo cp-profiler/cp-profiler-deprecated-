@@ -89,8 +89,8 @@ public:
   string getTitle() { return execution->getTitle(); }
   DbEntry* getEntry(unsigned int gid) { return execution->getEntry(gid); }
 
-  NodeAllocator* get_na() { return na; }
-  const Statistics& get_stats() { return stats; }
+  NodeAllocator* get_na() const { return na; }
+  const Statistics& get_stats() const { return stats; }
 
   Execution* getExecution() { return execution; }
 

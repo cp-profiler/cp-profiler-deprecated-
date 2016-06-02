@@ -38,6 +38,10 @@
 #include "visualnode.hh"
 #include <cassert>
 
+#ifdef MAXIM_DEBUG
+ int Node::debug_instance_counter = -1;
+#endif
+
 void
 Node::setNumberOfChildren(unsigned int n, NodeAllocator& na) {
     assert(getTag() == UNDET);

@@ -16,7 +16,6 @@ namespace analysis {
 /// TODO(maxim): show all subtrees of a particular shape
 /// TODO(maxim): find 'exact' subtrees
 
-
 class TreeStructure {
   // NodeAllocator m_na;
 
@@ -35,11 +34,82 @@ ShapeProperty interpretShapeProperty(const QString& str) {
   return {};
 }
 
+using GroupsOfNodes_t = std::vector<std::vector<VisualNode*>>;
+
+int getSubtreeHeight(VisualNode* n, const NodeAllocator& na, GroupsOfNodes_t& groups) {
+  int max = 0;
+
+  int kids = n->getNumberOfChildren();
+
+  if (kids == 0) {
+    return 1;
+  }
+
+  for (int i = 0; i < kids; ++i) {
+    auto kid = n->getChild(na, i);
+    int h = getSubtreeHeight(kid, na, groups);
+    groups[h].push_back(kid);
+    if (h > max) {
+      max = h;
+    }
+  }
+
+  return max + 1;
+}
+
+/// Groups nodes by height of their underlying subtree
+GroupsOfNodes_t groupByHeight(const TreeCanvas& tc) {
+
+  int max_depth = tc.get_stats().maxDepth;
+
+  /// start from 1 for convenience
+  GroupsOfNodes_t groups(max_depth + 1);
+
+  auto na = tc.get_na();
+  auto root = (*na)[0];
+
+  getSubtreeHeight(root, *na, groups);
+
+  return groups;
+}
+
+
 SimilarShapesWindow::SimilarShapesWindow(TreeCanvas* tc)
     : QDialog(tc), m_tc(tc), shapeSet(CompareShapes{}), filters(*this) {
   perfHelper.begin("shapes: analyse");
   addNodesToMap();
   perfHelper.end();
+
+  //--------------------------------------------
+  //-------- FINDING IDENTICAL SUBTREES --------
+  //--------------------------------------------
+
+  /// ------ 0) group by height ------
+
+  perfHelper.begin("shapes: group by height");
+  GroupsOfNodes_t groups = groupByHeight(*tc);
+  perfHelper.end();
+
+  /// ------ 1) linked list of pairs <begin, end>
+  ///           for each group
+
+  /// note: every node is identified by a pointer
+  ///       `VisualNode*`
+
+  /// note: every node has a link to its parent
+  ///       through `n.getParent(na)`
+
+  /// ------ 2) select the first block (with height 1)
+
+  /// ------ 3) traverse 'left' elements of that block:
+  /// ------ 3.1) get its parent, find it in groups
+  ///             and separate it from the group
+
+  // const NodeAllocator& na = *tc->get_na();
+
+
+  //--------------------------------------------
+  //--------------------------------------------
 
   scene.reset(new QGraphicsScene{});
 

@@ -69,6 +69,10 @@ Node::Node(int p, bool failed) : parent(p) {
   childrenOrFirstChild = nullptr;
   noOfChildren = 0;
   setTag(failed ? LEAF : UNDET);
+
+#ifdef MAXIM_DEBUG
+  debug_id = Node::debug_instance_counter++;
+#endif
 }
 
 inline int

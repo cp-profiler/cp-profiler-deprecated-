@@ -119,6 +119,11 @@ public:
   /// thread id
   char _tid;  // TODO: take out of Node class; assigned in treebuilder
 
+#ifdef MAXIM_DEBUG
+  int debug_id;
+  static int debug_instance_counter;
+#endif
+
 };
 
 #endif // NODE_HH

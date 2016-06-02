@@ -74,6 +74,7 @@ HEADERS  += globalhelper.hh \
     nodewidget.hh \
     drawingcursor.hh \
     drawingcursor.hpp \
+    nodecursor_base.hh \
     nodecursor.hh \
     nodecursor.hpp \
     layoutcursor.hh \
@@ -107,6 +108,7 @@ HEADERS  += globalhelper.hh \
     cpprofiler/pixeltree/pixel_item.hh \
     cpprofiler/analysis/depth_analysis.hh \
     cpprofiler/analysis/similar_shapes.hh \
+    cpprofiler/analysis/tree_structure.hh \
 
 FORMS    +=
 

@@ -193,7 +193,7 @@ void ProfilerConductor::compareExecutions(bool auto_save) {
 
   if (item1->gistWindow_ == nullptr && item2->gistWindow_ == nullptr) return;
 
-  CmpTreeDialog* ctd = new CmpTreeDialog(
+  new CmpTreeDialog(
       this, e, withLabels, item1->gistWindow_->getGist()->getCanvas(),
       item2->gistWindow_->getGist()->getCanvas());
 
