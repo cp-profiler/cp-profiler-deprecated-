@@ -19,6 +19,10 @@ void Execution::start(std::string label, bool isRestarts) {
     std::cerr << "Execution::start on " << this << "\n";
 
     builder = new TreeBuilder(this);
+
+    connect(builder, &TreeBuilder::addedNode, this, &Execution::newNode);
+    connect(builder, &TreeBuilder::addedRoot, this, &Execution::newRoot);
+
     builder->start();
 
     emit titleKnown();

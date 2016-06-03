@@ -60,6 +60,7 @@ class TreeBuilder : public QThread {
 Q_SIGNALS:
   void doneBuilding(bool finished);
   void addedNode(void);
+  void addedRoot(void);
 
  public Q_SLOTS:
   void setDoneReceiving(void);

@@ -283,6 +283,8 @@ VisualNode::findNode(const NodeAllocator& na, int x, int y) {
         }
         VisualNode* oldCur = cur;
         cur = nullptr;
+        if (!oldCur->childrenLayoutIsDone())
+            return nullptr;
         for (unsigned int i=0; i<oldCur->getNumberOfChildren(); i++) {
             VisualNode* nextChild = oldCur->getChild(na,i);
             int newX = x - nextChild->getOffset();

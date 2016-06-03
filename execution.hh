@@ -88,6 +88,7 @@ public:
 
 signals:
     void newNode();
+    void newRoot();
     void titleKnown();
     void startReceiving();
     void doneReceiving();
@@ -102,8 +103,6 @@ public Q_SLOTS:
     void handleNewNode(message::Node& node) {
         // std::cerr << "execution::newNode\n";
         _data->handleNodeCallback(node);
-
-        emit newNode();
     }
 };
 

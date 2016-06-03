@@ -109,6 +109,8 @@ TreeCanvas::TreeCanvas(Execution* execution, QGridLayout* layout,
 
   connect(execution, SIGNAL(newNode()), this, SLOT(maybeUpdateCanvas()));
 
+  connect(execution, &Execution::newRoot, this, &TreeCanvas::updateCanvas);
+
   // connect(_builder, SIGNAL(addedNode()), this, SLOT(maybeUpdateCanvas()));
   // connect(_builder, SIGNAL(doneBuilding(bool)), this,
   //         SLOT(finalizeCanvas(void)));
@@ -173,7 +175,7 @@ TreeCanvas::~TreeCanvas(void) {
 unsigned TreeCanvas::getTreeDepth() { return get_stats().maxDepth; }
 
 void TreeCanvas::scaleTree(int scale0, int zoomx, int zoomy) {
-  QMutexLocker locker(&layoutMutex);
+  layoutMutex.lock();
 
   QSize viewport_size = size();
   QAbstractScrollArea* sa =
@@ -208,6 +210,7 @@ void TreeCanvas::scaleTree(int scale0, int zoomx, int zoomy) {
   sa->verticalScrollBar()->setValue(yoff - zoomy);
 
   emit scaleChanged(scale0);
+  layoutMutex.unlock();
   QWidget::update();
 }
 
@@ -989,7 +992,6 @@ void TreeCanvas::resizeToOuter(void) {
 }
 
 void TreeCanvas::paintEvent(QPaintEvent* event) {
-  // std::cerr << "TreeCanvas::paintEvent\n";
   QMutexLocker locker(&layoutMutex);
   QPainter painter(this);
   painter.setRenderHint(QPainter::Antialiasing);
@@ -1188,7 +1190,7 @@ void TreeCanvas::maybeUpdateCanvas(void) {
   } else {
     // Didn't update this time: set/update timer to update in
     // 100ms.
-    updateTimer->start(100);
+    updateTimer->start(1000);
   }
 }
 
@@ -1201,7 +1203,8 @@ void TreeCanvas::updateViaTimer(void) {
 void TreeCanvas::updateCanvas(void) {
   statusChanged(false);
 
-  layoutMutex.lock();
+  QMutexLocker locker1(&mutex);
+  QMutexLocker locker2(&layoutMutex);
 
   if (root == nullptr) return;
 
@@ -1249,7 +1252,6 @@ void TreeCanvas::updateCanvas(void) {
     }
   }
 
-  layoutMutex.unlock();
   update();
   layoutDone(w, h, scale0);
   // emit update(w,h,scale0);

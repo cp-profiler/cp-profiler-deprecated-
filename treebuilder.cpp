@@ -40,7 +40,6 @@ TreeBuilder::TreeBuilder(Execution* execution_, QObject* parent)
     : QThread(parent),
       _na(execution_->getNA()),
       execution(execution_) {
-  // layout_mutex = &(_tc->layoutMutex);
 
   qDebug() << "starting TreeBuilder on execution" << execution;
     
@@ -60,7 +59,8 @@ TreeBuilder::~TreeBuilder() { delete read_queue; }
 void TreeBuilder::setDoneReceiving() { _data->setDoneReceiving(); }
 
 bool TreeBuilder::processRoot(DbEntry& dbEntry) {
-  // QMutexLocker locker(layout_mutex);
+  QMutexLocker locker(&execution->getMutex());
+  QMutexLocker layoutLocker(&execution->getLayoutMutex());
 
   std::cerr << "process root: " << dbEntry << "\n";
 
@@ -80,6 +80,11 @@ bool TreeBuilder::processRoot(DbEntry& dbEntry) {
         (_na)[0]->addChild(_na);  // create a node for a new root
     root = (_na)[restart_root];
     root->_tid = dbEntry.thread_id;
+
+    // The "super root" now has an extra child, so its children
+    // haven't been laid out yet.
+    (_na)[0]->setChildrenLayoutDone(false);
+    
     dbEntry.gid = restart_root;
     dbEntry.depth = 2;
   } else {
@@ -105,14 +110,15 @@ bool TreeBuilder::processRoot(DbEntry& dbEntry) {
   root->changedStatus(_na);
   root->dirtyUp(_na);
 
+  emit addedRoot();
   emit addedNode();
 
   return true;
 }
 
 bool TreeBuilder::processNode(DbEntry& dbEntry, bool is_delayed) {
-  // std::cerr << "TreeBuilder::processNode (" << dbEntry << ")\n";
-  QMutexLocker locker(&execution->getLayoutMutex());
+  QMutexLocker locker(&execution->getMutex());
+  QMutexLocker layoutLocker(&execution->getLayoutMutex());
 
   int64_t pid = dbEntry.parent_sid;  /// parent ID as it comes from Solver
   int alt = dbEntry.alt;             /// which alternative the current node is
