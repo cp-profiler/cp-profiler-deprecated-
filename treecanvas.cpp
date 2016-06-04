@@ -77,13 +77,13 @@ TreeCanvas::TreeCanvas(Execution* execution, QGridLayout* layout,
 
   // / TODO(maxim): why create root node here?
   if (na->size() == 0) {
+    qDebug() << "allocating root node again...";
     na->allocateRoot();
   }
 
   root = (*na)[0];
   currentNode = root;
   root->setMarked(true);
-  root->setStatus(BRANCH);
 
   scale = LayoutConfig::defScale / 100.0;
 
@@ -151,7 +151,8 @@ TreeCanvas::TreeCanvas(Execution* execution, QGridLayout* layout,
   qDebug() << "treecanvas " << _id << " constructed";
 }
 
-TreeCanvas::~TreeCanvas(void) {
+TreeCanvas::~TreeCanvas() {
+  qDebug() << "~TreeCanvas";
   if (root) {
     DisposeCursor dc(root, *na);
     PreorderNodeVisitor<DisposeCursor>(dc).run();
@@ -683,17 +684,14 @@ void TreeCanvas::stopSearch(void) {
   layoutDoneTimerId = startTimer(15);
 }
 
+/// TODO(maxim): this should not not re-build a tree, disabled for now
+/// (it is still called from GistMainWidnow)
 void TreeCanvas::reset() {
   QMutexLocker locker(&mutex);
 
-  delete na;
-  na = new NodeAllocator{};
-
-  int rootIdx = na->allocateRoot();
-  assert(rootIdx == 0);
-  (void)rootIdx;
   root = (*na)[0];
   root->setMarked(true);
+
   currentNode = root;
   pathHead = root;
   scale = 1.0;
@@ -1192,7 +1190,7 @@ void TreeCanvas::updateCanvas(void) {
   if (root == nullptr) return;
 
   if (autoHideFailed) {
-    // std::cerr << "autoHideFailed is true\n";
+    std::cerr << "autoHideFailed is true\n";
     root->hideFailed(*na, true);
   }
 
@@ -1312,3 +1310,13 @@ void TreeCanvas::highlightFailedByNogoods() {
 
   update();
 }
+
+#ifdef MAXIM_DEBUG
+  void TreeCanvas::addChildren() {
+    if (currentNode->getNumberOfChildren() == 0) {
+      currentNode->setNumberOfChildren(2, *na);
+      currentNode->dirtyUp(*na);
+    }
+    updateCanvas();
+  }
+#endif

@@ -31,7 +31,6 @@
 
 #include <functional>
 #include "visualnode.hh"
-#include "treebuilder.hh"
 #include "zoomToFitIcon.hpp"
 #include "execution.hh"
 
@@ -407,6 +406,10 @@ public Q_SLOTS:
   /// Set the selected not to a node by solver id (from no-good table)
   void navigateToNodeById(int gid);
   void statusFinished();
+
+#ifdef MAXIM_DEBUG
+  void addChildren();
+#endif
 private Q_SLOTS:
   /// Set isUsed to true and update
   void finalizeCanvas(void);

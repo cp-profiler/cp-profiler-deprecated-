@@ -49,7 +49,7 @@ TreeBuilder::~TreeBuilder() = default;
 
 void TreeBuilder::startBuilding() { QThread::start(); }
 
-void TreeBuilder::reset(Execution* execution, NodeAllocator* na) {
+void TreeBuilder::reset(const Execution* execution, NodeAllocator* na) {
   /// TODO(maxim): find out whether reset is only called once
   /// old _data and _na are deleted by this point (where?)
   _data = execution->getData();
@@ -58,6 +58,17 @@ void TreeBuilder::reset(Execution* execution, NodeAllocator* na) {
   read_queue.reset(new ReadingQueue(_data->nodes_arr));
 }
 
+void TreeBuilder::initRoot(int kids, NodeStatus status) {
+  auto root = (*_na)[0];
+  root->setNumberOfChildren(kids, *_na);
+  root->setStatus(status);
+  root->setHasSolvedChildren(false);
+  root->setHasOpenChildren(true);
+
+  root->dirtyUp(*_na);
+
+  emit addedNode();
+}
 
 bool TreeBuilder::processRoot(DbEntry& dbEntry) {
   QMutexLocker locker(layout_mutex);
@@ -101,7 +112,6 @@ bool TreeBuilder::processRoot(DbEntry& dbEntry) {
 
   stats.undetermined += kids - 1;
 
-  root->changedStatus(*_na);
   root->dirtyUp(*_na);
 
   emit addedNode();
@@ -225,7 +235,6 @@ bool TreeBuilder::processNode(DbEntry& dbEntry, bool is_delayed) {
         break;
     }
 
-    node.changedStatus(*_na);
     node.dirtyUp(*_na);
     emit addedNode();
     // std::cerr << "TreeBuilder::processNode, normal case\n";
@@ -255,7 +264,6 @@ bool TreeBuilder::processNode(DbEntry& dbEntry, bool is_delayed) {
           assert(status != SOLVED);
           break;
       }
-      node.changedStatus(*_na);
       node.dirtyUp(*_na);
       emit addedNode();
       // std::cerr << "TreeBuilder::processNode, not-normal case\n";

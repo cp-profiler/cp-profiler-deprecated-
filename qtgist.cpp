@@ -30,13 +30,12 @@
 #include "execution.hh"
 #include "cmp_tree_dialog.hh"
 
+Gist::Gist(Execution* execution, QWidget* parent) : QWidget(parent), execution(execution) {
 
-void
-Gist::initInterface(void) {
-
+    
     layout = new QGridLayout(this);
 
-    scrollArea = new QAbstractScrollArea(this);
+    auto scrollArea = new QAbstractScrollArea(this);
     scrollArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
     scrollArea->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
     scrollArea->setAutoFillBackground(true);
@@ -47,14 +46,7 @@ Gist::initInterface(void) {
     scrollArea->setPalette(*myPalette);
 
     setLayout(layout);
-}
 
-Gist::Gist(Execution* execution, QWidget* parent) : QWidget(parent), execution(execution) {
-
-    qDebug() << "--------------- Created Gist!";
-
-    initInterface();
-    addActions();
 
     canvas = new TreeCanvas(execution, layout, CanvasType::REGULAR, scrollArea->viewport());
     canvas->setPalette(*myPalette);
@@ -64,6 +56,7 @@ Gist::Gist(Execution* execution, QWidget* parent) : QWidget(parent), execution(e
     layout->addWidget(canvas->scaleBar, 1,1, Qt::AlignHCenter);
     layout->addWidget(canvas->smallBox, 1,2, Qt::AlignBottom);
 
+    addActions();
     connectCanvas(canvas);
 
     connect(scrollArea->horizontalScrollBar(), SIGNAL(valueChanged(int)),
@@ -71,23 +64,13 @@ Gist::Gist(Execution* execution, QWidget* parent) : QWidget(parent), execution(e
     connect(scrollArea->verticalScrollBar(), SIGNAL(valueChanged(int)),
             canvas, SLOT(scroll(void)));
 
-    // connect(canvas, SIGNAL(needActionsUpdate(VisualNode*, bool)),
-    //         this, SLOT(updateActions(VisualNode*, bool)));
-
-
-    // create new TreeCanvas when receiver gets new data
-    // connect(receiver, SIGNAL(newCanvasNeeded()), this, SLOT(createNewCanvas(void)),
-    //    Qt::BlockingQueuedConnection);
-
-
     nodeStatInspector = new NodeStatInspector(this);
 
-    // receiver->receive(canvas);
     canvas->show();
 
     resize(500, 400);
 
-    QVBoxLayout* sa_layout = new QVBoxLayout();
+    auto sa_layout = new QVBoxLayout();
     sa_layout->setContentsMargins(0,0,0,0);
     sa_layout->addWidget(canvas);
 
@@ -103,41 +86,11 @@ Gist::resizeEvent(QResizeEvent*) {
     canvas->resizeToOuter();
 }
 
-TreeCanvas*
-Gist::getLastCanvas(void) {
-    if (_td_vec.size() > 0)
-        return _td_vec.back()->getCanvas();
-    return nullptr;
-}
-
-SolverTreeDialog*
-Gist::getLastTreeDialog(void) {
-    if (_td_vec.size() > 0)
-        return _td_vec.back();
-    return nullptr;
-}
-
-
 Gist::~Gist(void) {
 
     qDebug() << "in Gist destructor";
 
-    // receiver->terminate();
-    // receiver->wait();
-
-    for (auto &td : _td_vec) {
-        delete td;
-    }
-
-    delete canvas;
-
-    delete myPalette;
-}
-
-void
-Gist::prepareNewCanvas(void) {
-    canvasTwo->show();
-
+    // delete myPalette;
 }
 
 void
@@ -377,7 +330,7 @@ Gist::addActions(void) {
     stop->setShortcut(QKeySequence("Esc"));
 
     reset = new QAction("Reset", this);
-    reset->setShortcut(QKeySequence("Ctrl+R"));
+    // reset->setShortcut(QKeySequence("Ctrl+R"));
 
     showPixelTree = new QAction("Pixel Tree View", this);
     showIcicleTree = new QAction("Icicle Tree View", this);
@@ -417,6 +370,21 @@ Gist::addActions(void) {
     hideFailed->setShortcut(QKeySequence("F"));
 
     hideSize = new QAction("Hide small subtrees", this);
+
+#ifdef MAXIM_DEBUG
+    auto updateCanvas = new QAction{"Update Canvas", this};
+    updateCanvas->setShortcut(QKeySequence("Shift+U"));
+    connect(updateCanvas, &QAction::triggered, [this]() {
+        qDebug() << "update canvas";
+        canvas->update();
+    });
+    addAction(updateCanvas);
+
+    auto addChildren = new QAction{"Add 2 Children", this};
+    addChildren->setShortcut(QKeySequence("Shift+C"));
+    connect(addChildren, &QAction::triggered, canvas, &TreeCanvas::addChildren);
+    addAction(addChildren);
+#endif
 
     unhideAll = new QAction("Unhide all", this);
     unhideAll->setShortcut(QKeySequence("U"));

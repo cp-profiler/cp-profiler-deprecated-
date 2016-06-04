@@ -34,6 +34,8 @@ class ReadingQueue;
 class TreeCanvas;
 class NodeAllocator;
 
+enum NodeStatus : char;
+
 class TreeBuilder : public QThread {
   Q_OBJECT
 
@@ -53,10 +55,12 @@ class TreeBuilder : public QThread {
   void run() override;
 
 
+  void initRoot(int kids, NodeStatus status);
+
  public:
   TreeBuilder(TreeCanvas* tc);
   ~TreeBuilder();
-  void reset(Execution* execution, NodeAllocator* na);
+  void reset(const Execution* execution, NodeAllocator* na);
 
   Q_SIGNALS:
   void doneBuilding();

@@ -444,18 +444,18 @@ void PixelTreeCanvas::drawPixelTree(const PixelData& pixel_data) {
   const auto& pixel_list = pixel_data.pixel_list;
 
   // which pixel to start with:
-  const auto start = static_cast<unsigned>(xoff * compr);
+  const auto start = xoff * compr;
 
   /// check for solutions first (should be on the background)
-  for (auto pixel_id = start; pixel_id < pixel_list.size(); pixel_id++) {
-    unsigned x = (pixel_id - start) / compr;
+  for (auto pixel_id = start; pixel_id < (int)pixel_list.size(); pixel_id++) {
+    int x = (pixel_id - start) / compr;
     if (x > img_width) break;  /// out of image boundary
 
     auto pixelItem = pixel_list[pixel_id];
     if (pixelItem.node()->getStatus() == SOLVED) {
-      for (unsigned depth = 0; depth < tree_depth; depth++) {
+      for (int depth = 0; depth < tree_depth; depth++) {
         int y = depth - yoff;
-        if (static_cast<unsigned>(y) > img_width || y < 0) continue;
+        if (y > img_width || y < 0) continue;
         pixel_image.drawPixel(x, y, qRgb(0, 255, 0));
       }
     }
@@ -464,7 +464,7 @@ void PixelTreeCanvas::drawPixelTree(const PixelData& pixel_data) {
   std::vector<int> intensity_vec(tree_depth + 1, 0);
   std::vector<bool> selected_on_level(tree_depth + 1, false);
 
-  for (auto pixel_id = start; pixel_id < pixel_list.size(); pixel_id++) {
+  for (auto pixel_id = start; pixel_id < (int)pixel_list.size(); pixel_id++) {
     auto x = (pixel_id - start) / compr;
     if (x > img_width) break;  /// out of image boundary
 
@@ -478,7 +478,7 @@ void PixelTreeCanvas::drawPixelTree(const PixelData& pixel_data) {
     }
 
     bool is_vline_end = ((pixel_id % compr) == (compr - 1)) ||
-                        (pixel_id == pixel_list.size() - 1);
+                        (pixel_id == (int)pixel_list.size() - 1);
 
     if (is_vline_end) {
       // draw from intensity vector:
@@ -533,20 +533,20 @@ void PixelTreeCanvas::redrawAll() {
 
   /// All Histograms
 
-  if (show_time_histogram) drawTimeHistogram();
+  if (m_State.show_time_histogram) drawTimeHistogram();
 
-  if (show_domain_histogram) drawDomainHistogram();
+  if (m_State.show_domain_histogram) drawDomainHistogram();
 
   // drawDomainReduction(image, leftmost_vline, rightmost_vline);
 
   // drawNodeRate(image, leftmost_vline, rightmost_vline);
 
-  if (show_depth_analysis_histogram) drawDepthAnalysisData();
-  if (show_depth_analysis_histogram) drawDepthAnalysisData2();
+  if (m_State.show_depth_analysis_histogram) drawDepthAnalysisData();
+  if (m_State.show_depth_analysis_histogram) drawDepthAnalysisData2();
 
-  if (show_decision_vars_histogram) drawVarData();
+  if (m_State.show_decision_vars_histogram) drawVarData();
 
-  if (show_bj_analysis_histogram) drawBjData();
+  if (m_State.show_bj_analysis_histogram) drawBjData();
   // drawNogoodData();
 
   perfHelper.begin("pixel tree: update pixel image");
@@ -576,8 +576,8 @@ void PixelTreeCanvas::drawVarData() {
       const auto x = static_cast<int>(vline) - xoff;
       const auto y = static_cast<int>(zero_level) - var_id;
 
-      if (static_cast<unsigned>(x) > pixel_image.width()) break;
-      if (static_cast<unsigned>(y) > pixel_image.width() || y < 0) continue;
+      if (x > pixel_image.width()) break;
+      if (y > pixel_image.width() || y < 0) continue;
 
       const auto color_value = ceil(var_id * 255 / vars.size());
 
@@ -611,8 +611,8 @@ void PixelTreeCanvas::drawNogoodData() {
     const auto x = static_cast<int>(vline) - xoff;
     const auto y = static_cast<int>(zero_level) - value;
 
-    if (static_cast<unsigned>(x) > pixel_image.width()) break;
-    if (static_cast<unsigned>(y) > img_height || y < 0) continue;
+    if (x > pixel_image.width()) break;
+    if (y > img_height || y < 0) continue;
 
     /// TODO: normalize
 
@@ -666,9 +666,9 @@ void PixelTreeCanvas::drawHistogram(vector<float>& data, int color) {
     auto y = static_cast<int>(zero_level) - val;
 
     if (x < 0) continue;
-    if (static_cast<unsigned>(x) > pixel_image.width())
+    if (x > pixel_image.width())
       break;  /// note: true (breaks) if x < 0
-    if (static_cast<unsigned>(y) > img_height || y < 0) continue;
+    if (y > img_height || y < 0) continue;
 
     pixel_image.drawPixel(x, y, color);
   }
@@ -694,8 +694,8 @@ void PixelTreeCanvas::drawNodeRate(unsigned l_vline, unsigned r_vline) {
 
   for (unsigned i = 1; i < nr_intervals.size(); i++) {
     // float value = node_rate[i - 1] * coeff;
-    unsigned i_begin = ceil((float)nr_intervals[i - 1] / approx_size);
-    unsigned i_end = ceil((float)nr_intervals[i] / approx_size);
+    unsigned i_begin = ceil((float)nr_intervals[i - 1] / m_State.approximation);
+    unsigned i_end = ceil((float)nr_intervals[i] / m_State.approximation);
 
     /// draw this interval?
     if (i_end < l_vline || i_begin > r_vline) continue;
@@ -843,9 +843,9 @@ void PixelTreeCanvas::drawDepthAnalysisData() {
       auto x = static_cast<int>(vline) - xoff;
       auto y = static_cast<int>(zero_level) - coeff * value;
 
-      if (static_cast<unsigned>(x) > pixel_image.width())
+      if (x > pixel_image.width())
         break;  /// note: true (breaks) if x < 0
-      if (static_cast<unsigned>(y) > pixel_image.height() || y < 0) continue;
+      if (y > pixel_image.height() || y < 0) continue;
 
       int color_value = 200 - 200 * static_cast<float>(depth) / tree_depth;
 
@@ -901,9 +901,9 @@ void PixelTreeCanvas::drawDepthAnalysisData2() {
       auto y = static_cast<int>(current_image_height) + depth - yoff;
       int color_value = 255 - coeff * value;
 
-      if (static_cast<unsigned>(x) > pixel_image.width())
+      if (x > pixel_image.width())
         break;  /// note: true (breaks) if x < 0
-      if (static_cast<unsigned>(y) > pixel_image.height() || y < 0) continue;
+      if (y > pixel_image.height() || y < 0) continue;
 
       // if (value != 0) {
       pixel_image.drawPixel(x, y, QColor::fromHsv(0, 0, color_value).rgba());
@@ -932,7 +932,7 @@ void PixelTreeCanvas::resizeCanvas(void) {
 
   _sa->horizontalScrollBar()->setPageStep(_sa->viewport()->width());
   _sa->horizontalScrollBar()->setSingleStep(100);  /// the value is arbitrary
-  redrawAll();
+  maybeCaller.call([this]() { redrawAll(); });
 }
 
 void PixelTreeCanvas::compressionChanged(int value) {
@@ -952,65 +952,65 @@ void PixelTreeCanvas::sliderChanged(int) {
 }
 
 void PixelTreeCanvas::toggleTimeHistogram(int state) {
-  show_time_histogram = (state == Qt::Checked) ? true : false;
+  m_State.show_time_histogram = (state == Qt::Checked);
 
   redrawAll();
 }
 
 void PixelTreeCanvas::toggleDomainsHistogram(int state) {
-  show_domain_histogram = (state == Qt::Checked) ? true : false;
+  m_State.show_domain_histogram = (state == Qt::Checked);
 
   redrawAll();
 }
 
 void PixelTreeCanvas::toggleVarsHistogram(int state) {
-  show_decision_vars_histogram = (state == Qt::Checked) ? true : false;
+  m_State.show_decision_vars_histogram = (state == Qt::Checked);
 
   redrawAll();
 }
 
 void PixelTreeCanvas::toggleDepthAnalysisHistogram(int state) {
-  show_depth_analysis_histogram = (state == Qt::Checked) ? true : false;
+  m_State.show_depth_analysis_histogram = (state == Qt::Checked);
 
   redrawAll();
 }
 
 void PixelTreeCanvas::toggleBjHistogram(int state) {
-  show_bj_analysis_histogram = (state == Qt::Checked) ? true : false;
+  m_State.show_bj_analysis_histogram = (state == Qt::Checked);
 
   redrawAll();
 }
 
 void PixelTreeCanvas::mousePressEvent(QMouseEvent* event) {
   auto xoff = _sa->horizontalScrollBar()->value();
-  mouse_pressed_vline = event->x() / pixel_image.pixel_width() + xoff;
+  m_State.mousePressedVline = event->x() / pixel_image.pixel_width() + xoff;
 
-  mouse_pressed = true;
+  m_State.mouse_pressed = true;
 }
 
 void PixelTreeCanvas::mouseReleaseEvent(QMouseEvent* event) {
-  if (mouse_pressed) {
+  if (m_State.mouse_pressed) {
     auto xoff = _sa->horizontalScrollBar()->value();
     auto mouse_released_vline = event->x() / pixel_image.pixel_width() + xoff;
 
-    if (mouse_pressed_vline > mouse_released_vline) {
-      std::swap(mouse_pressed_vline, mouse_released_vline);
+    if (m_State.mousePressedVline > mouse_released_vline) {
+      std::swap(m_State.mousePressedVline, mouse_released_vline);
     }
 
-    selectNodesfromPT(mouse_pressed_vline, mouse_released_vline);
+    selectNodesfromPT(m_State.mousePressedVline, mouse_released_vline);
 
     redrawAll();
 
     /// Note(maxim): Faking the mouseMoveEvent to fix the pixel highlighting
     /// disappearing after mouse release (is there a cleaner way?)
     /// Have to reset these, or the the mouse over action will be bypassed:
-    mouse_guide_x = -1;
-    mouse_guide_y = -1;
+    m_State.mouse_guide_x = -1;
+    m_State.mouse_guide_y = -1;
     QMouseEvent mouse_event{QEvent::MouseMove, QPoint(event->x(), event->y()),
                             Qt::NoButton, Qt::NoButton, Qt::NoModifier};
     qApp->sendEvent(this, &mouse_event);
   }
-  mouse_pressed = false;
+  m_State.mouse_pressed = false;
 }
 
 void PixelTreeCanvas::mouseMoveEvent(QMouseEvent* event) {
@@ -1019,9 +1019,9 @@ void PixelTreeCanvas::mouseMoveEvent(QMouseEvent* event) {
   const auto x = event->x() / pixel_image.pixel_width();
   const auto y = event->y() / pixel_image.pixel_height();
 
-  if (x != mouse_guide_x || y != mouse_guide_y) {
-    mouse_guide_x = x;
-    mouse_guide_y = y;
+  if (x != m_State.mouse_guide_x || y != m_State.mouse_guide_y) {
+    m_State.mouse_guide_x = x;
+    m_State.mouse_guide_y = y;
 
     const auto vline = x + xoff;
 

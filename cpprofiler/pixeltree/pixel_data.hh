@@ -22,8 +22,6 @@
 #ifndef PIXEL_VIEW_HH
 #define PIXEL_VIEW_HH
 
-#include "treecanvas.hh"
-#include "cpprofiler/analysis/depth_analysis.hh"
 #include <list>
 #include <vector>
 
@@ -32,28 +30,24 @@
 namespace cpprofiler {
 namespace pixeltree {
 
-/// ***********************************
-
 class PixelData {
  private:
-  unsigned compression_;
+  int m_Compression;
 
  public:
   PixelData() {}
 
-  explicit PixelData(unsigned node_count) : compression_(1) {
+  explicit PixelData(int node_count) : m_Compression(1) {
     pixel_list.reserve(node_count);
   }
 
-  void setCompression(unsigned compression) { compression_ = compression; }
+  void setCompression(int c) { m_Compression = c; }
 
-  unsigned compression() const { return compression_; }
+  int compression() const { return m_Compression; }
 
   std::vector<PixelItem> pixel_list;
 };
 }
 }
-
-/// ***********************************
 
 #endif

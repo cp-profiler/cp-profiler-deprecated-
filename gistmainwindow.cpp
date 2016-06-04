@@ -56,8 +56,6 @@ GistMainWindow::GistMainWindow(Execution* execution, QWidget* parent) : QMainWin
   setCentralWidget(m_Gist);
   setWindowTitle(tr("CP-Profiler"));
 
-
-
 //  Logos logos;
 //  QPixmap myPic;
 //  myPic.loadFromData(logos.gistLogo, logos.gistLogoSize);
@@ -128,13 +126,13 @@ GistMainWindow::GistMainWindow(Execution* execution, QWidget* parent) : QMainWin
 
   /// *******************************
 
-  QMenu* searchMenu = menuBar->addMenu(tr("&Search"));
+  // QMenu* searchMenu = menuBar->addMenu(tr("&Search"));
   // searchMenu->addAction(m_Gist->searchNext);
   // searchMenu->addAction(m_Gist->searchAll);
   // searchMenu->addSeparator();
   // searchMenu->addAction(m_Gist->stop);
-  searchMenu->addSeparator();
-  searchMenu->addAction(m_Gist->reset);
+  // searchMenu->addSeparator();
+  // searchMenu->addAction(m_Gist->reset);
 
   QMenu* helpMenu = menuBar->addMenu(tr("&Help"));
   QAction* aboutAction = helpMenu->addAction(tr("About"));
