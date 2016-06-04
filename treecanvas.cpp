@@ -59,28 +59,10 @@ int TreeCanvas::counter = 0;
 
 TreeCanvas::TreeCanvas(Execution* execution, QGridLayout* layout,
                        CanvasType type, QWidget* parent)
-    : QWidget(parent),
-      canvasType(type),
-      execution(execution),
-      mutex(QMutex::Recursive),
-      layoutMutex(QMutex::Recursive),
-      finishedFlag(false),
-      autoHideFailed(true),
-      autoZoom(false),
-      refresh(500),
-      refreshPause(0),
-      smoothScrollAndZoom(false),
-      moveDuringSearch(false),
-      zoomTimeLine(500),
-      scrollTimeLine(1000),
-      targetX(0),
-      sourceX(0),
-      targetY(0),
-      sourceY(0),
-      targetW(0),
-      targetH(0),
-      targetScale(0),
-      layoutDoneTimerId(0) {
+    : QWidget{parent},
+      canvasType{type},
+      execution{execution}
+  {
   QMutexLocker locker(&mutex);
 
   /// to distinguish between instances
@@ -88,9 +70,15 @@ TreeCanvas::TreeCanvas(Execution* execution, QGridLayout* layout,
 
   na = execution->_na.get();
 
+  qDebug() << "created Tree Canvas: " << this;
+  qDebug() << "na: " << na;
+
   _builder = new TreeBuilder(this);
 
-  na->allocateRoot();
+  // / TODO(maxim): why create root node here?
+  if (na->size() == 0) {
+    na->allocateRoot();
+  }
 
   root = (*na)[0];
   currentNode = root;
@@ -118,14 +106,8 @@ TreeCanvas::TreeCanvas(Execution* execution, QGridLayout* layout,
           SLOT(setChecked(bool)));
 
   connect(_builder, SIGNAL(addedNode()), this, SLOT(maybeUpdateCanvas()));
-  connect(_builder, SIGNAL(doneBuilding(bool)), this,
+  connect(_builder, SIGNAL(doneBuilding()), this,
           SLOT(finalizeCanvas(void)));
-  connect(_builder, SIGNAL(doneBuilding(bool)), this,
-          SLOT(statusChanged(bool)));
-
-  // NOTE(maxim): this connects to conductor later
-  connect(_builder, SIGNAL(doneBuilding(bool)), this,
-          SIGNAL(buildingFinished(void)));
 
   // connect(ptr_receiver, SIGNAL(update(int,int,int)), this,
   //         SLOT(layoutDone(int,int,int)));
@@ -1100,8 +1082,7 @@ bool TreeCanvas::finish(void) {
 }
 
 void TreeCanvas::finalizeCanvas(void) {
-  disconnect(_builder, SIGNAL(doneBuilding(bool)), this,
-             SLOT(statusChanged(bool)));
+  statusChanged(true);
 }
 
 void TreeCanvas::setCurrentNode(VisualNode* n, bool finished, bool update) {

@@ -25,13 +25,14 @@
 #include <QtGui>
 #include <vector>
 #include <queue>
-#include "data.hh"
+#include <memory>
 
 class Data;
 class DbEntry;
 class Execution;
 class ReadingQueue;
 class TreeCanvas;
+class NodeAllocator;
 
 class TreeBuilder : public QThread {
   Q_OBJECT
@@ -39,35 +40,30 @@ class TreeBuilder : public QThread {
  private:
   Data* _data;
   NodeAllocator* _na;
-  TreeCanvas* _tc;
+  TreeCanvas& m_tc;
   QMutex* layout_mutex;
-
-  unsigned long long lastRead;
-  int delayed_count = 0;
-  int nodesCreated;
 
   std::vector<DbEntry*> ignored_entries;
 
-  ReadingQueue* read_queue;
+  std::unique_ptr<ReadingQueue> read_queue;
 
- private:
-  inline bool processRoot(DbEntry& dbEntry);
-  inline bool processNode(DbEntry& dbEntry, bool is_delayed);
+  bool processRoot(DbEntry& dbEntry);
+  bool processNode(DbEntry& dbEntry, bool is_delayed);
+
+  void run() override;
+
 
  public:
-  TreeBuilder(TreeCanvas* tc, QObject* parent = 0);
+  TreeBuilder(TreeCanvas* tc);
   ~TreeBuilder();
   void reset(Execution* execution, NodeAllocator* na);
 
-  Q_SIGNALS : void doneBuilding(bool finished);
-  void addedNode(void);
+  Q_SIGNALS:
+  void doneBuilding();
+  void addedNode();
 
  public Q_SLOTS:
-  void startBuilding(void);
-  void setDoneReceiving(void);
-
- protected:
-  void run();
+  void startBuilding();
 };
 
 #endif  // TREEBUILDER_H

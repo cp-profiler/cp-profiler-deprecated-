@@ -68,7 +68,7 @@ ProfilerConductor::ProfilerConductor() : QMainWindow() {
   // this->setMinimumWidth(320);
 
   /// NOTE(maxim): required by the comparison script
-  std::cout << "READY TO LISTEN" << std::endl;
+  // std::cout << "READY TO LISTEN" << std::endl;
 
   QWidget* centralWidget = new QWidget(this);
   setCentralWidget(centralWidget);
@@ -102,6 +102,10 @@ ProfilerConductor::ProfilerConductor() : QMainWindow() {
   connect(deleteExecutionButton, SIGNAL(clicked(bool)), this,
           SLOT(deleteExecutionClicked(bool)));
 
+  QPushButton* debugExecutionButton = new QPushButton("debug execution");
+  connect(debugExecutionButton, SIGNAL(clicked()), this,
+          SLOT(createDebugExecution()));
+
   QGridLayout* layout = new QGridLayout();
 
   layout->addWidget(executionList, 0, 0, 1, 2);
@@ -114,6 +118,10 @@ ProfilerConductor::ProfilerConductor() : QMainWindow() {
   layout->addWidget(saveExecutionButton, 4, 0, 1, 2);
   layout->addWidget(loadExecutionButton, 5, 0, 1, 2);
   layout->addWidget(deleteExecutionButton, 6, 0, 1, 2);
+
+#ifdef MAXIM_DEBUG
+  layout->addWidget(debugExecutionButton, 7, 0, 1, 2);
+#endif
 
   centralWidget->setLayout(layout);
 
@@ -245,10 +253,6 @@ void ProfilerConductor::gatherStatisticsClicked(bool) {
 
     g->gatherStatistics();
 
-    // connect(g, SIGNAL(buildingFinished(void)),
-    //         g, SLOT(gatherStatistics(void)));
-    // g->show();
-    // g->activateWindow();
   }
 }
 
@@ -354,6 +358,8 @@ void ProfilerConductor::loadExecutionClicked(bool) {
   loadExecution(filename.toStdString());
 }
 
+
+
 void ProfilerConductor::loadExecution(std::string filename) {
   Execution* e = loadSaved(filename);
   newExecution(e);
@@ -372,4 +378,24 @@ void ProfilerConductor::deleteExecutionClicked(bool checked) {
     delete item->gistWindow_;
     delete item;
   }
+}
+
+
+void ProfilerConductor::createDebugExecution() {
+  qDebug() << "createDebugExecution";
+  auto e = new Execution{};
+  newExecution(e);
+
+  auto& na = e->na();
+
+  qDebug() << "na: " << &na;
+
+  na.allocateRoot();
+
+  auto root = na[0];
+
+  root->setStatus(SKIPPED);
+  root->setNumberOfChildren(2, na);
+  root->dirtyUp(na);
+
 }

@@ -23,6 +23,7 @@
 #include "globalhelper.hh"
 #include "readingQueue.hh"
 #include "treecanvas.hh"
+#include "data.hh"
 #include <cassert>
 
 #include <time.h>
@@ -37,34 +38,26 @@ double get_wall_time() {
   return (double)time.tv_sec + (double)time.tv_usec * .000001;
 }
 
-TreeBuilder::TreeBuilder(TreeCanvas* tc, QObject* parent)
-    : QThread(parent), _tc(tc), read_queue(nullptr) {
-  layout_mutex = &(_tc->layoutMutex);
-  connect(this, &TreeBuilder::doneBuilding, tc->getExecution(),
+TreeBuilder::TreeBuilder(TreeCanvas* tc) : QThread{tc}, m_tc{*tc} {
+  read_queue.reset(nullptr);
+  layout_mutex = &(m_tc.layoutMutex);
+  connect(this, &TreeBuilder::doneBuilding, m_tc.getExecution(),
           &Execution::doneBuilding);
 }
 
-TreeBuilder::~TreeBuilder() { delete read_queue; }
+TreeBuilder::~TreeBuilder() = default;
 
-void TreeBuilder::startBuilding() { start(); }
-
-void TreeBuilder::setDoneReceiving() { _data->setDoneReceiving(); }
+void TreeBuilder::startBuilding() { QThread::start(); }
 
 void TreeBuilder::reset(Execution* execution, NodeAllocator* na) {
+  /// TODO(maxim): find out whether reset is only called once
   /// old _data and _na are deleted by this point (where?)
   _data = execution->getData();
   _na = na;
 
-  delete read_queue;
-  read_queue = new ReadingQueue(_data->nodes_arr);
-
-  nodesCreated = 1;
-  lastRead = 0;
-
-  /// TODO(maxim): is this needed?
-  // connect(this, &TreeBuilder::doneBuilding, execution,
-  // &Execution::doneBuilding);
+  read_queue.reset(new ReadingQueue(_data->nodes_arr));
 }
+
 
 bool TreeBuilder::processRoot(DbEntry& dbEntry) {
   QMutexLocker locker(layout_mutex);
@@ -73,12 +66,12 @@ bool TreeBuilder::processRoot(DbEntry& dbEntry) {
 
   auto& gid2entry = _data->gid2entry;
 
-  Statistics& stats = _tc->stats;
+  Statistics& stats = m_tc.stats;
 
   stats.choices++;
 
-  VisualNode* root =
-      nullptr;  // can be a real root, or one of initial nodes in restarts
+  // can be a real root, or one of initial nodes in restarts
+  VisualNode* root = nullptr;
 
   int kids = dbEntry.numberOfKids;
 
@@ -107,7 +100,6 @@ bool TreeBuilder::processRoot(DbEntry& dbEntry) {
   root->setHasOpenChildren(true);
 
   stats.undetermined += kids - 1;
-  nodesCreated += 1 + kids;
 
   root->changedStatus(*_na);
   root->dirtyUp(*_na);
@@ -126,30 +118,20 @@ bool TreeBuilder::processNode(DbEntry& dbEntry, bool is_delayed) {
   int nalt = dbEntry.numberOfKids;   /// number of kids in current node
   int status = dbEntry.status;
 
-  std::vector<DbEntry*>& nodes_arr = _data->nodes_arr;
-  std::unordered_map<int64_t, int>& sid2aid = _data->sid2aid;
-  auto& gid2entry = _data->gid2entry;
-
-  Statistics& stats = _tc->stats;
-
+  const auto& sid2aid = _data->sid2aid;
+  
   /// find out if node exists
-
   auto pid_it = sid2aid.find(pid);
-  // std::cerr << "process node: " << dbEntry << "\n";
 
   if (pid_it == sid2aid.end()) {
-    // qDebug() << "node for parent is not in db yet";
-
     if (!is_delayed) read_queue->readLater(&dbEntry);
 
     return false;
   }
 
-  // std::cerr << "sid2aid[pid]: " << pid_it->second << "\n";
-
-  DbEntry& parentEntry = *nodes_arr[pid_it->second];
-  int parent_gid =
-      parentEntry.gid;  /// parent ID as it is in Node Allocator (Gist)
+  const DbEntry& parentEntry = *_data->nodes_arr[pid_it->second];
+  /// parent ID as it is in Node Allocator (Gist)
+  int parent_gid = parentEntry.gid;  
 
   /// put delayed also if parent node hasn't been processed yet:
   if (parent_gid == -1) {
@@ -174,6 +156,8 @@ bool TreeBuilder::processNode(DbEntry& dbEntry, bool is_delayed) {
 
   VisualNode& node = *parent.getChild(*_na, alt);
 
+  Statistics& stats = m_tc.stats;
+
   /// Normal behaviour: insert into Undetermined
 
   if (node.getStatus() == UNDETERMINED) {
@@ -195,7 +179,7 @@ bool TreeBuilder::processNode(DbEntry& dbEntry, bool is_delayed) {
     // dbEntry.decisionLevel =
     //     parentEntry.decisionLevel + (thisIsRightmost ? 0 : 1);
 
-    gid2entry[gid] = &dbEntry;
+    _data->gid2entry[gid] = &dbEntry;
 
     stats.maxDepth = std::max(stats.maxDepth, static_cast<int>(dbEntry.depth));
 
@@ -235,7 +219,6 @@ bool TreeBuilder::processNode(DbEntry& dbEntry, bool is_delayed) {
         node.setStatus(BRANCH);
         stats.choices++;
         stats.undetermined += nalt;
-        nodesCreated += nalt;
         break;
       default:
         qDebug() << "need to handle this type of Node: " << status;
@@ -266,7 +249,6 @@ bool TreeBuilder::processNode(DbEntry& dbEntry, bool is_delayed) {
           node.setStatus(BRANCH);
           stats.choices++;
           stats.undetermined += nalt;
-          nodesCreated += nalt;
           break;
         default:
           qDebug() << "need to handle this type of Node: " << status;
@@ -288,9 +270,7 @@ bool TreeBuilder::processNode(DbEntry& dbEntry, bool is_delayed) {
   return true;
 }
 
-void TreeBuilder::run(void) {
-  using std::cout;
-  using std::cerr;
+void TreeBuilder::run() {
 
   std::cerr << "TreeBuilder::run\n";
 
@@ -299,11 +279,11 @@ void TreeBuilder::run(void) {
 
   beginClock = clock();
   beginTime = get_wall_time();
-  // qDebug() << "### in run method of tc:" << _tc->_id;
+  // qDebug() << "### in run method of tc:" << m_tc._id;
 
   QMutex& dataMutex = _data->dataMutex;
 
-  Statistics& stats = _tc->stats;
+  Statistics& stats = m_tc.stats;
   stats.undetermined = 1;
 
   bool is_delayed;
@@ -320,7 +300,7 @@ void TreeBuilder::run(void) {
 
       if (_data->isDone()) {
         qDebug() << "stop because done "
-                 << "tc_id: " << _tc->_id;
+                 << "tc_id: " << m_tc._id;
         break;
       }
       /// can't read, but receiving not done, waiting...
@@ -344,7 +324,7 @@ void TreeBuilder::run(void) {
 
   perfHelper.end();
 
-  emit doneBuilding(true);
+  emit doneBuilding();
 
   endClock = clock();
   endTime = get_wall_time();
@@ -359,9 +339,6 @@ void TreeBuilder::run(void) {
   qDebug() << "failures:" << stats.failures;
   qDebug() << "undetermined:" << stats.undetermined;
 
-  /// test if first argument is '--test'
-  // if (qApp->arguments().size() > 1 && qApp->arguments().at(1) == "--test")
-  //     qApp->exit();
 
   if (GlobalParser::isSet(GlobalParser::test_option)) {
     qDebug() << "test mode, terminate";

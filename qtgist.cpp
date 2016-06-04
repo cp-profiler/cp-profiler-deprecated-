@@ -79,8 +79,6 @@ Gist::Gist(Execution* execution, QWidget* parent) : QWidget(parent), execution(e
     // connect(receiver, SIGNAL(newCanvasNeeded()), this, SLOT(createNewCanvas(void)),
     //    Qt::BlockingQueuedConnection);
 
-    connect(canvas, SIGNAL(buildingFinished()), this, SIGNAL(buildingFinished()));
-
 
     nodeStatInspector = new NodeStatInspector(this);
 
@@ -583,26 +581,9 @@ Gist::addActions(void) {
 void
 Gist::connectCanvas(TreeCanvas* tc) {
 
-    qDebug() << "--- connectCanvas\n";
-
-
     connect(this, SIGNAL(doneReceiving()), tc, SLOT(statusFinished()));
-
-    if (current_tc == tc) return;
-
-    if (current_tc && current_tc->_builder) {
-
-        qDebug() << "--- disconnecting stuff\n";
-
-        abort();
-    }
-
-    current_tc = tc;
-
     connect(printDebugInfo, &QAction::triggered, tc, &TreeCanvas::printDebugInfo);
-
     /// TODO: these 2 should not be here
-
     connect(expand, SIGNAL(triggered()), tc, SLOT(expandCurrentNode()));
     connect(stop, SIGNAL(triggered()), tc, SLOT(stopSearch()));
     connect(reset, SIGNAL(triggered()), tc, SLOT(reset()));
@@ -624,10 +605,10 @@ Gist::connectCanvas(TreeCanvas* tc) {
     connect(followPath, SIGNAL(triggered()), tc, SLOT(followPath()));
     connect(analyzeSimilarSubtrees, SIGNAL(triggered()), tc, SLOT(analyzeSimilarSubtrees()));
     connect(highlightNodesMenu, SIGNAL(triggered()), tc, SLOT(highlightNodesMenu()));
-    connect(showNogoods, SIGNAL(triggered()), current_tc, SLOT(showNogoods()));
-    connect(showNodeInfo, SIGNAL(triggered()), current_tc, SLOT(showNodeInfo()));
-    connect(showNodeOnPixelTree, SIGNAL(triggered()), current_tc, SLOT(showNodeOnPixelTree()));
-    connect(collectMLStats, SIGNAL(triggered()), current_tc, SLOT(collectMLStats()));
+    connect(showNogoods, SIGNAL(triggered()), tc, SLOT(showNogoods()));
+    connect(showNodeInfo, SIGNAL(triggered()), tc, SLOT(showNodeInfo()));
+    connect(showNodeOnPixelTree, SIGNAL(triggered()), tc, SLOT(showNodeOnPixelTree()));
+    connect(collectMLStats, SIGNAL(triggered()), tc, SLOT(collectMLStats()));
     connect(toggleStop, SIGNAL(triggered()), tc, SLOT(toggleStop()));
     connect(unstopAll, SIGNAL(triggered()), tc, SLOT(unstopAll()));
     connect(zoomToFit, SIGNAL(triggered()), tc, SLOT(zoomToFit()));

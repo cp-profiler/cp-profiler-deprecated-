@@ -255,8 +255,6 @@ Q_SIGNALS:
   /// Notify MainWindow about fzn file name
   void changeMainTitle(QString file_name);
 
-  void buildingFinished(void);
-
   void doneReceiving(void);
 
 

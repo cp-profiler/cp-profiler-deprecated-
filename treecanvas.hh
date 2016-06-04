@@ -289,18 +289,16 @@ Q_SIGNALS:
   /// Signals that a bookmark has been removed
   void removedBookmark(int idx);
 
-  void buildingFinished(void);
-
   void showNodeOnPixelTree(int gid);
 protected:
   /// Mutex for synchronizing acccess to the tree
-  QMutex mutex;
+  QMutex mutex{QMutex::Recursive};
   /// Mutex for synchronizing layout and drawing
-  QMutex layoutMutex;
+  QMutex layoutMutex{QMutex::Recursive};
   /// Flag signalling the search to stop
   bool stopSearchFlag;
   /// Flag signalling that Gist is ready to be closed
-  bool finishedFlag;
+  bool finishedFlag = false;
   /// Allocator for nodes
   NodeAllocator* na = nullptr;
   /// The root node of the tree
@@ -328,19 +326,19 @@ protected:
   int xtrans;
 
   /// Whether to hide failed subtrees automatically
-  bool autoHideFailed;
+  bool autoHideFailed = true;
   /// Whether to zoom automatically
-  bool autoZoom;
+  bool autoZoom = false;
   /// Whether to show copies in the tree
   bool showCopies;
   /// Refresh rate
-  int refresh;
+  int refresh = 500;
   /// Time (in msec) to pause after each refresh
-  int refreshPause;
+  int refreshPause = 0;
   /// Whether to use smooth scrolling and zooming
-  bool smoothScrollAndZoom;
+  bool smoothScrollAndZoom = false;
   /// Whether to move cursor during search
-  bool moveDuringSearch;
+  bool moveDuringSearch = false;
 
   /// Return the node corresponding to the \a event position
   VisualNode* eventNode(QEvent *event);
@@ -360,26 +358,26 @@ protected:
   void wheelEvent(QWheelEvent* event);
 
   /// Timer for smooth zooming
-  QTimeLine zoomTimeLine;
+  QTimeLine zoomTimeLine{500};
   /// Timer for smooth scrolling
-  QTimeLine scrollTimeLine;
+  QTimeLine scrollTimeLine{1000};
   /// Target x coordinate after smooth scrolling
-  int targetX;
+  int targetX = 0;
   /// Source x coordinate after smooth scrolling
-  int sourceX;
+  int sourceX = 0;
   /// Target y coordinate after smooth scrolling
-  int targetY;
+  int targetY = 0;
   /// Target y coordinate after smooth scrolling
-  int sourceY;
+  int sourceY = 0;
 
   /// Target width after layout
-  int targetW;
+  int targetW = 0;
   /// Target height after layout
-  int targetH;
+  int targetH = 0;
   /// Target scale after layout
-  int targetScale;
+  int targetScale = 0;
   /// Timer id for delaying the update
-  int layoutDoneTimerId;
+  int layoutDoneTimerId = 0;
 
   /// Timer invoked for smooth zooming and scrolling
   virtual void timerEvent(QTimerEvent* e);

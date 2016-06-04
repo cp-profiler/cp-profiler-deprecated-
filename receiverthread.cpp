@@ -60,9 +60,9 @@ ReceiverThread::run(void) {
     connect(tcpSocket, SIGNAL(disconnected(void)), this, SLOT(quit(void)));
     connect(tcpSocket, SIGNAL(disconnected(void)), this, SIGNAL(doneReceiving(void)));
 
-    std::cerr << "Receiver thread " << this << " running event loop\n";
+    // std::cerr << "Receiver thread " << this << " running event loop\n";
     exec();
-    std::cerr << "Receiver thread " << this << " terminating\n";
+    // std::cerr << "Receiver thread " << this << " terminating\n";
 }
 
 // This function is called whenever there is new data available to be
@@ -103,10 +103,10 @@ ReceiverWorker::doRead()
                     break;
                 case message::Node::START:
                 {
-                    qDebug() << "START RECEIVING: " << msg1.label().c_str();
+                    // qDebug() << "START RECEIVING: " << msg1.label().c_str();
 
                     if (msg1.restart_id() != -1 && msg1.restart_id() != 0) {
-                        qDebug() << ">>> restart and continue";
+                        // qDebug() << ">>> restart and continue";
                         break;
                     }
 
@@ -117,7 +117,7 @@ ReceiverWorker::doRead()
                 }
                 break;
                 case message::Node::DONE:
-                    qDebug() << "received DONE SENDING";
+                    // qDebug() << "received DONE SENDING";
                     emit doneReceiving();
                     break;
                 }
