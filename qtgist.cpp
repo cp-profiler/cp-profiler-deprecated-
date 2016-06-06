@@ -375,7 +375,7 @@ Gist::addActions(void) {
     auto updateCanvas = new QAction{"Update Canvas", this};
     updateCanvas->setShortcut(QKeySequence("Shift+U"));
     connect(updateCanvas, &QAction::triggered, [this]() {
-        qDebug() << "update canvas";
+        qDebug() << "action: update canvas";
         canvas->update();
     });
     addAction(updateCanvas);

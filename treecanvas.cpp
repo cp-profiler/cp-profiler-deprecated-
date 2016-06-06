@@ -77,13 +77,13 @@ TreeCanvas::TreeCanvas(Execution* execution, QGridLayout* layout,
 
   // / TODO(maxim): why create root node here?
   if (na->size() == 0) {
-    qDebug() << "allocating root node again...";
     na->allocateRoot();
   }
 
   root = (*na)[0];
   currentNode = root;
   root->setMarked(true);
+  root->_tid = 0;
 
   scale = LayoutConfig::defScale / 100.0;
 
@@ -1190,7 +1190,6 @@ void TreeCanvas::updateCanvas(void) {
   if (root == nullptr) return;
 
   if (autoHideFailed) {
-    std::cerr << "autoHideFailed is true\n";
     root->hideFailed(*na, true);
   }
 
