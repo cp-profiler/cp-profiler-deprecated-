@@ -1316,6 +1316,7 @@ void TreeCanvas::highlightFailedByNogoods() {
       currentNode->setNumberOfChildren(2, *na);
       currentNode->dirtyUp(*na);
     }
+    
     updateCanvas();
   }
 #endif

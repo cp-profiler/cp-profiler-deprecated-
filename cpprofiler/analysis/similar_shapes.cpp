@@ -34,7 +34,100 @@ ShapeProperty interpretShapeProperty(const QString& str) {
   return {};
 }
 
-using GroupsOfNodes_t = std::vector<std::vector<VisualNode*>>;
+struct ChildInfo {
+  int alt;
+  VisualNode* node;
+};
+
+class Group {
+public:
+  int splitter = 0;
+  std::vector<ChildInfo> items;
+  Group() = default;
+  Group(int s, const std::vector<ChildInfo>& i) : splitter(s), items(i) {}
+};
+
+using GroupsOfNodes_t = std::vector<Group>;
+
+std::pair<int, int> findNodeInGroups(const GroupsOfNodes_t& groups, const VisualNode* n) {
+  for (int i = 1; i < (int)groups.size(); ++i) {
+    auto& group_items = groups[i].items;
+    for (int j = 0; j < (int)group_items.size(); ++j) {
+      auto& e = group_items[j];
+      if (e.node == n) return std::make_pair(i, j);
+    }
+  }
+  abort();
+  return std::make_pair(-1, -1);
+}
+
+void separateNode(Group& g, int i) {
+  /// swap the target element with the element pointed at by the splitter
+  std::swap(g.items[g.splitter], g.items[i]);
+
+  /// advance the splitter
+  ++g.splitter;
+}
+
+ostream& operator<<(ostream& os, const VisualNode* n) {
+  #ifdef MAXIM_DEBUG
+      os << n->debug_id;
+  #elif
+      os << n;
+  #endif
+  return os;
+}
+
+QDebug& operator<<(QDebug& os, const Group& g) {
+  std::ostringstream oss;
+  oss << "[ ";
+  for (int i = 0; i < (int)g.items.size(); ++i) {
+    if (i == g.splitter) {
+      oss << "||";
+    }
+    auto& info = g.items[i];
+    oss << "<" << info.alt << ", " << info.node << "> ";
+  }
+  if ((int)g.items.size() == g.splitter) {
+      oss << "||";
+  }
+  oss << "]";
+  os << oss.str().c_str();
+  return os;
+}
+
+QDebug& operator<<(QDebug& os, const GroupsOfNodes_t& groups) {
+  for (int i = 1; i < (int)groups.size(); ++i) {
+    os << groups[i];
+  }
+  return os;
+}
+
+void splitGroups(GroupsOfNodes_t& groups) {
+  for (int i = 0; i < groups.size(); ++i) {
+    auto& g = groups[i];
+    if (g.splitter == 0 || g.splitter == (int)g.items.size()) {
+      g.splitter = 0;
+      continue;
+    }
+    qDebug() << "need to split group: " << g;
+    auto it_splitter = begin(g.items) + g.splitter;
+    std::vector<ChildInfo> subgroup1 = {begin(g.items), it_splitter};
+    std::vector<ChildInfo> subgroup2 = {it_splitter, end(g.items)};
+    
+    Group new_group1{};
+    Group new_group2{};
+    new_group1.items = subgroup1;
+    new_group2.items = subgroup2;
+
+    g = new_group1;
+    groups.insert(begin(groups) + i, new_group2);
+
+    ++i;
+    // qDebug() << "after split groups: " << groups;
+
+  }
+}
 
 int getSubtreeHeight(VisualNode* n, const NodeAllocator& na, GroupsOfNodes_t& groups) {
   int max = 0;
@@ -48,7 +141,8 @@ int getSubtreeHeight(VisualNode* n, const NodeAllocator& na, GroupsOfNodes_t& gr
   for (int i = 0; i < kids; ++i) {
     auto kid = n->getChild(na, i);
     int h = getSubtreeHeight(kid, na, groups);
-    groups[h].push_back(kid);
+    auto& group_items = groups[h].items;
+    group_items.push_back({i, kid});
     if (h > max) {
       max = h;
     }
@@ -61,6 +155,8 @@ int getSubtreeHeight(VisualNode* n, const NodeAllocator& na, GroupsOfNodes_t& gr
 GroupsOfNodes_t groupByHeight(const TreeCanvas& tc) {
 
   int max_depth = tc.get_stats().maxDepth;
+  // int max_depth = 6;
+  qDebug() << "max depth: " << max_depth;
 
   /// start from 1 for convenience
   GroupsOfNodes_t groups(max_depth + 1);
@@ -69,6 +165,9 @@ GroupsOfNodes_t groupByHeight(const TreeCanvas& tc) {
   auto root = (*na)[0];
 
   getSubtreeHeight(root, *na, groups);
+
+  /// edge case of a root node
+  groups[groups.size()-1].items.push_back({-1, root});
 
   return groups;
 }
@@ -84,11 +183,11 @@ SimilarShapesWindow::SimilarShapesWindow(TreeCanvas* tc)
   //-------- FINDING IDENTICAL SUBTREES --------
   //--------------------------------------------
 
+  auto& na = *tc->get_na();
+
   /// ------ 0) group by height ------
 
-  perfHelper.begin("shapes: group by height");
   GroupsOfNodes_t groups = groupByHeight(*tc);
-  perfHelper.end();
 
   /// ------ 1) linked list of pairs <begin, end>
   ///           for each group
@@ -99,11 +198,58 @@ SimilarShapesWindow::SimilarShapesWindow(TreeCanvas* tc)
   /// note: every node has a link to its parent
   ///       through `n.getParent(na)`
 
-  /// ------ 2) select the first block (with height 1)
 
-  /// ------ 3) traverse 'left' elements of that block:
-  /// ------ 3.1) get its parent, find it in groups
-  ///             and separate it from the group
+  /// ------ 2) select the first block (with height 1)
+  for (int group_id = 1; group_id < groups.size(); ++group_id) {
+
+    auto block = groups[group_id];
+    // qDebug() << "groups: " << groups;
+
+    /// ------ 3) traverse 'left' elements of that block:
+    /// ------ 
+    ///             and separate it from the group
+
+    // qDebug() << "left children:";
+    for (auto& e: block.items) {
+      if (e.alt == 0) {
+
+        /// 3.1) get its parent
+        auto parent = e.node->getParent(na);
+        // std::cerr << parent->debug_id << " ";
+
+        /// 3.2 )find it in groups
+        auto location = findNodeInGroups(groups, parent);
+        // std::cerr << "in group: " << location.first << "\n";
+        separateNode(groups[location.first], location.second);
+        // qDebug() << "groups: " << groups;
+        /// split only affected groups
+      }
+    }
+    // std::cerr << '\n';
+    splitGroups(groups);
+    // qDebug() << "groups: " << groups;
+
+    // qDebug() << "right children:";
+    for (auto& e: block.items) {
+      if (e.alt == 1) {
+
+        /// 3.1) get its parent
+        auto parent = e.node->getParent(na);
+        // std::cerr << parent->debug_id << " ";
+
+        /// 3.2 )find it in groups
+        auto location = findNodeInGroups(groups, parent);
+        // std::cerr << "in group: " << location.first << "\n";
+        separateNode(groups[location.first], location.second);
+        // qDebug() << "groups: " << groups;
+        /// split only affected groups
+      }
+    }
+    std::cerr << '\n';
+    splitGroups(groups);
+  }
+    qDebug() << "groups: " << groups;
+
 
   // const NodeAllocator& na = *tc->get_na();
 

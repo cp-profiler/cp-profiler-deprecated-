@@ -48,33 +48,6 @@
 class TreeCanvas;
 class Execution;
 
-/// \brief A cursor that can be run over a tree
-template<class Node>
-class NodeCursor {
-private:
-    /// The node where the iteration starts
-    Node* _startNode;
-    /// The current node
-    Node* _node;
-    /// The current alternative
-    unsigned int _alternative;
-protected:
-    /// The node allocator
-    const NodeAllocator& na;
-    /// Set current node to \a n
-    void node(Node* n);
-    /// Return start node
-    Node* startNode(void);
-public:
-    /// Construct cursor, initially set to \a theNode
-    NodeCursor(Node* theNode, const NodeAllocator& na);
-    /// Return current node
-    Node* node(void);
-    /// Return current alternative
-    unsigned int alternative(void);
-    /// Set current alternative
-    void alternative(unsigned int a);
-
 /// \brief A cursor that marks failed subtrees as hidden
 class HideFailedCursor : public NodeCursor<VisualNode> {
 private:

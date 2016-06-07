@@ -41,8 +41,6 @@ class PixelImage {
   int width_;
   int height_;
 
-  QImage::Format image_format;
-
   int pixel_width_ = 4;
   int pixel_height_ = 4;
 
