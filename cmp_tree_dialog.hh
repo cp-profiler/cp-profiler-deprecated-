@@ -22,14 +22,20 @@
 #define CMP_TREE_DIALOG_HH
 
 #include <QTableWidget>
-#include "base_tree_dialog.hh"
+#include <QDialog>
+#include <QLayout>
 
+struct PentagonItem;
 class Gist;
 class TreeComparison;
 class CmpTreeDialog;
-
 class Execution;
-struct PentagonItem;
+class QStatusBar;
+class QMenuBar;
+class TreeCanvas;
+class QLabel;
+class VisualNode;
+class Statistics;
 
 class PentListWindow : public QDialog {
 Q_OBJECT
@@ -53,42 +59,31 @@ public:
   PentListWindow(CmpTreeDialog* parent, const std::vector<PentagonItem>& items);
 };
 
-class CmpTreeDialog : public BaseTreeDialog {
+class CmpTreeDialog : public QDialog {
 Q_OBJECT
 
 private:
 
+  QGridLayout* layout;
+
+  QStatusBar* statusBar;
+
   TreeComparison* comparison_;
 
-  QMenu* analysisMenu;
-
-
-  /// ******* Actions *******
-  /// Navigate to first pentagon
-  QAction* _navFirstPentagon;
-  /// Navigate to next pentagon
-  QAction* _navNextPentagon;
-  /// Navigate to prev pentagon
-  QAction* _navPrevPentagon;
-  /// Show pentagon histogram
-  QAction* _showPentagonHist;
-  /// Save comparison stats to a disk
-  QAction* _saveComparisonStats;
-  /// Label/clear branches
-  QAction* _labelBranches;
-  /// Show info
-  QAction* _showInfo;
-
-  /// ***********************
+  TreeCanvas* m_Canvas;
 
 private:
 
-  void addActions(void);
+  void addActions(QMenu* nodeMenu, QMenu* analysisMenu);
+
+  void setTitle(QString title);
 
 public:
 
   CmpTreeDialog(QWidget* parent, Execution* execution, bool withLabels,
                 TreeCanvas *tc1, TreeCanvas *tc2);
+
+  ~CmpTreeDialog();
 
   void saveComparisonStatsTo(const QString& file_name);
   void selectPentagon(int row);
@@ -96,18 +91,18 @@ public:
   const TreeComparison& comparison() { return *comparison_; }
 
 private Q_SLOTS:
+  /// The status has changed (e.g., new solutions have been found)
   void statusChanged(VisualNode*, const Statistics& stats, bool finished);
 
   /// Pentagon navigation
-  void navFirstPentagon(void);
-  void navNextPentagon(void);
-  void navPrevPentagon(void);
+  void navFirstPentagon();
+  void navNextPentagon();
+  void navPrevPentagon();
 
-  void showPentagonHist(void);
-  void saveComparisonStats(void);
+  void showPentagonHist();
+  void saveComparisonStats();
 
   void showResponsibleNogoods();
-
 
 };
 

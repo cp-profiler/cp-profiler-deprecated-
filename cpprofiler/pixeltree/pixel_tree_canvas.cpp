@@ -28,7 +28,9 @@
 #include "globalhelper.hh"
 
 using namespace cpprofiler::pixeltree;
-// using namespace std::chrono;
+using std::chrono::high_resolution_clock;
+using std::chrono::duration_cast;
+using std::chrono::duration;
 using std::vector;
 using std::list;
 
@@ -269,7 +271,7 @@ void PixelTreeCanvas::gatherVarData() {
     /// 2. get variable name
     auto found = label.find(' ');
 
-    string var = "";
+    std::string var = "";
     if (found != std::string::npos) var = label.substr(0, found);
 
     /// 3. check if we already know the variable
@@ -314,7 +316,7 @@ void PixelTreeCanvas::gatherNogoodData() {
       /// work out var length
       auto count = 0;
       auto pos = nogood.find(' ');
-      while (pos != string::npos) {
+      while (pos != std::string::npos) {
         count++;
         pos = nogood.find(' ', pos + 1);
       }

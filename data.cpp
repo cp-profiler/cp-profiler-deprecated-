@@ -17,6 +17,7 @@
  *  OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
  *  WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
+#include "data.hh"
 
 #include <iostream>
 #include <qdebug.h>
@@ -26,10 +27,10 @@
 #include <ctime>
 
 #include "visualnode.hh"
-#include "data.hh"
 #include "message.pb.hh"
 
 using namespace std;
+using namespace std::chrono;
 
 int Data::instance_counter = 0;
 
@@ -78,8 +79,16 @@ void Data::setDoneReceiving(void) {
         // qDebug() << "(!) _total_time cannot be 0";
     }
 
+    /// *** Flush_node_rate ***
 
-    flush_node_rate();
+    current_time = system_clock::now();
+    long long time_passed = static_cast<long long>(
+        duration_cast<microseconds>(current_time - last_interval_time).count());
+
+    float nr = (nodes_arr.size() - last_interval_nc) * (float)NODE_RATE_STEP / time_passed;
+    node_rate.push_back(nr);
+    nr_intervals.push_back(last_interval_nc);
+    nr_intervals.push_back(nodes_arr.size());
 
     _isDone = true;
 
@@ -107,33 +116,18 @@ int Data::handleNodeCallback(message::Node& node) {
     int backjump_distance = node.backjump_distance();
     int decision_level = node.decision_level();
 
-    // qDebug() << "Received node: \t" << sid << " " << pid << " "
-    //                 << alt << " " << kids << " " << status << " wid:"
-    //                 << (int)tid << " restart:" << restart_id
-    //                 << "time:" << node.time()
-    //                 << "label:" << node.label().c_str()
-    //                 << "domain:" << domain
-    //                 << "nogood:" << node.nogood().c_str();
-
-
-    
-
     if (node.has_info() && node.info().length() > 0) {
 
         sid2info[sid] = new std::string(node.info());
     }
 
-    /// just so we don't have ugly numbers when not using restarts
-    if (restart_id == -1) restart_id = 0;
-
-    /// this way thread id and node id are stored in one variable
-    /// TODO: shouldn't I make a custom hash function instead?
+    /// thread id and node id are stored in one variable (for hashing)
     int64_t real_pid = -1;
     if (pid != -1) {
         real_pid = (pid | ((int64_t)restart_id << 32));
     }
 
-    std::string label = node.label();
+    const std::string& label = node.label();
 
     auto entry = new DbEntry(sid,
                     restart_id,
@@ -150,6 +144,8 @@ int Data::handleNodeCallback(message::Node& node) {
                     usesAssumptions,
                     backjump_distance,
                     decision_level);
+
+    std::cerr << *entry << "\n";
 
     auto full_sid = entry->full_sid;
 
@@ -257,25 +253,15 @@ Data::~Data(void) {
     }
 }
 
-/// private methods
+/// ***********************
+/// *** private methods ***
+/// ***********************
 
-void Data::flush_node_rate(void) {
-
-    current_time = system_clock::now();
-    long long time_passed = static_cast<long long>(duration_cast<microseconds>(current_time - last_interval_time).count());
-
-    float nr = (nodes_arr.size() - last_interval_nc) * (float)NODE_RATE_STEP / time_passed;
-    node_rate.push_back(nr);
-    nr_intervals.push_back(last_interval_nc);
-    nr_intervals.push_back(nodes_arr.size());
-
-    // qDebug() << "flushed nr: " << nr << " at node: " << last_interval_nc;
-}
-
+// NOTE(maxim): this can be replaced with multiple arrays: one for each restart 
 void Data::pushInstance(int64_t full_sid, DbEntry* entry) {
     QMutexLocker locker(&dataMutex);
 
-    /// Note(maxim): `sid` != `nodes_arr.size`, because there are also
+    /// NOTE(maxim): `sid` != `nodes_arr.size`, because there are also
     /// '-1' nodes (backjumped) that dont get counted
     nodes_arr.push_back(entry);
 
@@ -284,3 +270,27 @@ void Data::pushInstance(int64_t full_sid, DbEntry* entry) {
     // qDebug() << "sid2aid[" << full_sid << "] = " << sid2aid[full_sid];
 
 }
+
+
+#ifdef MAXIM_DEBUG
+
+const std::string Data::getDebugInfo() const {
+    std::ostringstream os;
+
+    os << "---nodes_arr---" << '\n';
+    for (auto it = nodes_arr.cbegin(); it != nodes_arr.end(); ++it) {
+      os << **(it) << "\n";
+    }
+    os << "---------------" << '\n';
+
+    os << "---sid2nogood---" << '\n';
+    for (auto it = sid2nogood.cbegin(); it != sid2nogood.end();
+         it++) {
+      os << it->first << " -> " << it->second << "\n";
+    }
+    os << "---------------" << '\n';
+
+    return os.str();
+}
+
+#endif

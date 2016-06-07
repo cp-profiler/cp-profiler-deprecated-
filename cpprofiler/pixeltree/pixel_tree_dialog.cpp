@@ -23,6 +23,7 @@
 #include "pixel_tree_dialog.hh"
 #include "treecanvas.hh"
 #include "pixel_tree_canvas.hh"
+#include "data.hh"
 
 using namespace cpprofiler::pixeltree;
 

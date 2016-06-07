@@ -73,7 +73,7 @@ class TreeCanvas : public QWidget {
   friend class TreeBuilder;
   friend class ShapeCanvas;
   friend class TreeComparison;
-  friend class BaseTreeDialog;
+  friend class CmpTreeDialog;
 
 public:
 
@@ -85,14 +85,14 @@ public:
   std::string getLabel(unsigned int gid) {
     return execution->getLabel(gid);
   }
-  unsigned long long getTotalTime() { return execution->getTotalTime(); }
-  string getTitle() { return execution->getTitle(); }
+  unsigned long long getTotalTime() const { return execution->getTotalTime(); }
+  std::string getTitle() const { return execution->getTitle(); }
   DbEntry* getEntry(unsigned int gid) { return execution->getEntry(gid); }
 
   NodeAllocator* get_na() const { return na; }
   const Statistics& get_stats() const { return stats; }
 
-  Execution* getExecution() { return execution; }
+  Execution* getExecution() const { return execution; }
 
 private:
 
@@ -392,7 +392,6 @@ public:
 
 
 public Q_SLOTS:
-  void printDebugInfo(void);
   void maybeUpdateCanvas(void);
   void updateCanvas(void);
   /// Update display
@@ -408,6 +407,7 @@ public Q_SLOTS:
   void statusFinished();
 
 #ifdef MAXIM_DEBUG
+  void printDebugInfo(void);
   void addChildren();
 #endif
 private Q_SLOTS:

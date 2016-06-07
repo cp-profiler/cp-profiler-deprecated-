@@ -37,10 +37,6 @@
 #include "node.hh"
 #include "visualnode.hh"
 
-using namespace std::chrono;
-using std::string;
-using std::ostream;
-
 namespace message {
     class Node;
 }
@@ -52,7 +48,6 @@ enum MsgType {
 };
 
 class DbEntry {
-private:
 
 public:
     DbEntry(int sid, int restart_id, int64_t parent_id, int _alt, int _kids,
@@ -68,7 +63,7 @@ public:
     {
     }
 
-    friend ostream& operator<<(ostream& s, const DbEntry& e);
+    friend std::ostream& operator<<(std::ostream& s, const DbEntry& e);
 
     union {
         struct {
@@ -97,28 +92,22 @@ public:
 class Data : public QObject {
 Q_OBJECT
 
-// friend class TreeBuilder;
-// friend class PixelTreeCanvas;
+using system_clock = std::chrono::system_clock;
 
 /// step for node rate counter (in microseconds)
 static constexpr int NODE_RATE_STEP = 1000;
 
     const NodeAllocator* _na; /// Node allocator of _tc
 
+    /// Where most node data is stored, id as it comes from Broker
+    std::vector<DbEntry*> nodes_arr;
 
-public:
     /// counts instances of Data
     static int instance_counter;
-
-    // const TreeCanvas* _tc; /// TreeCanvas instance it belongs to
-    // const int _id; /// Id of the TreeCanvas instance it belongs to
-
+public:
 
     /// True if we want a dummy node (needed for showing restarts)
     bool _isRestarts = false;
-
-    /// Where most node data is stored, id as it comes from Broker
-    std::vector<DbEntry*> nodes_arr;
 
     /// Mapping from solver Id to array Id (nodes_arr)
     /// can't use vector because sid is too big with threads
@@ -133,15 +122,15 @@ public:
     std::unordered_map<int, DbEntry*> gid2entry;
 
     /// Map solver Id to no-good string
-    std::unordered_map<int64_t, string> sid2nogood;
+    std::unordered_map<int64_t, std::string> sid2nogood;
 
-    std::unordered_map<int64_t, string*> sid2info;
+    std::unordered_map<int64_t, std::string*> sid2info;
 
     // Whether received DONE_SENDING message
     bool _isDone;
 
     // Name of the FlatZinc model
-    string _title;
+    std::string _title;
 
     // Total solver time in microseconds
     unsigned long long _total_time;
@@ -175,9 +164,6 @@ private:
     /// Populate nodes_arr with the data coming from
     void pushInstance(int64_t sid, DbEntry* entry);
 
-    /// Work out node rate for the last (incomplete) interval
-    void flush_node_rate(void);
-
 public:
 
     Data(NodeAllocator* na);
@@ -201,17 +187,18 @@ public:
 
     bool isDone(void) { return _isDone; }
     bool isRestarts(void) { return _isRestarts; }
-    string getTitle(void) { return _title; }
-    inline const std::unordered_map<int64_t, string>& getNogoods(void) { return sid2nogood; }
-    inline std::unordered_map<int64_t, string*>& getInfo(void) { return sid2info; }
+    std::string getTitle(void) { return _title; }
+    const std::vector<DbEntry*>& getEntries() const { return nodes_arr; }
+    inline const std::unordered_map<int64_t, std::string>& getNogoods(void) { return sid2nogood; }
+    inline std::unordered_map<int64_t, std::string*>& getInfo(void) { return sid2info; }
 
     unsigned long long getTotalTime(void); /// time in microseconds
 
     DbEntry* getEntry(int gid) const;
     DbEntry* getEntry(const Node& node) const;
 
-    const string* getNogood(const Node& node) const;
-    const string* getInfo(const Node& node) const;
+    const std::string* getNogood(const Node& node) const;
+    const std::string* getInfo(const Node& node) const;
 
     int getGidBySid(int64_t sid) { return nodes_arr[sid2aid[sid]]->gid; }
 
@@ -220,7 +207,7 @@ public:
 
 /// ********* SETTERS **********
 
-    void setTitle(string title) { _title = title; }
+    void setTitle(std::string title) { _title = title; }
     void setIsRestarts(bool isRestarts) {
         /// can't set true to false
         assert(_isRestarts == false || isRestarts == true);
@@ -234,6 +221,10 @@ public:
 
     // sets _isDone to true when received DONE_SENDING
     void setDoneReceiving(void);
+
+#ifdef MAXIM_DEBUG
+    const std::string getDebugInfo() const;
+#endif
 };
 
 inline

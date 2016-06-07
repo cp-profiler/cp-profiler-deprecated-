@@ -47,6 +47,7 @@
 
 #include "ml-stats.hh"
 #include "globalhelper.hh"
+#include "execution.hh"
 
 #include <fstream>
 #include <iostream>
@@ -367,22 +368,7 @@ void TreeCanvas::showNogoods(void) {
 void print_debug(const Data& data) {
   std::ofstream file("debug.txt");
 
-  file << "---nodes_arr---" << '\n';
-  for (auto it = data.nodes_arr.cbegin(); it != data.nodes_arr.end(); it++) {
-    file << **(it) << "\n";
-  }
-  file << "---------------" << '\n';
-
-  file << "---sid2nogood---" << '\n';
-  for (auto it = data.sid2nogood.cbegin(); it != data.sid2nogood.end(); it++) {
-    file << it->first << " -> " << it->second << "\n";
-  }
-  file << "---------------" << '\n';
-}
-
-void TreeCanvas::printDebugInfo(void) {
-  print_debug(*execution->getData());
-  qDebug() << "debug info recorded into debug.txt";
+  file << data.getDebugInfo();
 }
 
 void TreeCanvas::showNodeInfo(void) {
@@ -1311,10 +1297,20 @@ void TreeCanvas::highlightFailedByNogoods() {
 }
 
 #ifdef MAXIM_DEBUG
+  void TreeCanvas::printDebugInfo(void) {
+    print_debug(*execution->getData());
+    qDebug() << "debug info recorded into debug.txt";
+  }
+
   void TreeCanvas::addChildren() {
     if (currentNode->getNumberOfChildren() == 0) {
       currentNode->setNumberOfChildren(2, *na);
       currentNode->dirtyUp(*na);
+
+      /// update data entry for this node
+      
+
+      // stats.maxDepth = std::max(stats.maxDepth, static_cast<int>(dbEntry.depth));
     }
     
     updateCanvas();

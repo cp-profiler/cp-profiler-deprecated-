@@ -55,7 +55,7 @@ void TreeBuilder::reset(const Execution* execution, NodeAllocator* na) {
   _data = execution->getData();
   _na = na;
 
-  read_queue.reset(new ReadingQueue(_data->nodes_arr));
+  read_queue.reset(new ReadingQueue{_data->getEntries()});
 }
 
 void TreeBuilder::initRoot(int kids, NodeStatus status) {
@@ -139,7 +139,7 @@ bool TreeBuilder::processNode(DbEntry& dbEntry, bool is_delayed) {
     return false;
   }
 
-  const DbEntry& parentEntry = *_data->nodes_arr[pid_it->second];
+  const DbEntry& parentEntry = *_data->getEntries()[pid_it->second];
   /// parent ID as it is in Node Allocator (Gist)
   int parent_gid = parentEntry.gid;  
 

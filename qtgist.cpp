@@ -24,8 +24,6 @@
 #include "nodevisitor.hh"
 #include "nodecursor.hh"
 
-#include "solver_tree_dialog.hh"
-
 #include "message.pb.hh"
 #include "execution.hh"
 #include "cmp_tree_dialog.hh"
@@ -48,31 +46,31 @@ Gist::Gist(Execution* execution, QWidget* parent) : QWidget(parent), execution(e
     setLayout(layout);
 
 
-    canvas = new TreeCanvas(execution, layout, CanvasType::REGULAR, scrollArea->viewport());
-    canvas->setPalette(*myPalette);
-    canvas->setObjectName("canvas");
+    m_Canvas = new TreeCanvas(execution, layout, CanvasType::REGULAR, scrollArea->viewport());
+    m_Canvas->setPalette(*myPalette);
+    m_Canvas->setObjectName("canvas");
 
     layout->addWidget(scrollArea, 0,0,-1,1);
-    layout->addWidget(canvas->scaleBar, 1,1, Qt::AlignHCenter);
-    layout->addWidget(canvas->smallBox, 1,2, Qt::AlignBottom);
+    layout->addWidget(m_Canvas->scaleBar, 1,1, Qt::AlignHCenter);
+    layout->addWidget(m_Canvas->smallBox, 1,2, Qt::AlignBottom);
 
     addActions();
-    connectCanvas(canvas);
+    connectCanvas(m_Canvas);
 
     connect(scrollArea->horizontalScrollBar(), SIGNAL(valueChanged(int)),
-            canvas, SLOT(scroll(void)));
+            m_Canvas, SLOT(scroll(void)));
     connect(scrollArea->verticalScrollBar(), SIGNAL(valueChanged(int)),
-            canvas, SLOT(scroll(void)));
+            m_Canvas, SLOT(scroll(void)));
 
     nodeStatInspector = new NodeStatInspector(this);
 
-    canvas->show();
+    m_Canvas->show();
 
     resize(500, 400);
 
     auto sa_layout = new QVBoxLayout();
     sa_layout->setContentsMargins(0,0,0,0);
-    sa_layout->addWidget(canvas);
+    sa_layout->addWidget(m_Canvas);
 
     scrollArea->viewport()->setLayout(sa_layout);
 
@@ -83,7 +81,7 @@ Gist::Gist(Execution* execution, QWidget* parent) : QWidget(parent), execution(e
 
 void
 Gist::resizeEvent(QResizeEvent*) {
-    canvas->resizeToOuter();
+    m_Canvas->resizeToOuter();
 }
 
 Gist::~Gist(void) {
@@ -120,14 +118,14 @@ Gist::updateActions(VisualNode* n, bool finished) {
             navDown->setEnabled(false);
         }
 
-        VisualNode* p = n->getParent(*canvas->na);
+        VisualNode* p = n->getParent(*m_Canvas->na);
         if (p == nullptr) {
             navUp->setEnabled(false);
             navRight->setEnabled(false);
             navLeft->setEnabled(false);
         } else {
             navUp->setEnabled(true);
-            unsigned int alt = n->getAlternative(*canvas->na);
+            unsigned int alt = n->getAlternative(*m_Canvas->na);
             navRight->setEnabled(alt + 1 < p->getNumberOfChildren());
             navLeft->setEnabled(alt > 0);
         }
@@ -146,7 +144,7 @@ Gist::updateActions(VisualNode* n, bool finished) {
 void
 Gist::on_canvas_statusChanged(VisualNode* n, const Statistics& stats,
                               bool finished) {
-    nodeStatInspector->node(*canvas->na,n,stats,finished); /// for single node stats
+    nodeStatInspector->node(*m_Canvas->na,n,stats,finished); /// for single node stats
     if (!finished) {
         showNodeStats->setEnabled(false);
         // stop-> setEnabled(true);
@@ -208,13 +206,13 @@ Gist::on_canvas_statusChanged(VisualNode* n, const Statistics& stats,
 
         VisualNode* root = n;
         while (!root->isRoot())
-            root = root->getParent(*canvas->na);
-        NextSolCursor nsc(n, false, *canvas->na);
+            root = root->getParent(*m_Canvas->na);
+        NextSolCursor nsc(n, false, *m_Canvas->na);
         PreorderNodeVisitor<NextSolCursor> nsv(nsc);
         nsv.run();
         navNextSol->setEnabled(nsv.getCursor().node() != root);
 
-        NextSolCursor psc(n, true, *canvas->na);
+        NextSolCursor psc(n, true, *m_Canvas->na);
         PreorderNodeVisitor<NextSolCursor> psv(psc);
         psv.run();
         navPrevSol->setEnabled(psv.getCursor().node() != root);
@@ -238,7 +236,7 @@ Gist::emitChangeMainTitle(QString file_name) {
 
 bool
 Gist::finish(void) {
-    return canvas->finish();
+    return m_Canvas->finish();
 }
 
 //void
@@ -249,8 +247,8 @@ Gist::finish(void) {
 void
 Gist::selectBookmark(QAction* a) {
     int idx = bookmarksGroup->actions().indexOf(a);
-    canvas->setCurrentNode(canvas->bookmarks[idx]);
-    canvas->centerCurrentNode();
+    m_Canvas->setCurrentNode(m_Canvas->bookmarks[idx]);
+    m_Canvas->centerCurrentNode();
 }
 
 void
@@ -283,46 +281,43 @@ Gist::populateBookmarksMenu(void) {
 
 
 void
-Gist::setAutoHideFailed(bool b) { canvas->setAutoHideFailed(b); }
+Gist::setAutoHideFailed(bool b) { m_Canvas->setAutoHideFailed(b); }
 void
-Gist::setAutoZoom(bool b) { canvas->setAutoZoom(b); }
+Gist::setAutoZoom(bool b) { m_Canvas->setAutoZoom(b); }
 bool
-Gist::getAutoHideFailed(void) { return canvas->getAutoHideFailed(); }
+Gist::getAutoHideFailed(void) { return m_Canvas->getAutoHideFailed(); }
 bool
-Gist::getAutoZoom(void) { return canvas->getAutoZoom(); }
+Gist::getAutoZoom(void) { return m_Canvas->getAutoZoom(); }
 void
-Gist::setRefresh(int i) { canvas->setRefresh(i); }
+Gist::setRefresh(int i) { m_Canvas->setRefresh(i); }
 void
-Gist::setRefreshPause(int i) { canvas->setRefreshPause(i); }
+Gist::setRefreshPause(int i) { m_Canvas->setRefreshPause(i); }
 bool
 Gist::getSmoothScrollAndZoom(void) {
-    return canvas->getSmoothScrollAndZoom();
+    return m_Canvas->getSmoothScrollAndZoom();
 }
 void
 Gist::setSmoothScrollAndZoom(bool b) {
-    canvas->setSmoothScrollAndZoom(b);
+    m_Canvas->setSmoothScrollAndZoom(b);
 }
 bool
 Gist::getMoveDuringSearch(void) {
-    return canvas->getMoveDuringSearch();
+    return m_Canvas->getMoveDuringSearch();
 }
 void
 Gist::setMoveDuringSearch(bool b) {
-    canvas->setMoveDuringSearch(b);
+    m_Canvas->setMoveDuringSearch(b);
 }
 void
 Gist::showStats(void) {
     nodeStatInspector->showStats();
-    canvas->emitStatusChanged();
+    m_Canvas->emitStatusChanged();
 }
 
 
 
 void
 Gist::addActions(void) {
-    printDebugInfo = new QAction("Print Debug Info", this);
-    printDebugInfo->setShortcut(QKeySequence("Ctrl+Shift+D"));
-
     expand = new QAction("Expand", this);
     expand->setShortcut(QKeySequence("Return"));
 
@@ -372,17 +367,23 @@ Gist::addActions(void) {
     hideSize = new QAction("Hide small subtrees", this);
 
 #ifdef MAXIM_DEBUG
+    auto printDebugInfo = new QAction("Print Debug Info", this);
+    printDebugInfo->setShortcut(QKeySequence("Ctrl+Shift+D"));
+    connect(printDebugInfo, &QAction::triggered, m_Canvas,
+            &TreeCanvas::printDebugInfo);
+    addAction(printDebugInfo);
+
     auto updateCanvas = new QAction{"Update Canvas", this};
     updateCanvas->setShortcut(QKeySequence("Shift+U"));
     connect(updateCanvas, &QAction::triggered, [this]() {
         qDebug() << "action: update canvas";
-        canvas->update();
+        m_Canvas->update();
     });
     addAction(updateCanvas);
 
     auto addChildren = new QAction{"Add 2 Children", this};
     addChildren->setShortcut(QKeySequence("Shift+C"));
-    connect(addChildren, &QAction::triggered, canvas, &TreeCanvas::addChildren);
+    connect(addChildren, &QAction::triggered, m_Canvas, &TreeCanvas::addChildren);
     addAction(addChildren);
 #endif
 
@@ -473,7 +474,6 @@ Gist::addActions(void) {
     comparatorMenu = new QMenu("Comparators", this);
     comparatorMenu->addActions(comparatorGroup->actions());
 
-    addAction(printDebugInfo);
 
     addAction(expand);
     addAction(stop);
@@ -550,7 +550,6 @@ void
 Gist::connectCanvas(TreeCanvas* tc) {
 
     connect(this, SIGNAL(doneReceiving()), tc, SLOT(statusFinished()));
-    connect(printDebugInfo, &QAction::triggered, tc, &TreeCanvas::printDebugInfo);
     /// TODO: these 2 should not be here
     connect(expand, SIGNAL(triggered()), tc, SLOT(expandCurrentNode()));
     connect(stop, SIGNAL(triggered()), tc, SLOT(stopSearch()));

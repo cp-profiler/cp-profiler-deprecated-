@@ -28,92 +28,162 @@
 #include <algorithm>
 #include <cmath>
 
+using std::string;
+
 /// TODO(maxim): use normal Gist window for comparison instead???
 
 CmpTreeDialog::CmpTreeDialog(QWidget* parent, Execution* execution, bool with_labels,
                              TreeCanvas* tc1, TreeCanvas* tc2)
-    : BaseTreeDialog(parent, execution, CanvasType::MERGED),
-      analysisMenu{nullptr} {
+    : QDialog{parent} {
+
+  auto main_layout = new QHBoxLayout();
+  layout = new QGridLayout(this);
+  auto nc_layout = new QVBoxLayout();
+  auto status_layout = new QVBoxLayout();
+
+  main_layout->addLayout(status_layout);
+
+  auto scrollArea = new QAbstractScrollArea(this);
+
+  m_Canvas = new TreeCanvas(execution, layout, CanvasType::MERGED, scrollArea->viewport());
+
+  layout->addWidget(scrollArea, 0, 0, 1, 1);
+  layout->addWidget(m_Canvas->scaleBar, 0, 1, Qt::AlignHCenter);
+
+  scrollArea->viewport()->setLayout(nc_layout);
+
+  nc_layout->addWidget(m_Canvas);
+
+  auto menuBar = new QMenuBar(this);
+
+    // Don't add the menu bar on Mac OS X
+  #ifndef Q_WS_MAC
+    layout->setMenuBar(menuBar);
+  #endif
+
+  statusBar = new QStatusBar(this);
+
+  QWidget* stw = new QWidget();
+  statusBar->addPermanentWidget(stw);
+  layout->addWidget(statusBar);
+
+  auto hbl = new QHBoxLayout();
+  hbl->setContentsMargins(0,0,0,0);
+
+  stw->setLayout(hbl);
+
+  statusBar->showMessage("Ready");
+
+  /// ***********************************
+
+  connect(scrollArea->horizontalScrollBar(), SIGNAL(valueChanged(int)),
+            m_Canvas, SLOT(scroll(void)));
+  connect(scrollArea->verticalScrollBar(), SIGNAL(valueChanged(int)),
+            m_Canvas, SLOT(scroll(void)));
+
+  resize(500, 400);
+  show();
+
 
   hbl->addWidget(new NodeWidget(MERGING));
-  mergedLabel = new QLabel("0");
-  comparison_ = new TreeComparison{*tc1->getExecution(), *tc2->getExecution()};
+
+  auto mergedLabel = new QLabel("0");
   hbl->addWidget(mergedLabel);
 
-  addActions();
+  comparison_ = new TreeComparison{*tc1->getExecution(), *tc2->getExecution()};
 
-  nodeMenu->addAction(_navFirstPentagon);
-  nodeMenu->addAction(_navNextPentagon);
-  nodeMenu->addAction(_navPrevPentagon);
-  nodeMenu->addAction(_labelBranches);
-  nodeMenu->addAction(_showInfo);
-  connect(_navFirstPentagon, SIGNAL(triggered()), this, SLOT(navFirstPentagon()));
-  connect(_navNextPentagon, SIGNAL(triggered()), this, SLOT(navNextPentagon()));
-  connect(_navPrevPentagon, SIGNAL(triggered()), this, SLOT(navPrevPentagon()));
-  connect(_labelBranches, SIGNAL(triggered()), _tc, SLOT(labelBranches()));
-  connect(_showInfo, SIGNAL(triggered()), _tc, SLOT(showNodeInfo()));
+  auto nodeMenu = menuBar->addMenu(tr("&Node"));
+  auto analysisMenu = menuBar->addMenu(tr("&Analysis"));
 
-  auto listNogoodsAction = new QAction("List Responsible Nogoods", this);
-
-
-  analysisMenu = menuBar->addMenu(tr("&Analysis"));
-  analysisMenu->addAction(_showPentagonHist);
-  analysisMenu->addAction(_saveComparisonStats);
-  analysisMenu->addAction(listNogoodsAction);
-
-  connect(_showPentagonHist, SIGNAL(triggered()), this, SLOT(showPentagonHist()));
-  connect(_saveComparisonStats, SIGNAL(triggered()), this, SLOT(saveComparisonStats()));
-  connect(listNogoodsAction, &QAction::triggered, this, &CmpTreeDialog::showResponsibleNogoods);
+  addActions(nodeMenu, analysisMenu);
 
   /// sort the pentagons by nodes diff:
-
-  comparison_->compare(_tc, with_labels);
+  comparison_->compare(m_Canvas, with_labels);
 
   comparison_->sortPentagons();
 
   mergedLabel->setNum(comparison_->get_no_pentagons());
-  // statusChangedShared(true);
 
 }
 
+CmpTreeDialog::~CmpTreeDialog() {
+  delete m_Canvas;
+}
+
 void
-CmpTreeDialog::addActions(void) {
+CmpTreeDialog::addActions(QMenu* nodeMenu, QMenu* analysisMenu) {
   /// Note(maxim): Qt::WindowShortcut is default context
-  _navFirstPentagon = new QAction("To first pentagon", this);
-  _navFirstPentagon->setShortcut(QKeySequence("Ctrl+Shift+1"));
+  auto navFirstPentagon = new QAction("To first pentagon", this);
+  navFirstPentagon->setShortcut(QKeySequence("Ctrl+Shift+1"));
+  addAction(navFirstPentagon);
+  nodeMenu->addAction(navFirstPentagon);
+  connect(navFirstPentagon, SIGNAL(triggered()), this, SLOT(navFirstPentagon()));
 
-  _navNextPentagon = new QAction("To next pentagon", this);
-  _navNextPentagon->setShortcut(QKeySequence("Ctrl+Shift+Right"));
+  auto navNextPentagon = new QAction("To next pentagon", this);
+  navNextPentagon->setShortcut(QKeySequence("Ctrl+Shift+Right"));
+  addAction(navNextPentagon);
+  nodeMenu->addAction(navNextPentagon);
+  connect(navNextPentagon, SIGNAL(triggered()), this, SLOT(navNextPentagon()));
 
-  _navPrevPentagon = new QAction("To prev pentagon", this);
-  _navPrevPentagon->setShortcut(QKeySequence("Ctrl+Shift+Left"));
+  auto navPrevPentagon = new QAction("To prev pentagon", this);
+  navPrevPentagon->setShortcut(QKeySequence("Ctrl+Shift+Left"));
+  addAction(navPrevPentagon);
+  nodeMenu->addAction(navPrevPentagon);
+  connect(navPrevPentagon, SIGNAL(triggered()), this, SLOT(navPrevPentagon()));
 
-  _showPentagonHist = new QAction("Pentagon list", this);
+  auto labelBranches = new QAction("Label/clear branches", this);
+  labelBranches->setShortcut(QKeySequence("L"));
+  addAction(labelBranches);
+  nodeMenu->addAction(labelBranches);
+  connect(labelBranches, SIGNAL(triggered()), m_Canvas, SLOT(labelBranches()));
 
-  _saveComparisonStats = new QAction("Save comparison stats", this);
+  auto showInfo = new QAction("Show info", this);
+  showInfo->setShortcut(QKeySequence("I"));
+  addAction(showInfo);
+  nodeMenu->addAction(showInfo);
+  connect(showInfo, SIGNAL(triggered()), m_Canvas, SLOT(showNodeInfo()));
 
-  _labelBranches = new QAction("Label/clear branches", this);
-  _labelBranches->setShortcut(QKeySequence("L"));
+  auto showPentagonHist = new QAction("Pentagon list", this);
+  analysisMenu->addAction(showPentagonHist);
+  connect(showPentagonHist, SIGNAL(triggered()), this, SLOT(showPentagonHist()));
 
-  _showInfo = new QAction("Show info", this);
-  _showInfo->setShortcut(QKeySequence("I"));
+  auto listNogoodsAction = new QAction("List Responsible Nogoods", this);
+  analysisMenu->addAction(listNogoodsAction);
+  connect(listNogoodsAction, &QAction::triggered, this, &CmpTreeDialog::showResponsibleNogoods);
 
-  addAction(_navFirstPentagon);
-  addAction(_navNextPentagon);
-  addAction(_navPrevPentagon);
-  addAction(_labelBranches);
-  addAction(_showInfo);
+  auto saveComparisonStats = new QAction("Save comparison stats", this);
+  analysisMenu->addAction(saveComparisonStats);
+  connect(saveComparisonStats, SIGNAL(triggered()), this, SLOT(saveComparisonStats()));
 }
 
 void
 CmpTreeDialog::statusChanged(VisualNode*, const Statistics&, bool finished) {
 
-  statusChangedShared(finished);
+  if (finished) {
+    /// add total time to 'Done' label
+    QString t;
+    unsigned long long totalTime = m_Canvas->getTotalTime();
+
+    const int MILLION = 1000000;
+    float seconds = (float)totalTime / MILLION; /// microseconds to seconds
+
+    t.setNum(seconds);
+    statusBar->showMessage("Done in " + t + "s");
+
+    qDebug() << "Done in " + t + "s";
+
+    /// no need to change stats after done
+    disconnect(m_Canvas, SIGNAL(statusChanged(VisualNode*, const Statistics&, bool)),
+          this, SLOT(statusChanged(VisualNode*, const Statistics&, bool)));
+
+  } else {
+    statusBar->showMessage("Searching");
+  }
 
 }
 
 void
-CmpTreeDialog::navFirstPentagon(void) {
+CmpTreeDialog::navFirstPentagon() {
   const auto pentagon_items = comparison_->pentagon_items();
 
   if (pentagon_items.size() == 0) {
@@ -121,26 +191,26 @@ CmpTreeDialog::navFirstPentagon(void) {
     return;
   }
 
-  _tc->setCurrentNode(pentagon_items[0].node);
-  _tc->centerCurrentNode();
+  m_Canvas->setCurrentNode(pentagon_items[0].node);
+  m_Canvas->centerCurrentNode();
 
 }
 
 void
-CmpTreeDialog::navNextPentagon(void) {
+CmpTreeDialog::navNextPentagon() {
 
-  _tc->navNextPentagon();
+  m_Canvas->navNextPentagon();
 
 }
 
 void
-CmpTreeDialog::navPrevPentagon(void) {
+CmpTreeDialog::navPrevPentagon() {
 
-  _tc->navNextPentagon(true);
+  m_Canvas->navNextPentagon(true);
 }
 
 void
-CmpTreeDialog::showPentagonHist(void) {
+CmpTreeDialog::showPentagonHist() {
 
   auto pentagon_window = new PentListWindow(this, comparison_->pentagon_items());
   pentagon_window->createList();
@@ -196,7 +266,7 @@ CmpTreeDialog::saveComparisonStatsTo(const QString& file_name) {
 }
 
 void
-CmpTreeDialog::saveComparisonStats(void) {
+CmpTreeDialog::saveComparisonStats() {
   saveComparisonStatsTo("temp_stats.txt");
 }
 
@@ -347,9 +417,9 @@ CmpTreeDialog::selectPentagon(int row) {
   auto node = items[row].node;
 
   //TODO(maxim): this should unhide all nodes above
-  // _tc->unhideNode(node); // <- does not work correctly
-  _tc->setCurrentNode(node);
-  _tc->centerCurrentNode();
+  // m_Canvas->unhideNode(node); // <- does not work correctly
+  m_Canvas->setCurrentNode(node);
+  m_Canvas->centerCurrentNode();
   
 }
 

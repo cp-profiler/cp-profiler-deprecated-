@@ -23,6 +23,7 @@
 #include "preferences.hh"
 #include "nodewidget.hh"
 #include "treecanvas.hh"
+#include "data.hh"
 
 #include <cmath>
 #include <fstream>
@@ -205,6 +206,7 @@ GistMainWindow::statusChanged(const Statistics& stats, bool finished) {
   } else if (isSearching && finished) {
     isSearching = false;
 
+    /// TODO(maxim): this should be done in here (delete include of data.hh)
     /// add total time to 'Done' label
     QString t;
     unsigned long long totalTime = m_Gist->getExecution()->getData()->getTotalTime();

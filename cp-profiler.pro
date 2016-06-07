@@ -37,7 +37,6 @@ SOURCES += main.cpp\
     spacenode.cpp \
     node.cpp \
     data.cpp \
-    base_tree_dialog.cpp \
     cmp_tree_dialog.cpp \
     receiverthread.cpp \
     treebuilder.cpp \
@@ -51,6 +50,7 @@ SOURCES += main.cpp\
     profiler-conductor.cpp \
     profiler-tcp-server.cpp \
     ml-stats.cpp \
+    execution.cpp \
     cpprofiler\analysis\backjumps.cpp \
     cpprofiler\pixeltree\pixel_tree_dialog.cpp \
     cpprofiler\pixeltree\icicle_tree_dialog.cpp \
@@ -84,7 +84,6 @@ HEADERS  += globalhelper.hh \
     zoomToFitIcon.hpp \
     data.hh \
     highlight_nodes_dialog.hpp \
-    base_tree_dialog.hh \
     cmp_tree_dialog.hh \
     receiverthread.hh \
     treebuilder.hh \
@@ -108,7 +107,6 @@ HEADERS  += globalhelper.hh \
     cpprofiler/pixeltree/pixel_item.hh \
     cpprofiler/analysis/depth_analysis.hh \
     cpprofiler/analysis/similar_shapes.hh \
-    cpprofiler/analysis/tree_structure.hh \
 
 FORMS    +=
 

@@ -69,10 +69,10 @@ void separateNode(Group& g, int i) {
   ++g.splitter;
 }
 
-ostream& operator<<(ostream& os, const VisualNode* n) {
+std::ostream& operator<<(std::ostream& os, const VisualNode* n) {
   #ifdef MAXIM_DEBUG
       os << n->debug_id;
-  #elif
+  #else
       os << n;
   #endif
   return os;
@@ -104,7 +104,7 @@ QDebug& operator<<(QDebug& os, const GroupsOfNodes_t& groups) {
 }
 
 void splitGroups(GroupsOfNodes_t& groups) {
-  for (int i = 0; i < groups.size(); ++i) {
+  for (int i = 0; i < (int)groups.size(); ++i) {
     auto& g = groups[i];
     if (g.splitter == 0 || g.splitter == (int)g.items.size()) {
       g.splitter = 0;
@@ -200,7 +200,7 @@ SimilarShapesWindow::SimilarShapesWindow(TreeCanvas* tc)
 
 
   /// ------ 2) select the first block (with height 1)
-  for (int group_id = 1; group_id < groups.size(); ++group_id) {
+  for (int group_id = 1; group_id < (int)groups.size(); ++group_id) {
 
     auto block = groups[group_id];
     // qDebug() << "groups: " << groups;

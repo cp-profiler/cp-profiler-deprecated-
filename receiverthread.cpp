@@ -21,7 +21,6 @@
 
 #include "receiverthread.hh"
 #include "globalhelper.hh"
-#include "solver_tree_dialog.hh"
 #include "message.pb.hh"
 
 #include <QTcpSocket>

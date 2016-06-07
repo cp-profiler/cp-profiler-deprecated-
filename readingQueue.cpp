@@ -23,7 +23,7 @@
 #include "data.hh"
 #include <iostream>
 
-ReadingQueue::ReadingQueue(std::vector<DbEntry*>& nodes)
+ReadingQueue::ReadingQueue(const std::vector<DbEntry*>& nodes)
 : nodes_arr(nodes)
 {
 

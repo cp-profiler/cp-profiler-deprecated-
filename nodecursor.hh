@@ -40,7 +40,6 @@
 
 #include "nodecursor_base.hh"
 #include "visualnode.hh"
-#include "data.hh"
 
 #include <vector>
 #include <QTextStream>

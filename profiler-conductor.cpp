@@ -3,6 +3,7 @@
 #include "profiler-tcp-server.hh"
 #include "gistmainwindow.h"
 #include "cmp_tree_dialog.hh"
+#include "data.hh"
 
 #include "globalhelper.hh"
 #include "treecanvas.hh"
@@ -158,7 +159,7 @@ void ProfilerConductor::newExecution(Execution* execution) {
 void ProfilerConductor::updateList(void) {
   for (int i = 0; i < executions.size(); i++) {
     executionList->item(i)
-        ->setText(QString::fromStdString(executions[i]->getDescription()));
+        ->setText(QString::fromStdString(executions[i]->getTitle()));
   }
 }
 

@@ -35,7 +35,6 @@
  * \ingroup TaskGist
  */
 
-class SolverTreeDialog;
 class CmpTreeDialog;
 class TreeCanvas;
 class Execution;
@@ -51,7 +50,7 @@ class Gist : public QWidget {
 private:
 
   /// The canvas implementation
-  TreeCanvas* canvas;
+  TreeCanvas* m_Canvas;
 
   void addActions(void);
 
@@ -116,8 +115,6 @@ public:
   QAction* analyzeSimilarSubtrees;
   /// Show no-goods
   QAction* showNogoods;
-  /// Print debug info
-  QAction* printDebugInfo;
   /// Show node info
   QAction* showNodeInfo;
   /// Show on a pixel tree
@@ -208,7 +205,7 @@ public:
 
 
   /// ***** GETTERS *****
-  TreeCanvas* getCanvas() { return canvas; }
+  TreeCanvas* getCanvas() { return m_Canvas; }
   Execution* getExecution() { return execution; }
 
 Q_SIGNALS:

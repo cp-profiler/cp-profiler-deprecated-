@@ -8,6 +8,8 @@
 // StatsEntry
 // **************************************************
 
+using std::string;
+
 class StatsEntry {
 public:
     unsigned int nodeid;
@@ -62,11 +64,11 @@ void printStatsHeader(std::ostream& out = std::cout) {
         << "\n";
 }
 
-std::string
-csvquote(const std::string& input) {
+string
+csvquote(const string& input) {
     std::stringstream out;
     out << '"';
-    for (std::string::const_iterator it = input.begin() ; it != input.end() ; it++) {
+    for (string::const_iterator it = input.begin() ; it != input.end() ; it++) {
         // CSV quoting is to replace " with "", e.g.
         // "one", "two", "I said, ""two,"" pay attention!"
         if (*it == '"')

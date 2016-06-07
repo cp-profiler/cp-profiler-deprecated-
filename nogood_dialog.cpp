@@ -21,6 +21,7 @@
 
 #include "nogood_dialog.hh"
 #include "treecanvas.hh"
+#include "data.hh"
 #include <QDebug>
 #include <QHBoxLayout>
 #include <QStandardItemModel>

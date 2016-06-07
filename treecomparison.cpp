@@ -23,6 +23,9 @@
 #include "treecomparison.hh"
 #include "treecanvas.hh"
 #include "node.hh"
+#include "data.hh"
+
+using std::string;
 
 TreeComparison::TreeComparison(Execution& ex1, Execution& ex2)
     : _ex1(ex1), _ex2(ex2), _na1(ex1.na()), _na2(ex2.na()) {}

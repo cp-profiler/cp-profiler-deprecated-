@@ -34,7 +34,7 @@ typedef std::map<int, std::queue<DbEntry*>*> QueueMap;
 class ReadingQueue {
  private:
   /// nodes from Data
-  std::vector<DbEntry*>& nodes_arr;
+  const std::vector<DbEntry*>& nodes_arr;
 
   /// nodes delayed, map: thread_id -> queue
   QueueMap delayed_treads;
@@ -55,7 +55,7 @@ class ReadingQueue {
   inline QueueMap::iterator nextNonemptyIt(QueueMap::iterator it);
 
  public:
-  explicit ReadingQueue(std::vector<DbEntry*>& nodes);
+  explicit ReadingQueue(const std::vector<DbEntry*>& nodes);
 
   DbEntry* next(bool& delayed);
 

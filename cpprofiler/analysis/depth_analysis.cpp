@@ -1,6 +1,7 @@
 #include "depth_analysis.hh"
 #include <QDebug>
 #include "treecanvas.hh"
+#include "data.hh"
 
 using namespace cpprofiler::analysis;
 
