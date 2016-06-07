@@ -84,6 +84,9 @@ bool TreeBuilder::processRoot(DbEntry& dbEntry) {
     // The "super root" now has an extra child, so its children
     // haven't been laid out yet.
     (_na)[0]->setChildrenLayoutDone(false);
+
+    // The "super root" is effectively a branch node.
+    (_na)[0]->setStatus(BRANCH);
     
     dbEntry.gid = restart_root;
     dbEntry.depth = 2;

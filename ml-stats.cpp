@@ -277,7 +277,8 @@ public:
         stack.pop_back();
         // Undetermined nodes are not real nodes (the solver never
         // visited them), so we don't do anything with those.
-        if (se.status != UNDETERMINED) {
+        // Also let's ignore the "super root".
+        if (se.status != UNDETERMINED && se.depth >= 1) {
             printStatsEntry(se, out);
             if (stack.size() > 0) {
                 stack.back().subtreeDepth = std::max(stack.back().subtreeDepth, 1 + se.subtreeDepth);
