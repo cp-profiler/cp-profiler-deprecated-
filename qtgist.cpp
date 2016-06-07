@@ -407,6 +407,12 @@ Gist::addActions(void) {
     navPrevSol = new QAction("To previous solution", this);
     navPrevSol->setShortcut(QKeySequence("Shift+Left"));
 
+    navNextLeaf = new QAction("To next leaf", this);
+    navNextLeaf->setShortcut(QKeySequence("Ctrl+Right"));
+
+    navPrevLeaf = new QAction("To previous leaf", this);
+    navPrevLeaf->setShortcut(QKeySequence("Ctrl+Left"));
+
     searchNext = new QAction("Next solution", this);
     searchNext->setShortcut(QKeySequence("N"));
 
@@ -520,6 +526,8 @@ Gist::addActions(void) {
     addAction(navRoot);
     addAction(navNextSol);
     addAction(navPrevSol);
+    addAction(navNextLeaf);
+    addAction(navPrevLeaf);
 
     addAction(searchNext);
     addAction(searchAll);
@@ -615,6 +623,8 @@ Gist::connectCanvas(TreeCanvas* tc) {
     connect(navRoot, SIGNAL(triggered()), tc, SLOT(navRoot()));
     connect(navNextSol, SIGNAL(triggered()), tc, SLOT(navNextSol()));
     connect(navPrevSol, SIGNAL(triggered()), tc, SLOT(navPrevSol()));
+    connect(navNextLeaf, SIGNAL(triggered()), tc, SLOT(navNextLeaf()));
+    connect(navPrevLeaf, SIGNAL(triggered()), tc, SLOT(navPrevLeaf()));
     connect(toggleHidden, SIGNAL(triggered()), tc, SLOT(toggleHidden()));
     connect(hideFailed, SIGNAL(triggered()), tc, SLOT(hideFailed()));
     connect(hideSize, SIGNAL(triggered()), tc, SLOT(hideSize()));

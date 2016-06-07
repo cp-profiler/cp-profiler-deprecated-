@@ -202,6 +202,34 @@ public:
     //@}
 };
 
+/// \brief A cursor that finds the next leaf
+class NextLeafCursor : public NodeCursor<VisualNode> {
+private:
+    /// Whether to search backwards
+    bool back;
+    /// Whether the current node is not a leaf
+    bool notOnLeaf(void);
+public:
+    /// Constructor
+    NextLeafCursor(VisualNode* theNode, bool backwards,
+                   const NodeAllocator& na);
+    /// \name Cursor interface
+    //@{
+    /// Do nothing
+    void processCurrentNode(void);
+    /// Test if the cursor may move to the parent node
+    bool mayMoveUpwards(void);
+    /// Test if cursor may move to the first child node
+    bool mayMoveDownwards(void);
+    /// Move cursor to the first child node
+    void moveDownwards(void);
+    /// Test if cursor may move to the first sibling
+    bool mayMoveSidewards(void);
+    /// Move cursor to the first sibling
+    void moveSidewards(void);
+    //@}
+};
+
 /// \brief A cursor that finds the next pentagon
 class NextPentagonCursor : public NodeCursor<VisualNode> {
 private:

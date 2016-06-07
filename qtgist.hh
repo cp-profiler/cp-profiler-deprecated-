@@ -117,10 +117,14 @@ public:
   QAction* navRight;
   /// Navigate to root node
   QAction* navRoot;
-  /// Navigate to next solution (to the left)
+  /// Navigate to next solution (to the right)
   QAction* navNextSol;
-  /// Navigate to previous solution (to the right)
+  /// Navigate to previous solution (to the left)
   QAction* navPrevSol;
+  /// Navigate to next leaf (to the right)
+  QAction* navNextLeaf;
+  /// Navigate to previous leaf (to the left)
+  QAction* navPrevLeaf;
   /// Search next solution in current subtree
   QAction* searchNext;
   /// Search all solutions in current subtree

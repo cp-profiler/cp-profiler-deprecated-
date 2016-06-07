@@ -827,6 +827,18 @@ void TreeCanvas::navNextSol(bool back) {
   }
 }
 
+void TreeCanvas::navNextLeaf(bool back) {
+  QMutexLocker locker(&mutex);
+  NextLeafCursor nsc(currentNode, back, execution->getNA());
+  PreorderNodeVisitor<NextLeafCursor> nsv(nsc);
+  nsv.run();
+  VisualNode* n = nsv.getCursor().node();
+  if (n != root) {
+    setCurrentNode(n);
+    centerCurrentNode();
+  }
+}
+
 void TreeCanvas::navNextPentagon(bool back) {
   QMutexLocker locker(&mutex);
   NextPentagonCursor nsc(currentNode, back, execution->getNA());
@@ -840,6 +852,7 @@ void TreeCanvas::navNextPentagon(bool back) {
 }
 
 void TreeCanvas::navPrevSol(void) { navNextSol(true); }
+void TreeCanvas::navPrevLeaf(void) { navNextLeaf(true); }
 
 void TreeCanvas::exportNodePDF(VisualNode* n) {
 #if QT_VERSION >= 0x040400

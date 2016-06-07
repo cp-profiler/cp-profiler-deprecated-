@@ -257,6 +257,68 @@ NextSolCursor::moveSidewards(void) {
 }
 
 
+
+
+
+
+inline
+NextLeafCursor::NextLeafCursor(VisualNode* theNode, bool backwards,
+                             const NodeAllocator& na)
+    : NodeCursor<VisualNode>(theNode,na), back(backwards) {}
+
+inline void
+NextLeafCursor::processCurrentNode(void) {}
+
+inline bool
+NextLeafCursor::notOnLeaf(void) {
+  if (node() == startNode()) return true;
+  NodeStatus s = node()->getStatus();
+  bool isLeaf = s == SOLVED || s == FAILED;
+  return !isLeaf;
+}
+
+inline bool
+NextLeafCursor::mayMoveUpwards(void) {
+    return notOnLeaf() && !node()->isRoot();
+}
+
+inline bool
+NextLeafCursor::mayMoveDownwards(void) {
+    return notOnLeaf() && !(back && node() == startNode())
+            && NodeCursor<VisualNode>::mayMoveDownwards();
+}
+
+inline void
+NextLeafCursor::moveDownwards(void) {
+    NodeCursor<VisualNode>::moveDownwards();
+    if (back) {
+        while (NodeCursor<VisualNode>::mayMoveSidewards())
+            NodeCursor<VisualNode>::moveSidewards();
+    }
+}
+
+inline bool
+NextLeafCursor::mayMoveSidewards(void) {
+    if (back) {
+        return notOnLeaf() && !node()->isRoot() && alternative() > 0;
+    } else {
+        return notOnLeaf() && !node()->isRoot() &&
+                (alternative() <
+                 node()->getParent(na)->getNumberOfChildren() - 1);
+    }
+}
+
+inline void
+NextLeafCursor::moveSidewards(void) {
+    if (back) {
+        alternative(alternative()-1);
+        node(node()->getParent(na)->getChild(na,alternative()));
+    } else {
+        NodeCursor<VisualNode>::moveSidewards();
+    }
+}
+
+
 /// **************
 
 inline

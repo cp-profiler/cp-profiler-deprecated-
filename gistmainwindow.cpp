@@ -98,6 +98,8 @@ GistMainWindow::GistMainWindow(Execution* execution, QWidget* parent) : QMainWin
   nodeMenu->addAction(c->navRoot);
   nodeMenu->addAction(c->navNextSol);
   nodeMenu->addAction(c->navPrevSol);
+  nodeMenu->addAction(c->navNextLeaf);
+  nodeMenu->addAction(c->navPrevLeaf);
   nodeMenu->addSeparator();
   nodeMenu->addAction(c->toggleHidden);
   nodeMenu->addAction(c->hideFailed);
