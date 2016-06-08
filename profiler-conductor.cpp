@@ -427,7 +427,8 @@ void ProfilerConductor::saveExecutionClicked(bool) {
 void ProfilerConductor::loadExecutionClicked(bool) {
   QString filename =
       QFileDialog::getOpenFileName(this, "Load execution", QDir::currentPath());
-  loadExecution(filename.toStdString());
+  if (!filename.isNull())
+      loadExecution(filename.toStdString());
 }
 
 
