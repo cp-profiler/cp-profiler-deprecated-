@@ -35,6 +35,8 @@
  *
  */
 
+#include "treecanvas.hh"
+
 template<class Node>
 inline
 NodeCursor<Node>::NodeCursor(Node* theNode,

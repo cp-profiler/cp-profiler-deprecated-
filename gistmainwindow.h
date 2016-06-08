@@ -60,7 +60,7 @@ private:
   /// Action for activating the preferences menu
   QAction* prefAction;
   /// The contained %Gist object
-  Gist* c;
+  Gist* m_Gist;
   /// A menu bar
   QMenuBar* menuBar;
   /// About dialog
@@ -72,8 +72,6 @@ Q_SIGNALS:
 
   /// stops the receiver thread
   void stopReceiver(void);
-
-  /* void buildingFinished(void); */
 
   void doneReceiving(void);
 
@@ -97,7 +95,7 @@ public:
   /// Constructor
   GistMainWindow(Execution* execution, QWidget* parent);
 
-  Gist* getGist(void) { return c; }
+  Gist* getGist(void) { return m_Gist; }
 
   void setStatsFilename(QString filename) {
       statsFilename = filename;

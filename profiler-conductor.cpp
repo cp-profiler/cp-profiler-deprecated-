@@ -70,7 +70,7 @@ ProfilerConductor::ProfilerConductor() : QMainWindow() {
   // this->setMinimumWidth(320);
 
   /// NOTE(maxim): required by the comparison script
-  std::cout << "READY TO LISTEN" << std::endl;
+  // std::cout << "READY TO LISTEN" << std::endl;
 
   QWidget* centralWidget = new QWidget(this);
   setCentralWidget(centralWidget);
@@ -108,6 +108,10 @@ ProfilerConductor::ProfilerConductor() : QMainWindow() {
   connect(deleteExecutionButton, SIGNAL(clicked(bool)), this,
           SLOT(deleteExecutionClicked(bool)));
 
+  QPushButton* debugExecutionButton = new QPushButton("debug execution");
+  connect(debugExecutionButton, SIGNAL(clicked()), this,
+          SLOT(createDebugExecution()));
+
   QGridLayout* layout = new QGridLayout();
 
   layout->addWidget(executionList, 0, 0, 1, 2);
@@ -121,6 +125,10 @@ ProfilerConductor::ProfilerConductor() : QMainWindow() {
   layout->addWidget(saveExecutionButton, 5, 0, 1, 2);
   layout->addWidget(loadExecutionButton, 6, 0, 1, 2);
   layout->addWidget(deleteExecutionButton, 7, 0, 1, 2);
+
+#ifdef MAXIM_DEBUG
+  layout->addWidget(debugExecutionButton, 7, 0, 1, 2);
+#endif
 
   centralWidget->setLayout(layout);
 
@@ -261,10 +269,6 @@ void ProfilerConductor::gatherStatisticsClicked(bool) {
 
     g->gatherStatistics();
 
-    // connect(g, SIGNAL(buildingFinished(void)),
-    //         g, SLOT(gatherStatistics(void)));
-    // g->show();
-    // g->activateWindow();
   }
 }
 
@@ -426,6 +430,8 @@ void ProfilerConductor::loadExecutionClicked(bool) {
   loadExecution(filename.toStdString());
 }
 
+
+
 void ProfilerConductor::loadExecution(std::string filename) {
   Execution* e = new Execution();
   newExecution(e);
@@ -461,4 +467,30 @@ void ProfilerConductor::registerWebscriptView(Execution* execution, std::string 
     if      (id == "sunburst")  executionInfoHash[execution]->sunburstView = webView;
     else if (id == "icicle")    executionInfoHash[execution]->icicleView = webView;
     else if (id == "variables") executionInfoHash[execution]->variablesView = webView;
+}
+
+void ProfilerConductor::createDebugExecution() {
+  qDebug() << "createDebugExecution";
+  auto e = new Execution{};
+  newExecution(e);
+
+  // auto& na = e->getNA();
+
+  // na.allocateRoot();
+
+  // auto root = na[0];
+
+  // root->setStatus(BRANCH);
+  // root->setNumberOfChildren(2, na);
+
+  // auto kid1 = root->getChild(na, 0);
+  // kid1->setStatus(FAILED);
+
+  // auto kid2 = root->getChild(na, 0);
+  // kid2->setStatus(BRANCH);
+  // kid2->setNumberOfChildren(2, na);
+
+  // kid1->dirtyUp(na);
+  // kid2->dirtyUp(na);
+
 }

@@ -40,6 +40,10 @@
 
 #include <iostream>
 
+#ifdef MAXIM_DEBUG
+#include <QDebug>
+#endif
+
 inline NodeAllocator::NodeAllocator() {
   nodes.reserve(1000);
 }
@@ -56,6 +60,9 @@ inline int NodeAllocator::allocate(int p) {
 }
 
 inline int NodeAllocator::allocateRoot() {
+#ifdef MAXIM_DEBUG
+  qDebug() << "allocated root";
+#endif
   nodes.push_back(new VisualNode{});
   return nodes.size() - 1;
 }

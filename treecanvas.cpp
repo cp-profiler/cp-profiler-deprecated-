@@ -56,30 +56,15 @@ using namespace cpprofiler::analysis;
 
 int TreeCanvas::counter = 0;
 
-TreeCanvas::TreeCanvas(Execution* execution, QGridLayout* layout,
+TreeCanvas::TreeCanvas(Execution* execution_, QGridLayout* layout,
                        CanvasType type, QWidget* parent)
-    : QWidget(parent),
-      canvasType(type),
-      execution(execution),
-      mutex(execution->getMutex()),
-      layoutMutex(execution->getLayoutMutex()),
-      finishedFlag(false),
-      autoHideFailed(true),
-      autoZoom(false),
-      refresh(500),
-      refreshPause(0),
-      smoothScrollAndZoom(false),
-      moveDuringSearch(false),
-      zoomTimeLine(500),
-      scrollTimeLine(1000),
-      targetX(0),
-      sourceX(0),
-      targetY(0),
-      sourceY(0),
-      targetW(0),
-      targetH(0),
-      targetScale(0),
-      layoutDoneTimerId(0) {
+    : QWidget{parent},
+      canvasType{type},
+      execution{execution_},
+      mutex(execution_->getMutex()),
+      layoutMutex(execution_->getLayoutMutex()),
+      na(execution_->getNA())
+  {
   QMutexLocker locker(&mutex);
 
   /// to distinguish between instances
@@ -108,18 +93,7 @@ TreeCanvas::TreeCanvas(Execution* execution, QGridLayout* layout,
           SLOT(setChecked(bool)));
 
   connect(execution, SIGNAL(newNode()), this, SLOT(maybeUpdateCanvas()));
-
   connect(execution, &Execution::newRoot, this, &TreeCanvas::updateCanvas);
-
-  // connect(_builder, SIGNAL(addedNode()), this, SLOT(maybeUpdateCanvas()));
-  // connect(_builder, SIGNAL(doneBuilding(bool)), this,
-  //         SLOT(finalizeCanvas(void)));
-  // connect(_builder, SIGNAL(doneBuilding(bool)), this,
-  //         SLOT(statusChanged(bool)));
-
-  // // NOTE(maxim): this connects to conductor later
-  // connect(_builder, SIGNAL(doneBuilding(bool)), this,
-  //         SIGNAL(buildingFinished(void)));
 
   // connect(ptr_receiver, SIGNAL(update(int,int,int)), this,
   //         SLOT(layoutDone(int,int,int)));
@@ -163,7 +137,8 @@ TreeCanvas::TreeCanvas(Execution* execution, QGridLayout* layout,
   qDebug() << "treecanvas " << _id << " constructed";
 }
 
-TreeCanvas::~TreeCanvas(void) {
+TreeCanvas::~TreeCanvas() {
+  qDebug() << "~TreeCanvas";
   if (root) {
     DisposeCursor dc(root, execution->getNA());
     PreorderNodeVisitor<DisposeCursor>(dc).run();
@@ -703,6 +678,8 @@ void TreeCanvas::stopSearch(void) {
   layoutDoneTimerId = startTimer(15);
 }
 
+/// TODO(maxim): this should not not re-build a tree, disabled for now
+/// (it is still called from GistMainWidnow)
 void TreeCanvas::reset() {
   QMutexLocker locker(&mutex);
 
@@ -1106,8 +1083,7 @@ bool TreeCanvas::finish(void) {
 }
 
 void TreeCanvas::finalizeCanvas(void) {
-  // disconnect(_builder, SIGNAL(doneBuilding(bool)), this,
-  //            SLOT(statusChanged(bool)));
+  statusChanged(true);
 }
 
 void TreeCanvas::setCurrentNode(VisualNode* n, bool finished, bool update) {
@@ -1222,7 +1198,6 @@ void TreeCanvas::updateCanvas(void) {
   if (root == nullptr) return;
 
   if (autoHideFailed) {
-    // std::cerr << "autoHideFailed is true\n";
     root->hideFailed(execution->getNA(), true);
   }
 
@@ -1341,3 +1316,14 @@ void TreeCanvas::highlightFailedByNogoods() {
 
   update();
 }
+
+#ifdef MAXIM_DEBUG
+  void TreeCanvas::addChildren() {
+    if (currentNode->getNumberOfChildren() == 0) {
+      currentNode->setNumberOfChildren(2, na);
+      currentNode->dirtyUp(na);
+    }
+    updateCanvas();
+  }
+#endif
+

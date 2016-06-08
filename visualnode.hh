@@ -39,7 +39,6 @@
 #define VISUALNODE_HH
 
 #include "spacenode.hh"
-//#include "treecanvas.hh"
 #include <string>
 #include <vector>
 
@@ -247,8 +246,6 @@ public:
   void computeShape(const NodeAllocator& na);
   /// Return the bounding box
   BoundingBox getBoundingBox(void);
-  /// Signal that the status has changed
-  void changedStatus(const NodeAllocator& na);
   /// Find a node in this subtree at coordinates \a x, \a y
   VisualNode* findNode(const NodeAllocator& na, int x, int y);
 

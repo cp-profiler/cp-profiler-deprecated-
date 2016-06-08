@@ -253,9 +253,6 @@ VisualNode::unstopAll(const NodeAllocator& na) {
     dirtyUp(na);
 }
 
-void
-VisualNode::changedStatus(const NodeAllocator& na) { dirtyUp(na); }
-
 bool
 VisualNode::containsCoordinateAtDepth(int x, int depth) {
     BoundingBox box = getShape()->getBoundingBox();

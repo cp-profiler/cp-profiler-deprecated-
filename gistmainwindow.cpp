@@ -52,11 +52,9 @@ AboutGist::AboutGist(QWidget* parent) : QDialog(parent) {
 
 
 GistMainWindow::GistMainWindow(Execution* execution, QWidget* parent) : QMainWindow(parent), aboutGist(this) {
-    c = new Gist(execution, this);
-  setCentralWidget(c);
+    m_Gist = new Gist(execution, this);
+  setCentralWidget(m_Gist);
   setWindowTitle(tr("CP-Profiler"));
-
-
 
 //  Logos logos;
 //  QPixmap myPic;
@@ -69,10 +67,10 @@ GistMainWindow::GistMainWindow(Execution* execution, QWidget* parent) : QMainWin
   menuBar = new QMenuBar(0);
 
   QMenu* fileMenu = menuBar->addMenu(tr("&File"));
-  fileMenu->addAction(c->print);
-  fileMenu->addAction(c->printSearchLog);
+  fileMenu->addAction(m_Gist->print);
+  fileMenu->addAction(m_Gist->printSearchLog);
 #if QT_VERSION >= 0x040400
-  fileMenu->addAction(c->exportWholeTreePDF);
+  fileMenu->addAction(m_Gist->exportWholeTreePDF);
 #endif
 
   prefAction = fileMenu->addAction(tr("Preferences"));
@@ -83,61 +81,60 @@ GistMainWindow::GistMainWindow(Execution* execution, QWidget* parent) : QMainWin
   connect(quitAction, SIGNAL(triggered()), this, SLOT(close()));
 
   QMenu* nodeMenu = menuBar->addMenu(tr("&Node"));
-  nodeMenu->addAction(c->showNodeStats);
+  nodeMenu->addAction(m_Gist->showNodeStats);
 
   bookmarksMenu = new QMenu("Bookmarks", this);
-  bookmarksMenu->addAction(c->bookmarkNode);
+  bookmarksMenu->addAction(m_Gist->bookmarkNode);
   connect(bookmarksMenu, SIGNAL(aboutToShow()),
           this, SLOT(populateBookmarks()));
   nodeMenu->addMenu(bookmarksMenu);
   nodeMenu->addSeparator();
-  nodeMenu->addAction(c->navUp);
-  nodeMenu->addAction(c->navDown);
-  nodeMenu->addAction(c->navLeft);
-  nodeMenu->addAction(c->navRight);
-  nodeMenu->addAction(c->navRoot);
-  nodeMenu->addAction(c->navNextSol);
-  nodeMenu->addAction(c->navPrevSol);
-  nodeMenu->addAction(c->navNextLeaf);
-  nodeMenu->addAction(c->navPrevLeaf);
+  nodeMenu->addAction(m_Gist->navUp);
+  nodeMenu->addAction(m_Gist->navDown);
+  nodeMenu->addAction(m_Gist->navLeft);
+  nodeMenu->addAction(m_Gist->navRight);
+  nodeMenu->addAction(m_Gist->navRoot);
+  nodeMenu->addAction(m_Gist->navNextSol);
+  nodeMenu->addAction(m_Gist->navPrevSol);
+  nodeMenu->addAction(m_Gist->navNextLeaf);
+  nodeMenu->addAction(m_Gist->navPrevLeaf);
   nodeMenu->addSeparator();
-  nodeMenu->addAction(c->toggleHidden);
-  nodeMenu->addAction(c->hideFailed);
-  nodeMenu->addAction(c->unhideAll);
-  nodeMenu->addAction(c->labelBranches);
-  nodeMenu->addAction(c->labelPath);
-  nodeMenu->addAction(c->showNogoods);
-  nodeMenu->addAction(c->showNodeInfo);
-  // nodeMenu->addAction(c->toggleStop);
-  // nodeMenu->addAction(c->unstopAll);
+  nodeMenu->addAction(m_Gist->toggleHidden);
+  nodeMenu->addAction(m_Gist->hideFailed);
+  nodeMenu->addAction(m_Gist->unhideAll);
+  nodeMenu->addAction(m_Gist->labelBranches);
+  nodeMenu->addAction(m_Gist->labelPath);
+  nodeMenu->addAction(m_Gist->showNogoods);
+  nodeMenu->addAction(m_Gist->showNodeInfo);
+  // nodeMenu->addAction(m_Gist->toggleStop);
+  // nodeMenu->addAction(m_Gist->unstopAll);
   nodeMenu->addSeparator();
-  nodeMenu->addAction(c->zoomToFit);
-  nodeMenu->addAction(c->center);
+  nodeMenu->addAction(m_Gist->zoomToFit);
+  nodeMenu->addAction(m_Gist->center);
 #if QT_VERSION >= 0x040400
-  nodeMenu->addAction(c->exportPDF);
+  nodeMenu->addAction(m_Gist->exportPDF);
 #endif
 
   /// ***** Tree Visualisaitons *****
 
   QMenu* treeVisMenu = menuBar->addMenu(tr("Tree"));
 
-  treeVisMenu->addAction(c->highlightNodesMenu);
-  treeVisMenu->addAction(c->analyzeSimilarSubtrees);
-  treeVisMenu->addAction(c->showPixelTree);
-  treeVisMenu->addAction(c->showIcicleTree);
-  treeVisMenu->addAction(c->showWebscript);
-  treeVisMenu->addAction(c->hideSize);
-  treeVisMenu->addAction(c->followPath);
+  treeVisMenu->addAction(m_Gist->highlightNodesMenu);
+  treeVisMenu->addAction(m_Gist->analyzeSimilarSubtrees);
+  treeVisMenu->addAction(m_Gist->showPixelTree);
+  treeVisMenu->addAction(m_Gist->showIcicleTree);
+  treeVisMenu->addAction(m_Gist->hideSize);
+  treeVisMenu->addAction(m_Gist->followPath);
 
   /// *******************************
 
-  QMenu* searchMenu = menuBar->addMenu(tr("&Search"));
-  // searchMenu->addAction(c->searchNext);
-  // searchMenu->addAction(c->searchAll);
+  // QMenu* searchMenu = menuBar->addMenu(tr("&Search"));
+  // searchMenu->addAction(m_Gist->searchNext);
+  // searchMenu->addAction(m_Gist->searchAll);
   // searchMenu->addSeparator();
-  // searchMenu->addAction(c->stop);
-  searchMenu->addSeparator();
-  searchMenu->addAction(c->reset);
+  // searchMenu->addAction(m_Gist->stop);
+  // searchMenu->addSeparator();
+  // searchMenu->addAction(m_Gist->reset);
 
   QMenu* helpMenu = menuBar->addMenu(tr("&Help"));
   QAction* aboutAction = helpMenu->addAction(tr("About"));
@@ -174,31 +171,28 @@ GistMainWindow::GistMainWindow(Execution* execution, QWidget* parent) : QMainWin
   isSearching = false;
   statusBar()->showMessage("Ready");
 
-  connect(c,SIGNAL(statusChanged(const Statistics&,bool)),
+  connect(m_Gist,SIGNAL(statusChanged(const Statistics&,bool)),
           this,SLOT(statusChanged(const Statistics&,bool)));
 
-  connect(c, SIGNAL(changeMainTitle(QString)),
+  connect(m_Gist, SIGNAL(changeMainTitle(QString)),
           this, SLOT(changeTitle(QString)));
 
-  // connect(c, SIGNAL(buildingFinished(void)),
-  //         this, SIGNAL(buildingFinished(void)));
+  connect(this, SIGNAL(doneReceiving()), m_Gist, SIGNAL(doneReceiving()));
 
-  connect(this, SIGNAL(doneReceiving()), c, SIGNAL(doneReceiving()));
-
-  // connect(this, SIGNAL(stopReceiver()), c->getReceiver(), SLOT(stopThread()));
+  // connect(this, SIGNAL(stopReceiver()), m_Gist->getReceiver(), SLOT(stopThread()));
 
   preferences(true);
   show();
-  c->reset->trigger();
+  m_Gist->reset->trigger();
 }
 
 // void
 // GistMainWindow::closeEvent(QCloseEvent* event) {
 
 //   emit stopReceiver();
-//   // c->getReceiver()->wait();
+//   // m_Gist->getReceiver()->wait();
 
-//   if (c->finish())
+//   if (m_Gist->finish())
 //     event->accept();
 //   else
 //     event->ignore();
@@ -215,13 +209,13 @@ GistMainWindow::statusChanged(const Statistics& stats, bool finished) {
 
     /// add total time to 'Done' label
     QString t;
-    unsigned long long totalTime = c->getExecution()->getData()->getTotalTime();
+    unsigned long long totalTime = m_Gist->getExecution()->getData()->getTotalTime();
     float seconds = totalTime / 1000000.0;
     t.setNum(seconds);
     statusBar()->showMessage("Done in " + t + "s");
 
     /// no need to change Status Bar anymore
-    disconnect(c,SIGNAL(statusChanged(const Statistics&,bool)),
+    disconnect(m_Gist,SIGNAL(statusChanged(const Statistics&,bool)),
             this,SLOT(statusChanged(const Statistics&,bool)));
 
 
@@ -247,23 +241,23 @@ void
 GistMainWindow::preferences(bool setup) {
   PreferencesDialog pd(this);
   if (setup) {
-    c->setAutoZoom(pd.zoom);
+    m_Gist->setAutoZoom(pd.zoom);
   }
   if (setup || pd.exec() == QDialog::Accepted) {
-    c->setAutoHideFailed(pd.hideFailed);
-    c->setRefresh(pd.refresh);
-    c->setRefreshPause(pd.refreshPause);
-    c->setSmoothScrollAndZoom(pd.smoothScrollAndZoom);
-    c->setMoveDuringSearch(pd.moveDuringSearch);
+    m_Gist->setAutoHideFailed(pd.hideFailed);
+    m_Gist->setRefresh(pd.refresh);
+    m_Gist->setRefreshPause(pd.refreshPause);
+    m_Gist->setSmoothScrollAndZoom(pd.smoothScrollAndZoom);
+    m_Gist->setMoveDuringSearch(pd.moveDuringSearch);
   }
 }
 
 void
 GistMainWindow::populateBookmarks(void) {
   bookmarksMenu->clear();
-  bookmarksMenu->addAction(c->bookmarkNode);
+  bookmarksMenu->addAction(m_Gist->bookmarkNode);
   bookmarksMenu->addSeparator();
-  bookmarksMenu->addActions(c->bookmarksGroup->actions());
+  bookmarksMenu->addActions(m_Gist->bookmarksGroup->actions());
 }
 
 void
@@ -277,23 +271,23 @@ GistMainWindow::gatherStatistics(void) {
   std::cerr << "GistMainWindow::gatherStatistics\n";
   std::ofstream out;
   out.open(statsFilename.toStdString(), std::ofstream::out);
-  c->getCanvas()->collectMLStatsRoot(out);
+  m_Gist->getCanvas()->collectMLStatsRoot(out);
   out.close();
 }
 
 void
 GistMainWindow::selectNode(int gid) {
-    c->getCanvas()->navigateToNodeById(gid);
+    m_Gist->getCanvas()->navigateToNodeById(gid);
 }
 
 void
 GistMainWindow::selectManyNodes(QVariantList gids) {
-    c->getCanvas()->unselectAll();
+    m_Gist->getCanvas()->unselectAll();
     for (int i = 0 ; i < gids.size() ; i++) {
         double d = gids[i].toDouble();
         int gid = (int) d;
-        VisualNode* node = (c->getCanvas()->getExecution()->getNA())[gid];
+        VisualNode* node = (m_Gist->getCanvas()->getExecution()->getNA())[gid];
         node->setSelected(true);
     }
-    c->getCanvas()->updateCanvas();
+    m_Gist->getCanvas()->updateCanvas();
 }

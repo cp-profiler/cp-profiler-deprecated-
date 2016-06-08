@@ -45,46 +45,21 @@ using std::vector;
 class Gist : public QWidget {
   Q_OBJECT
 
-  /// **************** INTERFACE *******************
-
-  QAbstractScrollArea* scrollArea;
   QPalette* myPalette;
   QGridLayout* layout;
 
-  /// tree dialogs for additional solver runs
-  vector<SolverTreeDialog*> _td_vec;
-
-public:
-    Execution* getExecution() { return execution; }
-
-
-  /// **************** MY STUFF ********************
 private:
-
-  /// Points to the active canvas
-  TreeCanvas* current_tc = nullptr;
 
   /// The canvas implementation
   TreeCanvas* canvas;
 
-  /// Second canvas in case of comparing
-  TreeCanvas* canvasTwo;
-
-  /// Merged tree (comparison)
-  TreeCanvas* cmpCanvas;
-
-  /// Dialog for a merged tree (comparison)
-  QDialog* cmpDialog;
-
-  void initInterface(void);
   void addActions(void);
 
-  /// connect the signals as well as disconnect current_tc
+  /// connect the signals
   void connectCanvas(TreeCanvas* tc);
 
   Execution* execution;
 
-  /// ***********************************************
 private:
   /// The time slider
   QSlider* timeBar;
@@ -195,18 +170,13 @@ public:
   QActionGroup* bookmarksGroup;
 
 public:
-  /// Constructor
-//  Gist(Space* root, bool bab, QWidget* parent, const Options& opt);
 
-    // Gist(Execution* execution, QWidget* parent);
 
-    explicit Gist(Execution* execution, QWidget* parent);
+  explicit Gist(Execution* execution, QWidget* parent);
 
   /// Destructor
   ~Gist(void);
 
-//  /// Add comparator \a c0
-//  void addComparator(Comparator* c0);
 
   /// Set preference whether to automatically hide failed subtrees
   void setAutoHideFailed(bool b);
@@ -245,11 +215,8 @@ public:
 
 
   /// ***** GETTERS *****
-  TreeCanvas* getCanvas(void) { return canvas; }
-
-  /// returns canvas from td_vec (additional canvases)
-  TreeCanvas* getLastCanvas(void);
-  SolverTreeDialog* getLastTreeDialog(void);
+  TreeCanvas* getCanvas() { return canvas; }
+  Execution* getExecution() { return execution; }
 
 Q_SIGNALS:
 
@@ -262,22 +229,14 @@ Q_SIGNALS:
   /// Notify MainWindow about fzn file name
   void changeMainTitle(QString file_name);
 
-  // void buildingFinished(void);
-
   void doneReceiving(void);
 
 
 private Q_SLOTS:
-  /// Create new TreeCanvas if already have one
-  // void createNewCanvas(void);
-  /// Create new TreeCanvas if already have one
-  void prepareNewCanvas(void); // TODO: get rid of this one
   /// Displays the context menu for a node
   void on_canvas_contextMenu(QContextMenuEvent*);
   /// Reacts on status changes
   void on_canvas_statusChanged(VisualNode*, const Statistics&, bool);
-
-
   /// TODO: this should only react on selecting node?
   void updateActions(VisualNode*, bool);
 //  /// Reacts on comparator selection

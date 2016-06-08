@@ -42,7 +42,7 @@
 
 /** \brief Status of nodes in the search tree
  */
-enum NodeStatus {
+enum NodeStatus : char {
   SOLVED,       ///< Node representing a solution
   FAILED,       ///< Node representing failure
   BRANCH,       ///< Node representing a branch
@@ -117,7 +117,6 @@ protected:
    * (setNumericFlag/getNumericFlag do it too.)
    *
    */
-  unsigned int nstatus;
 
   /// Set status flag
   void setFlag(int flag, bool value);
@@ -155,9 +154,10 @@ private:
   void closeChild(const NodeAllocator& na,
                   bool hadFailures, bool hadSolutions);
 public:
+  unsigned int nstatus;
   /// Set status to \a s
   void setStatus(NodeStatus s);
-public:
+
   /// Construct node with parent \a p
   SpaceNode(int p);
   /// Construct root node

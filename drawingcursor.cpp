@@ -139,7 +139,7 @@ DrawingCursor::processCurrentNode(void) {
       drawShape(myx, myy, n);
     }
 
-    // draw shadow
+    // draw as currently selected
     if (n->isMarked()) {
         painter.setBrush(Qt::gray);
         painter.setPen(Qt::NoPen);

@@ -60,6 +60,25 @@ class PixelItem;
 class PixelTreeCanvas : public QWidget {
   Q_OBJECT
 
+  struct PixelTreeState {
+    bool show_time_histogram = false;
+    bool show_domain_histogram = false;
+    bool show_decision_vars_histogram = true;
+    bool show_depth_analysis_histogram = true;
+    bool show_bj_analysis_histogram = true;
+
+    /// mouse guidelines
+    int mouse_guide_x = 0;
+    int mouse_guide_y = 0;
+
+    /// handling multiple selection on a pixel tree
+    bool mouse_pressed = false;
+    int mousePressedVline;
+
+    // how many nodes per vertical line
+    int approximation = 1;
+  };
+
  private:
   TreeCanvas& _tc;
   Data& _data;
@@ -69,17 +88,10 @@ class PixelTreeCanvas : public QWidget {
   QAbstractScrollArea* _sa;
 
   /// Constants for a particular execution
-  unsigned _nodeCount;
-
-  /// Pixel Tree settings (changed through GUI)
-
-  unsigned approx_size = 1;  // how many nodes per vertical line
-
-  unsigned vline_idx;  // same as x when _step = 1
+  int _nodeCount; 
 
   /// Stuff specific for a particular pixel tree
-  // unsigned vlines; /// width of pixel tree
-  unsigned tree_depth;
+  int tree_depth;
 
   std::vector<float> time_arr;        // time for each vline
   std::vector<float> domain_arr;      // domain for each vline
@@ -87,10 +99,11 @@ class PixelTreeCanvas : public QWidget {
 
   std::vector<std::string> vars;
 
-  std::vector<PixelItem*> pixels_selected;  // to know which pixels to deselect
+  // to know which pixels to deselect
+  std::vector<PixelItem*> pixels_selected;
 
-  std::vector<PixelItem*>
-      pixels_mouse_over;  // to know which pixels to unhighlight
+  // to know which pixels to unhighlight
+  std::vector<PixelItem*> pixels_mouse_over;
 
   std::vector<int> var_decisions;
   std::vector<std::vector<int>> var_decisions_compressed;
@@ -104,6 +117,8 @@ class PixelTreeCanvas : public QWidget {
   std::vector<std::vector<unsigned>> da_data;
   std::vector<std::vector<unsigned>> da_data_compressed;
 
+  PixelTreeState m_State;
+
   /// Backjumps analysis data
   BackjumpData bj_data;
 
@@ -111,23 +126,9 @@ class PixelTreeCanvas : public QWidget {
 
   PixelData pixel_data;
 
-  bool show_time_histogram = false;
-  bool show_domain_histogram = false;
-  bool show_decision_vars_histogram = true;
-  bool show_depth_analysis_histogram = true;
-  bool show_bj_analysis_histogram = true;
-
-  unsigned current_image_height;  /// in 'squares'
+  int current_image_height;  /// in 'squares'
 
   MaybeCaller maybeCaller;
-
-  /// TODO(maxim): find a better place to put these in
-  unsigned mouse_guide_x = 0;
-  unsigned mouse_guide_y = 0;
-
-  /// Handling multiple selection on a pixel tree
-  bool mouse_pressed = false;
-  unsigned mouse_pressed_vline;
 
  public:
   static constexpr int HIST_HEIGHT = 6;  // in fake pixels

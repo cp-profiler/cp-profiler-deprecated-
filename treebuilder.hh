@@ -27,11 +27,16 @@
 #include <queue>
 #include "data.hh"
 #include "execution.hh"
+#include <memory>
 
 class Data;
 class DbEntry;
 class Execution;
 class ReadingQueue;
+class TreeCanvas;
+class NodeAllocator;
+
+enum NodeStatus : char;
 
 class TreeBuilder : public QThread {
   Q_OBJECT
@@ -40,18 +45,19 @@ class TreeBuilder : public QThread {
   Data* _data;
   NodeAllocator& _na;
   Execution* execution;
-
-  unsigned long long lastRead;
-  int delayed_count = 0;
-  int nodesCreated;
+  QMutex* layout_mutex;
 
   std::vector<DbEntry*> ignored_entries;
 
-  ReadingQueue* read_queue;
+  std::unique_ptr<ReadingQueue> read_queue;
 
- private:
-  inline bool processRoot(DbEntry& dbEntry);
-  inline bool processNode(DbEntry& dbEntry, bool is_delayed);
+  bool processRoot(DbEntry& dbEntry);
+  bool processNode(DbEntry& dbEntry, bool is_delayed);
+
+  void run() override;
+
+
+  void initRoot(int kids, NodeStatus status);
 
  public:
   TreeBuilder(Execution* execution, QObject* parent = 0);
@@ -65,8 +71,6 @@ Q_SIGNALS:
  public Q_SLOTS:
   void setDoneReceiving(void);
 
- protected:
-  void run();
 };
 
 #endif  // TREEBUILDER_H

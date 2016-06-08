@@ -27,7 +27,7 @@
 #include <vector>
 #include <cstdint>
 
-typedef uint32_t uint32;
+using uint32 = uint32_t;
 
 class PixelImage {
  private:
@@ -38,13 +38,13 @@ class PixelImage {
   std::vector<uint32> result_buffer_;
   QImage* image_;
 
-  uint32 width_;
-  uint32 height_;
+  int width_;
+  int height_;
 
   QImage::Format image_format;
 
-  unsigned pixel_width_ = 4;
-  unsigned pixel_height_ = 4;
+  int pixel_width_ = 4;
+  int pixel_height_ = 4;
 
   void setPixel(std::vector<uint32>& buffer, int x, int y, QRgb color);
   void drawHorizontalLine(std::vector<uint32>& buffer, int y, QRgb color);
@@ -86,15 +86,15 @@ class PixelImage {
   ~PixelImage();
 
   /// Dimensions of the visible area (the image itself)
-  uint32 width_in_pixels() { return width_; }
-  uint32 width() { return width_ / pixel_width_; }
-  uint32 height_in_pixels() { return height_; }
-  uint32 height() { return height_ / pixel_height_; }
+  int width_in_pixels() { return width_; }
+  int width() { return width_ / pixel_width_; }
+  int height_in_pixels() { return height_; }
+  int height() { return height_ / pixel_height_; }
 
   const QImage* image();
   /// TODO(maxim): change the name (and have a second method for width)
-  uint32 pixel_height() const { return pixel_height_; };
-  uint32 pixel_width() const { return pixel_width_; };
+  int pixel_height() const { return pixel_height_; };
+  int pixel_width() const { return pixel_width_; };
 
   enum PIXEL_COLOR {
     BLACK = qRgb(0, 0, 0),

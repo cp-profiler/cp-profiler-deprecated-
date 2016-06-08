@@ -25,6 +25,7 @@
 #include <vector>
 #include <map>
 #include <queue>
+#include "readingQueue.hh"
 
 class DbEntry;
 

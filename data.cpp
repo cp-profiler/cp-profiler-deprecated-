@@ -73,8 +73,9 @@ void Data::setDoneReceiving(void) {
 
     if (_total_time != 0) {
         _time_per_node = _total_time / _total_time;
-    } else
-        qDebug() << "(!) _total_time cannot be 0";
+    } else {
+        // qDebug() << "(!) _total_time cannot be 0";
+    }
 
 
     flush_node_rate();

@@ -39,6 +39,7 @@ class ProfilerConductor : public QMainWindow {
   void saveExecutionClicked(bool checked);
   void loadExecutionClicked(bool checked);
   void deleteExecutionClicked(bool checked);
+  void createDebugExecution();
 
  public:
   ProfilerConductor();

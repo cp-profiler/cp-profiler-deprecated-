@@ -55,7 +55,7 @@ class ReceiverThread : public QThread {
   int socketDescriptor;
 
   ~ReceiverThread() {
-    std::cerr << "Receiver thread " << this << " being destroyed\n";
+    // std::cerr << "Receiver thread " << this << " being destroyed\n";
   }
 
   // public Q_SLOTS:

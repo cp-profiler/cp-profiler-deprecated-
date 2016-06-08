@@ -40,10 +40,12 @@
 
 #include "visualnode.hh"
 #include "data.hh"
-#include "treecanvas.hh"
 
 #include <vector>
 #include <QTextStream>
+
+class TreeCanvas;
+class Execution;
 
 /// \brief A cursor that can be run over a tree
 template<class Node>
