@@ -1,0 +1,17 @@
+<!DOCTYPE RCC><RCC version="1.0">
+<qresource>
+    <file>webscripts/aggregate.js</file>
+    <file>webscripts/colours.js</file>
+    <file>webscripts/icicle.html</file>
+    <file>webscripts/icicle.js</file>
+    <file>webscripts/nestData.js</file>
+    <file>webscripts/setup.js</file>
+    <file>webscripts/style.css</file>
+    <file>webscripts/sunburst.html</file>
+    <file>webscripts/sunburst.js</file>
+    <file>webscripts/variables.html</file>
+    <file>webscripts/variables.js</file>
+    <file>webscripts/d3/d3.js</file>
+    <file>webscripts/colorbrewer/colorbrewer.js</file>
+</qresource>
+</RCC>

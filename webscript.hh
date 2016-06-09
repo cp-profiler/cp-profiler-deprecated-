@@ -61,8 +61,7 @@ public:
         // is the web engine view.
         setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
         
-        QFileInfo fileInfo(htmlPath);
-        QUrl url = QUrl::fromLocalFile(fileInfo.absoluteFilePath());
+        QUrl url("qrc:///" + htmlPath);
         load(url);
 
         channel = new QWebChannel;

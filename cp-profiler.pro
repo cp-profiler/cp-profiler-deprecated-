@@ -21,6 +21,8 @@ TARGET = cp-profiler
 
 TEMPLATE = app
 
+RESOURCES = cp-profiler.qrc
+
 QMAKE_CXXFLAGS += -std=c++11
 # QMAKE_CXXFLAGS += -Werror
 

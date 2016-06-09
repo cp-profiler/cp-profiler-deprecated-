@@ -278,7 +278,7 @@ void ProfilerConductor::webscriptClicked(bool) {
         ExecutionListItem* item = static_cast<ExecutionListItem*>(selected[i]);
         Execution* execution = item->execution_;
 
-        const char* paths[] = { "../webscripts/sunburst.html", "../webscripts/icicle.html", "../webscripts/variables.html" };
+        const char* paths[] = { "webscripts/sunburst.html", "webscripts/icicle.html", "webscripts/variables.html" };
         const char* ids[] = { "sunburst", "icicle", "variables" };
         std::stringstream ss;
         ::collectMLStats(execution->getRootNode(), execution->getNA(), execution, ss);
