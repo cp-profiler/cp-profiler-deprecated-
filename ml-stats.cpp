@@ -36,7 +36,7 @@ public:
     string solutionString;
 };
 
-#define INCLUDE_NOGOOD_STRING 0
+#define INCLUDE_NOGOOD_STRING 1
 
 void printStatsHeader(std::ostream& out = std::cout) {
     out <<        "id"
@@ -118,16 +118,13 @@ private:
     Execution* execution;
     int depth;
     std::vector<StatsEntry> stack;
-    const std::unordered_map<VisualNode*, int>& backjumpDestinationMap;
     std::ostream& out;
 public:
     StatsCursor(VisualNode* root, const NodeAllocator& na, Execution* execution_,
-                const std::unordered_map<VisualNode*, int>& backjumpDestinationMap_,
                 std::ostream& out_)
         : NodeCursor(root, na)
         , execution(execution_)
         , depth(0)
-        , backjumpDestinationMap(backjumpDestinationMap_)
         , out(out_)
     {
         printStatsHeader(out);
@@ -245,16 +242,6 @@ public:
             se.decisionLevel = -1;
             se.timestamp = 0;
             se.solutionString = "";
-        }
-        std::unordered_map<VisualNode*, int>::const_iterator it2 = backjumpDestinationMap.find(node());
-        if (it2 != backjumpDestinationMap.end()) {
-            //            se.backjumpDestination = it2->second;
-            if (se.backjumpDistance != se.decisionLevel - it2->second) {
-                std::cerr << "BACKJUMP DISTANCE DISCREPANCY\n";
-                printStatsEntry(se, std::cerr);
-            }
-            // se.backjumpDistance = se.decisionLevel - se.backjumpDestination;
-        } else {
             se.backjumpDestination = -1;
             se.backjumpDistance = -1;
         }
@@ -302,72 +289,8 @@ public:
 };
 
 // **************************************************
-// BackjumpCursor
-// **************************************************
-
-// The BackjumpCursor fills in a map from node to backjump
-// destination.  Non-failure nodes are omitted.  The final failed node
-// is also omitted, because there is no following node that would be
-// its destination.  (Decision level 0 could possibly be considered
-// the destination instead.)
-
-class BackjumpCursor : public NodeCursor<VisualNode> {
-private:
-    const Execution* execution;
-    std::unordered_map<VisualNode*, int>& backjumpDestination;
-    VisualNode* mostRecentFailure;
-    int mostRecentFailureDecisionLevel;
-public:
-    // Note that the map is passed in by reference so we can modify
-    // it.
-    BackjumpCursor(VisualNode* root,
-                   const NodeAllocator& na,
-                   const Execution* execution_,
-                   std::unordered_map<VisualNode*, int>& bjdest)
-        : NodeCursor(root, na)
-        , execution(execution_)
-        , backjumpDestination(bjdest)
-    {}
-
-    void processCurrentNode() {
-        // Note that skipped/undetermined nodes do not do anything;
-        // they are not the destination of a backjump.
-        int gid;
-        int decisionLevel;
-        switch (node()->getStatus()) {
-        case FAILED:
-            gid = node()->getIndex(na);
-            decisionLevel = execution->getEntry(gid)->decision_level;
-            if (mostRecentFailure) {
-                backjumpDestination[mostRecentFailure] = decisionLevel;
-                mostRecentFailure = nullptr;
-            }
-            mostRecentFailure = node();
-            mostRecentFailureDecisionLevel = decisionLevel;
-            break;
-        case BRANCH:
-        case SOLVED:
-            if (mostRecentFailure) {
-                gid = node()->getIndex(na);
-                decisionLevel = execution->getEntry(gid)->decision_level;
-                backjumpDestination[mostRecentFailure] = decisionLevel;
-                mostRecentFailure = nullptr;
-            }
-            break;
-        default:
-            break;
-        }
-    }
-};
-
-// **************************************************
 // Module interface
 // **************************************************
-
-// TODO: This can be simplified.  We now expect the solver to send the
-// backjump distance with a failure, so we don't need to calculate it
-// any more.  The way we did it was wrong anyway; it didn't account
-// for restarts, so these appeared as very long backjumps.
 
 // Collect the machine-learning statistics for a (sub)tree.  The first
 // argument are the root of the subtree and the node-allocator for the
@@ -375,25 +298,7 @@ public:
 // argument is the execution the subtree comes from, which is used to
 // find the solver node id and branching/no-good information.
 void collectMLStats(VisualNode* root, const NodeAllocator& na, Execution* execution, std::ostream& out) {
-    // We traverse the tree twice.  In the first pass we calculate
-    // backjump destination for failed nodes, using a BackjumpCursor.
-    // In the second pass we calculate all the remaining node data.
-
-    // This map is the only thing shared between the passes.  Note
-    // that we pass it by reference to the BackjumpCursor, which
-    // writes to it.
-    std::unordered_map<VisualNode*, int> backjumpDestination;
-
-    // TODO: remove this pass, and the backjump destination map
-    // altogether
-
-    // First pass: construct the backjumpDestination map.
-    BackjumpCursor bjc(root, na, execution, backjumpDestination);
-    PreorderNodeVisitor<BackjumpCursor> bjv(bjc);
-    bjv.run();
-
-    // Second pass: compute all the node statistics.
-    StatsCursor c(root, na, execution, backjumpDestination, out);
+    StatsCursor c(root, na, execution, out);
     PostorderNodeVisitor<StatsCursor> v(c);
     v.run();
 }
