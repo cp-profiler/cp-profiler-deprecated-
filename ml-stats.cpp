@@ -13,6 +13,7 @@ using std::string;
 class StatsEntry {
 public:
     unsigned int nodeid;
+    unsigned int gid;
     int parentid;
     NodeStatus status;
     int alternative;
@@ -39,6 +40,7 @@ public:
 
 void printStatsHeader(std::ostream& out = std::cout) {
     out <<        "id"
+        << "," << "gid"
         << "," << "parentId"
         << "," << "status"
         << "," << "alternative"
@@ -81,6 +83,7 @@ csvquote(const string& input) {
 
 void printStatsEntry(const StatsEntry& se, std::ostream& out = std::cout) {
     out <<        se.nodeid
+        << "," << se.gid
         << "," << se.parentid
         << "," << se.status
         << "," << se.alternative
@@ -208,6 +211,7 @@ public:
         int gid = node()->getIndex(na);
         // Some nodes (e.g. undetermined nodes) do not have entries;
         // be careful with those.
+        se.gid = gid;
         DbEntry* entry = execution->getEntry(gid);
         if (entry != nullptr) {
             unsigned int sid = entry->s_node_id;
@@ -275,7 +279,8 @@ public:
         stack.pop_back();
         // Undetermined nodes are not real nodes (the solver never
         // visited them), so we don't do anything with those.
-        if (se.status != UNDETERMINED) {
+        // Also let's ignore the "super root".
+        if (se.status != UNDETERMINED && se.depth >= 1) {
             printStatsEntry(se, out);
             if (stack.size() > 0) {
                 stack.back().subtreeDepth = std::max(stack.back().subtreeDepth, 1 + se.subtreeDepth);

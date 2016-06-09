@@ -34,8 +34,7 @@
 #include <QDebug>
 
 #include <cstdint>
-#include "node.hh"
-#include "visualnode.hh"
+#include <cassert>
 
 namespace message {
     class Node;
@@ -92,14 +91,11 @@ public:
 class Data : public QObject {
 Q_OBJECT
 
-using system_clock = std::chrono::system_clock;
+    using system_clock = std::chrono::system_clock;
 
 /// step for node rate counter (in microseconds)
-static constexpr int NODE_RATE_STEP = 1000;
+    static constexpr int NODE_RATE_STEP = 1000;
 
-    const NodeAllocator* _na; /// Node allocator of _tc
-
-    /// Where most node data is stored, id as it comes from Broker
     std::vector<DbEntry*> nodes_arr;
 
     /// counts instances of Data
@@ -166,7 +162,7 @@ private:
 
 public:
 
-    Data(NodeAllocator* na);
+    Data();
     ~Data(void);
 
     int handleNodeCallback(message::Node& node);
@@ -194,13 +190,8 @@ public:
 
     unsigned long long getTotalTime(void); /// time in microseconds
 
-    DbEntry* getEntry(int gid) const;
-    DbEntry* getEntry(const Node& node) const;
-
-    const std::string* getNogood(const Node& node) const;
-    const std::string* getInfo(const Node& node) const;
-
     int getGidBySid(int64_t sid) { return nodes_arr[sid2aid[sid]]->gid; }
+    DbEntry* getEntry(int gid) const;
 
 
 /// ****************************

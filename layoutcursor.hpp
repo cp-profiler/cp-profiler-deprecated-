@@ -49,7 +49,7 @@ LayoutCursor::LayoutCursor(VisualNode* theNode,
 inline void
 LayoutCursor::processCurrentNode(void) {
     VisualNode* currentNode = node();
-    // std::cerr << "LayoutCursor visiting node " << currentNode << "\n";
+    // qDebug() << "LayoutCursor visiting node " << currentNode << "whose dirtiness is" << currentNode->isDirty();
     if (currentNode->isDirty()) {
         // std::cerr << "LayoutCurser: node is dirty\n";
         if (currentNode->isHidden()) {

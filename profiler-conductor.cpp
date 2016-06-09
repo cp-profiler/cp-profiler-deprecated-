@@ -1,5 +1,4 @@
 #include "profiler-conductor.hh"
-#include "receiverthread.hh"
 #include "profiler-tcp-server.hh"
 #include "gistmainwindow.h"
 #include "cmp_tree_dialog.hh"
@@ -12,6 +11,9 @@
 #include <google/protobuf/io/coded_stream.h>
 
 #include "message.pb.hh"
+
+#include "ml-stats.hh"
+#include "webscript.hh"
 
 #include <fstream>
 
@@ -50,8 +52,7 @@ bool readDelimitedFrom(google::protobuf::io::ZeroCopyInputStream* rawInput,
 
 using google::protobuf::io::IstreamInputStream;
 
-Execution* loadSaved(std::string path) {
-  Execution* e = new Execution();
+Execution* loadSaved(Execution* e, std::string path) {
   std::ifstream inputFile(path, std::ios::in | std::ios::binary);
   IstreamInputStream raw_input(&inputFile);
   while (true) {
@@ -91,6 +92,10 @@ ProfilerConductor::ProfilerConductor() : QMainWindow() {
   connect(gatherStatisticsButton, SIGNAL(clicked(bool)), this,
           SLOT(gatherStatisticsClicked(bool)));
 
+  QPushButton* webscriptButton = new QPushButton("webscript view");
+  connect(webscriptButton, SIGNAL(clicked(bool)), this,
+          SLOT(webscriptClicked(bool)));
+
   QPushButton* saveExecutionButton = new QPushButton("save execution");
   connect(saveExecutionButton, SIGNAL(clicked(bool)), this,
           SLOT(saveExecutionClicked(bool)));
@@ -116,9 +121,10 @@ ProfilerConductor::ProfilerConductor() : QMainWindow() {
   layout->addWidget(compareWithLabelsCB, 2, 1, 1, 1);
 
   layout->addWidget(gatherStatisticsButton, 3, 0, 1, 2);
-  layout->addWidget(saveExecutionButton, 4, 0, 1, 2);
-  layout->addWidget(loadExecutionButton, 5, 0, 1, 2);
-  layout->addWidget(deleteExecutionButton, 6, 0, 1, 2);
+  layout->addWidget(webscriptButton, 4, 0, 1, 2);
+  layout->addWidget(saveExecutionButton, 5, 0, 1, 2);
+  layout->addWidget(loadExecutionButton, 6, 0, 1, 2);
+  layout->addWidget(deleteExecutionButton, 7, 0, 1, 2);
 
 #ifdef MAXIM_DEBUG
   layout->addWidget(debugExecutionButton, 7, 0, 1, 2);
@@ -135,11 +141,10 @@ class ExecutionListItem : public QListWidgetItem {
  public:
   ExecutionListItem(Execution* execution, QListWidget* parent, int type = Type)
       : QListWidgetItem(parent, type),
-        execution_(execution),
-        gistWindow_(nullptr) {}
+        execution_(execution)
+    {}
 
   Execution* execution_;
-  GistMainWindow* gistWindow_;
 };
 
 void ProfilerConductor::newExecution(Execution* execution) {
@@ -148,6 +153,8 @@ void ProfilerConductor::newExecution(Execution* execution) {
   newItem->setSelected(true);
   executionList->addItem(newItem);
   executions << execution;
+
+  executionInfoHash.insert(execution, new ExecutionInfo);
 
   connect(execution, SIGNAL(titleKnown()), this, SLOT(updateList()));
   connect(execution, SIGNAL(doneReceiving()), this,
@@ -167,16 +174,19 @@ void ProfilerConductor::gistButtonClicked(bool) {
   QList<QListWidgetItem*> selected = executionList->selectedItems();
   for (int i = 0; i < selected.size(); i++) {
     ExecutionListItem* item = static_cast<ExecutionListItem*>(selected[i]);
-    GistMainWindow* gistMW = item->gistWindow_;
+    Execution* execution = item->execution_;
+    GistMainWindow* gistMW = executionInfoHash[execution]->gistWindow;
     if (gistMW == nullptr) {
-      gistMW = new GistMainWindow(item->execution_, this);
-      item->gistWindow_ = gistMW;
+      gistMW = new GistMainWindow(execution, this);
       gistMW->changeTitle(item->text());
+      executionInfoHash[execution]->gistWindow = gistMW;
     }
     gistMW->show();
     gistMW->activateWindow();
     connect(item->execution_, SIGNAL(doneReceiving()), gistMW,
             SIGNAL(doneReceiving()));
+    connect(gistMW->getGist()->getCanvas(), &TreeCanvas::announceSelectNode,
+            this, [this, execution](int gid){this->tellVisualisationsSelectNode(execution, gid);});
   }
 }
 
@@ -192,11 +202,14 @@ void ProfilerConductor::compareExecutions(bool auto_save) {
   ExecutionListItem* item2 = static_cast<ExecutionListItem*>(selected[1]);
   Execution* e = new Execution;
 
-  if (item1->gistWindow_ == nullptr && item2->gistWindow_ == nullptr) return;
+  GistMainWindow* gmw1 = executionInfoHash[item1->execution_]->gistWindow;
+  GistMainWindow* gmw2 = executionInfoHash[item2->execution_]->gistWindow;
+  if (gmw1 == nullptr || gmw2 == nullptr) return;
 
-  new CmpTreeDialog(
-      this, e, withLabels, item1->gistWindow_->getGist()->getCanvas(),
-      item2->gistWindow_->getGist()->getCanvas());
+  CmpTreeDialog* ctd = new CmpTreeDialog(
+      this, e, withLabels, gmw1->getGist()->getCanvas(),
+      gmw2->getGist()->getCanvas());
+  (void)ctd;
 
   // if (auto_save) {
   //     ctd->saveComparisonStatsTo("/home/maxim/temp_stats.txt");
@@ -237,10 +250,12 @@ void ProfilerConductor::gatherStatisticsClicked(bool) {
   QList<QListWidgetItem*> selected = executionList->selectedItems();
   for (int i = 0; i < selected.size(); i++) {
     ExecutionListItem* item = static_cast<ExecutionListItem*>(selected[i]);
-    GistMainWindow* g = item->gistWindow_;
+
+    GistMainWindow* g = executionInfoHash[item->execution_]->gistWindow;
+
     if (g == nullptr) {
       g = new GistMainWindow(item->execution_, this);
-      item->gistWindow_ = g;
+      executionInfoHash[item->execution_]->gistWindow = g;
     }
     //        g->hide();
 
@@ -257,6 +272,62 @@ void ProfilerConductor::gatherStatisticsClicked(bool) {
   }
 }
 
+void ProfilerConductor::webscriptClicked(bool) {
+    QList<QListWidgetItem*> selected = executionList->selectedItems();
+    for (int i = 0; i < selected.size(); i++) {
+        ExecutionListItem* item = static_cast<ExecutionListItem*>(selected[i]);
+        Execution* execution = item->execution_;
+
+        const char* paths[] = { "../webscripts/sunburst.html", "../webscripts/icicle.html", "../webscripts/variables.html" };
+        const char* ids[] = { "sunburst", "icicle", "variables" };
+        std::stringstream ss;
+        ::collectMLStats(execution->getRootNode(), execution->getNA(), execution, ss);
+
+        for (int i = 0 ; i < 3 ; i++) {
+            if (getWebscriptView(execution, ids[i]) == NULL) {
+                QDialog* dialog = new QDialog(this);
+                WebscriptView* web = new WebscriptView(dialog, paths[i], execution, ss.str());
+                registerWebscriptView(execution, ids[i], web);
+            
+                QHBoxLayout* layout = new QHBoxLayout;
+                layout->addWidget(web);
+                dialog->setLayout(layout);
+
+                connect(web, &WebscriptView::announceSelectNode,
+                        this, [this, execution](int gid){this->tellVisualisationsSelectNode(execution, gid);});
+                connect(web, &WebscriptView::announceSelectManyNodes,
+                        this, [this, execution](QList<QVariant> gids){
+                            this->tellVisualisationsSelectManyNodes(execution, gids);
+                        });
+            
+                dialog->show();
+            }
+
+            // We get the parent widget here because we want to show()
+            // the containing QDialog, not the inner WebEngineView.
+            getWebscriptView(execution, ids[i])->parentWidget()->show();
+        }
+    }
+}
+
+void ProfilerConductor::tellVisualisationsSelectNode(Execution* execution, int gid) {
+    WebscriptView* p;
+    p = executionInfoHash[execution]->sunburstView;  if (p) p->select(gid);
+    p = executionInfoHash[execution]->icicleView;    if (p) p->select(gid);
+    p = executionInfoHash[execution]->variablesView; if (p) p->select(gid);
+    GistMainWindow* g;
+    g = executionInfoHash[execution]->gistWindow;    if (g) g->selectNode(gid);
+}
+
+void ProfilerConductor::tellVisualisationsSelectManyNodes(Execution* execution, QList<QVariant> gids) {
+    WebscriptView* p;
+    p = executionInfoHash[execution]->sunburstView;  if (p) p->selectMany(gids);
+    p = executionInfoHash[execution]->icicleView;    if (p) p->selectMany(gids);
+    p = executionInfoHash[execution]->variablesView; if (p) p->selectMany(gids);
+    GistMainWindow* g;
+    g = executionInfoHash[execution]->gistWindow;    if (g) g->selectManyNodes(gids);
+}
+
 void ProfilerConductor::onSomeFinishedBuilding() {
   /// ***** Save Search Log *****
   if (GlobalParser::isSet(GlobalParser::save_log)) {
@@ -265,7 +336,7 @@ void ProfilerConductor::onSomeFinishedBuilding() {
 
       auto file_name = GlobalParser::value(GlobalParser::save_log);
 
-      GistMainWindow* g = item->gistWindow_;
+      GistMainWindow* g = executionInfoHash[item->execution_]->gistWindow;
       g->getGist()->getCanvas()->printSearchLogTo(file_name);
     }
   }
@@ -280,7 +351,7 @@ void ProfilerConductor::onSomeFinishedBuilding() {
     if (executions.size() == 1) {
       auto item = static_cast<ExecutionListItem*>(executionList->item(0));
       auto file_name = GlobalParser::value(GlobalParser::auto_stats);
-      GistMainWindow* g = item->gistWindow_;
+      GistMainWindow* g = executionInfoHash[item->execution_]->gistWindow;
       g->setStatsFilename(file_name);
       g->gatherStatistics();
       // bye bye
@@ -356,16 +427,18 @@ void ProfilerConductor::saveExecutionClicked(bool) {
 void ProfilerConductor::loadExecutionClicked(bool) {
   QString filename =
       QFileDialog::getOpenFileName(this, "Load execution", QDir::currentPath());
-  loadExecution(filename.toStdString());
+  if (!filename.isNull())
+      loadExecution(filename.toStdString());
 }
 
 
 
 void ProfilerConductor::loadExecution(std::string filename) {
-  Execution* e = loadSaved(filename);
+  Execution* e = new Execution();
   newExecution(e);
   /// TODO(maxim): should somehow know if it was restarts, TRUE for now
   e->start("loaded from " + filename, true);
+  loadSaved(e, filename);
 }
 
 void ProfilerConductor::deleteExecutionClicked(bool checked) {
@@ -375,19 +448,34 @@ void ProfilerConductor::deleteExecutionClicked(bool checked) {
     ExecutionListItem* item = static_cast<ExecutionListItem*>(selected[i]);
     executions.removeOne(item->execution_);
     delete item->execution_;
-    item->gistWindow_->stopReceiver();
-    delete item->gistWindow_;
+    if (executionInfoHash[item->execution_]->gistWindow != NULL) {
+        executionInfoHash[item->execution_]->gistWindow->stopReceiver();
+        delete executionInfoHash[item->execution_]->gistWindow;
+    }
     delete item;
   }
 }
 
+WebscriptView*
+ProfilerConductor::getWebscriptView(Execution* execution, std::string id) {
+    if      (id == "sunburst")  return executionInfoHash[execution]->sunburstView;
+    else if (id == "icicle")    return executionInfoHash[execution]->icicleView;
+    else if (id == "variables") return executionInfoHash[execution]->variablesView;
+    return NULL;
+}
+
+void ProfilerConductor::registerWebscriptView(Execution* execution, std::string id, WebscriptView* webView) {
+    if      (id == "sunburst")  executionInfoHash[execution]->sunburstView = webView;
+    else if (id == "icicle")    executionInfoHash[execution]->icicleView = webView;
+    else if (id == "variables") executionInfoHash[execution]->variablesView = webView;
+}
 
 void ProfilerConductor::createDebugExecution() {
   qDebug() << "createDebugExecution";
   auto e = new Execution{};
   newExecution(e);
 
-  auto& na = e->na();
+  // auto& na = e->getNA();
 
   // na.allocateRoot();
 

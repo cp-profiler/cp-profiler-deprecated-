@@ -25,7 +25,7 @@ class DepthAnalysis : public QObject {
 
  private:
   TreeCanvas& _tc;
-  NodeAllocator* _na;
+  NodeAllocator& _na;
 
   unsigned int _total_depth;
 

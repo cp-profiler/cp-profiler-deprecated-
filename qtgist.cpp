@@ -118,14 +118,17 @@ Gist::updateActions(VisualNode* n, bool finished) {
             navDown->setEnabled(false);
         }
 
-        VisualNode* p = n->getParent(*m_Canvas->na);
+        VisualNode* p = n->getParent(execution->getNA());
+
         if (p == nullptr) {
             navUp->setEnabled(false);
             navRight->setEnabled(false);
             navLeft->setEnabled(false);
         } else {
             navUp->setEnabled(true);
-            unsigned int alt = n->getAlternative(*m_Canvas->na);
+
+            unsigned int alt = n->getAlternative(execution->getNA());
+
             navRight->setEnabled(alt + 1 < p->getNumberOfChildren());
             navLeft->setEnabled(alt > 0);
         }
@@ -144,7 +147,9 @@ Gist::updateActions(VisualNode* n, bool finished) {
 void
 Gist::on_canvas_statusChanged(VisualNode* n, const Statistics& stats,
                               bool finished) {
-    nodeStatInspector->node(*m_Canvas->na,n,stats,finished); /// for single node stats
+
+    nodeStatInspector->node(execution->getNA(),n,stats,finished); /// for single node stats
+
     if (!finished) {
         showNodeStats->setEnabled(false);
         // stop-> setEnabled(true);
@@ -205,14 +210,17 @@ Gist::on_canvas_statusChanged(VisualNode* n, const Statistics& stats,
         labelPath->setEnabled(true);
 
         VisualNode* root = n;
-        while (!root->isRoot())
-            root = root->getParent(*m_Canvas->na);
-        NextSolCursor nsc(n, false, *m_Canvas->na);
+        while (!root->isRoot()) {
+            root = root->getParent(execution->getNA());
+        }
+        NextSolCursor nsc(n, false, execution->getNA());
+
         PreorderNodeVisitor<NextSolCursor> nsv(nsc);
         nsv.run();
         navNextSol->setEnabled(nsv.getCursor().node() != root);
 
-        NextSolCursor psc(n, true, *m_Canvas->na);
+        NextSolCursor psc(n, true, execution->getNA());
+
         PreorderNodeVisitor<NextSolCursor> psv(psc);
         psv.run();
         navPrevSol->setEnabled(psv.getCursor().node() != root);
@@ -329,6 +337,7 @@ Gist::addActions(void) {
 
     showPixelTree = new QAction("Pixel Tree View", this);
     showIcicleTree = new QAction("Icicle Tree View", this);
+    showWebscript = new QAction("Webscript View", this);
     followPath = new QAction("Follow Path", this);
 
     navUp = new QAction("Up", this);
@@ -351,6 +360,12 @@ Gist::addActions(void) {
 
     navPrevSol = new QAction("To previous solution", this);
     navPrevSol->setShortcut(QKeySequence("Shift+Left"));
+
+    navNextLeaf = new QAction("To next leaf", this);
+    navNextLeaf->setShortcut(QKeySequence("Ctrl+Right"));
+
+    navPrevLeaf = new QAction("To previous leaf", this);
+    navPrevLeaf->setShortcut(QKeySequence("Ctrl+Left"));
 
     searchNext = new QAction("Next solution", this);
     searchNext->setShortcut(QKeySequence("N"));
@@ -485,6 +500,8 @@ Gist::addActions(void) {
     addAction(navRoot);
     addAction(navNextSol);
     addAction(navPrevSol);
+    addAction(navNextLeaf);
+    addAction(navPrevLeaf);
 
     addAction(searchNext);
     addAction(searchAll);
@@ -496,6 +513,7 @@ Gist::addActions(void) {
     addAction(labelPath);
     addAction(showPixelTree);
     addAction(showIcicleTree);
+    addAction(showWebscript);
     addAction(followPath);
     addAction(analyzeSimilarSubtrees);
     addAction(highlightNodesMenu);
@@ -561,6 +579,8 @@ Gist::connectCanvas(TreeCanvas* tc) {
     connect(navRoot, SIGNAL(triggered()), tc, SLOT(navRoot()));
     connect(navNextSol, SIGNAL(triggered()), tc, SLOT(navNextSol()));
     connect(navPrevSol, SIGNAL(triggered()), tc, SLOT(navPrevSol()));
+    connect(navNextLeaf, SIGNAL(triggered()), tc, SLOT(navNextLeaf()));
+    connect(navPrevLeaf, SIGNAL(triggered()), tc, SLOT(navPrevLeaf()));
     connect(toggleHidden, SIGNAL(triggered()), tc, SLOT(toggleHidden()));
     connect(hideFailed, SIGNAL(triggered()), tc, SLOT(hideFailed()));
     connect(hideSize, SIGNAL(triggered()), tc, SLOT(hideSize()));
@@ -569,6 +589,7 @@ Gist::connectCanvas(TreeCanvas* tc) {
     connect(labelPath, SIGNAL(triggered()), tc, SLOT(labelPath()));
     connect(showPixelTree, SIGNAL(triggered()), tc, SLOT(showPixelTree()));
     connect(showIcicleTree, SIGNAL(triggered()), tc, SLOT(showIcicleTree()));
+    connect(showWebscript, SIGNAL(triggered()), tc, SLOT(showWebscript()));
     connect(followPath, SIGNAL(triggered()), tc, SLOT(followPath()));
     connect(analyzeSimilarSubtrees, SIGNAL(triggered()), tc, SLOT(analyzeSimilarSubtrees()));
     connect(highlightNodesMenu, SIGNAL(triggered()), tc, SLOT(highlightNodesMenu()));
@@ -590,4 +611,6 @@ Gist::connectCanvas(TreeCanvas* tc) {
     connect(tc, SIGNAL(needActionsUpdate(VisualNode*, bool)),
             this, SLOT(updateActions(VisualNode*, bool)));
 
+    connect(tc, SIGNAL(statusChanged(VisualNode*, const Statistics&, bool)),
+            this, SLOT(on_canvas_statusChanged(VisualNode*, const Statistics&, bool)));
 }

@@ -82,7 +82,7 @@ class PixelTreeCanvas : public QWidget {
  private:
   TreeCanvas& _tc;
   Data& _data;
-  NodeAllocator* _na;
+  NodeAllocator& _na;
   QPixmap pixmap;
 
   QAbstractScrollArea* _sa;

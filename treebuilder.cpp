@@ -22,8 +22,6 @@
 #include "treebuilder.hh"
 #include "globalhelper.hh"
 #include "readingQueue.hh"
-#include "treecanvas.hh"
-#include "data.hh"
 #include <cassert>
 
 #include <time.h>
@@ -38,46 +36,79 @@ double get_wall_time() {
   return (double)time.tv_sec + (double)time.tv_usec * .000001;
 }
 
-TreeBuilder::TreeBuilder(TreeCanvas* tc) : QThread{tc}, m_tc{*tc} {
-  read_queue.reset(nullptr);
-  layout_mutex = &(m_tc.layoutMutex);
-  connect(this, &TreeBuilder::doneBuilding, m_tc.getExecution(),
-          &Execution::doneBuilding);
-}
+TreeBuilder::TreeBuilder(Execution* execution_, QObject* parent)
+    : QThread(parent),
+      _na(execution_->getNA()),
+      execution(execution_) {
 
-TreeBuilder::~TreeBuilder() = default;
-
-void TreeBuilder::startBuilding() { QThread::start(); }
-
-void TreeBuilder::reset(const Execution* execution, NodeAllocator* na) {
-  /// TODO(maxim): find out whether reset is only called once
-  /// old _data and _na are deleted by this point (where?)
   _data = execution->getData();
-  _na = na;
+  read_queue.reset(new ReadingQueue(_data->getEntries()));
 
-  read_queue.reset(new ReadingQueue{_data->getEntries()});
+  qDebug() << "starting TreeBuilder on execution" << execution;
+    
+  connect(this, &TreeBuilder::doneBuilding,
+          execution, &Execution::doneBuilding);
 }
+
+// =======
+// TreeBuilder::TreeBuilder(Execution* execution_, TreeCanvas* tc) : QThread{tc}, m_tc{*tc} {
+//   read_queue.reset(nullptr);
+//   connect(this, &TreeBuilder::doneBuilding, m_tc.getExecution(),
+//           &Execution::doneBuilding);
+// }
+
+// TreeBuilder::~TreeBuilder() = default;
+
+// void TreeBuilder::startBuilding() { QThread::start(); }
+
+// <<<<<<< HEAD
+//   read_queue.reset(new ReadingQueue{_data->getEntries()});
+// }
+// ||||||| merged common ancestors
+//   read_queue.reset(new ReadingQueue(_data->nodes_arr));
+// }
+// =======
+// void TreeBuilder::reset(const Execution* execution, NodeAllocator* na) {
+//   /// TODO(maxim): find out whether reset is only called once
+//   /// old _data and _na are deleted by this point (where?)
+// >>>>>>> origin/master
+//   _data = execution->getData();
+
+// <<<<<<< HEAD
+//   read_queue = new ReadingQueue(_data->nodes_arr);
+
+//   nodesCreated = 1;
+//   lastRead = 0;
+// =======
+//   read_queue.reset(new ReadingQueue(_data->nodes_arr));
+// }
+// >>>>>>> master
 
 void TreeBuilder::initRoot(int kids, NodeStatus status) {
-  auto root = (*_na)[0];
-  root->setNumberOfChildren(kids, *_na);
+  auto root = _na[0];
+  root->setNumberOfChildren(kids, _na);
   root->setStatus(status);
   root->setHasSolvedChildren(false);
   root->setHasOpenChildren(true);
 
-  root->dirtyUp(*_na);
+  root->dirtyUp(_na);
 
   emit addedNode();
 }
 
+TreeBuilder::~TreeBuilder() {}
+
+void TreeBuilder::setDoneReceiving() { _data->setDoneReceiving(); }
+
 bool TreeBuilder::processRoot(DbEntry& dbEntry) {
-  QMutexLocker locker(layout_mutex);
+  QMutexLocker locker(&execution->getMutex());
+  QMutexLocker layoutLocker(&execution->getLayoutMutex());
 
   std::cerr << "process root: " << dbEntry << "\n";
 
   auto& gid2entry = _data->gid2entry;
 
-  Statistics& stats = m_tc.stats;
+  Statistics& stats = execution->getStatistics();
 
   stats.choices++;
 
@@ -88,13 +119,21 @@ bool TreeBuilder::processRoot(DbEntry& dbEntry) {
 
   if (_data->isRestarts()) {
     int restart_root =
-        (*_na)[0]->addChild(*_na);  // create a node for a new root
-    root = (*_na)[restart_root];
+        (_na)[0]->addChild(_na);  // create a node for a new root
+    root = (_na)[restart_root];
     root->_tid = dbEntry.thread_id;
+
+    // The "super root" now has an extra child, so its children
+    // haven't been laid out yet.
+    (_na)[0]->setChildrenLayoutDone(false);
+
+    // The "super root" is effectively a branch node.
+    (_na)[0]->setStatus(BRANCH);
+    
     dbEntry.gid = restart_root;
     dbEntry.depth = 2;
   } else {
-    root = (*_na)[0];  // use the root that is already there
+    root = (_na)[0];  // use the root that is already there
     root->_tid = 0;
     dbEntry.gid = 0;
     dbEntry.depth = 1;
@@ -105,28 +144,31 @@ bool TreeBuilder::processRoot(DbEntry& dbEntry) {
   gid2entry[dbEntry.gid] = &dbEntry;
 
   /// setNumberOfChildren
-  root->setNumberOfChildren(kids, *_na);
+  root->setNumberOfChildren(kids, _na);
   root->setStatus(BRANCH);
   root->setHasSolvedChildren(false);
   root->setHasOpenChildren(true);
 
   stats.undetermined += kids - 1;
 
-  root->dirtyUp(*_na);
+  root->dirtyUp(_na);
 
+  emit addedRoot();
   emit addedNode();
 
   return true;
 }
 
 bool TreeBuilder::processNode(DbEntry& dbEntry, bool is_delayed) {
-  // std::cerr << "TreeBuilder::processNode (" << dbEntry << ")\n";
-  QMutexLocker locker(layout_mutex);
+  QMutexLocker locker(&execution->getMutex());
+  QMutexLocker layoutLocker(&execution->getLayoutMutex());
 
   int64_t pid = dbEntry.parent_sid;  /// parent ID as it comes from Solver
   int alt = dbEntry.alt;             /// which alternative the current node is
   int nalt = dbEntry.numberOfKids;   /// number of kids in current node
   int status = dbEntry.status;
+
+  Statistics& stats = execution->getStatistics();
 
   const auto& sid2aid = _data->sid2aid;
   
@@ -155,7 +197,7 @@ bool TreeBuilder::processNode(DbEntry& dbEntry, bool is_delayed) {
     return false;
   }
 
-  VisualNode& parent = *(*_na)[parent_gid];
+  VisualNode& parent = *(_na)[parent_gid];
 
   assert(parent_gid >= 0);
   if (parent_gid < 0) {
@@ -164,16 +206,14 @@ bool TreeBuilder::processNode(DbEntry& dbEntry, bool is_delayed) {
     return false;
   }
 
-  VisualNode& node = *parent.getChild(*_na, alt);
-
-  Statistics& stats = m_tc.stats;
+  VisualNode& node = *parent.getChild(_na, alt);
 
   /// Normal behaviour: insert into Undetermined
 
   if (node.getStatus() == UNDETERMINED) {
     stats.undetermined--;
 
-    int gid = node.getIndex(*_na);  // node ID as it is in Gist
+    int gid = node.getIndex(_na);  // node ID as it is in Gist
 
     /// fill in empty fields of dbEntry
     dbEntry.gid = gid;
@@ -194,7 +234,7 @@ bool TreeBuilder::processNode(DbEntry& dbEntry, bool is_delayed) {
     stats.maxDepth = std::max(stats.maxDepth, static_cast<int>(dbEntry.depth));
 
     node._tid = dbEntry.thread_id;  /// TODO: tid should be in node's flags
-    node.setNumberOfChildren(nalt, *_na);
+    node.setNumberOfChildren(nalt, _na);
 
     switch (status) {
       case FAILED:  // 1
@@ -202,7 +242,7 @@ bool TreeBuilder::processNode(DbEntry& dbEntry, bool is_delayed) {
         node.setHasSolvedChildren(false);
         node.setHasFailedChildren(true);
         node.setStatus(FAILED);
-        parent.closeChild(*_na, true, false);
+        parent.closeChild(_na, true, false);
         stats.failures++;
 
         break;
@@ -213,7 +253,7 @@ bool TreeBuilder::processNode(DbEntry& dbEntry, bool is_delayed) {
         node.setHasSolvedChildren(false);
         node.setHasFailedChildren(true);
         node.setStatus(SKIPPED);
-        parent.closeChild(*_na, true, false);
+        parent.closeChild(_na, true, false);
         stats.failures++;
         break;
       case SOLVED:  // 0
@@ -221,7 +261,7 @@ bool TreeBuilder::processNode(DbEntry& dbEntry, bool is_delayed) {
         node.setHasSolvedChildren(true);
         node.setHasOpenChildren(false);
         node.setStatus(SOLVED);
-        parent.closeChild(*_na, false, true);
+        parent.closeChild(_na, false, true);
         stats.solutions++;
         break;
       case BRANCH:  // 2
@@ -235,7 +275,7 @@ bool TreeBuilder::processNode(DbEntry& dbEntry, bool is_delayed) {
         break;
     }
 
-    node.dirtyUp(*_na);
+    node.dirtyUp(_na);
     emit addedNode();
     // std::cerr << "TreeBuilder::processNode, normal case\n";
   } else {
@@ -249,7 +289,7 @@ bool TreeBuilder::processNode(DbEntry& dbEntry, bool is_delayed) {
           node.setHasSolvedChildren(false);
           node.setHasFailedChildren(true);
           node.setStatus(FAILED);
-          parent.closeChild(*_na, true, false);
+          parent.closeChild(_na, true, false);
           stats.failures++;
 
           break;
@@ -264,7 +304,7 @@ bool TreeBuilder::processNode(DbEntry& dbEntry, bool is_delayed) {
           assert(status != SOLVED);
           break;
       }
-      node.dirtyUp(*_na);
+      node.dirtyUp(_na);
       emit addedNode();
       // std::cerr << "TreeBuilder::processNode, not-normal case\n";
     } else {
@@ -291,7 +331,7 @@ void TreeBuilder::run() {
 
   QMutex& dataMutex = _data->dataMutex;
 
-  Statistics& stats = m_tc.stats;
+  Statistics& stats = execution->getStatistics();
   stats.undetermined = 1;
 
   bool is_delayed;
@@ -307,8 +347,13 @@ void TreeBuilder::run() {
       dataMutex.unlock();
 
       if (_data->isDone()) {
-        qDebug() << "stop because done "
-                 << "tc_id: " << m_tc._id;
+// <<<<<<< HEAD
+//         qDebug() << "stop because done ";
+//                  // << "tc_id: " << _tc->_id;
+// =======
+//         qDebug() << "stop because done "
+//                  << "tc_id: " << m_tc._id;
+// >>>>>>> origin/master
         break;
       }
       /// can't read, but receiving not done, waiting...
@@ -332,7 +377,7 @@ void TreeBuilder::run() {
 
   perfHelper.end();
 
-  emit doneBuilding();
+  emit doneBuilding(true);
 
   endClock = clock();
   endTime = get_wall_time();

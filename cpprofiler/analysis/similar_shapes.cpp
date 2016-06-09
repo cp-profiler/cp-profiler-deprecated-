@@ -9,6 +9,7 @@
 #include <algorithm>
 #include <chrono>
 #include "globalhelper.hh"
+#include "nodetree.hh"
 
 namespace cpprofiler {
 namespace analysis {
@@ -152,7 +153,7 @@ int getSubtreeHeight(VisualNode* n, const NodeAllocator& na, GroupsOfNodes_t& gr
 }
 
 /// Groups nodes by height of their underlying subtree
-GroupsOfNodes_t groupByHeight(const TreeCanvas& tc) {
+GroupsOfNodes_t groupByHeight(const TreeCanvas& tc, const NodeTree& nt) {
 
   int max_depth = tc.get_stats().maxDepth;
   // int max_depth = 6;
@@ -161,10 +162,10 @@ GroupsOfNodes_t groupByHeight(const TreeCanvas& tc) {
   /// start from 1 for convenience
   GroupsOfNodes_t groups(max_depth + 1);
 
-  auto na = tc.get_na();
-  auto root = (*na)[0];
+  auto& na = nt.getNA();
+  auto* root = nt.getRootNode();
 
-  getSubtreeHeight(root, *na, groups);
+  getSubtreeHeight(root, na, groups);
 
   /// edge case of a root node
   groups[groups.size()-1].items.push_back({-1, root});
@@ -173,8 +174,8 @@ GroupsOfNodes_t groupByHeight(const TreeCanvas& tc) {
 }
 
 
-SimilarShapesWindow::SimilarShapesWindow(TreeCanvas* tc)
-    : QDialog(tc), m_tc(tc), shapeSet(CompareShapes{}), filters(*this) {
+SimilarShapesWindow::SimilarShapesWindow(TreeCanvas* tc, const NodeTree& nt)
+    : QDialog(tc), m_tc(tc), node_tree{nt}, shapeSet(CompareShapes{}), filters(*this) {
   perfHelper.begin("shapes: analyse");
   addNodesToMap();
   perfHelper.end();
@@ -183,11 +184,11 @@ SimilarShapesWindow::SimilarShapesWindow(TreeCanvas* tc)
   //-------- FINDING IDENTICAL SUBTREES --------
   //--------------------------------------------
 
-  auto& na = *tc->get_na();
+  auto& na = nt.getNA();
 
   /// ------ 0) group by height ------
 
-  GroupsOfNodes_t groups = groupByHeight(*tc);
+  GroupsOfNodes_t groups = groupByHeight(*tc, nt);
 
   /// ------ 1) linked list of pairs <begin, end>
   ///           for each group
@@ -384,12 +385,12 @@ bool areShapesIdentical(const NodeAllocator& na,
 }
 
 void SimilarShapesWindow::addNodesToMap() {
-  auto na = m_tc->get_na();
-  VisualNode* root = (*na)[0];
+  auto& na = m_tc->getExecution()->getNA();
+  VisualNode* root = (na)[0];
 
-  root->unhideAll(*na);
-  root->layout(*na);
-  SimilarShapesCursor ac(root, *na, *this);
+  root->unhideAll(na);
+  root->layout(na);
+  SimilarShapesCursor ac(root, na, *this);
   PostorderNodeVisitor<SimilarShapesCursor>(ac).run();
 }
 
@@ -515,7 +516,7 @@ void SimilarShapesWindow::drawHistogram() {
     const int shape_size = it->shape_size;
     const int shape_height = it->shape_height;
 
-    auto equal = detail::areShapesIdentical(*m_tc->get_na(), shapeSet, *it);
+    auto equal = detail::areShapesIdentical(m_tc->getExecution()->getNA(), shapeSet, *it);
 
     int value;
     if (m_histType == ShapeProperty::SIZE) {
@@ -657,7 +658,7 @@ void ShapeCanvas::paintEvent(QPaintEvent* event) {
   QRect clip{origClip.x() - xtrans + xoff, origClip.y() + yoff,
              origClip.width(), origClip.height()};
 
-  DrawingCursor dc{m_targetNode, *m_tc->get_na(), painter, clip, false};
+  DrawingCursor dc{m_targetNode, m_tc->getExecution()->getNA(), painter, clip, false};
   PreorderNodeVisitor<DrawingCursor>(dc).run();
 }
 

@@ -231,6 +231,13 @@ VisualNode::unhideAll(const NodeAllocator& na) {
 }
 
 void
+VisualNode::unselectAll(const NodeAllocator& na) {
+    UnselectAllCursor c(this,na);
+    PreorderNodeVisitor<UnselectAllCursor>(c).run();
+    dirtyUp(na);
+}
+
+void
 VisualNode::toggleStop(const NodeAllocator& na) {
     if (getStatus() == STOP)
         setStatus(UNSTOP);
@@ -273,6 +280,8 @@ VisualNode::findNode(const NodeAllocator& na, int x, int y) {
         }
         VisualNode* oldCur = cur;
         cur = nullptr;
+        if (!oldCur->childrenLayoutIsDone())
+            return nullptr;
         for (unsigned int i=0; i<oldCur->getNumberOfChildren(); i++) {
             VisualNode* nextChild = oldCur->getChild(na,i);
             int newX = x - nextChild->getOffset();

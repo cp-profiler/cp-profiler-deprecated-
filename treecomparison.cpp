@@ -28,7 +28,7 @@
 using std::string;
 
 TreeComparison::TreeComparison(Execution& ex1, Execution& ex2)
-    : _ex1(ex1), _ex2(ex2), _na1(ex1.na()), _na2(ex2.na()) {}
+    : _ex1(ex1), _ex2(ex2), _na1(ex1.getNA()), _na2(ex2.getNA()) {}
 
 void
 TreeComparison::sortPentagons() {
@@ -74,14 +74,14 @@ TreeComparison::compare(TreeCanvas* new_tc, bool with_labels) {
     stack1.push(root1);
     stack2.push(root2);
 
-    VisualNode* root = (*new_tc->na)[0];
+    VisualNode* root = execution.getNA()[0];
     stack.push(root);
 
     bool rootBuilt = false;
 
     /// TODO(maxim): reset responsible nogood counts?
 
-    NodeAllocator* na = new_tc->na;
+    NodeAllocator& na = execution.getNA();
 
     while (stack1.size() > 0) {
         auto node1 = stack1.pop();
@@ -169,7 +169,7 @@ TreeComparison::compare(TreeCanvas* new_tc, bool with_labels) {
 
             /// new node is built
 
-            next->setNumberOfChildren(kids, *na);
+            next->setNumberOfChildren(kids, na);
             // next->setStatus(node1->getStatus());
             next->nstatus = node1->nstatus;
             next->_tid = 0;
@@ -177,30 +177,30 @@ TreeComparison::compare(TreeCanvas* new_tc, bool with_labels) {
             /// point to the source node
 
             unsigned int source_index = node2->getIndex(_na2);
-            unsigned int target_index = next->getIndex(*na);
+            unsigned int target_index = next->getIndex(na);
 
             DbEntry* entry = _ex2.getEntry(source_index);
             new_tc->getExecution()->getData()->connectNodeToEntry(target_index, entry);
 
             for (unsigned int i = 0; i < kids; ++i) {
-                stack.push(next->getChild(*na, kids - i - 1));
+                stack.push(next->getChild(na, kids - i - 1));
             }
 
         } else {
             /// not equal
 
             next = stack.pop();
-            next->setNumberOfChildren(2, *na);
+            next->setNumberOfChildren(2, na);
             next->setStatus(MERGING);
             if (!next->isRoot())
-                next->getParent(*na)->setHidden(false);
+                next->getParent(na)->setHidden(false);
             next->setHidden(true);
             next->_tid = 0;
 
             new_tc->unhideNode(next); /// unhide pentagons if hidden
 
-            stack.push(next->getChild(*na, 1));
-            stack.push(next->getChild(*na, 0));
+            stack.push(next->getChild(na, 1));
+            stack.push(next->getChild(na, 0));
 
             int left = copyTree(stack.pop(), new_tc, node1, _ex1, 1);
             int right = copyTree(stack.pop(), new_tc, node2, _ex2, 2);
@@ -209,19 +209,18 @@ TreeComparison::compare(TreeCanvas* new_tc, bool with_labels) {
             /// if they are hidden on the original tree
             assert(next->getNumberOfChildren() == 2);
 
-            if (node1->getNumberOfChildren() > 0 && !node1->isNodeVisible(_ex1.na())) {
-                next->getChild(*na, 0)->setHidden(true);
+            if (node1->getNumberOfChildren() > 0 && !node1->isNodeVisible(_ex1.getNA())) {
+                next->getChild(na, 0)->setHidden(true);
             }
 
-            if (node2->getNumberOfChildren() > 2 && !node2->isNodeVisible(_ex2.na())) {
-                next->getChild(*na, 1)->setHidden(true);
+            if (node2->getNumberOfChildren() > 2 && !node2->isNodeVisible(_ex2.getNA())) {
+                next->getChild(na, 1)->setHidden(true);
             }
 
             const string* info_str = nullptr;
             /// if node1 is FAILED -> check nogoods // TODO(maxim): branch node?
             if (node1->getStatus() == FAILED) {
-                auto data = _ex1.getData();
-                info_str = data->getInfo(*node1);
+                info_str = _ex1.getInfo(*node1);
 
                 int search_reduction = -1;
                 assert(left == 1);
@@ -235,7 +234,7 @@ TreeComparison::compare(TreeCanvas* new_tc, bool with_labels) {
 
         }
 
-        next->dirtyUp(*na);
+        next->dirtyUp(na);
         new_tc->update();
     }
 }
@@ -244,8 +243,8 @@ int
 TreeComparison::copyTree(VisualNode* target, TreeCanvas* tc,
                          const VisualNode* root, const Execution& ex_source, int which) {
 
-    NodeAllocator* na = tc->na;
-    const NodeAllocator& na_source = ex_source.na();
+    NodeAllocator& na = execution.getNA();
+    const NodeAllocator& na_source = ex_source.getNA();
 
     QStack<const VisualNode*> source_stack;
     QStack<VisualNode*> target_stack;
@@ -264,13 +263,13 @@ TreeComparison::copyTree(VisualNode* target, TreeCanvas* tc,
         next->_tid = which; // treated as a colour
 
         uint kids = n->getNumberOfChildren();
-        next->setNumberOfChildren(kids, *na);
+        next->setNumberOfChildren(kids, na);
         // next->setStatus(n->getStatus());
         next->nstatus = n->nstatus;
 
         /// point to the source node
         unsigned int source_index = n->getIndex(na_source);
-        unsigned int target_index = next->getIndex(*na);
+        unsigned int target_index = next->getIndex(na);
 
         if (n->getStatus() != NodeStatus::UNDETERMINED) {
             auto source_data = ex_source.getData();
@@ -292,11 +291,11 @@ TreeComparison::copyTree(VisualNode* target, TreeCanvas* tc,
 
         }
 
-        next->dirtyUp(*na);
+        next->dirtyUp(na);
 
         for (uint i = 0; i < kids; ++i) {
             source_stack.push(n->getChild(na_source, i));
-            target_stack.push(next->getChild(*na, i));
+            target_stack.push(next->getChild(na, i));
         }
     }
 

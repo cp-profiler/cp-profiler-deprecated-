@@ -88,6 +88,9 @@ protected Q_SLOTS:
 public Q_SLOTS:
   void changeTitle(QString file_name);
   void gatherStatistics(void);
+
+  void selectNode(int gid);
+  void selectManyNodes(QVariantList gids);
 public:
   /// Constructor
   GistMainWindow(Execution* execution, QWidget* parent);

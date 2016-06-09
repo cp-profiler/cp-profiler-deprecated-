@@ -27,11 +27,12 @@
 #include <utility>
 #include <unordered_map>
 
+#include "execution.hh"
+
 class TreeCanvas;
 class VisualNode;
 class Node;
 class NodeAllocator;
-class Execution;
 
 struct PentagonItem {
   int l_size;               /// left subtree size
@@ -85,6 +86,8 @@ class TreeComparison {
 
   const NodeAllocator& _na1;
   const NodeAllocator& _na2;
+
+  Execution execution;
 
 private: /// methods
  void analyseNogoods(const std::string& info, int search_reduction);

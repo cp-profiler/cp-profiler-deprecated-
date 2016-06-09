@@ -9,6 +9,8 @@ ProfilerTcpServer::ProfilerTcpServer(ProfilerConductor* parent)
 
 void ProfilerTcpServer::incomingConnection(qintptr socketDescriptor) {
   Execution* execution = new Execution();
+
+  /// TODO(maxim): receiver should be destroyed when done
   ReceiverThread* receiver =
       new ReceiverThread(socketDescriptor, execution, this);
 

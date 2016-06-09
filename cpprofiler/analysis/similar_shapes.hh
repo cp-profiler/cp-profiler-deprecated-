@@ -14,6 +14,7 @@ class Shape;
 
 class QAbstractScrollArea;
 class SimilarShapesCursor;
+class NodeTree;
 
 namespace cpprofiler {
 namespace analysis {
@@ -61,7 +62,7 @@ class SimilarShapesWindow : public QDialog {
   friend class ::TreeCanvas;
 
  public:
-  explicit SimilarShapesWindow(TreeCanvas* tc);
+  explicit SimilarShapesWindow(TreeCanvas* tc, const NodeTree& nt);
   void drawHistogram();
 
  public Q_SLOTS:
@@ -75,6 +76,8 @@ class SimilarShapesWindow : public QDialog {
   bool m_done = false;
 
   TreeCanvas* m_tc;
+  const NodeTree& node_tree;
+
   ShapeCanvas* shapeCanvas;
   std::multiset<ShapeI, CompareShapes> shapeSet;
   std::vector<ShapeI> shapesShown;

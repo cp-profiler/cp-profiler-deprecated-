@@ -1,23 +1,20 @@
 #include "execution.hh"
 #include "data.hh"
+#include "treebuilder.hh"
 
 using std::string;
 
 Execution::Execution() {
-	_na = std::unique_ptr<NodeAllocator>{new NodeAllocator{}};
-	_data = std::unique_ptr<Data>{new Data(_na.get())};
+	_data = std::unique_ptr<Data>{new Data()};
+    builder = nullptr;
+    _is_done = false;
 }
 
 Data* Execution::getData() const {
     return _data.get();
 }
 
-NodeAllocator& Execution::na() const {
-    return *_na.get();
-}
-
 void Execution::start(std::string label, bool isRestarts) {
-
     _data->setIsRestarts(isRestarts);
 
     std::time_t t = std::time(nullptr);
@@ -28,16 +25,25 @@ void Execution::start(std::string label, bool isRestarts) {
     _data->setTitle(label + " (" + ts + ")");
 
     connect(this, SIGNAL(doneReceiving(void)), _data.get(), SLOT(setDoneReceiving(void)));
-    connect(this, &Execution::doneReceiving, [this](){ _is_done = true; });
+    connect(this, &Execution::doneReceiving, [this]() {
+            _is_done = true;
+            std::cerr << "execution " << this << " done receiving\n";
+        });
+
+    std::cerr << "Execution::start on " << this << "\n";
+
+    builder = new TreeBuilder(this);
+
+    connect(builder, &TreeBuilder::addedNode, this, &Execution::newNode);
+    connect(builder, &TreeBuilder::addedRoot, this, &Execution::newRoot);
+
+    builder->start();
 
     emit titleKnown();
 }
 
 void Execution::handleNewNode(message::Node& node) {
-    // std::cerr << "execution::newNode\n";
     _data->handleNodeCallback(node);
-
-    emit newNode();
 }
 
 const std::unordered_map<int64_t, string>& Execution::getNogoods() const {

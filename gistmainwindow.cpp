@@ -97,6 +97,8 @@ GistMainWindow::GistMainWindow(Execution* execution, QWidget* parent) : QMainWin
   nodeMenu->addAction(m_Gist->navRoot);
   nodeMenu->addAction(m_Gist->navNextSol);
   nodeMenu->addAction(m_Gist->navPrevSol);
+  nodeMenu->addAction(m_Gist->navNextLeaf);
+  nodeMenu->addAction(m_Gist->navPrevLeaf);
   nodeMenu->addSeparator();
   nodeMenu->addAction(m_Gist->toggleHidden);
   nodeMenu->addAction(m_Gist->hideFailed);
@@ -273,4 +275,21 @@ GistMainWindow::gatherStatistics(void) {
   out.open(statsFilename.toStdString(), std::ofstream::out);
   m_Gist->getCanvas()->collectMLStatsRoot(out);
   out.close();
+}
+
+void
+GistMainWindow::selectNode(int gid) {
+    m_Gist->getCanvas()->navigateToNodeById(gid);
+}
+
+void
+GistMainWindow::selectManyNodes(QVariantList gids) {
+    m_Gist->getCanvas()->unselectAll();
+    for (int i = 0 ; i < gids.size() ; i++) {
+        double d = gids[i].toDouble();
+        int gid = (int) d;
+        VisualNode* node = (m_Gist->getCanvas()->getExecution()->getNA())[gid];
+        node->setSelected(true);
+    }
+    m_Gist->getCanvas()->updateCanvas();
 }

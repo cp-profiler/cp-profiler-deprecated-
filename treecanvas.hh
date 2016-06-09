@@ -52,7 +52,6 @@ namespace cpprofiler { namespace analysis {
   class SimilarShapesWindow;
 }}
 
-class TreeBuilder;
 class TreeDialog;
 
 /// *********************
@@ -70,7 +69,6 @@ class TreeCanvas : public QWidget {
 
   /// TODO: try to reduce the number of these
   friend class Gist;
-  friend class TreeBuilder;
   friend class ShapeCanvas;
   friend class TreeComparison;
   friend class CmpTreeDialog;
@@ -89,9 +87,10 @@ public:
   std::string getTitle() const { return execution->getTitle(); }
   DbEntry* getEntry(unsigned int gid) { return execution->getEntry(gid); }
 
-  NodeAllocator* get_na() const { return na; }
-  const Statistics& get_stats() const { return stats; }
 
+  const Statistics& get_stats() const { return execution->getStatistics(); }
+
+  /// TODO(maxim): funny const here
   Execution* getExecution() const { return execution; }
 
 private:
@@ -105,8 +104,6 @@ private:
 
   /// Pointer to Data Object
   // Data* _data = nullptr;
-
-  TreeBuilder* _builder;
 
   Execution* execution;
 
@@ -150,6 +147,8 @@ public Q_SLOTS:
   void hideSize(void);
   /// Unhide all nodes below selected node
   void unhideAll(void);
+  /// Unselect all nodes
+  void unselectAll(void);
   /// Sets the node and its ancestry as not hidden;
   /// marks the path as dirty
   void unhideNode(VisualNode* node);
@@ -233,10 +232,14 @@ public Q_SLOTS:
   void navRoot(void);
   /// Move selection to next solution (in DFS order)
   void navNextSol(bool back = false);
+  /// Move selection to next leaf (in DFS order)
+  void navNextLeaf(bool back = false);
   /// Move selection to next pentagon (in DFS order)
   void navNextPentagon(bool back = false);
   /// Move selection to previous solution (in DFS order)
   void navPrevSol(void);
+  /// Move selection to previous leaf (in DFS order)
+  void navPrevLeaf(void);
   /// Bookmark current node
   void bookmarkNode(void);
   /// Re-emit status change information for current node
@@ -289,17 +292,19 @@ Q_SIGNALS:
   void removedBookmark(int idx);
 
   void showNodeOnPixelTree(int gid);
+
+  void announceSelectNode(int gid);
 protected:
   /// Mutex for synchronizing acccess to the tree
-  QMutex mutex{QMutex::Recursive};
+  QMutex& mutex;
   /// Mutex for synchronizing layout and drawing
-  QMutex layoutMutex{QMutex::Recursive};
+  QMutex& layoutMutex;
   /// Flag signalling the search to stop
   bool stopSearchFlag;
   /// Flag signalling that Gist is ready to be closed
-  bool finishedFlag = false;
+  bool finishedFlag;
   /// Allocator for nodes
-  NodeAllocator* na = nullptr;
+  NodeAllocator& na;
   /// The root node of the tree
   VisualNode* root;
   /// The currently selected node
@@ -315,9 +320,6 @@ protected:
 
   /// Box for selecting "small subtree" size
   QLineEdit* smallBox;
-
-  /// Statistics about the search tree
-  Statistics stats;
 
   /// Current scale factor
   double scale;

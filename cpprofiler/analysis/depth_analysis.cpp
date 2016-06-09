@@ -5,10 +5,10 @@
 
 using namespace cpprofiler::analysis;
 
-DepthAnalysis::DepthAnalysis(TreeCanvas& tc) : _tc(tc), _na(tc.get_na()) {}
+DepthAnalysis::DepthAnalysis(TreeCanvas& tc) : _tc(tc), _na(tc.getExecution()->getNA()) {}
 
 std::vector<Direction> DepthAnalysis::collectDepthData() {
-  SpaceNode* root = (*_na)[0];
+  SpaceNode* root = _na[0];
   std::vector<Direction> depth_data;
   depth_data.reserve(_tc.getExecution()->getData()->size());
 
@@ -21,7 +21,7 @@ void DepthAnalysis::traverse(std::vector<Direction>& depth_data,
                              const SpaceNode* const n) {
   for (unsigned i = 0; i < n->getNumberOfChildren(); i++) {
     depth_data.push_back(Direction::DOWN);
-    traverse(depth_data, n->getChild(*_na, i));
+    traverse(depth_data, n->getChild(_na, i));
   }
 
   if (n->getStatus() == NodeStatus::SOLVED) {

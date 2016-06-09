@@ -4,7 +4,8 @@
 #
 #-------------------------------------------------
 
-QT       += core gui network
+QT       += core gui network webchannel
+QT += webenginewidgets
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets printsupport
 
@@ -107,6 +108,8 @@ HEADERS  += globalhelper.hh \
     cpprofiler/pixeltree/pixel_item.hh \
     cpprofiler/analysis/depth_analysis.hh \
     cpprofiler/analysis/similar_shapes.hh \
+    webscript.hh \
+    
 
 FORMS    +=
 

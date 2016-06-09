@@ -25,6 +25,8 @@
 #include <QtGui>
 #include <vector>
 #include <queue>
+#include "data.hh"
+#include "execution.hh"
 #include <memory>
 
 class Data;
@@ -41,8 +43,8 @@ class TreeBuilder : public QThread {
 
  private:
   Data* _data;
-  NodeAllocator* _na;
-  TreeCanvas& m_tc;
+  NodeAllocator& _na;
+  Execution* execution;
   QMutex* layout_mutex;
 
   std::vector<DbEntry*> ignored_entries;
@@ -58,16 +60,17 @@ class TreeBuilder : public QThread {
   void initRoot(int kids, NodeStatus status);
 
  public:
-  TreeBuilder(TreeCanvas* tc);
+  TreeBuilder(Execution* execution, QObject* parent = 0);
   ~TreeBuilder();
-  void reset(const Execution* execution, NodeAllocator* na);
 
-  Q_SIGNALS:
-  void doneBuilding();
-  void addedNode();
+Q_SIGNALS:
+  void doneBuilding(bool finished);
+  void addedNode(void);
+  void addedRoot(void);
 
  public Q_SLOTS:
-  void startBuilding();
+  void setDoneReceiving(void);
+
 };
 
 #endif  // TREEBUILDER_H

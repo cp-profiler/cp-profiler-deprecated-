@@ -49,7 +49,7 @@ PixelTreeCanvas::PixelTreeCanvas(QWidget* parent, TreeCanvas& tc)
     : QWidget(parent),
       _tc(tc),
       _data(*tc.getExecution()->getData()),
-      _na(tc.get_na()),
+      _na(tc.getExecution()->getNA()),
       depthAnalysis(tc) {
   using cpprofiler::analysis::Backjumps;
 
@@ -79,7 +79,7 @@ PixelTreeCanvas::PixelTreeCanvas(QWidget* parent, TreeCanvas& tc)
   da_data = depthAnalysis.runMSL();
 
   Backjumps bj;
-  bj_data = bj.findBackjumps((*_na)[0], *_na);
+  bj_data = bj.findBackjumps(_na[0], _na);
 
   perfHelper.begin("construct/compress pixel tree");
   constructPixelTree();
@@ -108,7 +108,7 @@ void PixelTreeCanvas::constructPixelTree(void) {
   auto time_begin = high_resolution_clock::now();
 
   /// get a root
-  auto root = (*_na)[0];
+  auto root = _na[0];
 
   pixel_data = traverseTree(root);
   // pixel_data = traverseTreePostOrder(root);
@@ -178,7 +178,7 @@ void PixelTreeCanvas::compressTimeHistogram(vector<float>& compressed,
   for (unsigned i = 0; i < pixel_list.size(); i++) {
     group_count++;
 
-    auto entry = _data.getEntry(pixel_list[i].node()->getIndex(*_na));
+    auto entry = _data.getEntry(pixel_list[i].node()->getIndex(_na));
     auto value = (entry == nullptr) ? 0 : entry->node_time;
     group_value += value;
 
@@ -213,7 +213,7 @@ void PixelTreeCanvas::getDomainDataCompressed(vector<float>& compressed,
   for (unsigned i = 0; i < pixel_list.size(); i++) {
     group_count++;
 
-    auto entry = _data.getEntry(pixel_list[i].node()->getIndex(*_na));
+    auto entry = _data.getEntry(pixel_list[i].node()->getIndex(_na));
     auto value = (entry == nullptr) ? 0 : entry->domain;
     group_value += value;
 
@@ -266,7 +266,7 @@ void PixelTreeCanvas::gatherVarData() {
   var_decisions.reserve(data_length);
 
   for (auto& pixel : pixel_data.pixel_list) {
-    auto label = _data.getLabel(pixel.node()->getIndex(*_na));  /// 1. get label
+    auto label = _data.getLabel(pixel.node()->getIndex(_na));  /// 1. get label
 
     /// 2. get variable name
     auto found = label.find(' ');
@@ -309,7 +309,7 @@ void PixelTreeCanvas::gatherNogoodData() {
 
   for (unsigned i = 0; i < data_length; i++) {
     auto node = pixel_data.pixel_list[i].node();
-    auto it = sid2nogood.find(node->getIndex(*_na));
+    auto it = sid2nogood.find(node->getIndex(_na));
     if (it != sid2nogood.end()) {
       auto nogood = it->second;
       // qDebug() << "nogood: " << nogood.c_str();
@@ -386,7 +386,7 @@ PixelData PixelTreeCanvas::traverseTree(VisualNode* root) {
     /// 2.1. add the children to the stack
     int kids = node->getNumberOfChildren();
     for (int i = kids - 1; i >= 0; --i) {
-      auto kid = node->getChild(*_na, i);
+      auto kid = node->getChild(_na, i);
       explorationStack.push(kid);
       depthStack.push(depth + 1);
     }
@@ -418,7 +418,7 @@ PixelData PixelTreeCanvas::traverseTreePostOrder(VisualNode* root) {
 
     uint kids = node->getNumberOfChildren();
     for (uint i = 0; i < kids; ++i) {
-      auto kid = node->getChild(*_na, i);
+      auto kid = node->getChild(_na, i);
       nodeStack1.push(kid);
       depthStack1.push(depth + 1);
     }
@@ -760,7 +760,7 @@ void PixelTreeCanvas::drawBjData() {
         std::min(boundaries.second, (int)pixel_data.pixel_list.size());
 
     for (auto id = first_id; id < last_id; ++id) {
-      auto gid = pixel_data.pixel_list[id].node()->getIndex(*_na);
+      auto gid = pixel_data.pixel_list[id].node()->getIndex(_na);
       auto bj_item = bj_data.bj_map.find(gid);
       if (bj_item != bj_data.bj_map.end()) {
         bj_items.push_back(&bj_item->second);
@@ -1082,7 +1082,7 @@ void PixelTreeCanvas::selectNodesfromPT(int vline_begin, int vline_end) {
     apply = selectGroup;
     /// hide everything except root
     _tc.hideAll();
-    (*_na)[0]->setHidden(false);
+    _na[0]->setHidden(false);
   }
 
   /// unset currently selected nodes
@@ -1113,7 +1113,7 @@ void PixelTreeCanvas::highlightOnOriginalTree(int vline) {
   unsigned end = boundaries.second;  /// not including
 
   /// unhighlight previously highlighted
-  detail::unhighlightNodes(*_na, pixels_mouse_over);
+  detail::unhighlightNodes(_na, pixels_mouse_over);
 
   auto& pixel_list = pixel_data.pixel_list;
 
@@ -1121,7 +1121,7 @@ void PixelTreeCanvas::highlightOnOriginalTree(int vline) {
     auto& pixelItem = pixel_list[id];
 
     /// hightlight itself if visible or the first visible parent otherwise
-    pixelItem.setHovered(*_na);
+    pixelItem.setHovered(_na);
     pixels_mouse_over.push_back(&pixelItem);
   }
 
@@ -1132,7 +1132,7 @@ PixelItem& PixelTreeCanvas::gid2PixelItem(int gid) {
   auto& pixel_list = pixel_data.pixel_list;
 
   for (auto& pixelItem : pixel_list) {
-    if (pixelItem.gid(*_na) == gid) return pixelItem;
+    if (pixelItem.gid(_na) == gid) return pixelItem;
   }
 
   assert(false);
