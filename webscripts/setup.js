@@ -6,18 +6,19 @@ var treeWidth = 500;
 var treeHeight = 400;
 
 function getData(callback) {
-    window.profiler.getCSV(function(csv) {
-        var rows = d3.csv.parse(csv);
-
-        objectiveDomain = "cost";
-
-        var data = rows;
-        data[data.length] = {id: -1, gid: -1, parentId: -(data.length*2), visId: 0, root: true, timetaken: 0, restartId: 0}
-        data.forEach(type);
-        data.forEach(getVariables);
-        data.sort(function(a,b) {return a.id-b.id;});
-        callback(data);
-    });
+    var csv = window.profiler.getCSV();
+    // window.profiler.getCSV(function(csv) {
+    var rows = d3.csv.parse(csv);
+    
+    objectiveDomain = "cost";
+    
+    var data = rows;
+    data[data.length] = {id: -1, gid: -1, parentId: -(data.length*2), visId: 0, root: true, timetaken: 0, restartId: 0}
+    data.forEach(type);
+    data.forEach(getVariables);
+    data.sort(function(a,b) {return a.id-b.id;});
+    callback(data);
+    // });
 }
 
 function initialise(obj) {

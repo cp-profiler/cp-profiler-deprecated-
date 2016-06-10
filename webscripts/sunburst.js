@@ -82,7 +82,8 @@ function select(gid) {
 function selectMany(gids) {
     d3.selectAll(".highlight")
         .classed("highlight", false);
-    for (gid of gids) {
+    for (var i = 0 ; i < gids.length ; i++) {
+        var gid = gids[i];
         var n = ".g" + gid;
         d3.selectAll(n).classed("highlight", true);
     }

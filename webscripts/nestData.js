@@ -41,14 +41,22 @@ function nestData(data) {
    // var previoustime = 0;
    // var previousObjdomain = 0;
    // var previousObjMin = 0;
-   var dataMap = data.reduce(function(map, node) // map to parents
-   {  map[node.id] = node;
-     return map;
-   }, {});
+   // var dataMap = data.reduce(function(map, node) // map to parents
+   // {  map[node.id] = node;
+   //   return map;
+   // }, {});
+    var dataMap = {};
+    for (var i = 0 ; i < data.length ; i++) {
+        var node = data[i];
+        dataMap[node.id] = node;
+    }
 //  var restartCount = 0;
     var futureNogoods = [];
-   data.forEach(function(node, i)
-        { // add to parent
+    for (var i = 0 ; i < data.length ; i++) {
+        var node = data[i];
+   // data.forEach(function(node, i)
+                // {
+                    // add to parent
         var parent = dataMap[node.parentId];
          // console.log(parent)
          if (!node.visId) node.visId = i;
@@ -71,7 +79,9 @@ function nestData(data) {
                 // console.log(node);
                 node.timetaken = node.timestamp - previousNode.timestamp;
            }
-            if (!node.restartId) getVariables(node);
+        if (!node.restartId) {
+            getVariables(node);
+        }
 
             // var futureNogoods = [];
             // for (var i in data) {
@@ -135,7 +145,7 @@ function nestData(data) {
             // restartCount = restartCount+1;
             treeData.push(node);
           }
-        });
+        }
 
     for (i in futureNogoods) {
         dataMap[i].futureNogoods = futureNogoods[i];

@@ -95,11 +95,11 @@ function drawVariables2(varPerRestart, varGroupSum) {
             var g = d3.select(this).attr("vg");
             // console.warn("click on " + g);
             var relevantNodes = [];
-            for (node of rawData) {
+            for (var i = 0 ; i < rawData.length ; i++) {
+                var node = rawData[i];
                 if (node.variableGroup == g)
                     relevantNodes.push(node.gid);
             }
-            // console.warn(relevantNodes);
             window.profiler.messageMany(relevantNodes);
         });
 
