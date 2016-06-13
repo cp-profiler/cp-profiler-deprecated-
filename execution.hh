@@ -35,8 +35,8 @@ public:
     const std::string* getNogood(const Node& node) const {
         auto entry = getEntry(node);
         if (!entry) return nullptr;
-        auto nogood = _data->sid2nogood.find(entry->full_sid);
-        if (nogood == _data->sid2nogood.end()) return nullptr;
+        auto nogood = _data->getNogoods().find(entry->full_sid);
+        if (nogood == _data->getNogoods().end()) return nullptr;
         return &nogood->second;
     }
 

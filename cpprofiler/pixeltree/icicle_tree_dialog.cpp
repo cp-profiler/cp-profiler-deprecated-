@@ -27,7 +27,7 @@
 #include "treecanvas.hh"
 #include "spacenode.hh"
 #include "data.hh"
-#include "globalhelper.hh"
+#include "libs/perf_helper.hh"
 
 using namespace cpprofiler::pixeltree;
 

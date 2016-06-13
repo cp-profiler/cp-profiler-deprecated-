@@ -60,29 +60,5 @@ class GlobalParser {
   static void process(const QCoreApplication& app);
 };
 
-namespace detail {
-  using namespace std::chrono;
-
-class PerformanceHelper {
-  using TimePoint = time_point<high_resolution_clock>;
-private:
-  high_resolution_clock m_hrClock;
-  TimePoint m_begin;
-  const char* m_message;
-public:
-  void begin(const char* msg) {
-    m_message = msg;
-    m_begin = m_hrClock.now();
-  }
-
-  void end() {
-    auto duration = duration_cast<milliseconds>(m_hrClock.now() - m_begin).count();
-    qDebug() << "Duration(" << m_message << "): " << duration << "ms";
-  }
-};
-
-}
-
-static detail::PerformanceHelper perfHelper;
 
 #endif

@@ -103,7 +103,6 @@ private:
   static int counter;
 
   /// Pointer to Data Object
-  // Data* _data = nullptr;
 
   Execution* execution;
 

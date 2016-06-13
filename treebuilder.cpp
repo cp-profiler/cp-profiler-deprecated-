@@ -21,6 +21,7 @@
 
 #include "treebuilder.hh"
 #include "globalhelper.hh"
+#include "libs/perf_helper.hh"
 #include "readingQueue.hh"
 #include <cassert>
 

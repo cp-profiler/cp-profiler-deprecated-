@@ -1317,7 +1317,6 @@ void TreeCanvas::highlightFailedByNogoods() {
       currentNode->dirtyUp(na);
 
       /// update data entry for this node
-      
 
       // stats.maxDepth = std::max(stats.maxDepth, static_cast<int>(dbEntry.depth));
     }

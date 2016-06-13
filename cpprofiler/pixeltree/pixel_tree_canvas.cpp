@@ -25,7 +25,7 @@
 #include <utility>
 
 #include "cpprofiler/analysis/backjumps.hh"
-#include "globalhelper.hh"
+#include "libs/perf_helper.hh"
 
 using namespace cpprofiler::pixeltree;
 using std::chrono::high_resolution_clock;

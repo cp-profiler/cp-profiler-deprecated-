@@ -93,6 +93,7 @@ void Data::setDoneReceiving(void) {
 
 }
 
+
 int Data::handleNodeCallback(message::Node& node) {
 
     auto prev_node_time = current_time;
@@ -128,6 +129,7 @@ int Data::handleNodeCallback(message::Node& node) {
 
     const std::string& label = node.label();
 
+
     auto entry = new DbEntry(sid,
                     restart_id,
                     real_pid,
@@ -144,15 +146,11 @@ int Data::handleNodeCallback(message::Node& node) {
                     backjump_distance,
                     decision_level);
 
-    std::cerr << *entry << "\n";
-
-    auto full_sid = entry->full_sid;
-
-    pushInstance(full_sid, entry);
+    pushInstance(entry);
 
     if (node.has_nogood() && node.nogood().length() > 0) {
         // qDebug() << "(!)" << sid << " -> " << node.nogood().c_str();
-        sid2nogood[full_sid] = node.nogood();
+        sid2nogood[entry->full_sid] = node.nogood();
     }
 
     _prev_node_timestamp = node.time();
@@ -225,11 +223,13 @@ Data::~Data(void) {
 /// ***********************
 
 // NOTE(maxim): this can be replaced with multiple arrays: one for each restart 
-void Data::pushInstance(int64_t full_sid, DbEntry* entry) {
+void Data::pushInstance(DbEntry* entry) {
     QMutexLocker locker(&dataMutex);
 
     /// NOTE(maxim): `sid` != `nodes_arr.size`, because there are also
     /// '-1' nodes (backjumped) that dont get counted
+
+    auto full_sid = entry->full_sid;
     nodes_arr.push_back(entry);
 
     sid2aid[full_sid] = nodes_arr.size() - 1;

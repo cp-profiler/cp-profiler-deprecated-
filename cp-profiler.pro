@@ -26,7 +26,6 @@ TEMPLATE = app
 RESOURCES = cp-profiler.qrc
 
 QMAKE_CXXFLAGS += -std=c++11
-# QMAKE_CXXFLAGS += -Werror
 
 SOURCES += main.cpp\
     globalhelper.cpp \
@@ -49,7 +48,7 @@ SOURCES += main.cpp\
     treecomparison.cpp \
     nogood_dialog.cpp \
     node_info_dialog.cpp \
-    pixelImage.cpp \
+    cpprofiler\pixeltree\pixelImage.cpp \
     maybeCaller.cpp \
     message.pb.cpp \
     profiler-conductor.cpp \
@@ -100,7 +99,7 @@ HEADERS  += globalhelper.hh \
     profiler-conductor.hh \
     profiler-tcp-server.hh \
     execution.hh \
-    pixelImage.hh \
+    cpprofiler\pixeltree\pixelImage.hh \
     maybeCaller.hh \
     ml-stats.hh \
     third-party\json.hpp \

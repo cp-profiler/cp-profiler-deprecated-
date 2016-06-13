@@ -5,6 +5,7 @@
 #include "data.hh"
 
 #include "globalhelper.hh"
+#include "libs/perf_helper.hh"
 #include "treecanvas.hh"
 
 #include <google/protobuf/io/zero_copy_stream_impl.h>
@@ -416,8 +417,8 @@ void ProfilerConductor::saveExecutionClicked(bool) {
     node.set_label(entry->label);
     node.set_domain_size(entry->domain);
     //            node.set_solution(entry->);
-    auto ngit = data->sid2nogood.find(entry->s_node_id);
-    if (ngit != data->sid2nogood.end()) node.set_nogood(ngit->second);
+    auto ngit = data->getNogoods().find(entry->s_node_id);
+    if (ngit != data->getNogoods().end()) node.set_nogood(ngit->second);
     auto infoit = data->sid2info.find(entry->s_node_id);
     if (infoit != data->sid2info.end()) node.set_info(*infoit->second);
     writeDelimitedTo(node, &raw_output);

@@ -100,27 +100,12 @@ Q_OBJECT
 
     /// counts instances of Data
     static int instance_counter;
-public:
 
     /// True if we want a dummy node (needed for showing restarts)
     bool _isRestarts = false;
 
-    /// Mapping from solver Id to array Id (nodes_arr)
-    /// can't use vector because sid is too big with threads
-    std::unordered_map<int64_t, int> sid2aid;
-
     /// Mapping from gist Id to array Id (nodes_arr)
     // std::vector<unsigned long long> gid2aid; /// use gid2entry instead
-
-    /// Maps gist Id to dbEntry (possibly in the other Data instance);
-    /// i.e. needed for a merged tree to show labels etc.
-    /// TODO(maixm): this should probably be a vector?
-    std::unordered_map<int, DbEntry*> gid2entry;
-
-    /// Map solver Id to no-good string
-    std::unordered_map<int64_t, std::string> sid2nogood;
-
-    std::unordered_map<int64_t, std::string*> sid2info;
 
     // Whether received DONE_SENDING message
     bool _isDone;
@@ -136,9 +121,6 @@ public:
     /// How many nodes received within each NODE_RATE_STEP interval
     std::vector<float> node_rate;
 
-    /// On which node each interval starts
-    std::vector<int> nr_intervals;
-
     /// derived properties
     int _time_per_node;
 
@@ -149,7 +131,24 @@ public:
 
     int last_interval_nc;
 
+    /// Map solver Id to no-good string
+    std::unordered_map<int64_t, std::string> sid2nogood;
 public:
+
+    /// On which node each interval starts
+    std::vector<int> nr_intervals;
+
+    /// Maps gist Id to dbEntry (possibly in the other Data instance);
+    /// i.e. needed for a merged tree to show labels etc.
+    /// TODO(maixm): this should probably be a vector?
+    std::unordered_map<int, DbEntry*> gid2entry;
+
+
+    std::unordered_map<int64_t, std::string*> sid2info;
+
+    /// Mapping from solver Id to array Id (nodes_arr)
+    /// can't use vector because sid is too big with threads
+    std::unordered_map<int64_t, int> sid2aid;
 
     /// used to access Data instance from different threads (in parallel solver)
     QMutex dataMutex;
@@ -158,7 +157,7 @@ private:
     // int _total_nodes;
 
     /// Populate nodes_arr with the data coming from
-    void pushInstance(int64_t sid, DbEntry* entry);
+    void pushInstance(DbEntry* entry);
 
 public:
 
