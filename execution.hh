@@ -97,6 +97,11 @@ public:
     QMutex& getMutex() { return node_tree.getMutex(); }
     QMutex& getLayoutMutex() { return node_tree.getLayoutMutex(); }
 
+    void setVariableListString(const std::string& s) {
+        variableListString = s;
+        std::cerr << "set variableListString to " << s << "\n";
+    }
+
 signals:
     void newNode();
     void newRoot();
@@ -112,6 +117,7 @@ private:
     NodeTree node_tree;
     bool _is_done;
     TreeBuilder* builder;
+    std::string variableListString;
 public Q_SLOTS:
     void handleNewNode(message::Node& node);
 

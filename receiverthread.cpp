@@ -104,6 +104,10 @@ ReceiverWorker::doRead()
                 {
                     // qDebug() << "START RECEIVING: " << msg1.label().c_str();
 
+                    if (msg1.has_info()) {
+                        execution->setVariableListString(msg1.info());
+                    }
+
                     if (msg1.restart_id() != -1 && msg1.restart_id() != 0) {
                         // qDebug() << ">>> restart and continue";
                         break;
