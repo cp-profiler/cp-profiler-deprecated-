@@ -35,49 +35,37 @@ ShapeProperty interpretShapeProperty(const QString& str) {
   return {};
 }
 
-struct ChildInfo {
-  int alt;
-  VisualNode* node;
-};
-
-class Group {
-  static int counter;
-public:
-  int splitter = 0;
-  std::vector<ChildInfo> items;
-  Group() = default;
-  Group(const Group& other) {
-    counter++;
-    qDebug() << "Group copied times: " << counter;
-    splitter = other.splitter;
-    items = other.items;
-  }
-  Group(int s, const std::vector<ChildInfo>& i) : splitter(s), items(i) {}
-};
-
 int Group::counter = 0;
-
-using GroupsOfNodes_t = std::vector<Group>;
 
 // returns a pair <i,j> where i is a group index and j -- node's index within that group
 std::pair<int, int> findNodeInGroups(
     const GroupsOfNodes_t& groups,
-    std::unordered_map<const VisualNode*, int>& node2groupID, const VisualNode* n) {
+    std::unordered_map<const VisualNode*, PosInGroups>& node2groupID, const VisualNode* n) {
   // for (auto i = 1u; i < groups.size(); ++i) {
-    auto idx = node2groupID[n];
-    auto& group_items = groups[idx].items;
+    auto g_idx = node2groupID[n].group_idx;
+    auto idx = node2groupID[n].inner_idx;
+
+    return std::make_pair(g_idx, idx);
+
+    auto& group_items = groups[g_idx].items;
     for (auto j = 0u; j < group_items.size(); ++j) {
       auto& e = group_items[j];
-      if (e.node == n) return std::make_pair(idx, j);
+      if (e.node == n) return std::make_pair(g_idx, j);
     }
   // }
   abort();
   return std::make_pair(-1, -1);
 }
 
-void separateNode(Group& g, int i) {
+void separateNode(
+    Group& g, std::unordered_map<const VisualNode*, PosInGroups>& node2groupID,
+    int i) {
   /// swap the target element with the element pointed at by the splitter
-  std::swap(g.items[g.splitter], g.items[i]);
+  auto& el_1 = g.items[g.splitter];
+  auto& el_2 = g.items[i];
+  std::swap(el_1, el_2);
+  std::swap(node2groupID[el_1.node].inner_idx,
+            node2groupID[el_2.node].inner_idx);
 
   /// advance the splitter
   ++g.splitter;
@@ -87,7 +75,7 @@ std::ostream& operator<<(std::ostream& os, const VisualNode* n) {
   #ifdef MAXIM_DEBUG
       os << n->debug_id;
   #else
-      os << n;
+      os << (void*)n;
   #endif
   return os;
 }
@@ -117,31 +105,32 @@ QDebug& operator<<(QDebug& os, const GroupsOfNodes_t& groups) {
   return os;
 }
 
-void splitGroups(GroupsOfNodes_t& groups, std::unordered_map<const VisualNode*, int>& node2groupID) {
-  for (auto i = 0u; i < groups.size(); ++i) {
-    auto& g = groups[i];
+void splitGroups(GroupsOfNodes_t& groups, const std::vector<int>& g_to_split, std::unordered_map<const VisualNode*, PosInGroups>& node2groupID) {
+  for (auto i = 0u; i < g_to_split.size(); ++i) {
+    auto g_idx = g_to_split[i];
+    auto& g = groups[g_idx];
     if (g.splitter == 0 || g.splitter == (int)g.items.size()) {
       g.splitter = 0;
       /// ----- don't need to split the group -----
       continue;
     }
     /// ----- need to split the group -----
+    perfHelper.accumulate("actual splitting");
     auto it_splitter = begin(g.items) + g.splitter;
-    std::vector<ChildInfo> subgroup1 = {begin(g.items), it_splitter};
-    std::vector<ChildInfo> subgroup2 = {it_splitter, end(g.items)};
     
-    Group new_group1{};
-    Group new_group2{};
-    new_group1.items = subgroup1;
-    new_group2.items = subgroup2;
+    Group new_group2{0, {it_splitter, end(g.items)}};
 
-    g = new_group1;
-    // groups.insert(begin(groups) + i, new_group2);
-    groups.push_back(new_group2);
+    g.items.erase(it_splitter, end(g.items));
+    g.splitter = 0;
+
     /// ----- change group_id for nodes in the second group -----
-    for (auto& e : new_group2.items) {
-      node2groupID[e.node] = groups.size() - 1;
+    for (auto j = 0u; j < new_group2.items.size(); ++j) {
+      auto* node = new_group2.items[j].node;
+      node2groupID[node].group_idx = groups.size();
+      node2groupID[node].inner_idx = j;
     }
+    groups.push_back(std::move(new_group2));
+    perfHelper.end("actual splitting");
 
     // ++i;
     // qDebug() << "after split groups: " << groups;
@@ -212,12 +201,14 @@ SimilarShapesWindow::SimilarShapesWindow(TreeCanvas* tc, const NodeTree& nt)
 
 
   /// ------ assign a group id to each node -------
-  std::unordered_map<const VisualNode*, int> node2groupID;
-  for (auto group_id = 1u; group_id < groups.size(); ++group_id) {
-    auto& group = groups[group_id];
+  std::unordered_map<const VisualNode*, PosInGroups> node2groupID;
+  for (auto group_idx = 1u; group_idx < groups.size(); ++group_idx) {
+    auto& group = groups[group_idx];
 
-    for (auto& e: group.items) {
-      node2groupID[e.node] = group_id;
+    for (auto i = 0u; i < group.items.size(); ++i) {
+      auto* node = group.items[i].node;
+      node2groupID[node].group_idx = group_idx;
+      node2groupID[node].inner_idx = i;
     }
   }
 
@@ -242,6 +233,8 @@ SimilarShapesWindow::SimilarShapesWindow(TreeCanvas* tc, const NodeTree& nt)
     /// ------ 
     ///             and separate it from the group
 
+    std::vector<int> groups_to_split;
+
     // qDebug() << "left children:";
     for (auto& e: block.items) {
       if (e.alt == 0) {
@@ -255,15 +248,21 @@ SimilarShapesWindow::SimilarShapesWindow(TreeCanvas* tc, const NodeTree& nt)
         auto location = findNodeInGroups(groups, node2groupID, parent);
         perfHelper.end("shapes: find node in groups");
         // std::cerr << "in group: " << location.first << "\n";
-        separateNode(groups[location.first], location.second);
+
+        /// group g_idx will potentially need splitting
+        auto g_idx = location.first;
+        groups_to_split.push_back(g_idx);
+
+        separateNode(groups[g_idx], node2groupID, location.second);
         // qDebug() << "groups: " << groups;
         /// split only affected groups
       }
     }
     // std::cerr << '\n';
     perfHelper.accumulate("shapes: split groups");
-    splitGroups(groups, node2groupID);
+    splitGroups(groups, groups_to_split, node2groupID);
     perfHelper.end("shapes: split groups");
+    groups_to_split.clear();
     // qDebug() << "groups: " << groups;
 
     // qDebug() << "right children:";
@@ -278,14 +277,17 @@ SimilarShapesWindow::SimilarShapesWindow(TreeCanvas* tc, const NodeTree& nt)
         perfHelper.accumulate("shapes: find node in groups");
         auto location = findNodeInGroups(groups, node2groupID, parent);
         perfHelper.end("shapes: find node in groups");
+
+        auto g_idx = location.first;
+        groups_to_split.push_back(g_idx);
         // std::cerr << "in group: " << location.first << "\n";
-        separateNode(groups[location.first], location.second);
+        separateNode(groups[g_idx], node2groupID, location.second);
         // qDebug() << "groups: " << groups;
         /// split only affected groups
       }
     }
     perfHelper.accumulate("shapes: split groups");
-    splitGroups(groups, node2groupID);
+    splitGroups(groups, groups_to_split, node2groupID);
     perfHelper.end("shapes: split groups");
   }
   /// ----- sort the groups -----
@@ -304,10 +306,11 @@ SimilarShapesWindow::SimilarShapesWindow(TreeCanvas* tc, const NodeTree& nt)
   });
 #endif
 
-  qDebug() << "final groups: " << groups;
   perfHelper.end();
+  // qDebug() << "final groups: " << groups;
   perfHelper.total("shapes: find node in groups");
   perfHelper.total("shapes: split groups");
+  perfHelper.total("actual splitting");
 
   //--------------------------------------------
   //--------------------------------------------
@@ -383,10 +386,15 @@ SimilarShapesWindow::SimilarShapesWindow(TreeCanvas* tc, const NodeTree& nt)
   // m_scrollArea->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
   m_scrollArea->setAutoFillBackground(true);
 
-  shapeCanvas = new ShapeCanvas(m_scrollArea, tc, shapeSet);
+  perfHelper.begin("construct shapecanvas");
+  /// TODO(maxim): get rid of the unnecessary copy here:
+  m_identicalGroups = groups;
+  shapeCanvas = new ShapeCanvas(m_scrollArea, tc, shapeSet, groups);
+  perfHelper.end();
   shapeCanvas->show();
 
-  drawHistogram();
+  // drawHistogram();
+  drawAlternativeHistogram();
 }
 
 /// TODO(maxim): see if any of these could be reused in tree comparison
@@ -519,6 +527,37 @@ inline void addText(int value, int x, int y, QGraphicsScene& scene) {
   // alignment to the right
   x += COLUMN_WIDTH - int_text_item->boundingRect().width();
   detail::addText(int_text_item, x, y, scene);
+}
+
+void SimilarShapesWindow::drawAlternativeHistogram() {
+  scene.reset(new QGraphicsScene{});
+  view->setScene(scene.get());
+
+  int curr_y = 40;
+  auto rect_max_w = ShapeRect::SELECTION_WIDTH;
+  int max_value = 100;
+
+  perfHelper.begin("displaying another histogram");
+  for (auto it = m_identicalGroups.begin(), end = m_identicalGroups.end();
+       it != end; ++it) {
+    const Group& group = *it;
+
+    int value = group.items.size();
+
+    if (value == 0) continue;
+
+    const int rect_width = rect_max_w * value / max_value;
+    auto rect = new ShapeRect(0, curr_y, rect_width, group.items[0].node, shapeCanvas);
+    rect->draw(scene.get());
+
+    // auto sb_value = view->verticalScrollBar()->value();
+
+    // rects_displayed++;
+    curr_y += ShapeRect::HEIGHT + 1;
+  }
+
+  perfHelper.end();
+
 }
 
 void SimilarShapesWindow::drawHistogram() {
@@ -666,8 +705,13 @@ void ShapeRect::mousePressEvent(QGraphicsSceneMouseEvent*) {
 }
 
 ShapeCanvas::ShapeCanvas(QAbstractScrollArea* sa, TreeCanvas* tc,
-                         const std::multiset<ShapeI, CompareShapes>& set)
-    : QWidget{sa}, m_sa{sa}, m_tc{tc}, m_shapesSet{set} {}
+                         const std::multiset<ShapeI, CompareShapes>& set,
+                         const std::vector<Group>& groups)
+    : QWidget{sa},
+      m_sa{sa},
+      m_tc{tc},
+      m_shapesSet{set},
+      m_identicalGroups{groups} {}
 
 void ShapeCanvas::paintEvent(QPaintEvent* event) {
   /// TODO(maxim): make a copy of a subtree to display here

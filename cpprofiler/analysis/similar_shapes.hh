@@ -54,6 +54,33 @@ struct CompareShapes {
 
 enum class ShapeProperty { SIZE, COUNT, HEIGHT };
 
+struct ChildInfo {
+  int alt;
+  VisualNode* node;
+};
+
+struct PosInGroups {
+  int group_idx;
+  int inner_idx;
+};
+
+class Group {
+  static int counter;
+public:
+  int splitter = 0;
+  std::vector<ChildInfo> items;
+  Group() = default;
+  Group(const Group& other) {
+    counter++;
+    // qDebug() << "Group copied times: " << counter;
+    splitter = other.splitter;
+    items = other.items;
+  }
+  Group(int s, const std::vector<ChildInfo>& i) : splitter(s), items(i) {}
+};
+
+using GroupsOfNodes_t = std::vector<Group>;
+
 class SimilarShapesWindow : public QDialog {
   Q_OBJECT
 
@@ -61,9 +88,10 @@ class SimilarShapesWindow : public QDialog {
   friend class Filters;
   friend class ::TreeCanvas;
 
+  void drawHistogram();
  public:
   explicit SimilarShapesWindow(TreeCanvas* tc, const NodeTree& nt);
-  void drawHistogram();
+  void drawAlternativeHistogram();
 
  public Q_SLOTS:
   void depthFilterChanged(int val);
@@ -88,13 +116,16 @@ class SimilarShapesWindow : public QDialog {
 
   ShapeProperty m_histType = ShapeProperty::SIZE;
   ShapeProperty m_sortType = ShapeProperty::SIZE;
+
+  GroupsOfNodes_t m_identicalGroups;
 };
 
 class ShapeCanvas : public QWidget {
   Q_OBJECT
  public:
   ShapeCanvas(QAbstractScrollArea* parent, TreeCanvas* tc,
-              const std::multiset<ShapeI, CompareShapes>& sm);
+              const std::multiset<ShapeI, CompareShapes>& sm,
+              const std::vector<Group>& groups);
   void highlightShape(VisualNode* node);
 
  private:
@@ -103,6 +134,7 @@ class ShapeCanvas : public QWidget {
   TreeCanvas* m_tc;
   // TODO(maxim): maybe this isn't necessary here
   const std::multiset<ShapeI, CompareShapes>& m_shapesSet;
+  const GroupsOfNodes_t m_identicalGroups;
 
   int xtrans;
 
