@@ -87,7 +87,7 @@ class TreeComparison {
   const NodeAllocator& _na1;
   const NodeAllocator& _na2;
 
-  Execution execution;
+  // Execution execution;
 
 private: /// methods
  void analyseNogoods(const std::string& info, int search_reduction);

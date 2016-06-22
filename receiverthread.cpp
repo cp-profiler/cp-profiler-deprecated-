@@ -115,6 +115,8 @@ ReceiverWorker::doRead()
 
                     bool is_restarts = (msg1.restart_id() != -1);
 
+                    qDebug() << "is_restarts: " << is_restarts;
+
                     execution->start(msg1.label(), is_restarts);
                     emit startReceiving();
                 }

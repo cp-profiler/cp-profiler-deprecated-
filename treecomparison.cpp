@@ -74,6 +74,8 @@ TreeComparison::compare(TreeCanvas* new_tc, bool with_labels) {
     stack1.push(root1);
     stack2.push(root2);
 
+    Execution& execution = *new_tc->getExecution();
+
     VisualNode* root = execution.getNA()[0];
     stack.push(root);
 
@@ -82,6 +84,7 @@ TreeComparison::compare(TreeCanvas* new_tc, bool with_labels) {
     /// TODO(maxim): reset responsible nogood counts?
 
     NodeAllocator& na = execution.getNA();
+
 
     while (stack1.size() > 0) {
         auto node1 = stack1.pop();
@@ -152,7 +155,9 @@ TreeComparison::compare(TreeCanvas* new_tc, bool with_labels) {
         /// ----------------------------------------------------
 
         bool equal = TreeComparison::copmareNodes(node1, node2, with_labels);
+        qDebug() << "compare nodes";
         if (equal) {
+            qDebug() << "nodes are equal";
             uint kids = node1->getNumberOfChildren();
             for (uint i = 0; i < kids; ++i) {
                 stack1.push(node1->getChild(_na1, kids - i - 1));
@@ -164,6 +169,7 @@ TreeComparison::compare(TreeCanvas* new_tc, bool with_labels) {
                 next = new_tc->root;
                 rootBuilt = true;
             } else {
+                qDebug() << "stack.pop()";
                 next = stack.pop();
             }
 
@@ -188,7 +194,7 @@ TreeComparison::compare(TreeCanvas* new_tc, bool with_labels) {
 
         } else {
             /// not equal
-
+            qDebug() << "nodes are not equal";
             next = stack.pop();
             next->setNumberOfChildren(2, na);
             next->setStatus(MERGING);
@@ -234,6 +240,8 @@ TreeComparison::compare(TreeCanvas* new_tc, bool with_labels) {
 
         }
 
+        qDebug() << "comparison na: " << (void*)(&na);
+
         next->dirtyUp(na);
         new_tc->update();
     }
@@ -243,7 +251,9 @@ int
 TreeComparison::copyTree(VisualNode* target, TreeCanvas* tc,
                          const VisualNode* root, const Execution& ex_source, int which) {
 
-    NodeAllocator& na = execution.getNA();
+
+
+    NodeAllocator& na = tc->getExecution()->getNA();
     const NodeAllocator& na_source = ex_source.getNA();
 
     QStack<const VisualNode*> source_stack;
