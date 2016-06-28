@@ -16,13 +16,8 @@ class NodeAllocator;
 namespace message {
     class Node;
 }
-// <<<<<<< HEAD
-// ||||||| merged common ancestors
-// =======
-// 
 
 class TreeBuilder;
-// >>>>>>> master
 
 class Execution : public QObject {
     Q_OBJECT
@@ -40,8 +35,6 @@ public:
     std::string getTitle() const;
     std::string getDescription() {
         std::stringstream ss;
-        /// TODO: also print model name (from _data->getTitle() -- comes with the first node)
-        // ss << "an execution with " << _data->size() << " nodes";
         ss << getTitle();
         return ss.str();
     }
@@ -73,6 +66,7 @@ public:
     void start(std::string label, bool isRestarts);
 
     bool isDone() const { return _is_done; }
+    bool isRestarts() const { return _is_restarts; }
 
     VisualNode* getRootNode() const {
         return node_tree.getRootNode();
@@ -103,10 +97,11 @@ signals:
     void doneBuilding();
 
 private:
-    std::unique_ptr<Data> _data;
+    std::unique_ptr<Data> m_Data;
+    std::unique_ptr<TreeBuilder> m_Builder;
     NodeTree node_tree;
     bool _is_done = false;
-    TreeBuilder* builder = nullptr;
+    bool _is_restarts;
     std::string variableListString;
 public Q_SLOTS:
     void handleNewNode(message::Node& node);

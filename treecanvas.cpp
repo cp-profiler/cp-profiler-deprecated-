@@ -661,11 +661,6 @@ void TreeCanvas::labelPath(void) {
   emit needActionsUpdate(currentNode, true);
 }
 
-void TreeCanvas::stopSearch(void) {
-  stopSearchFlag = true;
-  layoutDoneTimerId = startTimer(15);
-}
-
 /// TODO(maxim): this should not not re-build a tree, disabled for now
 /// (it is still called from GistMainWidnow)
 void TreeCanvas::reset() {
@@ -1063,7 +1058,6 @@ void TreeCanvas::wheelEvent(QWheelEvent* event) {
 
 bool TreeCanvas::finish(void) {
   if (finishedFlag) return true;
-  stopSearchFlag = true;
   finishedFlag = true;
 
   // return !ptr_receiver->isRunning();

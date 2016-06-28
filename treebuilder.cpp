@@ -51,40 +51,6 @@ TreeBuilder::TreeBuilder(Execution* execution_, QObject* parent)
           execution, &Execution::doneBuilding);
 }
 
-// =======
-// TreeBuilder::TreeBuilder(Execution* execution_, TreeCanvas* tc) : QThread{tc}, m_tc{*tc} {
-//   read_queue.reset(nullptr);
-//   connect(this, &TreeBuilder::doneBuilding, m_tc.getExecution(),
-//           &Execution::doneBuilding);
-// }
-
-// TreeBuilder::~TreeBuilder() = default;
-
-// void TreeBuilder::startBuilding() { QThread::start(); }
-
-// <<<<<<< HEAD
-//   read_queue.reset(new ReadingQueue{_data->getEntries()});
-// }
-// ||||||| merged common ancestors
-//   read_queue.reset(new ReadingQueue(_data->nodes_arr));
-// }
-// =======
-// void TreeBuilder::reset(const Execution* execution, NodeAllocator* na) {
-//   /// TODO(maxim): find out whether reset is only called once
-//   /// old _data and _na are deleted by this point (where?)
-// >>>>>>> origin/master
-//   _data = execution->getData();
-
-// <<<<<<< HEAD
-//   read_queue = new ReadingQueue(_data->nodes_arr);
-
-//   nodesCreated = 1;
-//   lastRead = 0;
-// =======
-//   read_queue.reset(new ReadingQueue(_data->nodes_arr));
-// }
-// >>>>>>> master
-
 void TreeBuilder::initRoot(int kids, NodeStatus status) {
   auto root = _na[0];
   root->setNumberOfChildren(kids, _na);
@@ -118,7 +84,7 @@ bool TreeBuilder::processRoot(DbEntry& dbEntry) {
 
   int kids = dbEntry.numberOfKids;
 
-  if (_data->isRestarts()) {
+  if (execution->isRestarts()) {
     int restart_root =
         (_na)[0]->addChild(_na);  // create a node for a new root
     root = (_na)[restart_root];

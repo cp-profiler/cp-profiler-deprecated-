@@ -47,15 +47,10 @@ class Gist : public QWidget {
   QPalette* myPalette;
   QGridLayout* layout;
 
-private:
-
   /// The canvas implementation
   TreeCanvas* m_Canvas;
 
-  void addActions(void);
-
-  /// connect the signals
-  void connectCanvas(TreeCanvas* tc);
+  void addActions();
 
   Execution* execution;
 
@@ -74,13 +69,46 @@ private:
   QMenu* bookmarksMenu;
   /// Information about individual nodes
   NodeStatInspector* nodeStatInspector;
+  
+  /// Search next solution in current subtree
+  QAction* searchNext;
+  /// Search all solutions in current subtree
+  QAction* searchAll;
+  
+  /// Show on a pixel tree
+  QAction* showNodeOnPixelTree;
+  
+  /// Bookmark current node
+  QAction* toggleStop;
+  /// Bookmark current node
+  QAction* unstopAll;
+  /// Show webscript view
+  QAction* showWebscript;
+
+  /// Group of all actions for comparators
+  QActionGroup* comparatorGroup;
+  
+
 public:
-  /// Expand current node
-  QAction* expand;
-  /// Stop search
-  QAction* stop;
+  /// ------------ accessed from mainwindow --------------
   /// Reset %Gist
   QAction* reset;
+
+  /// Group of all actions for bookmarks
+  QActionGroup* bookmarksGroup;
+
+  /// Print tree
+  QAction* print;
+  /// Print search tree log
+  QAction* printSearchLog;
+  /// Export PDF of whole tree
+  QAction* exportWholeTreePDF;
+
+  /// Bookmark current node
+  QAction* bookmarkNode;
+  /// Open node statistics inspector
+  QAction* showNodeStats;
+
   /// Navigate to parent node
   QAction* navUp;
   /// Navigate to leftmost child node
@@ -99,72 +127,45 @@ public:
   QAction* navNextLeaf;
   /// Navigate to previous leaf (to the left)
   QAction* navPrevLeaf;
-  /// Search next solution in current subtree
-  QAction* searchNext;
-  /// Search all solutions in current subtree
-  QAction* searchAll;
+
   /// Toggle whether current node is hidden
   QAction* toggleHidden;
   /// Hide failed subtrees under current node
   QAction* hideFailed;
-  /// Hide subtrees by their size
-  QAction* hideSize;
   /// Unhide all hidden subtrees under current node
   QAction* unhideAll;
+
   /// Label branches under current node
   QAction* labelBranches;
   /// Label branches on path to root
   QAction* labelPath;
-  /// Analyze similar subtrees
-  QAction* analyzeSimilarSubtrees;
+
   /// Show no-goods
   QAction* showNogoods;
   /// Show node info
   QAction* showNodeInfo;
-  /// Show on a pixel tree
-  QAction* showNodeOnPixelTree;
-  /// Collect ML stats
-  QAction* collectMLStats;
-  /// Zoom tree to fit window
+
+    /// Zoom tree to fit window
   QAction* zoomToFit;
   /// Center on current node
   QAction* center;
+
   /// Export PDF of current subtree
   QAction* exportPDF;
-  /// Export PDF of whole tree
-  QAction* exportWholeTreePDF;
-  /// Print tree
-  QAction* print;
-  /// Print search tree log
-  QAction* printSearchLog;
+
   /// Highlight nodes
   QAction* highlightNodesMenu;
-  /// Bookmark current node
-  QAction* bookmarkNode;
-  /// Open node statistics inspector
-  QAction* showNodeStats;
-  /// Bookmark current node
-  QAction* toggleStop;
-  /// Bookmark current node
-  QAction* unstopAll;
-
-
+  /// Analyze similar subtrees
+  QAction* analyzeSimilarSubtrees;
   /// Show Indented Pixel Tree View
   QAction* showPixelTree;
-
     /// Show Icicle Search Tree
   QAction* showIcicleTree;
 
-  /// Show webscript view
-  QAction* showWebscript;
-
+  /// Hide subtrees by their size
+  QAction* hideSize;
   /// Follow path
   QAction* followPath;
-
-  /// Group of all actions for comparators
-  QActionGroup* comparatorGroup;
-  /// Group of all actions for bookmarks
-  QActionGroup* bookmarksGroup;
 
 public:
 
@@ -201,9 +202,6 @@ public:
   /// Set preference whether to move cursor during search
   void setMoveDuringSearch(bool b);
 
-  /// Stop search and wait until finished
-  bool finish(void);
-
   /// Handle resize event
   void resizeEvent(QResizeEvent*);
 
@@ -236,8 +234,6 @@ private Q_SLOTS:
   void on_canvas_statusChanged(VisualNode*, const Statistics&, bool);
   /// TODO: this should only react on selecting node?
   void updateActions(VisualNode*, bool);
-//  /// Reacts on comparator selection
-//  void selectComparator(QAction*);
   /// Reacts on bookmark selection
   void selectBookmark(QAction*);
   /// Reacts on adding a bookmark

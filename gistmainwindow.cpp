@@ -107,8 +107,7 @@ GistMainWindow::GistMainWindow(Execution* execution, QWidget* parent) : QMainWin
   nodeMenu->addAction(m_Gist->labelPath);
   nodeMenu->addAction(m_Gist->showNogoods);
   nodeMenu->addAction(m_Gist->showNodeInfo);
-  // nodeMenu->addAction(m_Gist->toggleStop);
-  // nodeMenu->addAction(m_Gist->unstopAll);
+
   nodeMenu->addSeparator();
   nodeMenu->addAction(m_Gist->zoomToFit);
   nodeMenu->addAction(m_Gist->center);
@@ -127,15 +126,6 @@ GistMainWindow::GistMainWindow(Execution* execution, QWidget* parent) : QMainWin
   treeVisMenu->addAction(m_Gist->hideSize);
   treeVisMenu->addAction(m_Gist->followPath);
 
-  /// *******************************
-
-  // QMenu* searchMenu = menuBar->addMenu(tr("&Search"));
-  // searchMenu->addAction(m_Gist->searchNext);
-  // searchMenu->addAction(m_Gist->searchAll);
-  // searchMenu->addSeparator();
-  // searchMenu->addAction(m_Gist->stop);
-  // searchMenu->addSeparator();
-  // searchMenu->addAction(m_Gist->reset);
 
   QMenu* helpMenu = menuBar->addMenu(tr("&Help"));
   QAction* aboutAction = helpMenu->addAction(tr("About"));
@@ -186,18 +176,6 @@ GistMainWindow::GistMainWindow(Execution* execution, QWidget* parent) : QMainWin
   show();
   m_Gist->reset->trigger();
 }
-
-// void
-// GistMainWindow::closeEvent(QCloseEvent* event) {
-
-//   emit stopReceiver();
-//   // m_Gist->getReceiver()->wait();
-
-//   if (m_Gist->finish())
-//     event->accept();
-//   else
-//     event->ignore();
-// }
 
 void
 GistMainWindow::statusChanged(const Statistics& stats, bool finished) {

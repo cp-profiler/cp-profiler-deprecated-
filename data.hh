@@ -101,12 +101,6 @@ Q_OBJECT
     /// counts instances of Data
     static int instance_counter;
 
-    /// True if we want a dummy node (needed for showing restarts)
-    bool _isRestarts = false;
-
-    /// Mapping from gist Id to array Id (nodes_arr)
-    // std::vector<unsigned long long> gid2aid; /// use gid2entry instead
-
     // Whether received DONE_SENDING message
     bool _isDone;
 
@@ -181,7 +175,7 @@ public:
 /// ********* GETTERS **********
 
     bool isDone(void) { return _isDone; }
-    bool isRestarts(void) { return _isRestarts; }
+    // bool isRestarts(void) { return _isRestarts; }
     std::string getTitle(void) { return _title; }
     const std::vector<DbEntry*>& getEntries() const { return nodes_arr; }
     inline const std::unordered_map<int64_t, std::string>& getNogoods(void) { return sid2nogood; }
@@ -198,11 +192,6 @@ public:
 /// ********* SETTERS **********
 
     void setTitle(std::string title) { _title = title; }
-    void setIsRestarts(bool isRestarts) {
-        /// can't set true to false
-        assert(_isRestarts == false || isRestarts == true);
-        _isRestarts = isRestarts;
-    }
 
 
 /// ****************************

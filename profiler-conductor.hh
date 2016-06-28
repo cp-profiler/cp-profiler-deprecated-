@@ -27,10 +27,11 @@ public:
 class ProfilerConductor : public QMainWindow {
   Q_OBJECT
  private:
-  QListWidget* executionList;
-  QCheckBox* compareWithLabelsCB;
   QList<Execution*> executions;
   QHash<Execution*, ExecutionInfo*> executionInfoHash;
+
+  QListWidget* executionList;
+  QCheckBox* compareWithLabelsCB;
  private slots:
   void gistButtonClicked(bool checked);
   void compareButtonClicked(bool checked);

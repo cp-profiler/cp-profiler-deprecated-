@@ -28,55 +28,62 @@
 #include "execution.hh"
 #include "cmp_tree_dialog.hh"
 
-Gist::Gist(Execution* execution, QWidget* parent) : QWidget(parent), execution(execution) {
+Gist::Gist(Execution* execution, QWidget* parent)
+    : QWidget(parent), execution(execution) {
+  layout = new QGridLayout(this);
 
-    
-    layout = new QGridLayout(this);
+  auto scrollArea = new QAbstractScrollArea(this);
+  scrollArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
+  scrollArea->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
+  scrollArea->setAutoFillBackground(true);
 
-    auto scrollArea = new QAbstractScrollArea(this);
-    scrollArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
-    scrollArea->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
-    scrollArea->setAutoFillBackground(true);
+  myPalette = new QPalette(scrollArea->palette());
 
-    myPalette = new QPalette(scrollArea->palette());
+  myPalette->setColor(QPalette::Window, Qt::white);
+  scrollArea->setPalette(*myPalette);
 
-    myPalette->setColor(QPalette::Window, Qt::white);
-    scrollArea->setPalette(*myPalette);
+  setLayout(layout);
 
-    setLayout(layout);
+  m_Canvas = new TreeCanvas(execution, layout, CanvasType::REGULAR,
+                            scrollArea->viewport());
+  m_Canvas->setPalette(*myPalette);
+  m_Canvas->setObjectName("canvas");
 
+  layout->addWidget(scrollArea, 0, 0, -1, 1);
+  layout->addWidget(m_Canvas->scaleBar, 1, 1, Qt::AlignHCenter);
+  layout->addWidget(m_Canvas->smallBox, 1, 2, Qt::AlignBottom);
 
-    m_Canvas = new TreeCanvas(execution, layout, CanvasType::REGULAR, scrollArea->viewport());
-    m_Canvas->setPalette(*myPalette);
-    m_Canvas->setObjectName("canvas");
+  addActions();
 
-    layout->addWidget(scrollArea, 0,0,-1,1);
-    layout->addWidget(m_Canvas->scaleBar, 1,1, Qt::AlignHCenter);
-    layout->addWidget(m_Canvas->smallBox, 1,2, Qt::AlignBottom);
+  connect(scrollArea->horizontalScrollBar(), SIGNAL(valueChanged(int)),
+          m_Canvas, SLOT(scroll(void)));
+  connect(scrollArea->verticalScrollBar(), SIGNAL(valueChanged(int)), m_Canvas,
+          SLOT(scroll(void)));
 
-    addActions();
-    connectCanvas(m_Canvas);
+  connect(this, SIGNAL(doneReceiving()), m_Canvas, SLOT(statusFinished()));
 
-    connect(scrollArea->horizontalScrollBar(), SIGNAL(valueChanged(int)),
-            m_Canvas, SLOT(scroll(void)));
-    connect(scrollArea->verticalScrollBar(), SIGNAL(valueChanged(int)),
-            m_Canvas, SLOT(scroll(void)));
+  connect(m_Canvas, SIGNAL(addedBookmark(const QString&)), this, SLOT(addBookmark(const QString&)));
+  connect(m_Canvas, SIGNAL(removedBookmark(int)), this, SLOT(removeBookmark(int)));
+  connect(m_Canvas, SIGNAL(needActionsUpdate(VisualNode*, bool)),
+          this, SLOT(updateActions(VisualNode*, bool)));
 
-    nodeStatInspector = new NodeStatInspector(this);
+  connect(m_Canvas, SIGNAL(statusChanged(VisualNode*, const Statistics&, bool)),
+          this, SLOT(on_canvas_statusChanged(VisualNode*, const Statistics&, bool)));
 
-    m_Canvas->show();
+  nodeStatInspector = new NodeStatInspector(this);
 
-    resize(500, 400);
+  m_Canvas->show();
 
-    auto sa_layout = new QVBoxLayout();
-    sa_layout->setContentsMargins(0,0,0,0);
-    sa_layout->addWidget(m_Canvas);
+  resize(500, 400);
 
-    scrollArea->viewport()->setLayout(sa_layout);
+  auto sa_layout = new QVBoxLayout();
+  sa_layout->setContentsMargins(0, 0, 0, 0);
+  sa_layout->addWidget(m_Canvas);
 
+  scrollArea->viewport()->setLayout(sa_layout);
 
-    // enables on_<sender>_<signal>() mechanism
-    QMetaObject::connectSlotsByName(this);
+  // enables on_<sender>_<signal>() mechanism
+  QMetaObject::connectSlotsByName(this);
 }
 
 void
@@ -242,16 +249,6 @@ Gist::emitChangeMainTitle(QString file_name) {
     emit changeMainTitle(file_name);
 }
 
-bool
-Gist::finish(void) {
-    return m_Canvas->finish();
-}
-
-//void
-//Gist::selectComparator(QAction* a) {
-//    canvas->activateComparator(comparatorGroup->actions().indexOf(a),
-//                               a->isChecked());
-//}
 void
 Gist::selectBookmark(QAction* a) {
     int idx = bookmarksGroup->actions().indexOf(a);
@@ -322,64 +319,110 @@ Gist::showStats(void) {
     m_Canvas->emitStatusChanged();
 }
 
-
-
 void
-Gist::addActions(void) {
-    expand = new QAction("Expand", this);
-    expand->setShortcut(QKeySequence("Return"));
+Gist::addActions() {
 
-    stop = new QAction("Stop search", this);
-    stop->setShortcut(QKeySequence("Esc"));
+    /// Expand current node
+    auto expand_action = new QAction("Expand", this);
+    expand_action->setShortcut(QKeySequence("Return"));
+    addAction(expand_action);
+    connect(expand_action, SIGNAL(triggered()), m_Canvas, SLOT(expandCurrentNode()));
 
     reset = new QAction("Reset", this);
+    addAction(reset);
+    connect(reset, SIGNAL(triggered()), m_Canvas, SLOT(reset()));
     // reset->setShortcut(QKeySequence("Ctrl+R"));
 
     showPixelTree = new QAction("Pixel Tree View", this);
+    addAction(showPixelTree);
+    connect(showPixelTree, SIGNAL(triggered()), m_Canvas, SLOT(showPixelTree()));
+
     showIcicleTree = new QAction("Icicle Tree View", this);
+    addAction(showIcicleTree);
+    connect(showIcicleTree, SIGNAL(triggered()), m_Canvas, SLOT(showIcicleTree()));
+
     showWebscript = new QAction("Webscript View", this);
+    addAction(showWebscript);
+    connect(showWebscript, SIGNAL(triggered()), m_Canvas, SLOT(showWebscript()));
+
     followPath = new QAction("Follow Path", this);
+    addAction(followPath);
+    connect(followPath, SIGNAL(triggered()), m_Canvas, SLOT(followPath()));
+
+    /// Collect ML stats
+    auto collectMLStats_action = new QAction("Collect ML stats", this);
+    addAction(collectMLStats_action);
+    connect(collectMLStats_action, SIGNAL(triggered()), m_Canvas, SLOT(collectMLStats()));
 
     navUp = new QAction("Up", this);
+    addAction(navUp);
     navUp->setShortcut(QKeySequence("Up"));
+    connect(navUp, SIGNAL(triggered()), m_Canvas, SLOT(navUp()));
+
+
+
 
     navDown = new QAction("Down", this);
+    addAction(navDown);
     navDown->setShortcut(QKeySequence("Down"));
+    connect(navDown, SIGNAL(triggered()), m_Canvas, SLOT(navDown()));
 
     navLeft = new QAction("Left", this);
+    addAction(navLeft);
     navLeft->setShortcut(QKeySequence("Left"));
+    connect(navLeft, SIGNAL(triggered()), m_Canvas, SLOT(navLeft()));
 
     navRight = new QAction("Right", this);
+    addAction(navRight);
     navRight->setShortcut(QKeySequence("Right"));
+    connect(navRight, SIGNAL(triggered()), m_Canvas, SLOT(navRight()));
 
     navRoot = new QAction("Root", this);
+    addAction(navRoot);
     navRoot->setShortcut(QKeySequence("R"));
+    connect(navRoot, SIGNAL(triggered()), m_Canvas, SLOT(navRoot()));
 
     navNextSol = new QAction("To next solution", this);
+    addAction(navNextSol);
     navNextSol->setShortcut(QKeySequence("Shift+Right"));
+    connect(navNextSol, SIGNAL(triggered()), m_Canvas, SLOT(navNextSol()));
 
     navPrevSol = new QAction("To previous solution", this);
+    addAction(navPrevSol);
     navPrevSol->setShortcut(QKeySequence("Shift+Left"));
+    connect(navPrevSol, SIGNAL(triggered()), m_Canvas, SLOT(navPrevSol()));
 
     navNextLeaf = new QAction("To next leaf", this);
+    addAction(navNextLeaf);
     navNextLeaf->setShortcut(QKeySequence("Ctrl+Right"));
+    connect(navNextLeaf, SIGNAL(triggered()), m_Canvas, SLOT(navNextLeaf()));
 
     navPrevLeaf = new QAction("To previous leaf", this);
+    addAction(navPrevLeaf);
     navPrevLeaf->setShortcut(QKeySequence("Ctrl+Left"));
+    connect(navPrevLeaf, SIGNAL(triggered()), m_Canvas, SLOT(navPrevLeaf()));
 
     searchNext = new QAction("Next solution", this);
+    addAction(searchNext);
     searchNext->setShortcut(QKeySequence("N"));
 
     searchAll = new QAction("All solutions", this);
+    addAction(searchAll);
     searchAll->setShortcut(QKeySequence("A"));
 
     toggleHidden = new QAction("Hide/unhide", this);
+    addAction(toggleHidden);
     toggleHidden->setShortcut(QKeySequence("H"));
+    connect(toggleHidden, SIGNAL(triggered()), m_Canvas, SLOT(toggleHidden()));
 
     hideFailed = new QAction("Hide failed subtrees", this);
+    addAction(hideFailed);
     hideFailed->setShortcut(QKeySequence("F"));
+    connect(hideFailed, SIGNAL(triggered()), m_Canvas, SLOT(hideFailed()));
 
     hideSize = new QAction("Hide small subtrees", this);
+    addAction(hideSize);
+    connect(hideSize, SIGNAL(triggered()), m_Canvas, SLOT(hideSize()));
 
 #ifdef MAXIM_DEBUG
     auto printDebugInfo = new QAction("Print Debug Info", this);
@@ -403,58 +446,89 @@ Gist::addActions(void) {
 #endif
 
     unhideAll = new QAction("Unhide all", this);
+    addAction(unhideAll);
     unhideAll->setShortcut(QKeySequence("U"));
+    connect(unhideAll, SIGNAL(triggered()), m_Canvas, SLOT(unhideAll()));
 
     labelBranches = new QAction("Label/clear branches", this);
+    addAction(labelBranches);
     labelBranches->setShortcut(QKeySequence("L"));
     /// TODO(maxim): should this be the default (Qt::WindowShortcut) instead?
     labelBranches->setShortcutContext(Qt::WidgetWithChildrenShortcut);
+    connect(labelBranches, SIGNAL(triggered()), m_Canvas, SLOT(labelBranches()));
 
     labelPath = new QAction("Label/clear path", this);
+    addAction(labelPath);
     labelPath->setShortcut(QKeySequence("Shift+L"));
+    connect(labelPath, SIGNAL(triggered()), m_Canvas, SLOT(labelPath()));
     // labelPath->setShortcutContext(Qt::ApplicationShortcut);
 
     analyzeSimilarSubtrees = new QAction("Symilar Subtree Analysis", this);
+    addAction(analyzeSimilarSubtrees);
     analyzeSimilarSubtrees->setShortcut(QKeySequence("Shift+s"));
+    connect(analyzeSimilarSubtrees, SIGNAL(triggered()), m_Canvas, SLOT(analyzeSimilarSubtrees()));
 
     highlightNodesMenu = new QAction("Highlight Nodes Based On ...", this);
+    addAction(highlightNodesMenu);
+    connect(highlightNodesMenu, SIGNAL(triggered()), m_Canvas, SLOT(highlightNodesMenu()));
 
     showNogoods = new QAction("Show no-goods", this);
+    addAction(showNogoods);
     showNogoods->setShortcut(QKeySequence("Shift+N"));
+    connect(showNogoods, SIGNAL(triggered()), m_Canvas, SLOT(showNogoods()));
 
     showNodeInfo = new QAction("Show node info", this);
+    addAction(showNodeInfo);
     showNodeInfo->setShortcut(QKeySequence("I"));
+    connect(showNodeInfo, SIGNAL(triggered()), m_Canvas, SLOT(showNodeInfo()));
 
     showNodeOnPixelTree = new QAction("Show node on a pixel tree", this);
+    addAction(showNodeOnPixelTree);
     showNodeOnPixelTree->setShortcut(QKeySequence("J"));
-
-    collectMLStats = new QAction("Collect ML stats", this);
+    connect(showNodeOnPixelTree, SIGNAL(triggered()), m_Canvas, SLOT(showNodeOnPixelTree()));
 
     toggleStop = new QAction("Stop/unstop", this);
+    addAction(toggleStop);
     toggleStop->setShortcut(QKeySequence("X"));
+    connect(toggleStop, SIGNAL(triggered()), m_Canvas, SLOT(toggleStop()));
 
     unstopAll = new QAction("Do not stop in subtree", this);
+    addAction(unstopAll);
     unstopAll->setShortcut(QKeySequence("Shift+X"));
+    connect(unstopAll, SIGNAL(triggered()), m_Canvas, SLOT(unstopAll()));
 
     zoomToFit = new QAction("Zoom to fit", this);
+    addAction(zoomToFit);
     zoomToFit->setShortcut(QKeySequence("Z"));
+    connect(zoomToFit, SIGNAL(triggered()), m_Canvas, SLOT(zoomToFit()));
 
     center = new QAction("Center current node", this);
+    addAction(center);
     center->setShortcut(QKeySequence("C"));
+    connect(center, SIGNAL(triggered()), m_Canvas, SLOT(centerCurrentNode()));
 
     exportPDF = new QAction("Export subtree PDF...", this);
+    addAction(exportPDF);
     exportPDF->setShortcut(QKeySequence("P"));
+    connect(exportPDF, SIGNAL(triggered()), m_Canvas, SLOT(exportPDF()));
 
     exportWholeTreePDF = new QAction("Export PDF...", this);
+    addAction(exportWholeTreePDF);
     exportWholeTreePDF->setShortcut(QKeySequence("Ctrl+Shift+P"));
+    connect(exportWholeTreePDF, SIGNAL(triggered()), m_Canvas, SLOT(exportWholeTreePDF()));
 
     print = new QAction("Print...", this);
+    addAction(print);
     print->setShortcut(QKeySequence("Ctrl+P"));
+    connect(print, SIGNAL(triggered()), m_Canvas, SLOT(print()));
 
     printSearchLog = new QAction("Export search log...", this);
+    addAction(printSearchLog);
+    connect(printSearchLog, SIGNAL(triggered()), m_Canvas, SLOT(printSearchLog()));
 
     bookmarkNode = new QAction("Add/remove bookmark", this);
     bookmarkNode->setShortcut(QKeySequence("Shift+B"));
+    connect(bookmarkNode, SIGNAL(triggered()), m_Canvas, SLOT(bookmarkNode()));
 
     nullBookmark = new QAction("<none>",this);
     nullBookmark->setCheckable(true);
@@ -472,6 +546,7 @@ Gist::addActions(void) {
             this, SLOT(populateBookmarksMenu()));
 
     showNodeStats = new QAction("Node statistics", this);
+    addAction(showNodeStats);
     showNodeStats->setShortcut(QKeySequence("S"));
     connect(showNodeStats, SIGNAL(triggered()),
             this, SLOT(showStats()));
@@ -489,50 +564,9 @@ Gist::addActions(void) {
     comparatorMenu = new QMenu("Comparators", this);
     comparatorMenu->addActions(comparatorGroup->actions());
 
-
-    addAction(expand);
-    addAction(stop);
-    addAction(reset);
-    addAction(navUp);
-    addAction(navDown);
-    addAction(navLeft);
-    addAction(navRight);
-    addAction(navRoot);
-    addAction(navNextSol);
-    addAction(navPrevSol);
-    addAction(navNextLeaf);
-    addAction(navPrevLeaf);
-
-    addAction(searchNext);
-    addAction(searchAll);
-    addAction(toggleHidden);
-    addAction(hideFailed);
-    addAction(hideSize);
-    addAction(unhideAll);
-    addAction(labelBranches);
-    addAction(labelPath);
-    addAction(showPixelTree);
-    addAction(showIcicleTree);
-    addAction(showWebscript);
-    addAction(followPath);
-    addAction(analyzeSimilarSubtrees);
-    addAction(highlightNodesMenu);
-    addAction(showNogoods);
-    addAction(showNodeInfo);
-    addAction(showNodeOnPixelTree);
-    addAction(collectMLStats);
-    addAction(toggleStop);
-    addAction(unstopAll);
-    addAction(zoomToFit);
-    addAction(center);
-    addAction(exportPDF);
-    addAction(exportWholeTreePDF);
-    addAction(print);
-    addAction(printSearchLog);
-
-    addAction(showNodeStats);
-
     contextMenu = new QMenu(this);
+    
+    contextMenu->addAction(collectMLStats_action);
     contextMenu->addAction(showNodeStats);
     contextMenu->addAction(center);
 
@@ -552,8 +586,7 @@ Gist::addActions(void) {
     contextMenu->addAction(showNogoods);
     contextMenu->addAction(showNodeInfo);
     contextMenu->addAction(showNodeOnPixelTree);
-    contextMenu->addAction(collectMLStats);
-
+    
     contextMenu->addAction(toggleStop);
     contextMenu->addAction(unstopAll);
 
@@ -562,55 +595,4 @@ Gist::addActions(void) {
     contextMenu->addMenu(bookmarksMenu);
 
     contextMenu->addSeparator();
-}
-
-void
-Gist::connectCanvas(TreeCanvas* tc) {
-
-    connect(this, SIGNAL(doneReceiving()), tc, SLOT(statusFinished()));
-    /// TODO: these 2 should not be here
-    connect(expand, SIGNAL(triggered()), tc, SLOT(expandCurrentNode()));
-    connect(stop, SIGNAL(triggered()), tc, SLOT(stopSearch()));
-    connect(reset, SIGNAL(triggered()), tc, SLOT(reset()));
-    connect(navUp, SIGNAL(triggered()), tc, SLOT(navUp()));
-    connect(navDown, SIGNAL(triggered()), tc, SLOT(navDown()));
-    connect(navLeft, SIGNAL(triggered()), tc, SLOT(navLeft()));
-    connect(navRight, SIGNAL(triggered()), tc, SLOT(navRight()));
-    connect(navRoot, SIGNAL(triggered()), tc, SLOT(navRoot()));
-    connect(navNextSol, SIGNAL(triggered()), tc, SLOT(navNextSol()));
-    connect(navPrevSol, SIGNAL(triggered()), tc, SLOT(navPrevSol()));
-    connect(navNextLeaf, SIGNAL(triggered()), tc, SLOT(navNextLeaf()));
-    connect(navPrevLeaf, SIGNAL(triggered()), tc, SLOT(navPrevLeaf()));
-    connect(toggleHidden, SIGNAL(triggered()), tc, SLOT(toggleHidden()));
-    connect(hideFailed, SIGNAL(triggered()), tc, SLOT(hideFailed()));
-    connect(hideSize, SIGNAL(triggered()), tc, SLOT(hideSize()));
-    connect(labelBranches, SIGNAL(triggered()), tc, SLOT(labelBranches()));
-    connect(unhideAll, SIGNAL(triggered()), tc, SLOT(unhideAll()));
-    connect(labelPath, SIGNAL(triggered()), tc, SLOT(labelPath()));
-    connect(showPixelTree, SIGNAL(triggered()), tc, SLOT(showPixelTree()));
-    connect(showIcicleTree, SIGNAL(triggered()), tc, SLOT(showIcicleTree()));
-    connect(showWebscript, SIGNAL(triggered()), tc, SLOT(showWebscript()));
-    connect(followPath, SIGNAL(triggered()), tc, SLOT(followPath()));
-    connect(analyzeSimilarSubtrees, SIGNAL(triggered()), tc, SLOT(analyzeSimilarSubtrees()));
-    connect(highlightNodesMenu, SIGNAL(triggered()), tc, SLOT(highlightNodesMenu()));
-    connect(showNogoods, SIGNAL(triggered()), tc, SLOT(showNogoods()));
-    connect(showNodeInfo, SIGNAL(triggered()), tc, SLOT(showNodeInfo()));
-    connect(showNodeOnPixelTree, SIGNAL(triggered()), tc, SLOT(showNodeOnPixelTree()));
-    connect(collectMLStats, SIGNAL(triggered()), tc, SLOT(collectMLStats()));
-    connect(toggleStop, SIGNAL(triggered()), tc, SLOT(toggleStop()));
-    connect(unstopAll, SIGNAL(triggered()), tc, SLOT(unstopAll()));
-    connect(zoomToFit, SIGNAL(triggered()), tc, SLOT(zoomToFit()));
-    connect(center, SIGNAL(triggered()), tc, SLOT(centerCurrentNode()));
-    connect(exportWholeTreePDF, SIGNAL(triggered()), tc, SLOT(exportWholeTreePDF()));
-    connect(exportPDF, SIGNAL(triggered()), tc, SLOT(exportPDF()));
-    connect(print, SIGNAL(triggered()), tc, SLOT(print()));
-    connect(printSearchLog, SIGNAL(triggered()), tc, SLOT(printSearchLog()));
-    connect(bookmarkNode, SIGNAL(triggered()), tc, SLOT(bookmarkNode()));
-    connect(tc, SIGNAL(addedBookmark(const QString&)), this, SLOT(addBookmark(const QString&)));
-    connect(tc, SIGNAL(removedBookmark(int)), this, SLOT(removeBookmark(int)));
-    connect(tc, SIGNAL(needActionsUpdate(VisualNode*, bool)),
-            this, SLOT(updateActions(VisualNode*, bool)));
-
-    connect(tc, SIGNAL(statusChanged(VisualNode*, const Statistics&, bool)),
-            this, SLOT(on_canvas_statusChanged(VisualNode*, const Statistics&, bool)));
 }

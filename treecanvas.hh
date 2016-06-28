@@ -216,9 +216,6 @@ public Q_SLOTS:
   /// highlight failures caused by nogoods (nogoods in info)
   void highlightFailedByNogoods();
 
-  /// Stop current search
-  void stopSearch(void);
-
   /// Move selection to the parent of the selected node
   void navUp(void);
   /// Move selection to the first child of the selected node
@@ -298,8 +295,6 @@ protected:
   QMutex& mutex;
   /// Mutex for synchronizing layout and drawing
   QMutex& layoutMutex;
-  /// Flag signalling the search to stop
-  bool stopSearchFlag;
   /// Flag signalling that Gist is ready to be closed
   bool finishedFlag;
   /// Allocator for nodes
