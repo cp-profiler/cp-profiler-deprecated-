@@ -23,6 +23,7 @@
 #include "nodewidget.hh"
 #include "treecomparison.hh"
 #include "treecanvas.hh"
+#include "data.hh"
 
 #include "third-party/json.hpp"
 #include <algorithm>

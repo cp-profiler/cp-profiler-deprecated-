@@ -6,9 +6,9 @@ using std::string;
 
 Execution::Execution() {
 	_data = std::unique_ptr<Data>{new Data()};
-    builder = nullptr;
-    _is_done = false;
 }
+
+Execution::~Execution() = default;
 
 Data* Execution::getData() const {
     return _data.get();
@@ -40,6 +40,22 @@ void Execution::start(std::string label, bool isRestarts) {
     builder->start();
 
     emit titleKnown();
+}
+
+const std::string* Execution::getNogood(const Node& node) const {
+    auto entry = getEntry(node);
+    if (!entry) return nullptr;
+    auto nogood = _data->getNogoods().find(entry->full_sid);
+    if (nogood == _data->getNogoods().end()) return nullptr;
+    return &nogood->second;
+}
+
+const std::string* Execution::getInfo(const Node& node) const {
+    auto entry = getEntry(node);
+    if (!entry) return nullptr;
+    auto info = _data->sid2info.find(entry->s_node_id);
+    if (info == _data->sid2info.end()) return nullptr;
+    return info->second;
 }
 
 void Execution::handleNewNode(message::Node& node) {

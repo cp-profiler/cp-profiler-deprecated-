@@ -8,7 +8,6 @@
 #include <memory>
 #include "nodetree.hh"
 #include <unordered_map>
-#include "data.hh"
 
 class Data;
 class DbEntry;
@@ -31,24 +30,14 @@ class Execution : public QObject {
     friend class TreeCanvas;
 public:
     Execution();
+    Execution(const Execution&) = delete;
+    Execution& operator=(const Execution&) = delete;
+    ~Execution();
 
-    const std::string* getNogood(const Node& node) const {
-        auto entry = getEntry(node);
-        if (!entry) return nullptr;
-        auto nogood = _data->getNogoods().find(entry->full_sid);
-        if (nogood == _data->getNogoods().end()) return nullptr;
-        return &nogood->second;
-    }
+    const std::string* getNogood(const Node& node) const;
+    const std::string* getInfo(const Node& node) const;
 
-    const std::string* getInfo(const Node& node) const {
-        auto entry = getEntry(node);
-        if (!entry) return nullptr;
-        auto info = _data->sid2info.find(entry->s_node_id);
-        if (info == _data->sid2info.end()) return nullptr;
-        return info->second;
-    }
-
-    std::string getTitle() { return _data->getTitle(); }
+    std::string getTitle() const;
     std::string getDescription() {
         std::stringstream ss;
         /// TODO: also print model name (from _data->getTitle() -- comes with the first node)
@@ -78,7 +67,6 @@ public:
     unsigned int getGidBySid(int sid);
     std::string getLabel(int gid) const;
     unsigned long long getTotalTime();
-    std::string getTitle() const;
 
     Data* getData() const;
 
@@ -115,12 +103,10 @@ signals:
     void doneBuilding();
 
 private:
-    // TODO(maxim): figure out how to get away without
-    // including data.hh
     std::unique_ptr<Data> _data;
     NodeTree node_tree;
-    bool _is_done;
-    TreeBuilder* builder;
+    bool _is_done = false;
+    TreeBuilder* builder = nullptr;
     std::string variableListString;
 public Q_SLOTS:
     void handleNewNode(message::Node& node);

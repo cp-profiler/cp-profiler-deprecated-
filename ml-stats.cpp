@@ -1,6 +1,7 @@
 #include "ml-stats.hh"
 #include "nodecursor.hh"
 #include "nodevisitor.hh"
+#include "data.hh"
 
 #include <unordered_map>
 
