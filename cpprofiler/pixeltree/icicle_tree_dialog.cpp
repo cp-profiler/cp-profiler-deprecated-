@@ -81,11 +81,9 @@ IcicleTreeCanvas::IcicleTreeCanvas(QAbstractScrollArea* parent, TreeCanvas* tc)
   initTreeStatistic(*na[0], 0);
   connect(sa_.horizontalScrollBar(), SIGNAL(valueChanged(int)), this,
           SLOT(sliderChanged(int)));
-
-  /// TODO(maxim): find out the 'width' of the icicle tree
-
+  connect(sa_.verticalScrollBar(), SIGNAL(valueChanged(int)), this,
+          SLOT(sliderChanged(int)));
   setMouseTracking(true);
-
   icicle_image_.setPixelWidth(4);
   icicle_image_.setPixelHeight(8);
 }
@@ -108,12 +106,10 @@ void IcicleTreeCanvas::resizeCanvas() {
 
 void IcicleTreeCanvas::redrawAll() {
   icicle_image_.clear();
-
-  perfHelper.begin("icicle tree: draw");
   drawIcicleTree();
-  perfHelper.end();
-
+  perfHelper.begin("icicle tree: update");
   icicle_image_.update();
+  perfHelper.end();
   /// added 10 of padding here
   int icicle_width = leafCount[0];
   sa_.horizontalScrollBar()->setRange(
@@ -132,8 +128,15 @@ void IcicleTreeCanvas::drawIcicleTree() {
   int yoff = 0, xoff = sa_.horizontalScrollBar()->value();
   int width = sa_.viewport()->width();
   int depth = sa_.viewport()->height();
+  qDebug() << "curx: " << curx << ", xoff: " << xoff
+        << ", width: " << width << ", yoff: " << yoff << ", depth: " << depth;
+  perfHelper.begin("icicle tree: dfs");
   dfsVisible(root, idx, curx, cury, xoff, width, yoff, depth);
+  perfHelper.end();
+
+  perfHelper.begin("icicle tree: draw");
   drawRects();
+  perfHelper.end();
   qDebug() << "average domain reduction: "
            << domain_red_sum / tc_.get_stats().allNodes();
 }
@@ -213,9 +216,9 @@ void IcicleTreeCanvas::dfsVisible(SpaceNode& root, int idx, int curx, int cury,
     nextxL = nextxR;
   }
   if (cury >= yoff && cury <= yoff + depth) {
-    int rect_x = curx - xoff;
+    int rect_x = std::max(curx - xoff, 0);
     int rect_y = cury;
-    int rect_width = leafCount[idx];
+    int rect_width = std::min(leafCount[idx], xoff + width - rect_x);
     int rect_height = icicle_image_.pixel_height();
     icicle_rects_.push_back(IcicleRect{rect_x, rect_y, rect_width, rect_height, root});
   }
@@ -225,6 +228,7 @@ void IcicleTreeCanvas::sliderChanged(int) {
   /// calls redrawAll not more often than 60hz
   // TODO(maxim): this goes into infinite loop somehow...
   // maybeCaller.call([this]() { redrawAll(); });
+  redrawAll();
 }
 
 SpaceNode* IcicleTreeCanvas::getNodeByXY(int x, int y) const {

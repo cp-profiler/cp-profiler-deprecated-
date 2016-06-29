@@ -95,6 +95,7 @@ class IcicleTreeCanvas : public QWidget {
   void redrawAll();
   void drawIcicleTree();
   void drawRects();
+  void dfsVisible(SpaceNode& root, int idx, int curx, int cury, int xoff, int width, int yoff, int depth);
   QRgb getColorByType(const SpaceNode& node);
   SpaceNode* getNodeByXY(int x, int y) const;
 
@@ -102,7 +103,6 @@ class IcicleTreeCanvas : public QWidget {
   void paintEvent(QPaintEvent* event);
   void mousePressEvent(QMouseEvent* me);
   void mouseMoveEvent(QMouseEvent* me);
-  void dfsVisible(SpaceNode& root, int idx, int curx, int cury, int xoff, int width, int yoff, int depth);
 
  public:
   IcicleTreeCanvas(QAbstractScrollArea* parent, TreeCanvas* tc);
