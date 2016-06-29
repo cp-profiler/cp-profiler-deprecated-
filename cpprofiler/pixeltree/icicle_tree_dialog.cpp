@@ -76,6 +76,9 @@ void IcicleTreeDialog::resizeEvent(QResizeEvent* event) {
 
 IcicleTreeCanvas::IcicleTreeCanvas(QAbstractScrollArea* parent, TreeCanvas* tc)
     : QWidget(parent), sa_(*parent), tc_(*tc) {
+  auto& na = tc_.getExecution()->getNA();
+  leafCount.resize(na.size());
+  initTreeStatistic(*na[0], 0);
   connect(sa_.horizontalScrollBar(), SIGNAL(valueChanged(int)), this,
           SLOT(sliderChanged(int)));
 
@@ -112,6 +115,7 @@ void IcicleTreeCanvas::redrawAll() {
 
   icicle_image_.update();
   /// added 10 of padding here
+  int icicle_width = leafCount[0];
   sa_.horizontalScrollBar()->setRange(
       0, icicle_width - sa_.viewport()->width() + 10);
   sa_.horizontalScrollBar()->setPageStep(sa_.viewport()->width());
@@ -122,22 +126,25 @@ void IcicleTreeCanvas::redrawAll() {
 
 void IcicleTreeCanvas::drawIcicleTree() {
   icicle_rects_.clear();
-
   auto& na = tc_.getExecution()->getNA();
-
   auto& root = *na[0];
-
-  x_global_ = 0;
-  cur_depth_ = 0;
-
-  domain_red_sum = 0;
-
-  /// TODO(maxim): construct once, redraw many times
-  auto extent = processNode(root);
-  icicle_width = extent.second;
-
+  int idx = 0, curx = 0, cury = 0;
+  int yoff = 0, xoff = sa_.horizontalScrollBar()->value();
+  int width = sa_.viewport()->width();
+  int depth = sa_.viewport()->height();
+  dfsVisible(root, idx, curx, cury, xoff, width, yoff, depth);
+  drawRects();
   qDebug() << "average domain reduction: "
            << domain_red_sum / tc_.get_stats().allNodes();
+}
+
+void IcicleTreeCanvas::drawRects() {
+  domain_red_sum = 0;
+  for (auto rect: icicle_rects_) {
+    SpaceNode& node = rect.node;
+    QRgb color = getColorByType(node);
+    icicle_image_.drawRect(rect.x, rect.width, rect.y, color);
+  }
 }
 
 /// This assignes a color for every node on the icicle tree
@@ -161,52 +168,15 @@ static QRgb getColor(const SpaceNode& node) {
   return color;
 }
 
-std::pair<int, int> IcicleTreeCanvas::processNode(SpaceNode& node) {
-  // auto yoff = _sa->verticalScrollBar()->value();
-
-  ++cur_depth_;
-
-  const int kids = node.getNumberOfChildren();
-  // qDebug() << "kids: " << kids;
+QRgb IcicleTreeCanvas::getColorByType(const SpaceNode& node) {
+  QRgb color;
   auto& na = tc_.getExecution()->getNA();
-
-  int x_begin = INT_MAX;
-
-  int x_end = 0;
-
-  for (int i = 0; i < kids; ++i) {
-    auto& kid = *node.getChild(na, i);
-
-    auto extent = processNode(kid);
-    auto x1 = extent.first;
-    auto x2 = extent.second;
-
-    if (x1 < x_begin) x_begin = x1;
-    if (x2 > x_end) x_end = x2;
-  }
-
-  if (kids == 0) {
-    x_begin = x_global_;
-    x_end = x_begin + 1;
-    ++x_global_;
-  }
-
   auto data = tc_.getExecution()->getData();
-
   auto gid = node.getIndex(na);
   auto* entry = data->getEntry(gid);
-
-  // auto* entry = data->getEntry(node);
-  /// entry to domain size (reduction)
   auto domain_red = entry == nullptr ? 0 : entry->domain;
-  // qDebug() << "domain reduction: " << domain_red;
-  /// NOTE(maxim): sometimes domain reduction is negative
-  /// (domains appear to be larger in children nodes!?)
   domain_red_sum += domain_red;
-
-  QRgb color;
-
-  switch (color_mapping_type) {
+  switch (IcicleTreeCanvas::color_mapping_type) {
     case ColorMappingType::DEFAULT: {
       color = getColor(node);
     } break;
@@ -223,22 +193,32 @@ std::pair<int, int> IcicleTreeCanvas::processNode(SpaceNode& node) {
       color = QColor::fromHsv(0, 0, color_value).rgba();
     }
   }
+  return color;
+}
 
-  auto xoff = sa_.horizontalScrollBar()->value();
+void IcicleTreeCanvas::dfsVisible(SpaceNode& root, int idx, int curx, int cury,
+  int xoff, int width, int yoff, int depth) {
+  if (cury > depth) return;
 
-  /// Actually drawing the rectangle
-  int rect_x = x_begin - xoff;
-  int rect_y = cur_depth_;
-  int rect_width = x_end - x_begin;
-  int rect_height = icicle_image_.pixel_height();
-
-  icicle_image_.drawRect(rect_x, rect_width, rect_y, color);
-  icicle_rects_.push_back(
-      IcicleRect{rect_x, rect_y, rect_width, rect_height, node});
-
-  --cur_depth_;
-
-  return std::make_pair(x_begin, x_end);
+  const int kids = root.getNumberOfChildren();
+  auto& na = tc_.getExecution()->getNA();
+  int nextxL = curx, nextxR;
+  for (int i = 0; i < kids; i++) {
+    if (nextxL > xoff + width) break;
+    int kidIdx = root.getChild(i);
+    SpaceNode& kid = *na[kidIdx];
+    nextxR = nextxL + leafCount[kidIdx];
+    if (nextxR >= xoff)
+      dfsVisible(kid, kidIdx, nextxL, cury+1, xoff, width, yoff, depth);
+    nextxL = nextxR;
+  }
+  if (cury >= yoff && cury <= yoff + depth) {
+    int rect_x = curx - xoff;
+    int rect_y = cury;
+    int rect_width = leafCount[idx];
+    int rect_height = icicle_image_.pixel_height();
+    icicle_rects_.push_back(IcicleRect{rect_x, rect_y, rect_width, rect_height, root});
+  }
 }
 
 void IcicleTreeCanvas::sliderChanged(int) {
@@ -287,6 +267,20 @@ void IcicleTreeCanvas::mouseMoveEvent(QMouseEvent* event) {
 
 void IcicleTreeCanvas::mousePressEvent(QMouseEvent*) {
   /// do nothing for now
+}
+
+int IcicleTreeCanvas::initTreeStatistic(SpaceNode& root, int idx) {
+  const int kids = root.getNumberOfChildren();
+  auto& na = tc_.getExecution()->getNA();
+  int cntRoot = kids?0: 1;
+  for (int i=0; i < kids; i++) {
+    SpaceNode& kid = *root.getChild(na, i);
+    int kidIdx = root.getChild(i);
+    int cntKid = initTreeStatistic(kid, kidIdx);
+    cntRoot += cntKid;
+  }
+  leafCount[idx] = cntRoot;
+  return cntRoot;
 }
 
 void IcicleTreeCanvas::changeColorMapping(const QString& text) {
