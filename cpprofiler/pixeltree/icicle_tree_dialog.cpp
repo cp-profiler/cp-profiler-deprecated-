@@ -226,9 +226,7 @@ void IcicleTreeCanvas::dfsVisible(SpaceNode& root, int idx, int curx, int cury,
 
 void IcicleTreeCanvas::sliderChanged(int) {
   /// calls redrawAll not more often than 60hz
-  // TODO(maxim): this goes into infinite loop somehow...
-  // maybeCaller.call([this]() { redrawAll(); });
-  redrawAll();
+  maybeCaller.call([this]() { redrawAll(); });
 }
 
 SpaceNode* IcicleTreeCanvas::getNodeByXY(int x, int y) const {
