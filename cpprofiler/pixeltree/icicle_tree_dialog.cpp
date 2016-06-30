@@ -218,7 +218,7 @@ void IcicleTreeCanvas::dfsVisible(SpaceNode& root, int idx, int curx, int cury,
   if (cury >= yoff && cury <= yoff + depth) {
     int rect_x = std::max(curx - xoff, 0);
     int rect_y = cury;
-    int rect_width = std::min(leafCount[idx], xoff + width - rect_x);
+    int rect_width = std::min(xoff + width, curx + leafCount[idx]) - xoff - rect_x;
     int rect_height = icicle_image_.pixel_height();
     icicle_rects_.push_back(IcicleRect{rect_x, rect_y, rect_width, rect_height, root});
   }
