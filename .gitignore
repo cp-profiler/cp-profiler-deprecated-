@@ -1,5 +1,6 @@
 .qmake.stash
 *.o
+.DS_Store
 moc_*.cpp
 StandAloneGist.pro.user
 gist.sublime-project

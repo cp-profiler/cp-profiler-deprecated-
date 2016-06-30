@@ -84,18 +84,19 @@ class IcicleTreeCanvas : public QWidget {
 
   MaybeCaller maybeCaller;
 
-  /// TODO(maxim): make this only accessable from within processNode
-  int cur_depth_;
-  int x_global_;
+  std::vector<int> leafCount;
 
   /// TODO(maxim): temporarily here
   float domain_red_sum;
-  int icicle_width;
+
+  // init size of subtree
+  int initTreeStatistic(SpaceNode& root, int idx);
 
   void redrawAll();
   void drawIcicleTree();
-  std::pair<int, int> processNode(SpaceNode&);
-
+  void drawRects();
+  void dfsVisible(SpaceNode& root, int idx, int curx, int cury, int xoff, int width, int yoff, int depth);
+  QRgb getColorByType(const SpaceNode& node);
   SpaceNode* getNodeByXY(int x, int y) const;
 
  protected:
