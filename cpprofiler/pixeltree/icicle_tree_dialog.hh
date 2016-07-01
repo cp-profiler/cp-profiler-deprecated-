@@ -108,6 +108,7 @@ class IcicleTreeCanvas : public QWidget {
   IcicleTreeCanvas(QAbstractScrollArea* parent, TreeCanvas* tc);
 
  public Q_SLOTS:
+  void resizePixel(int value);
   void resizeCanvas(void);
   void sliderChanged(int value);
   void changeColorMapping(const QString& text);

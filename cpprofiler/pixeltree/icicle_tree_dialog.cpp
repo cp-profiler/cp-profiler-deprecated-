@@ -64,6 +64,18 @@ IcicleTreeDialog::IcicleTreeDialog(TreeCanvas* tc) : QDialog(tc) {
 
   setAttribute(Qt::WA_DeleteOnClose, true);
 
+  auto controlLayout = new QHBoxLayout();
+  layout->addLayout(controlLayout);
+
+  QLabel* pSizeLabel = new QLabel("pixel size");
+  pSizeLabel->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
+  QSpinBox* pSizeSB = new QSpinBox(this);
+  pSizeSB->setRange(1, 20);
+  controlLayout->addWidget(pSizeLabel);
+  controlLayout->addWidget(pSizeSB);
+  connect(pSizeSB, SIGNAL(valueChanged(int)), canvas_,
+          SLOT(resizePixel(int)));
+
   connect(this, SIGNAL(windowResized()), canvas_, SLOT(resizeCanvas()));
   connect(color_map_cb, SIGNAL(currentTextChanged(const QString&)), canvas_,
           SLOT(changeColorMapping(const QString&)));
@@ -86,6 +98,13 @@ IcicleTreeCanvas::IcicleTreeCanvas(QAbstractScrollArea* parent, TreeCanvas* tc)
   setMouseTracking(true);
   icicle_image_.setPixelWidth(4);
   icicle_image_.setPixelHeight(8);
+}
+
+void IcicleTreeCanvas::resizePixel(int value) {
+  icicle_image_.setPixelWidth(value);
+  icicle_image_.setPixelHeight(value);
+  redrawAll();
+  qDebug() << "resize to: " << value;
 }
 
 void IcicleTreeCanvas::paintEvent(QPaintEvent*) {
