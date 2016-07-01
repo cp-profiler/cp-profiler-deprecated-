@@ -16,6 +16,13 @@ var variableListString;
 function drawVariables() {
     getData(function(data, varListString) {
         rawData = data;
+
+        variableListString = varListString;
+        categoriseVariables(variableListString);
+        console.log("arrayNames = " + JSON.stringify(arrayNames));
+        console.log("bareNames = " + JSON.stringify(bareNames));
+        console.log("allVars = " + JSON.stringify(allVars).substr(0,300) + " ...");
+
         totalNodes = data.length;
         totalTime = d3.max(data, function(d) { return d.timestamp; });
         totalFails = d3.sum(data, function(d) { return d.status == 1;});
@@ -25,12 +32,13 @@ function drawVariables() {
         varSum = aggregateData(data, "variable", null);
         var varPerRestart = aggregateData(data, "variable", "restartId");
 
-        variableListString = varListString;
-        categoriseVariables(variableListString);
-
         drawVariables2(varPerRestart, varGroupSum);
     });
 }
+
+var arrayNames;
+var bareNames;
+var allVars;
 
 function categoriseVariables(variableListString) {
     allVars = [];
@@ -70,6 +78,7 @@ function categoriseVariables(variableListString) {
                 allVars.push({ "arrayElement": true,
                             "type": type,
                             "arrayName": parts[0],
+                            "fullName": variable,
                             "arrayIndices": dimensions });
             } else {
                 allVars.push({ "arrayElement": false,
@@ -111,10 +120,6 @@ function categoriseVariables(variableListString) {
             bareNames[v.name] = { "type": v.type };
         }
     }
-
-    console.log(JSON.stringify(arrayNames));
-    console.log(JSON.stringify(bareNames));
-    
 }
 
 function drawVariables2(varPerRestart, varGroupSum) {
