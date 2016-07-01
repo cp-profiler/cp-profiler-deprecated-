@@ -99,7 +99,11 @@ public:
 
     void setVariableListString(const std::string& s) {
         variableListString = s;
-        std::cerr << "set variableListString to " << s << "\n";
+        // std::cerr << "set variableListString to " << s << "\n";
+    }
+
+    std::string getVariableListString(void) {
+        return variableListString;
     }
 
 signals:

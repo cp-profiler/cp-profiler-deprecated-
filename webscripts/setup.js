@@ -17,7 +17,10 @@ function getData(callback) {
     data.forEach(type);
     data.forEach(getVariables);
     data.sort(function(a,b) {return a.id-b.id;});
-    callback(data);
+
+    variableListString = window.profiler.getVariableListString();
+
+    callback(data, variableListString);
     // });
 }
 

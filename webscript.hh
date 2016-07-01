@@ -7,6 +7,8 @@
 // #include <QWebChannel>
 #include <QJsonArray>
 
+#include <QFileInfo>
+
 #include <iostream>
 
 #include "execution.hh"
@@ -23,7 +25,8 @@ public:
         : QWebPage(parent) {}
 protected:
     void javaScriptConsoleMessage(const QString& message, int lineNumber, const QString& sourceID) {
-        qDebug() << sourceID << lineNumber << message;
+        //        qDebug() << sourceID << lineNumber << message;
+        std::cerr << message.toStdString() << "\n";
     }
 };
 
@@ -90,7 +93,11 @@ public:
         // is the web engine view.
         setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
         
-        QUrl url("qrc:///" + htmlPath);
+        QFileInfo fileInfo("../" + htmlPath);
+        QUrl url = QUrl::fromLocalFile(fileInfo.absoluteFilePath());
+
+        // QUrl url("qrc:///" + htmlPath);
+
         load(url);
 
         // channel = new QWebChannel;
@@ -111,6 +118,9 @@ public:
     }
     Q_INVOKABLE QString getCSV(void) {
         return QString::fromStdString(dataString);
+    }
+    Q_INVOKABLE QString getVariableListString(void) {
+        return QString::fromStdString(execution->getVariableListString());
     }
     Q_INVOKABLE void message(int gid) {
         announceSelectNode(gid);

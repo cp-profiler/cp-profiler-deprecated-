@@ -11,8 +11,10 @@ var varSum;
 
 var rawData;
 
+var variableListString;
+
 function drawVariables() {
-    getData(function(data) {
+    getData(function(data, varListString) {
         rawData = data;
         totalNodes = data.length;
         totalTime = d3.max(data, function(d) { return d.timestamp; });
@@ -22,8 +24,97 @@ function drawVariables() {
         var varGroupSum = aggregateData(data, "variableGroup", null);
         varSum = aggregateData(data, "variable", null);
         var varPerRestart = aggregateData(data, "variable", "restartId");
+
+        variableListString = varListString;
+        categoriseVariables(variableListString);
+
         drawVariables2(varPerRestart, varGroupSum);
     });
+}
+
+function categoriseVariables(variableListString) {
+    allVars = [];
+    blobs = variableListString.split(";");
+    for (var t = 0 ; t < 2 ; t++) {
+        variables = blobs[t].split(" ");
+        for (var i = 0 ; i < variables.length ; i++) {
+            if (t == 0) type = "int";
+            if (t == 1) type = "bool";
+            var variable = variables[i];
+            if (variable == "ASSIGNED_AT_ROOT")
+                continue;
+            if (variable == " " || variable == "")
+                continue;
+            if (variable.substr(0, 13) == "X_INTRODUCED_")
+                continue;
+            parts = variable.split("_");
+            if (parts[parts.length-1] == "i") {
+                parts.pop();
+                type = "bool";
+            }
+            dimensions = [];
+            for (d = parts.length-1 ; d > 0 ; d--) {
+                if (/^([0-9]+)/.test(parts[d])) {
+                    dimensions.push(parseInt(parts[d]));
+                } else {
+                    break;
+                }
+            }
+            dimensions.reverse();
+            arrayElement = false;
+            if (dimensions.length > 0 && dimensions.length == parts.length - 1)
+                arrayElement = true;
+            //console.log(type + " " + variable + " " + dimensions + " " + arrayElement);
+
+            if (arrayElement) {
+                allVars.push({ "arrayElement": true,
+                            "type": type,
+                            "arrayName": parts[0],
+                            "arrayIndices": dimensions });
+            } else {
+                allVars.push({ "arrayElement": false,
+                            "type": type,
+                            "name": variable });
+            }
+        }
+    }
+
+    /* for (var i = 0 ; i < allVars.length ; i++) { */
+    /*     console.log(JSON.stringify(allVars[i])); */
+    /* } */
+
+    arrayNames = {};
+    for (var i = 0 ; i < allVars.length ; i++) {
+        v = allVars[i];
+        if (v.arrayName) {
+            //            arrayNames[v.arrayName] = true;
+            for (d = 0 ; d < v.arrayIndices.length ; d++) {
+                if (arrayNames[v.arrayName] == undefined)
+                    arrayNames[v.arrayName] = { "dimensions": [],
+                                                "type": v.type };
+                if (arrayNames[v.arrayName].dimensions[d] == undefined)
+                    arrayNames[v.arrayName].dimensions[d] = { "min": v.arrayIndices[d],
+                                                              "max": v.arrayIndices[d] };
+                else {
+                    arrayNames[v.arrayName].dimensions[d] =
+                        { "min": Math.min(arrayNames[v.arrayName].dimensions[d].min, v.arrayIndices[d]),
+                          "max": Math.max(arrayNames[v.arrayName].dimensions[d].max, v.arrayIndices[d]) };
+                }
+            }
+        }
+    }
+
+    bareNames = {};
+    for (var i = 0 ; i < allVars.length ; i++) {
+        v = allVars[i];
+        if (!v.arrayElement) {
+            bareNames[v.name] = { "type": v.type };
+        }
+    }
+
+    console.log(JSON.stringify(arrayNames));
+    console.log(JSON.stringify(bareNames));
+    
 }
 
 function drawVariables2(varPerRestart, varGroupSum) {
