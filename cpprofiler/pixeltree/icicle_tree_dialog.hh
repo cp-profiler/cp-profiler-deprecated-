@@ -26,6 +26,7 @@
 #include <QDialog>
 #include "pixelImage.hh"
 #include "maybeCaller.hh"
+#include "spacenode.hh"
 
 class TreeCanvas;
 class SpaceNode;
@@ -51,6 +52,7 @@ struct IcicleRect {
 
 struct IcicleNodeStatistic {
   int leafCnt, height;
+  NodeStatus ns;
 };
 
 class IcicleTreeDialog : public QDialog {

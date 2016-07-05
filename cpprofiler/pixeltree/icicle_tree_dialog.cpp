@@ -107,6 +107,7 @@ void IcicleTreeCanvas::compressLevelChanged(int value) {
 void IcicleTreeCanvas::compressInit(SpaceNode& root, int idx) {
   const int kids = root.getNumberOfChildren();
   auto& na = tc_.getExecution()->getNA();
+  bool hasSolved = false;
   int leafCnt = 0;
   for (int i = 0; i < kids; i++) {
     int kidIdx = root.getChild(i);
@@ -114,9 +115,17 @@ void IcicleTreeCanvas::compressInit(SpaceNode& root, int idx) {
       SpaceNode& kid = *na[kidIdx];
       compressInit(kid, kidIdx);
       leafCnt += statistic[kidIdx].leafCnt;
+      if (statistic[kidIdx].ns == SOLVED)
+        hasSolved = true;
     }
   }
   statistic[idx].leafCnt = leafCnt? leafCnt: 1;
+  if (kids && statistic[idx].height == compressLevel)
+    statistic[idx].ns = root.hasSolvedChildren()? SOLVED: FAILED;
+  else if (statistic[idx].height == compressLevel + 1 && !hasSolved && root.hasSolvedChildren())
+    statistic[idx].ns = SOLVED;
+  else
+    statistic[idx].ns = root.getStatus();
 }
 
 IcicleTreeCanvas::IcicleTreeCanvas(QAbstractScrollArea* parent, TreeCanvas* tc)
@@ -204,9 +213,9 @@ void IcicleTreeCanvas::drawRects() {
 }
 
 /// This assignes a color for every node on the icicle tree
-static QRgb getColor(const SpaceNode& node) {
+static QRgb getColor(NodeStatus ns) {
   QRgb color;
-  switch (node.getStatus()) {
+  switch (ns) {
     case BRANCH: {
       color = qRgb(50, 50, 255);
       break;
@@ -234,7 +243,8 @@ QRgb IcicleTreeCanvas::getColorByType(const SpaceNode& node) {
   domain_red_sum += domain_red;
   switch (IcicleTreeCanvas::color_mapping_type) {
     case ColorMappingType::DEFAULT: {
-      color = getColor(node);
+      NodeStatus ns = statistic[gid].ns;
+      color = getColor(ns);
     } break;
     case ColorMappingType::DOMAIN_REDUCTION: {
       /// the smaller the value, the darker the color
@@ -329,7 +339,7 @@ void IcicleTreeCanvas::mousePressEvent(QMouseEvent*) {
 IcicleNodeStatistic IcicleTreeCanvas::initTreeStatistic(SpaceNode& root, int idx) {
   const int kids = root.getNumberOfChildren();
   auto& na = tc_.getExecution()->getNA();
-  IcicleNodeStatistic cntRoot = IcicleNodeStatistic{kids?0: 1, 0};
+  IcicleNodeStatistic cntRoot = IcicleNodeStatistic{kids?0: 1, 0, root.getStatus()};
   for (int i=0; i < kids; i++) {
     SpaceNode& kid = *root.getChild(na, i);
     int kidIdx = root.getChild(i);
