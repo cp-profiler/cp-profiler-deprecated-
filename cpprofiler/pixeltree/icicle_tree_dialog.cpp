@@ -70,14 +70,15 @@ IcicleTreeDialog::IcicleTreeDialog(TreeCanvas* tc) : QDialog(tc) {
 
   QLabel* pSizeLabel = new QLabel("pixel size");
   pSizeLabel->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
-  QSpinBox* pSizeSB = new QSpinBox(this);
-  pSizeSB->setRange(1, 20);
+  QSpinBox* pixelSizeSB = new QSpinBox(this);
+  pixelSizeSB->setRange(1, 20);
+  pixelSizeSB->setValue(PixelImage::DEFAULT_PIXEL_SIZE);
   controlLayout->addWidget(pSizeLabel);
-  controlLayout->addWidget(pSizeSB);
-  connect(pSizeSB, SIGNAL(valueChanged(int)), canvas_,
+  controlLayout->addWidget(pixelSizeSB);
+  connect(pixelSizeSB, SIGNAL(valueChanged(int)), canvas_,
           SLOT(resizePixel(int)));
 
-  QLabel* compressLevelLabel = new QLabel("comptession level");
+  QLabel* compressLevelLabel = new QLabel("compression");
   compressLevelLabel->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
   QSpinBox* compressLevelSB = new QSpinBox(this);
   compressLevelSB->setRange(0, canvas_->getTreeHeight());
@@ -139,8 +140,6 @@ IcicleTreeCanvas::IcicleTreeCanvas(QAbstractScrollArea* parent, TreeCanvas* tc)
   connect(sa_.verticalScrollBar(), SIGNAL(valueChanged(int)), this,
           SLOT(sliderChanged(int)));
   setMouseTracking(true);
-  icicle_image_.setPixelWidth(4);
-  icicle_image_.setPixelHeight(8);
 }
 
 void IcicleTreeCanvas::resizePixel(int value) {

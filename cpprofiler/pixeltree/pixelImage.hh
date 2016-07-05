@@ -41,8 +41,8 @@ class PixelImage {
   int width_;
   int height_;
 
-  int pixel_width_ = 4;
-  int pixel_height_ = 4;
+  int pixel_width_ = DEFAULT_PIXEL_SIZE;
+  int pixel_height_ = DEFAULT_PIXEL_SIZE;
 
   void setPixel(std::vector<uint32>& buffer, int x, int y, QRgb color);
   void drawHorizontalLine(std::vector<uint32>& buffer, int y, QRgb color);
@@ -51,6 +51,9 @@ class PixelImage {
   void scalePixelBy(int value);
 
  public:
+
+  constexpr static int DEFAULT_PIXEL_SIZE = 4;
+
   PixelImage();
 
   void drawPixel(int x, int y, QRgb color);
