@@ -49,6 +49,10 @@ struct IcicleRect {
       : x(x), y(y), width(width), height(height), node(node) {}
 };
 
+struct IcicleNodeStatistic {
+  int leafCnt, height;
+};
+
 class IcicleTreeDialog : public QDialog {
   Q_OBJECT
 
@@ -84,17 +88,19 @@ class IcicleTreeCanvas : public QWidget {
 
   MaybeCaller maybeCaller;
 
-  std::vector<int> leafCount;
+  std::vector<IcicleNodeStatistic> statistic;
 
+  int compressLevel;
   /// TODO(maxim): temporarily here
   float domain_red_sum;
 
   // init size of subtree
-  int initTreeStatistic(SpaceNode& root, int idx);
+  IcicleNodeStatistic initTreeStatistic(SpaceNode& root, int idx);
 
   void redrawAll();
   void drawIcicleTree();
   void drawRects();
+  void compressInit(SpaceNode& root, int idx);
   void dfsVisible(SpaceNode& root, int idx, int curx, int cury, int xoff, int width, int yoff, int depth);
   QRgb getColorByType(const SpaceNode& node);
   SpaceNode* getNodeByXY(int x, int y) const;
@@ -106,12 +112,14 @@ class IcicleTreeCanvas : public QWidget {
 
  public:
   IcicleTreeCanvas(QAbstractScrollArea* parent, TreeCanvas* tc);
+  int getTreeHeight() { return statistic[0].height; }
 
  public Q_SLOTS:
   void resizePixel(int value);
   void resizeCanvas(void);
   void sliderChanged(int value);
   void changeColorMapping(const QString& text);
+  void compressLevelChanged(int offset);
 };
 }
 }
