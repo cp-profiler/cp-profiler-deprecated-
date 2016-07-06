@@ -223,7 +223,7 @@ GistMainWindow::statusChanged(const Statistics& stats, bool finished) {
 
     prefAction->setEnabled(true);
   } else if (!isSearching && !finished) {
-    prefAction->setEnabled(false); /// TODO: leave active all the time instead?
+    // prefAction->setEnabled(false); /// TODO: leave active all the time instead?
     statusBar()->showMessage("Searching");
     isSearching = true;
   }
