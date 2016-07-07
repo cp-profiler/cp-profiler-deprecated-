@@ -105,28 +105,29 @@ void IcicleTreeCanvas::compressLevelChanged(int value) {
   qDebug() << "compressionChanged to: " << compressLevel;
 }
 
-void IcicleTreeCanvas::compressInit(SpaceNode& root, int idx) {
+bool IcicleTreeCanvas::compressInit(SpaceNode& root, int idx) {
   const int kids = root.getNumberOfChildren();
   auto& na = tc_.getExecution()->getNA();
   bool hasSolved = false;
-  int leafCnt = 0;
+  int leafCnt = 0, expectSolvedCnt = 0, actualSolvedCnt = 0;
+  statistic[idx].ns = root.getStatus();
   for (int i = 0; i < kids; i++) {
     int kidIdx = root.getChild(i);
+    SpaceNode& kid = *na[kidIdx];
+    if (kid.hasSolvedChildren()) expectSolvedCnt++;
     if (statistic[kidIdx].height >= compressLevel) {
-      SpaceNode& kid = *na[kidIdx];
-      compressInit(kid, kidIdx);
+      bool kidRes = compressInit(kid, kidIdx);
+      hasSolved |= kidRes;
       leafCnt += statistic[kidIdx].leafCnt;
-      if (statistic[kidIdx].ns == SOLVED)
-        hasSolved = true;
+      if (kidRes) actualSolvedCnt++;
     }
   }
   statistic[idx].leafCnt = leafCnt? leafCnt: 1;
   if (kids && statistic[idx].height == compressLevel)
     statistic[idx].ns = root.hasSolvedChildren()? SOLVED: FAILED;
-  else if (statistic[idx].height == compressLevel + 1 && !hasSolved && root.hasSolvedChildren())
+  else if (expectSolvedCnt > actualSolvedCnt)
     statistic[idx].ns = SOLVED;
-  else
-    statistic[idx].ns = root.getStatus();
+  return hasSolved | (statistic[idx].ns == SOLVED);
 }
 
 IcicleTreeCanvas::IcicleTreeCanvas(QAbstractScrollArea* parent, TreeCanvas* tc)

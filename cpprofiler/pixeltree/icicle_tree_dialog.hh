@@ -102,7 +102,7 @@ class IcicleTreeCanvas : public QWidget {
   void redrawAll();
   void drawIcicleTree();
   void drawRects();
-  void compressInit(SpaceNode& root, int idx);
+  bool compressInit(SpaceNode& root, int idx);
   void dfsVisible(SpaceNode& root, int idx, int curx, int cury, int xoff, int width, int yoff, int depth);
   QRgb getColorByType(const SpaceNode& node);
   SpaceNode* getNodeByXY(int x, int y) const;
