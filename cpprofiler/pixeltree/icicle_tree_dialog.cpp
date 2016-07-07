@@ -163,6 +163,8 @@ void IcicleTreeCanvas::resizeCanvas() {
   auto sa_height = sa_.viewport()->height();
   icicle_image_.resize(sa_width, sa_height);
   this->resize(sa_width, sa_height);
+  sa_.horizontalScrollBar()->setPageStep(sa_.viewport()->width());
+  sa_.horizontalScrollBar()->setSingleStep(100);  /// the value is arbitrary
   maybeCaller.call([this]() { redrawAll(); });
 }
 
@@ -175,7 +177,7 @@ void IcicleTreeCanvas::redrawAll() {
   /// added 10 of padding here
   int icicle_width = statistic[0].leafCnt;
   sa_.horizontalScrollBar()->setRange(
-      0, icicle_width - sa_.viewport()->width() + 10);
+      0, icicle_width - icicle_image_.width() + 10);
   sa_.horizontalScrollBar()->setPageStep(sa_.viewport()->width());
   sa_.horizontalScrollBar()->setSingleStep(100);  /// the value is arbitrary
 
