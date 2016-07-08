@@ -163,8 +163,6 @@ void IcicleTreeCanvas::resizeCanvas() {
   auto sa_height = sa_.viewport()->height();
   icicle_image_.resize(sa_width, sa_height);
   this->resize(sa_width, sa_height);
-  sa_.horizontalScrollBar()->setPageStep(sa_.viewport()->width());
-  sa_.horizontalScrollBar()->setSingleStep(100);  /// the value is arbitrary
   maybeCaller.call([this]() { redrawAll(); });
 }
 
@@ -175,9 +173,11 @@ void IcicleTreeCanvas::redrawAll() {
   icicle_image_.update();
   perfHelper.end();
   /// added 10 of padding here
-  int icicle_width = statistic[0].leafCnt;
+  int icicle_width = statistic[0].leafCnt * icicle_image_.pixel_height();
+  qDebug() << "windows width: " << sa_.viewport()->width() << ", total image width: " << icicle_width;
+  qDebug() << "xoff: " << sa_.horizontalScrollBar()->value();
   sa_.horizontalScrollBar()->setRange(
-      0, icicle_width - icicle_image_.width() + 10);
+      0, icicle_width - sa_.viewport()->width() + 10);
   sa_.horizontalScrollBar()->setPageStep(sa_.viewport()->width());
   sa_.horizontalScrollBar()->setSingleStep(100);  /// the value is arbitrary
 
@@ -189,7 +189,8 @@ void IcicleTreeCanvas::drawIcicleTree() {
   auto& na = tc_.getExecution()->getNA();
   auto& root = *na[0];
   int idx = 0, curx = 0, cury = 0;
-  int yoff = 0, xoff = sa_.horizontalScrollBar()->value();
+  int yoff = 0 / icicle_image_.pixel_height();
+  int xoff = sa_.horizontalScrollBar()->value() / icicle_image_.pixel_height();
   int width = sa_.viewport()->width();
   int depth = sa_.viewport()->height();
   qDebug() << "curx: " << curx << ", xoff: " << xoff
@@ -265,7 +266,7 @@ QRgb IcicleTreeCanvas::getColorByType(const SpaceNode& node) {
 }
 
 void IcicleTreeCanvas::dfsVisible(SpaceNode& root, int idx, int curx, int cury,
-  int xoff, int width, int yoff, int depth) {
+  const int xoff, const int width, const int yoff, const int depth) {
   if (cury > depth) return;
 
   const int kids = root.getNumberOfChildren();
@@ -283,11 +284,14 @@ void IcicleTreeCanvas::dfsVisible(SpaceNode& root, int idx, int curx, int cury,
     }
   }
   if (cury >= yoff && cury <= yoff + depth) {
-    int rect_x = std::max(curx - xoff, 0);
-    int rect_y = cury;
-    int rect_width = std::min(xoff + width, curx + statistic[idx].leafCnt) - xoff - rect_x;
-    int rect_height = icicle_image_.pixel_height();
-    icicle_rects_.push_back(IcicleRect{rect_x, rect_y, rect_width, rect_height, root});
+    int rectAbsXL = std::max(curx, xoff);
+    int rectAbsXR = std::min(curx + statistic[idx].leafCnt, xoff + width);
+    int rectAbsY = cury;
+    int height = icicle_image_.pixel_height();
+    int x = rectAbsXL - xoff;
+    int y = rectAbsY - yoff;
+    int width = rectAbsXR - rectAbsXL;
+    icicle_rects_.push_back(IcicleRect{x, y, width, height, root});
   }
 }
 
