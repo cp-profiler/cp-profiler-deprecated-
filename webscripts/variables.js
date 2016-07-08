@@ -44,6 +44,9 @@ function categoriseVariables(variableListString) {
     allVars = [];
     blobs = variableListString.split(";");
     for (var t = 0 ; t < 2 ; t++) {
+        // No variables of this type.
+        if (blobs[t] == undefined)
+            continue;
         variables = blobs[t].split(" ");
         for (var i = 0 ; i < variables.length ; i++) {
             if (t == 0) type = "int";
