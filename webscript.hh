@@ -92,11 +92,17 @@ public:
         // window it inhabits.  When the dialog window is resized, so
         // is the web engine view.
         setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-        
+
+        // In "development mode", we want to load the HTML/JavaScript
+        // directly from the file system, not from an embedded
+        // resource.  This way we can modify it and reload while the
+        // profiler is running.
+#ifdef CP_PROFILER_DEVELOPMENT
         QFileInfo fileInfo("../" + htmlPath);
         QUrl url = QUrl::fromLocalFile(fileInfo.absoluteFilePath());
-
-        // QUrl url("qrc:///" + htmlPath);
+#else
+        QUrl url("qrc:///" + htmlPath);
+#endif
 
         load(url);
 

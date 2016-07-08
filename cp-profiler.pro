@@ -4,6 +4,10 @@
 #
 #-------------------------------------------------
 
+# Turn this on for "development mode" (see e.g. webscript.hh)
+DEFINES += CP_PROFILER_DEVELOPMENT
+
+
 QT       += core gui network
 
 QT += webkitwidgets
