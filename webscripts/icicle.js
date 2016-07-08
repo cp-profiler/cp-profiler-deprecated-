@@ -4,6 +4,10 @@ function drawIcicle() {
     });
 }
 
+var nodeid2element = {};
+
+var currentlyHighlighted = [];
+
 function drawIcicle2(data) {
     var treeData = nestData(data)[0];
 
@@ -56,6 +60,7 @@ function drawIcicle2(data) {
             .attr("y", function(d) { return d.y;})
             .attr("width", function(d) { return d.dx; })
             .attr("height", function(d) { return d.dy; })
+        .each(function(d,i) { nodeid2element[d.gid] = this; })
             // .attr("fill", function(d) { return colorVG(d.variableGroup, d.parentId, d.status); })
             // .attr("stroke", function(d) { return "yellow"; })
             // .attr("fill", function(d) { 
@@ -114,19 +119,21 @@ function drawIcicle2(data) {
 
 }
 
-function select(nodeid) {
-    var n = ".g" + nodeid;
-    d3.selectAll(".highlight")
-      .classed("highlight", false);
-    d3.selectAll(n).classed("highlight", true);
+function select(gid) {
+    for (var i = 0 ; i < currentlyHighlighted.length ; i++)
+        d3.select(currentlyHighlighted[i]).style("fill", "#dfdddd");
+    currentlyHighlighted = [nodeid2element[gid]];
+    d3.select(currentlyHighlighted[0]).style("fill", "blue");
 }
 
 function selectMany(gids) {
-    d3.selectAll(".highlight")
-        .classed("highlight", false);
+    for (var i = 0 ; i < currentlyHighlighted.length ; i++)
+        d3.select(currentlyHighlighted[i]).style("fill", "#dfdddd");
+    currentlyHighlighted = [];
     for (var i = 0 ; i < gids.length ; i++) {
         var gid = gids[i];
-        var n = ".g" + gid;
-        d3.selectAll(n).classed("highlight", true);
+        var node = nodeid2element[gid];
+        currentlyHighlighted.push(node);
+        d3.select(node).style("fill", "blue");
     }
 }

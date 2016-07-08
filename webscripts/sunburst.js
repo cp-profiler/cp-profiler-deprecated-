@@ -1,5 +1,9 @@
 // sunburst diagram - i.e. circular iceicle plot..
 
+var nodeid2element = {};
+
+var currentlyHighlighted = [];
+
 function drawSunburst() {
     getData(function(data) {
         drawSunburst2(data);
@@ -38,6 +42,7 @@ var size = Math.min(treeWidth, treeHeight);
     var path = svgSunburst.selectAll("path")
        .data(nodes)
        .enter().append("g")
+       .each(function(d,i) { nodeid2element[d.gid] = this; })
        .attr("class", function(d) { return "ice r" + d.restartId + " " +d.variableGroup + " " + d.variable + " " + "g" + d.gid + " ng" + d.visId_t; });
        path.append("path")
           .attr("d", arc)
@@ -73,18 +78,20 @@ var size = Math.min(treeWidth, treeHeight);
 }
 
 function select(gid) {
-    var n = ".g" + gid;
-    d3.selectAll(".highlight")
-      .classed("highlight", false);
-    d3.selectAll(n).classed("highlight", true);
+    for (var i = 0 ; i < currentlyHighlighted.length ; i++)
+        d3.select(currentlyHighlighted[i]).style("fill", "#dfdddd");
+    currentlyHighlighted = [nodeid2element[gid]];
+    d3.select(currentlyHighlighted[0]).style("fill", "blue");
 }
 
 function selectMany(gids) {
-    d3.selectAll(".highlight")
-        .classed("highlight", false);
+    for (var i = 0 ; i < currentlyHighlighted.length ; i++)
+        d3.select(currentlyHighlighted[i]).style("fill", "#dfdddd");
+    currentlyHighlighted = [];
     for (var i = 0 ; i < gids.length ; i++) {
         var gid = gids[i];
-        var n = ".g" + gid;
-        d3.selectAll(n).classed("highlight", true);
+        var node = nodeid2element[gid];
+        currentlyHighlighted.push(node);
+        d3.select(node).style("fill", "blue");
     }
 }
