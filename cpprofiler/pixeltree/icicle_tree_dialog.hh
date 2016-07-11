@@ -51,7 +51,7 @@ struct IcicleRect {
 };
 
 struct IcicleNodeStatistic {
-  int leafCnt, height;
+  int leafCnt, height, absX;
   NodeStatus ns;
 };
 
@@ -97,15 +97,16 @@ class IcicleTreeCanvas : public QWidget {
   float domain_red_sum;
 
   // init size of subtree
-  IcicleNodeStatistic initTreeStatistic(SpaceNode& root, int idx);
+  IcicleNodeStatistic initTreeStatistic(SpaceNode& root, int idx, int absX);
 
   void redrawAll();
   void drawIcicleTree();
   void drawRects();
-  bool compressInit(SpaceNode& root, int idx);
+  bool compressInit(SpaceNode& root, int idx, int absX);
   void dfsVisible(SpaceNode& root, int idx, int curx, int cury, int xoff, int width, int yoff, int depth);
   QRgb getColorByType(const SpaceNode& node);
   SpaceNode* getNodeByXY(int x, int y) const;
+  SpaceNode* findLeftLeaf();
 
  protected:
   void paintEvent(QPaintEvent* event);

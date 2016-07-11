@@ -97,26 +97,48 @@ void IcicleTreeDialog::resizeEvent(QResizeEvent* event) {
   emit windowResized();
 }
 
-void IcicleTreeCanvas::compressLevelChanged(int value) {
-  compressLevel = value;
+SpaceNode* IcicleTreeCanvas::findLeftLeaf() {
+  SpaceNode* res = nullptr;
+  int maxD = -1;
   auto& na = tc_.getExecution()->getNA();
-  compressInit(*na[0], 0);
+  for (IcicleRect i: icicle_rects_) if (i.x == 0 && i.y > maxD) {
+    int idx = i.node.getIndex(na);
+    if (statistic[idx].height >= compressLevel) {
+      maxD = i.y;
+      res = &i.node;
+    }
+  }
+  return res;
+}
+
+void IcicleTreeCanvas::compressLevelChanged(int value) {
+  auto& na = tc_.getExecution()->getNA();
+  int leafIndex;
+  compressLevel = value;
+  compressInit(*na[0], 0, 0);
+  SpaceNode* lftLeaf = findLeftLeaf();
+  leafIndex = lftLeaf->getIndex(na);
+  int xoff = statistic[lftLeaf->getIndex(na)].absX * icicle_image_.pixel_height();
+  sa_.horizontalScrollBar()->setValue(xoff);
   redrawAll();
+  leafIndex = findLeftLeaf()->getIndex(na);
+  sa_.horizontalScrollBar()->setValue(xoff);
   qDebug() << "compressionChanged to: " << compressLevel;
 }
 
-bool IcicleTreeCanvas::compressInit(SpaceNode& root, int idx) {
+bool IcicleTreeCanvas::compressInit(SpaceNode& root, int idx, int absX) {
   const int kids = root.getNumberOfChildren();
   auto& na = tc_.getExecution()->getNA();
   bool hasSolved = false;
   int leafCnt = 0, expectSolvedCnt = 0, actualSolvedCnt = 0;
   statistic[idx].ns = root.getStatus();
+  statistic[idx].absX = absX;
   for (int i = 0; i < kids; i++) {
     int kidIdx = root.getChild(i);
     SpaceNode& kid = *na[kidIdx];
     if (kid.hasSolvedChildren()) expectSolvedCnt++;
     if (statistic[kidIdx].height >= compressLevel) {
-      bool kidRes = compressInit(kid, kidIdx);
+      bool kidRes = compressInit(kid, kidIdx, absX + leafCnt);
       hasSolved |= kidRes;
       leafCnt += statistic[kidIdx].leafCnt;
       if (kidRes) actualSolvedCnt++;
@@ -135,7 +157,7 @@ IcicleTreeCanvas::IcicleTreeCanvas(QAbstractScrollArea* parent, TreeCanvas* tc)
   compressLevel = 0;
   auto& na = tc_.getExecution()->getNA();
   statistic.resize(na.size());
-  initTreeStatistic(*na[0], 0);
+  initTreeStatistic(*na[0], 0, 0);
   connect(sa_.horizontalScrollBar(), SIGNAL(valueChanged(int)), this,
           SLOT(sliderChanged(int)));
   connect(sa_.verticalScrollBar(), SIGNAL(valueChanged(int)), this,
@@ -144,10 +166,14 @@ IcicleTreeCanvas::IcicleTreeCanvas(QAbstractScrollArea* parent, TreeCanvas* tc)
 }
 
 void IcicleTreeCanvas::resizePixel(int value) {
+  int absXL = sa_.horizontalScrollBar()->value() / icicle_image_.pixel_height();
+  int newXoff = absXL * value;
   icicle_image_.setPixelWidth(value);
   icicle_image_.setPixelHeight(value);
+  sa_.horizontalScrollBar()->setValue(newXoff);
   redrawAll();
-  qDebug() << "resize to: " << value;
+  // fix scroll bar(scroll bar will change automatically when the bar touch right border)
+  sa_.horizontalScrollBar()->setValue(newXoff);
 }
 
 void IcicleTreeCanvas::paintEvent(QPaintEvent*) {
@@ -342,14 +368,14 @@ void IcicleTreeCanvas::mousePressEvent(QMouseEvent*) {
   /// do nothing for now
 }
 
-IcicleNodeStatistic IcicleTreeCanvas::initTreeStatistic(SpaceNode& root, int idx) {
+IcicleNodeStatistic IcicleTreeCanvas::initTreeStatistic(SpaceNode& root, int idx, int absX) {
   const int kids = root.getNumberOfChildren();
   auto& na = tc_.getExecution()->getNA();
-  IcicleNodeStatistic cntRoot = IcicleNodeStatistic{kids?0: 1, 0, root.getStatus()};
+  IcicleNodeStatistic cntRoot = IcicleNodeStatistic{kids?0: 1, 0, absX, root.getStatus()};
   for (int i=0; i < kids; i++) {
     SpaceNode& kid = *root.getChild(na, i);
     int kidIdx = root.getChild(i);
-    IcicleNodeStatistic cntKid = initTreeStatistic(kid, kidIdx);
+    IcicleNodeStatistic cntKid = initTreeStatistic(kid, kidIdx, absX + cntRoot.leafCnt);
     cntRoot.leafCnt += cntKid.leafCnt;
     cntRoot.height = std::max(cntRoot.height, cntKid.height + 1);
   }
