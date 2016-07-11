@@ -180,6 +180,9 @@ public Q_SLOTS:
   /// Show Icicle Tree View
   void showIcicleTree(void);
 
+  /// Delete Unexplored Nodes (needed e.g. for replaying with restart)
+  void deleteWhiteNodes();
+
   /// Follow path from root
   void followPath(void);
 
@@ -402,9 +405,13 @@ public Q_SLOTS:
   void navigateToNodeById(int gid);
   void statusFinished();
 
+  void deleteNode(Node* n);
+
 #ifdef MAXIM_DEBUG
-  void printDebugInfo(void);
+  void printDebugInfo();
   void addChildren();
+  void deleteSelectedNode();
+  void dirtyUpNode();
 #endif
 private Q_SLOTS:
   /// Set isUsed to true and update

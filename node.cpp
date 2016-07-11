@@ -80,6 +80,47 @@ Node::setNumberOfChildren(unsigned int n, NodeAllocator& na) {
     }
 }
 
+void
+Node::removeChild(int n, NodeAllocator& na) {
+    /// ***** one child *****
+
+
+    /// ***** two children *****
+
+        /// 1. make number of node -> 1
+        /// 2. if first child -> place second instead of the first
+
+        // qDebug() << "tag: " << getTag();
+    switch(getTag()) {
+        case TWO_CHILDREN:
+
+            if (n == getFirstChild()) {
+                setFirstChild(-noOfChildren);
+            }
+
+            if (noOfChildren <= 0) {
+                /// actually had two children -> now one
+                noOfChildren = 1;
+            } else {
+                /// only had one child -> now a leaf
+                resetTag(LEAF);
+            }
+
+        break;
+
+        case MORE_CHILDREN:
+#ifdef MAXIM_DEBUG
+            qDebug() << "(!) feature not implemented: remove a child if the parent has > 2 nodes";
+#endif
+        break;
+
+        default:
+            assert(false);
+    }
+
+    /// ***** more children *****
+}
+
 int
 Node::addChild(NodeAllocator &na) {
     switch (getNumberOfChildren()) {

@@ -68,12 +68,16 @@ private:
 
   /// Read the tag of childrenOrFirstChild
   unsigned int getTag(void) const;
-  /// Set the tag of childrenOrFirstChild
+  /// Set the tag of childrenOrFirstChild for the first time
   void setTag(unsigned int tag);
+  /// Reset the tag of childrenOrFirstChild (no checking of the previous tag)
+  void resetTag(unsigned int tag);
   /// Return childrenOrFirstChild without tag
   void* getPtr(void) const;
   /// Return childrenOrFirstChild as integer
   int getFirstChild(void) const;
+  /// Change the content of childrenOrFirstChild
+  void setFirstChild(int n);
 
 protected:
 
@@ -105,6 +109,9 @@ public:
 
   /// Check if this node is the root of a tree
   bool isRoot(void) const;
+
+  /// Debug method
+  void removeChild(int n, NodeAllocator& na);
 
   /// Set the number of children to \a n and initialize children
   void setNumberOfChildren(unsigned int n, NodeAllocator& na);

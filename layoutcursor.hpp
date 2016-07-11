@@ -54,7 +54,7 @@ LayoutCursor::processCurrentNode(void) {
         // std::cerr << "LayoutCurser: node is dirty\n";
         if (currentNode->isHidden()) {
             // do nothing
-        } else if (false && currentNode->getNumberOfChildren() < 1) { /// TODO: ask Guido
+        } else if (false && currentNode->getNumberOfChildren() < 1) {
             currentNode->setShape(Shape::leaf);
         } else {
             currentNode->computeShape(na);

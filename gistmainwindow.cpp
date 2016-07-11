@@ -125,6 +125,7 @@ GistMainWindow::GistMainWindow(Execution* execution, QWidget* parent) : QMainWin
   treeVisMenu->addAction(m_Gist->showIcicleTree);
   treeVisMenu->addAction(m_Gist->hideSize);
   treeVisMenu->addAction(m_Gist->followPath);
+  treeVisMenu->addAction(m_Gist->deleteWhiteNodes);
 
 
   QMenu* helpMenu = menuBar->addMenu(tr("&Help"));

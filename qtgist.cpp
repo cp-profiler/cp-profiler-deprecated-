@@ -354,13 +354,14 @@ Gist::addActions() {
     addAction(collectMLStats_action);
     connect(collectMLStats_action, SIGNAL(triggered()), m_Canvas, SLOT(collectMLStats()));
 
+    deleteWhiteNodes = new QAction{"Delete Unexplored Nodes", this};
+    addAction(deleteWhiteNodes);
+    connect(deleteWhiteNodes, &QAction::triggered, m_Canvas, &TreeCanvas::deleteWhiteNodes);
+
     navUp = new QAction("Up", this);
     addAction(navUp);
     navUp->setShortcut(QKeySequence("Up"));
     connect(navUp, SIGNAL(triggered()), m_Canvas, SLOT(navUp()));
-
-
-
 
     navDown = new QAction("Down", this);
     addAction(navDown);
@@ -443,6 +444,16 @@ Gist::addActions() {
     addChildren->setShortcut(QKeySequence("Shift+C"));
     connect(addChildren, &QAction::triggered, m_Canvas, &TreeCanvas::addChildren);
     addAction(addChildren);
+
+    deleteNode = new QAction{"Delete Node", this};
+    deleteNode->setShortcut(QKeySequence("del"));
+    connect(deleteNode, &QAction::triggered, m_Canvas, &TreeCanvas::deleteSelectedNode);
+    addAction(deleteNode);
+
+    dirtyUpNode = new QAction{"Dirty Up Node", this};
+    dirtyUpNode->setShortcut(QKeySequence("D"));
+    connect(dirtyUpNode, &QAction::triggered, m_Canvas, &TreeCanvas::dirtyUpNode);
+    addAction(dirtyUpNode);
 #endif
 
     unhideAll = new QAction("Unhide all", this);
@@ -595,4 +606,10 @@ Gist::addActions() {
     contextMenu->addMenu(bookmarksMenu);
 
     contextMenu->addSeparator();
+
+#ifdef MAXIM_DEBUG
+    contextMenu->addAction(deleteNode);
+    contextMenu->addAction(dirtyUpNode);
+#endif
+
 }

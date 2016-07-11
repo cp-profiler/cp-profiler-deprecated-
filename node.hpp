@@ -46,8 +46,13 @@ Node::getTag(void) const {
 
 inline void
 Node::setTag(unsigned int tag) {
-  assert(tag <= 3);
   assert(getTag() == UNDET);
+  resetTag(tag);
+}
+
+inline void
+Node::resetTag(unsigned int tag) {
+  assert(tag <= 3);
   childrenOrFirstChild = reinterpret_cast<void*>
     ( (reinterpret_cast<ptrdiff_t>(childrenOrFirstChild) & ~(3)) | tag);
 }
@@ -62,6 +67,12 @@ inline int
 Node::getFirstChild(void) const {
   return static_cast<int>
     ((reinterpret_cast<ptrdiff_t>(childrenOrFirstChild) & ~(3)) >> 2);
+}
+
+inline void
+Node::setFirstChild(int n) {
+  assert(getTag() == TWO_CHILDREN);
+  childrenOrFirstChild = reinterpret_cast<void*>(n << 2 | getTag());
 }
 
 inline

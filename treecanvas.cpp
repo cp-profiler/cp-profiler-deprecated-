@@ -293,6 +293,21 @@ void TreeCanvas::showIcicleTree(void) {
   icicleTreeDialog->show();
 }
 
+void TreeCanvas::deleteWhiteNodes() {
+  // TODO(maxim): might have to reset 'current node' if
+  //              is is no longer visible
+  // TODO(maxim): fix this crashing pixel tree
+  qDebug() << "size before: " << na.size();
+  for (auto i = 0u; i < na.size(); ++i) {
+    auto node = na[i];
+    if (node->getStatus() == UNDETERMINED) {
+      deleteNode(node);
+    }
+  }
+  update();
+  qDebug() << "size after: " << na.size();
+}
+
 void TreeCanvas::followPath(void) {
   QMutexLocker locker(&mutex);
   bool ok;
@@ -1299,23 +1314,46 @@ void TreeCanvas::highlightFailedByNogoods() {
   update();
 }
 
+void TreeCanvas::deleteNode(Node* n) {
+  auto parent = n->getParent(na);
+  if (!parent) return;
+  parent->removeChild(n->getIndex(na), na);
+  parent->dirtyUp(na);
+}
+
 #ifdef MAXIM_DEBUG
-  void TreeCanvas::printDebugInfo() {
-    print_debug(*execution->getData());
-    qDebug() << "debug info recorded into debug.txt";
+void TreeCanvas::printDebugInfo() {
+  print_debug(*execution->getData());
+  qDebug() << "debug info recorded into debug.txt";
+}
+
+void TreeCanvas::addChildren() {
+  if (currentNode->getNumberOfChildren() == 0) {
+    currentNode->setNumberOfChildren(2, na);
+    currentNode->dirtyUp(na);
+
+    /// update data entry for this node
+
+    // stats.maxDepth = std::max(stats.maxDepth, static_cast<int>(dbEntry.depth));
   }
+  
+  updateCanvas();
+}
 
-  void TreeCanvas::addChildren() {
-    if (currentNode->getNumberOfChildren() == 0) {
-      currentNode->setNumberOfChildren(2, na);
-      currentNode->dirtyUp(na);
+void TreeCanvas::deleteSelectedNode() {
+  currentNode->dirtyUp(na);
+  auto parent = currentNode->getParent(na);
+  deleteNode(currentNode);
 
-      /// update data entry for this node
+  setCurrentNode(parent, false, false);
+  updateCanvas();
+}
 
-      // stats.maxDepth = std::max(stats.maxDepth, static_cast<int>(dbEntry.depth));
-    }
-    
-    updateCanvas();
-  }
+void TreeCanvas::dirtyUpNode() {
+  currentNode->dirtyUp(na);
+  updateCanvas();
+}
+
+
 #endif
 

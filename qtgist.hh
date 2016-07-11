@@ -161,11 +161,21 @@ public:
   QAction* showPixelTree;
     /// Show Icicle Search Tree
   QAction* showIcicleTree;
+  /// Remove Unexplored Nodes
+  QAction* deleteWhiteNodes;
 
   /// Hide subtrees by their size
   QAction* hideSize;
   /// Follow path
   QAction* followPath;
+
+#ifdef MAXIM_DEBUG
+  /// Delete a node from the tree
+  QAction* deleteNode;
+
+  QAction* dirtyUpNode;
+#endif
+
 
 public:
 
