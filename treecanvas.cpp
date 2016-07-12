@@ -297,6 +297,12 @@ void TreeCanvas::deleteWhiteNodes() {
   // TODO(maxim): might have to reset 'current node' if
   //              is is no longer visible
   // TODO(maxim): fix this crashing pixel tree
+
+  // IMPORTANT(maxim): currently I leave 'holes' in *na* that
+  //                   can be examined and point to nodes not visualised
+
+  // 1. swap deleted nodes in *na* with the last in *na*
+  // and remap array ids.
   qDebug() << "size before: " << na.size();
   for (auto i = 0u; i < na.size(); ++i) {
     auto node = na[i];
@@ -365,22 +371,57 @@ void TreeCanvas::showNogoods(void) {
 }
 
 #ifdef MAXIM_DEBUG
-void print_debug(const Data& data) {
+
+std::string NA_to_string(const NodeAllocator& na) {
+  std::string str = "--- NodeAllocator ---\n";
+
+  for (auto i = 0u; i < na.size(); ++i) {
+    str += std::to_string(na[i]->debug_id) + " ";
+  }
+
+  return str;
+}
+
+void print_debug(const NodeAllocator& na, const Data& data) {
   std::ofstream file("debug.txt");
 
   file << data.getDebugInfo();
+
+  file << NA_to_string(na);
 }
+
+std::string boolToString(bool flag) {
+  return flag ? "YES" : " - ";
+}
+
 #endif
 
 void TreeCanvas::showNodeInfo(void) {
   auto info = execution->getInfo(*currentNode);
 
-  if (!info) {
-    qDebug() << "no info item";
-    return;
-  }
+  std::string extra_info = (info) ? *info : "";
 
-  NodeInfoDialog* nidialog = new NodeInfoDialog(this, *info);
+#ifdef MAXIM_DEBUG
+  extra_info += "--------------------------------------------\n";
+  extra_info += "status: " + statusToString(currentNode->getStatus()) + "\n";
+  extra_info += "has open children: " + boolToString(currentNode->isOpen()) + 
+                " (" + std::to_string(currentNode->getNoOfOpenChildren(na)) + ")" + "\n";
+  extra_info += "has failed children: " + boolToString(currentNode->hasFailedChildren()) + "\n";
+  extra_info += "has solved children: " + boolToString(currentNode->hasSolvedChildren()) + "\n";
+  extra_info += "number of direct children: " + std::to_string(currentNode->getNumberOfChildren()) + "\n";
+  extra_info += "--------------------------------------------\n";
+
+  auto gid = currentNode->getIndex(na);
+  auto db_entry = getEntry(gid);
+
+  extra_info += "gecode/na id: " + std::to_string(currentNode->getIndex(na)) + "\n";
+  // extra_info += "array index: " + std::to_string(db_entry) + "\n";
+
+  assert (na[gid] == currentNode);
+#endif
+
+
+  NodeInfoDialog* nidialog = new NodeInfoDialog(this, extra_info);
   nidialog->show();
 }
 
@@ -1254,7 +1295,7 @@ void TreeCanvas::applyToEachNodeIf(std::function<void(VisualNode*)> action,
 }
 
 void unhighlightAllNodes(NodeAllocator& na) {
-  for (int i = 0; i < na.size(); ++i) {
+  for (auto i = 0u; i < na.size(); ++i) {
     na[i]->setHovered(false);
   }
 }
@@ -1323,7 +1364,7 @@ void TreeCanvas::deleteNode(Node* n) {
 
 #ifdef MAXIM_DEBUG
 void TreeCanvas::printDebugInfo() {
-  print_debug(*execution->getData());
+  print_debug(na, *execution->getData());
   qDebug() << "debug info recorded into debug.txt";
 }
 

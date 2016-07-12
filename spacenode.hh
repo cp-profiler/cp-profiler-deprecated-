@@ -37,6 +37,8 @@
 
 #ifndef SPACENODE_HH
 #define SPACENODE_HH
+// #pragma once
+
 
 #include "node.hh"
 
@@ -60,6 +62,12 @@ static const unsigned int STATUSMASK = 0xF << STATUSSTART; //< Mask for accessin
 
 class TreeCanvas;
 class Data;
+
+#ifdef MAXIM_DEBUG
+
+std::string statusToString(NodeStatus status);
+
+#endif
 
 /// %Statistics about the search tree
 class Statistics {

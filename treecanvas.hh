@@ -102,8 +102,6 @@ private:
   /// to generate ids
   static int counter;
 
-  /// Pointer to Data Object
-
   Execution* execution;
 
   int nodeCount = 0;
