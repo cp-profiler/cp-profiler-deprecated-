@@ -18,8 +18,6 @@ class depth_analysis {
 namespace cpprofiler {
 namespace analysis {
 
-enum class Direction { DOWN, UP, SOLUTION };
-
 class DepthAnalysis : public QObject {
   Q_OBJECT
 

@@ -34,34 +34,59 @@ void DepthAnalysis::traverse(std::vector<Direction>& depth_data,
   }
 }
 
+// #ifdef MAXIM_DEBUG
+//   std::string DirectionToString(Direction dir) {
+//     switch (dir) {
+//       case Direction::DOWN: return "DOWN";
+//       case Direction::UP: return "UP";
+//       case Direction::SOLUTION: return "SOLUTION";
+//     }
+//   }
+// #endif
+
 std::vector<std::vector<unsigned int> > DepthAnalysis::runMSL() {
   using std::vector;
 
   vector<Direction> depth_data = collectDepthData();
 
-  unsigned int deepest = 0;
-  unsigned int curr_level = 1;
-  unsigned int total_depth = _tc.getTreeDepth();
+  auto deepest = 0u;
+  auto curr_level = 1u;
+  auto total_depth = _tc.getTreeDepth();
   vector<unsigned int> dl_list(total_depth);  /// deepest at level
   vector<unsigned int> count_list(total_depth, 0);
 
-  vector<vector<unsigned int> > count_array(total_depth);  /// history of count
+  vector<vector<unsigned int>> count_array(total_depth);  /// history of counts
   for (auto v : count_array) {
     v.reserve(depth_data.size());
   }
 
-  assert(depth_data[0] ==
-         Direction::DOWN);  /// otherwise initial curr_level isn't 1
+  /// otherwise initial curr_level isn't 1
+  assert(depth_data[0] == Direction::DOWN);
 
   /// initialize dl_list with arr[i] = i
-  for (unsigned int i = 0; i < dl_list.size(); i++) {
+  for (auto i = 0u; i < dl_list.size(); i++) {
     dl_list[i] = i;
   }
 
   /// traverse the vector in pairs (i - 1; i)
-  for (unsigned int i = 1; i < depth_data.size(); i++) {
+  for (auto i = 1u; i < depth_data.size(); i++) {
+
     Direction prev = depth_data[i - 1];
     Direction curr = depth_data[i];
+
+  // #ifdef MAXIM_DEBUG
+  //   for (auto k = 0u; k < dl_list.size(); ++k) {
+  //     std::cerr << dl_list[k] << " ";
+  //   }
+  //   std::cerr << "\n";
+  //   for (auto k = 0u; k < count_list.size(); ++k) {
+  //     std::cerr << count_list[k] << " ";
+  //   }
+  //   std::cerr << "\n";
+  //   std::cerr << "prev: " << DirectionToString(prev) << "\n";
+  //   std::cerr << "curr: " << DirectionToString(curr) << "\n";
+  //   std::cerr << "deepest: " << deepest << "\n";
+  // #endif
 
     /// Reset count list and continue
     if (curr == Direction::SOLUTION) {
@@ -81,7 +106,9 @@ std::vector<std::vector<unsigned int> > DepthAnalysis::runMSL() {
 
     /// NAV backtrack (No Assigned Value)
     if (prev == Direction::DOWN && curr == Direction::UP) {
-      assert(deepest <= dl_list[prev_level]);
+      // NOTE(maxim): assumption that (deepest <= dl_list[prev_level]) doesn't always
+      //              hold due to not always 'backtracking' from a failure node
+      //              (i.e. restarts with white nodes removed)
       deepest = prev_level;  /// only NAV changes `deepest` and always does so
     }
 
