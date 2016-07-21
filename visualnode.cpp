@@ -427,7 +427,7 @@ VisualNode::computeShape(const NodeAllocator& na) {
     Extent extent;
     if (na.hasLabel(this)) {
         int ll = na.getLabel(this).length();
-        ll *= 7;
+        ll *= 9;
         VisualNode* p = getParent(na);
         int alt = 0;
         int n_alt = 1;
