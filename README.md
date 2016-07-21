@@ -37,7 +37,14 @@ Linux/Mac:
 
 Note: Because every new *node* can potentially cause the entire *search tree* layout to be recalculated (and slow down the drawing), it is recommended that ***display refresh rate*** is set to a reasonably high number (>1000), unless the rate at which the solver explores the nodes is low as well.
 
+![Execution Manager](https://raw.githubusercontent.com/msgmaxim/profiler_pictures/master/profiler_menu.png "Execution Manager View")
+
+Be default the **CP Profiler** will be constructing the search tree in the background. Selecting an execution from the list and clicking *show tree* will display the corresponding search tree (updating it in real time if the solver is still running.)
+
 ### Basic Search Tree Visualisation
+
+![Search Tree Example](https://github.com/msgmaxim/profiler_pictures/raw/master/alpha_tree.png "Search Tree Example")
+
 
 ##### Changing *display refresh rate*
 ***Display refresh rate*** determines how many nodes should be received between any two consecutive updates of the search tree drawing.
