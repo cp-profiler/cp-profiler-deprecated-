@@ -45,9 +45,9 @@ struct IcicleRect {
   int y;
   int width;
   int height;
-  SpaceNode& node;
-  IcicleRect(int x, int y, int width, int height, SpaceNode& node)
-      : x(x), y(y), width(width), height(height), node(node) {}
+  VisualNode& node;
+  IcicleRect(int x, int y, int width, int height, VisualNode& node)
+      : x(x), y(y), width(width), height(height), node(node) { }
 };
 
 struct IcicleNodeStatistic {
@@ -84,11 +84,13 @@ class IcicleTreeCanvas : public QWidget {
   TreeCanvas& tc_;
   PixelImage icicle_image_;
   std::vector<IcicleRect> icicle_rects_;
-  std::vector<SpaceNode*> nodes_selected;  // to know which nodes to deselect
+  std::vector<VisualNode*> nodes_selected;  // to know which nodes to deselect
 
   ColorMappingType color_mapping_type = ColorMappingType::DEFAULT;
 
   MaybeCaller maybeCaller;
+
+  VisualNode* selectedNode = nullptr;
 
   std::vector<IcicleNodeStatistic> statistic;
 
@@ -97,16 +99,16 @@ class IcicleTreeCanvas : public QWidget {
   float domain_red_sum;
 
   // init size of subtree
-  IcicleNodeStatistic initTreeStatistic(SpaceNode& root, int idx, int absX);
+  IcicleNodeStatistic initTreeStatistic(VisualNode& root, int idx, int absX);
 
   void redrawAll();
   void drawIcicleTree();
   void drawRects();
-  bool compressInit(SpaceNode& root, int idx, int absX);
-  void dfsVisible(SpaceNode& root, int idx, int curx, int cury, int xoff, int width, int yoff, int depth);
-  QRgb getColorByType(const SpaceNode& node);
-  SpaceNode* getNodeByXY(int x, int y) const;
-  SpaceNode* findLeftLeaf();
+  bool compressInit(VisualNode& root, int idx, int absX);
+  void dfsVisible(VisualNode& root, int idx, int curx, int cury, int xoff, int width, int yoff, int depth);
+  QRgb getColorByType(const VisualNode& node);
+  VisualNode* getNodeByXY(int x, int y) const;
+  VisualNode* findLeftLeaf();
 
  protected:
   void paintEvent(QPaintEvent* event);

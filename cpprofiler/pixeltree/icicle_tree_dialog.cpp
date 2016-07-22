@@ -97,8 +97,8 @@ void IcicleTreeDialog::resizeEvent(QResizeEvent* event) {
   emit windowResized();
 }
 
-SpaceNode* IcicleTreeCanvas::findLeftLeaf() {
-  SpaceNode* res = nullptr;
+VisualNode* IcicleTreeCanvas::findLeftLeaf() {
+  VisualNode* res = nullptr;
   int maxD = -1;
   auto& na = tc_.getExecution()->getNA();
   for (IcicleRect i: icicle_rects_) if (i.x == 0 && i.y > maxD) {
@@ -116,7 +116,7 @@ void IcicleTreeCanvas::compressLevelChanged(int value) {
   int leafIndex;
   compressLevel = value;
   compressInit(*na[0], 0, 0);
-  SpaceNode* lftLeaf = findLeftLeaf();
+  VisualNode* lftLeaf = findLeftLeaf();
   leafIndex = lftLeaf->getIndex(na);
   int xoff = statistic[lftLeaf->getIndex(na)].absX * icicle_image_.pixel_height();
   sa_.horizontalScrollBar()->setValue(xoff);
@@ -126,7 +126,7 @@ void IcicleTreeCanvas::compressLevelChanged(int value) {
   qDebug() << "compressionChanged to: " << compressLevel;
 }
 
-bool IcicleTreeCanvas::compressInit(SpaceNode& root, int idx, int absX) {
+bool IcicleTreeCanvas::compressInit(VisualNode& root, int idx, int absX) {
   const int kids = root.getNumberOfChildren();
   auto& na = tc_.getExecution()->getNA();
   bool hasSolved = false;
@@ -135,7 +135,7 @@ bool IcicleTreeCanvas::compressInit(SpaceNode& root, int idx, int absX) {
   statistic[idx].absX = absX;
   for (int i = 0; i < kids; i++) {
     int kidIdx = root.getChild(i);
-    SpaceNode& kid = *na[kidIdx];
+    VisualNode& kid = *na[kidIdx];
     if (kid.hasSolvedChildren()) expectSolvedCnt++;
     if (statistic[kidIdx].height >= compressLevel) {
       bool kidRes = compressInit(kid, kidIdx, absX + leafCnt);
@@ -235,7 +235,7 @@ void IcicleTreeCanvas::drawIcicleTree() {
 void IcicleTreeCanvas::drawRects() {
   domain_red_sum = 0;
   for (auto rect: icicle_rects_) {
-    SpaceNode& node = rect.node;
+    VisualNode& node = rect.node;
     QRgb color = getColorByType(node);
     icicle_image_.drawRect(rect.x, rect.width, rect.y, color);
   }
@@ -262,7 +262,10 @@ static QRgb getColor(NodeStatus ns) {
   return color;
 }
 
-QRgb IcicleTreeCanvas::getColorByType(const SpaceNode& node) {
+QRgb IcicleTreeCanvas::getColorByType(const VisualNode& node) {
+
+  if (selectedNode == &node) { return QColor::fromHsv(0, 150, 150).rgba();}
+
   QRgb color;
   auto& na = tc_.getExecution()->getNA();
   auto data = tc_.getExecution()->getData();
@@ -288,21 +291,23 @@ QRgb IcicleTreeCanvas::getColorByType(const SpaceNode& node) {
       color = QColor::fromHsv(0, 0, color_value).rgba();
     }
   }
+
   return color;
 }
 
-void IcicleTreeCanvas::dfsVisible(SpaceNode& root, int idx, int curx, int cury,
+void IcicleTreeCanvas::dfsVisible(VisualNode& root, int idx, int curx, int cury,
   const int xoff, const int width, const int yoff, const int depth) {
   if (cury > depth) return;
 
   const int kids = root.getNumberOfChildren();
   auto& na = tc_.getExecution()->getNA();
-  int nextxL = curx, nextxR;
+  int nextxL = curx;
+  int nextxR;
   for (int i = 0; i < kids; i++) {
     if (nextxL > xoff + width) break;
     int kidIdx = root.getChild(i);
     if (statistic[kidIdx].height >= compressLevel) {
-      SpaceNode& kid = *na[kidIdx];
+      VisualNode& kid = *na[kidIdx];
       nextxR = nextxL + statistic[kidIdx].leafCnt;
       if (nextxR >= xoff)
         dfsVisible(kid, kidIdx, nextxL, cury+1, xoff, width, yoff, depth);
@@ -326,13 +331,14 @@ void IcicleTreeCanvas::sliderChanged(int) {
   maybeCaller.call([this]() { redrawAll(); });
 }
 
-SpaceNode* IcicleTreeCanvas::getNodeByXY(int x, int y) const {
+VisualNode* IcicleTreeCanvas::getNodeByXY(int x, int y) const {
   // Find rectangle by x and y (binary or linear search)
   for (uint i = 0; i < icicle_rects_.size(); i++) {
     auto& rect = icicle_rects_[i];
 
-    if ((rect.x <= x) && (x <= rect.x + rect.width) && (rect.y <= y) &&
-        (y <= rect.y + rect.height)) {
+    if ((rect.x <= x) && (x < rect.x + rect.width) &&
+        (rect.y == y)) {
+
       return &rect.node;
     }
   }
@@ -340,9 +346,9 @@ SpaceNode* IcicleTreeCanvas::getNodeByXY(int x, int y) const {
   return nullptr;
 }
 
-static void unselectNodes(std::vector<SpaceNode*>& nodes_selected) {
+static void unselectNodes(std::vector<VisualNode*>& nodes_selected) {
   for (auto node : nodes_selected) {
-    static_cast<VisualNode*>(node)->setHovered(false);
+    node->setHovered(false);
   }
   nodes_selected.clear();
 }
@@ -353,13 +359,28 @@ void IcicleTreeCanvas::mouseMoveEvent(QMouseEvent* event) {
 
   auto* node = getNodeByXY(x, y);
 
+  if (node != selectedNode) {
+    selectedNode = node;
+    redrawAll();
+  }
+
   if (node == nullptr) return;
+
+
+  // auto& na = tc_.getExecution()->getNA();
+  // auto data = tc_.getExecution()->getData();
+  // auto gid = node->getIndex(na);
+  // auto* entry = data->getEntry(gid);
+
+  // auto domain_red = entry == nullptr ? 0 : entry->domain;
+
+  // qDebug() << "[node info] domain reduction: " << domain_red;
 
   /// Do stuff not more often than 60hz
   maybeCaller.call([this, node]() {
     unselectNodes(nodes_selected);
     nodes_selected.push_back(node);
-    static_cast<VisualNode*>(node)->setHovered(true);
+    node->setHovered(true);
     tc_.update();
   });
 }
@@ -368,12 +389,12 @@ void IcicleTreeCanvas::mousePressEvent(QMouseEvent*) {
   /// do nothing for now
 }
 
-IcicleNodeStatistic IcicleTreeCanvas::initTreeStatistic(SpaceNode& root, int idx, int absX) {
+IcicleNodeStatistic IcicleTreeCanvas::initTreeStatistic(VisualNode& root, int idx, int absX) {
   const int kids = root.getNumberOfChildren();
   auto& na = tc_.getExecution()->getNA();
   IcicleNodeStatistic cntRoot = IcicleNodeStatistic{kids?0: 1, 0, absX, root.getStatus()};
   for (int i=0; i < kids; i++) {
-    SpaceNode& kid = *root.getChild(na, i);
+    VisualNode& kid = *root.getChild(na, i);
     int kidIdx = root.getChild(i);
     IcicleNodeStatistic cntKid = initTreeStatistic(kid, kidIdx, absX + cntRoot.leafCnt);
     cntRoot.leafCnt += cntKid.leafCnt;
