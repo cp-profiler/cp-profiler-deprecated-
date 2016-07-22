@@ -13,9 +13,23 @@ var rawData;
 
 var variableListString;
 
+function variableColour(x) {
+    return "red";
+}
+
+function canonicaliseIntBool(data) {
+    for (var i = 0 ; i < data.length ; i++) {
+        logJ(data[i].variable);
+        logJ(data[i].variable.substr(-2));
+//        if (data[i].variable.substr(-2) == "_i")
+    }
+}
+
 function drawVariables() {
     getData(function(data, varListString) {
         rawData = data;
+
+        // canonicaliseIntBool(data);
 
         variableListString = varListString;
         categoriseVariables(variableListString);
@@ -27,27 +41,185 @@ function drawVariables() {
         totalTime = d3.max(data, function(d) { return d.timestamp; });
         totalFails = d3.sum(data, function(d) { return d.status == 1;});
         totalSolutions = d3.sum(data, function(d) { return d.status == 0;});
+
         var restarts = aggregateData(data, "restartId", null);
         var varGroupSum = aggregateData(data, "variableGroup", null);
         varSum = aggregateData(data, "variable", null);
         var varPerRestart = aggregateData(data, "variable", "restartId");
 
-        drawVariables2(varPerRestart, varGroupSum);
+        // data.forEach(function(x) {
+        //     logJ(x.variableGroup);
+        // });
+        logJ(Object.keys(varGroupSum));
+
+        var svgVars = d3.select("#vis1").append("svg")
+            .attr("width", 500)
+            .attr("height", 500);
+
+        var infoText = svgVars.append("text")
+            .attr("x", 15)
+            .attr("y", 15);
+
+        var nextY = 40;
+        for (arrayKey in arrayNames) {
+            var a = arrayNames[arrayKey];
+            var relevantVars = [];
+            var maxCount = undefined;
+            for (var i = 0 ; i < allVars.length ; i++) {
+                if (allVars[i].arrayName == arrayKey) {
+                    relevantVars.push(allVars[i]);
+                    var thisVarCount;
+                    if (varSum[allVars[i].fullName] == undefined)
+                        thisVarCount = 0;
+                    else
+                        thisVarCount = varSum[allVars[i].fullName].countNodes;
+                    if (maxCount == undefined || thisVarCount > maxCount)
+                        maxCount = thisVarCount;
+                }
+            }
+            var mouseoverGroup = function(k) {
+                return function() {
+                    var relevantNodes = [];
+                    for (var i = 0 ; i < rawData.length ; i++) {
+                        var node = rawData[i];
+                        if (node.variableGroup == k)
+                            relevantNodes.push(node.gid);
+                    }
+                    infoText.text(k);
+                    window.profiler.messageMany(relevantNodes);
+                }
+            }
+            svgVars.append("rect")
+                .attr("width", 15)
+                .attr("height", 15)
+                .style("fill", variableColour(arrayKey))
+                .style("stroke", "#111111")
+                .attr("x", 15)
+                .attr("y", nextY)
+                .on("mouseover", mouseoverGroup(arrayKey));
+            var thisKeyCount;
+            if (varGroupSum[arrayKey] == undefined)
+                thisKeyCount = 0;
+            else
+                thisKeyCount = varGroupSum[arrayKey].countNodes;
+            svgVars.append("text")
+                .text(arrayKey + " (" + thisKeyCount + ")")
+                .attr("x", 40)
+                .attr("y", nextY + 7)
+                .attr("alignment-baseline", "middle");
+            var mouseoverFunc = function(e) {
+                return function (d) {
+                    var relevantNodes = [];
+                    for (var i = 0 ; i < rawData.length ; i++) {
+                        var node = rawData[i];
+                        if (node.variable == e.fullName)
+                            relevantNodes.push(node.gid);
+                    }
+                    var stats = varSum[e.fullName];
+                    infoText.text(e.fullName + " (" + (stats == undefined ? 0 : stats.countNodes) + ")" );
+                    window.profiler.messageMany(relevantNodes);
+                }
+            };
+            var colorORaw =
+                d3.scale.quantize()
+                .domain([1, maxCount])
+                .range(colorbrewer.Oranges[7]);
+            var colorO = function(x) {
+                if (x == 0) return colorbrewer.Oranges[7][0];
+                else        return colorORaw(x); }
+            var nextX = 150;
+            var drawVarBox = function(indices) {
+                var element = findElement(arrayKey, indices, relevantVars);
+                if (element != undefined) {
+                    logJ(element.fullName);
+                    var stats = varSum[element.fullName];
+                    var thisNodes;
+                    if (stats == undefined)
+                        thisNodes = 0;
+                    else
+                        thisNodes = stats.countNodes;
+                    svgVars.append("rect")
+                        .attr("width", 15)
+                        .attr("height", 15)
+                        .attr("x", nextX)
+                        .attr("y", nextY)
+                        .style("fill", colorO(thisNodes))
+                        .style("stroke", "#111111")
+                        .on("mouseover", mouseoverFunc(element));
+                    nextX += 22;
+                }
+            }
+            switch (a.dimensions.length) {
+            case 1:
+                for (var i = a.dimensions[0].min ; i <= a.dimensions[0].max ; i++) {
+                    drawVarBox([i]);
+                }
+                nextY += 25;
+                break;
+            case 2:
+                for (var i = a.dimensions[0].min ; i <= a.dimensions[0].max ; i++) {
+                    for (var j = a.dimensions[1].min ; j <= a.dimensions[1].max ; j++) {
+                        drawVarBox([i,j]);
+                    }
+                    nextY += 25;
+                    if (nextX > svgVars.node().getBoundingClientRect().width)
+                        svgVars.style("width", nextX);
+                    nextX = 150;
+                }
+                nextY += 25;
+                break;
+            default:
+                break;
+            }
+            if (nextY > svgVars.node().getBoundingClientRect().height)
+                svgVars.style("height", nextY);
+        }
+
+        // drawVariables2(varPerRestart, varGroupSum);
     });
+}
+
+function findElement(arrayKey, indices, vars) {
+    for (var i = 0 ; i < vars.length ; i++) {
+        var v = vars[i];
+        if (v.arrayName == arrayKey && arraysEqual(v.arrayIndices, indices))
+            return v;
+    }
+    return undefined;
+}
+
+function arraysEqual(a, b) {
+  if (a === b) return true;
+  if (a == null || b == null) return false;
+  if (a.length != b.length) return false;
+  for (var i = 0; i < a.length; ++i) {
+    if (a[i] !== b[i]) return false;
+  }
+  return true;
 }
 
 var arrayNames;
 var bareNames;
 var allVars;
 
+function log(s) {
+    console.log(s);
+}
+
+function logJ(s) {
+    console.log(JSON.stringify(s));
+}
+
 function categoriseVariables(variableListString) {
     allVars = [];
     blobs = variableListString.split(";");
     for (var t = 0 ; t < 2 ; t++) {
+        log("trying variable type " + t);
         // No variables of this type.
         if (blobs[t] == undefined)
             continue;
         variables = blobs[t].split(" ");
+        log("split into " + variables.length + " variables of this type");
         for (var i = 0 ; i < variables.length ; i++) {
             if (t == 0) type = "int";
             if (t == 1) type = "bool";
@@ -62,6 +234,7 @@ function categoriseVariables(variableListString) {
             if (parts[parts.length-1] == "i") {
                 parts.pop();
                 type = "bool";
+                variable = variable.substr(0, variable.length-2);
             }
             dimensions = [];
             for (d = parts.length-1 ; d > 0 ; d--) {
@@ -327,7 +500,8 @@ function drawArray(variableNum, varName, cSize, w, h) {
 
           if(dataName in varSum)
           {
-            if (headerNode == false) // is there a fake node added to join the restarts or not
+//            if (headerNode == false) // is there a fake node added to join the restarts or not
+            if (false) // is there a fake node added to join the restarts or not
             {
                 if (varPerRestart[dataName][restartRequest])
                 {
@@ -434,7 +608,7 @@ function aggregateData(data, group, group2) {
                 percFailedNodes: (d3.sum(d,function(g) {return +g.status == 1;})/d.length)*100
                 };
               })
-        .map(data.filter(function(d) { return d.alternative==0 && d.variable != "NA" && d.variable != undefined}))
+        .map(data.filter(function(d) { return d.variable != "NA" && d.variable != undefined}))
           //.filter(function(d) { return d.variable != null & d.variable != "NA"}));
   } //.filter(function(d) { return d.variable != "NA" & d.variable != null; }));
   else {

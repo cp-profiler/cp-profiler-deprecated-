@@ -25,8 +25,8 @@ public:
         : QWebPage(parent) {}
 protected:
     void javaScriptConsoleMessage(const QString& message, int lineNumber, const QString& sourceID) {
-        //        qDebug() << sourceID << lineNumber << message;
-        std::cerr << message.toStdString() << "\n";
+        qDebug() << sourceID << lineNumber << message;
+        //        std::cerr << message.toStdString() << "\n";
     }
 };
 
