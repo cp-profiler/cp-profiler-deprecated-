@@ -60,7 +60,16 @@ Execution* loadSaved(Execution* e, std::string path) {
     message::Node msg;
     bool ok = readDelimitedFrom(&raw_input, &msg);
     if (!ok) break;
-    e->handleNewNode(msg);
+    switch (msg.type()) {
+    case message::Node::NODE:
+        e->handleNewNode(msg);
+        break;
+    case message::Node::START:
+        if (msg.has_info()) {
+            e->setVariableListString(msg.info());
+        }
+        break;
+    }
   }
   e->doneReceiving();
   return e;
@@ -401,6 +410,11 @@ void ProfilerConductor::saveExecutionClicked(bool) {
     keys.push_back(it->first);
   }
   sort(keys.begin(), keys.end());
+
+  message::Node start_node;
+  start_node.set_type(message::Node::START);
+  start_node.set_info(item->execution_->getVariableListString());
+  writeDelimitedTo(start_node, &raw_output);
 
   for (auto it = keys.begin(); it != keys.end(); it++) {
     DbEntry* entry = data->gid2entry[*it];
