@@ -30,6 +30,7 @@
 #include <exception>
 #include <ctime>
 
+#include "zoomToFitIcon.hpp"
 #include "cpprofiler/pixeltree/pixel_tree_dialog.hh"
 #include "cpprofiler/pixeltree/icicle_tree_dialog.hh"
 #include "highlight_nodes_dialog.hpp"
@@ -68,7 +69,6 @@ TreeCanvas::TreeCanvas(Execution* execution_, QGridLayout* layout,
   {
   QMutexLocker locker(&mutex);
 
-  /// to distinguish between instances
   _id = TreeCanvas::counter++;
 
   root = execution->getRootNode();
@@ -77,9 +77,10 @@ TreeCanvas::TreeCanvas(Execution* execution_, QGridLayout* layout,
 
   setAutoFillBackground(true);
 
+  QPixmap zoomPic;
   zoomPic.loadFromData(zoomToFitIcon, sizeof(zoomToFitIcon));
 
-  autoZoomButton = new QToolButton(this);
+  auto autoZoomButton = new QToolButton(this);
   autoZoomButton->setCheckable(true);
   autoZoomButton->setIcon(zoomPic);
 

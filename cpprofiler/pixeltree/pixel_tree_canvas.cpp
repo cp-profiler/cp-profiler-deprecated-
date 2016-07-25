@@ -83,7 +83,7 @@ PixelTreeCanvas::PixelTreeCanvas(QWidget* parent, TreeCanvas& tc)
   Backjumps bj;
   bj_data = bj.findBackjumps(_na[0], _na);
 
-  perfHelper.begin("construct/compress pixel tree");
+  // perfHelper.begin("construct/compress pixel tree");
   constructPixelTree();
   compressPixelTree(1);
   compressDepthAnalysis(da_data_compressed, 1);
@@ -93,7 +93,7 @@ PixelTreeCanvas::PixelTreeCanvas(QWidget* parent, TreeCanvas& tc)
   compressVarData(var_decisions_compressed, 1);
   gatherNogoodData();
   compressNogoodData(1);
-  perfHelper.end();
+  // perfHelper.end();
 
 }
 
@@ -107,18 +107,13 @@ void PixelTreeCanvas::paintEvent(QPaintEvent*) {
 }
 
 void PixelTreeCanvas::constructPixelTree(void) {
-  auto time_begin = high_resolution_clock::now();
 
   /// get a root
   auto root = _na[0];
 
-  pixel_data = traverseTree(root);
-  // pixel_data = traverseTreePostOrder(root);
+  // pixel_data = traverseTree(root);
+  pixel_data = traverseTreePostOrder(root);
 
-  auto time_end = high_resolution_clock::now();
-  auto time_span = duration_cast<duration<double>>(time_end - time_begin);
-  std::cout << "constructPixelTree: " << time_span.count() << " seconds."
-            << std::endl;
 }
 
 /// This sets compression that will be used during the drawing
@@ -283,7 +278,6 @@ static size_t findAnyOf(const string& str, T first, Delimiters... args) {
 }
 
 void PixelTreeCanvas::gatherVarData() {
-  auto time_begin = high_resolution_clock::now();
 
   auto data_length = pixel_data.pixel_list.size();
   var_decisions.reserve(data_length);
@@ -318,10 +312,6 @@ void PixelTreeCanvas::gatherVarData() {
     var_decisions.push_back(var_id);
   }
 
-  auto time_end = high_resolution_clock::now();
-  auto time_span = duration_cast<duration<double>>(time_end - time_begin);
-  std::cout << "gatherVarData: " << time_span.count() << " seconds."
-            << std::endl;
 }
 
 void PixelTreeCanvas::gatherNogoodData() {
@@ -535,9 +525,9 @@ void PixelTreeCanvas::drawPixelTree(const PixelData& pixel_data) {
 
 /// Make sure no redundant work is done
 void PixelTreeCanvas::redrawAll() {
-  perfHelper.begin("pixel tree: clear image");
+  // perfHelper.begin("pixel tree: clear image");
   pixel_image.clear();
-  perfHelper.end();
+  // perfHelper.end();
 
   /// TODO(maxim): this should probably also be in the pixelImage class
   current_image_height = 0;
@@ -552,9 +542,9 @@ void PixelTreeCanvas::redrawAll() {
              _sa->viewport()->height() / pixel_image.pixel_height());
 
 
-  perfHelper.begin("pixel tree: draw pizel tree");
+  // perfHelper.begin("pixel tree: draw pizel tree");
   drawPixelTree(pixel_data);
-  perfHelper.end();
+  // perfHelper.end();
 
   /// All Histograms
 
@@ -574,9 +564,9 @@ void PixelTreeCanvas::redrawAll() {
   if (m_State.show_bj_analysis_histogram) drawBjData();
   // drawNogoodData();
 
-  perfHelper.begin("pixel tree: update pixel image");
+  // perfHelper.begin("pixel tree: update pixel image");
   pixel_image.update();
-  perfHelper.end();
+  // perfHelper.end();
 
   repaint();
 }

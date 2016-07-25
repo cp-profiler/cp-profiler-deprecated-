@@ -24,26 +24,22 @@
 #define TREECANVAS_HH
 
 #include <QtGui>
-#if QT_VERSION >= 0x050000
 #include <QtWidgets>
-// #include <QTimer>
-#endif
 
 #include <functional>
 #include "visualnode.hh"
-#include "zoomToFitIcon.hpp"
 #include "execution.hh"
 
 /// \brief Parameters for the tree layout
 namespace LayoutConfig {
   /// Minimum scale factor
-  const int minScale = 1;
+  constexpr int minScale = 1;
   /// Maximum scale factor
-  const int maxScale = 400;
+  constexpr int maxScale = 400;
   /// Default scale factor
-  const int defScale = 100;
+  constexpr int defScale = 100;
   /// Maximum scale factor for automatic zoom
-  const int maxAutoZoomScale = defScale;
+  constexpr int maxAutoZoomScale = defScale;
 }
 
 class TreeCanvas;
@@ -73,32 +69,6 @@ class TreeCanvas : public QWidget {
   friend class TreeComparison;
   friend class CmpTreeDialog;
 
-public:
-
-/// each new consequent Canvas will get an id
-  int _id;
-
-  const CanvasType canvasType;
-
-  std::string getLabel(unsigned int gid) {
-    return execution->getLabel(gid);
-  }
-  unsigned long long getTotalTime() const { return execution->getTotalTime(); }
-  std::string getTitle() const { return execution->getTitle(); }
-  DbEntry* getEntry(unsigned int gid) { return execution->getEntry(gid); }
-
-
-  const Statistics& get_stats() const { return execution->getStatistics(); }
-
-  /// TODO(maxim): funny const here
-  Execution* getExecution() const { return execution; }
-
-private:
-
-  /// ****** INTERFACE STUFF *********
-  QPixmap zoomPic;
-  QToolButton* autoZoomButton;
-
   /// to generate ids
   static int counter;
 
@@ -107,190 +77,6 @@ private:
   int nodeCount = 0;
   QTimer* updateTimer;
 
-public Q_SLOTS:
-
-  void reset();
-
-public:
-  /// Constructor
-    TreeCanvas(Execution* execution, QGridLayout* layout, CanvasType type, QWidget* parent);
-  /// Destructor
-  ~TreeCanvas(void);
-
-  /// ***** GETTERS *****
-
-  unsigned int getTreeDepth(void);
-
-  /// *******************
-
-  /// Return number of solved children in the node
-  int getNoOfSolvedLeaves(VisualNode* n);
-
-  void printSearchLogTo(const QString& file_name);
-
-  /// Apply `action` to every node that satisfies the predicate
-  void applyToEachNodeIf(std::function<void (VisualNode*)> action,
-                         std::function<bool (VisualNode*)> predicate);
-
-public Q_SLOTS:
-  /// Set scale factor to \a scale0
-  void scaleTree(int scale0, int zoomx=-1, int zoomy=-1);
-
-  /// Toggle hidden state of selected node
-  void toggleHidden(void);
-  /// Hide failed subtrees of selected node
-  void hideFailed(void);
-  /// Hide subtrees under a certain size
-  void hideSize(void);
-  /// Unhide all nodes below selected node
-  void unhideAll(void);
-  /// Unselect all nodes
-  void unselectAll(void);
-  /// Sets the node and its ancestry as not hidden;
-  /// marks the path as dirty
-  void unhideNode(VisualNode* node);
-  /// Do not stop at selected stop node
-  void toggleStop(void);
-  /// Do not stop at any stop node
-  void unstopAll(void);
-  /// Export pdf of the current subtree
-  void exportPDF(void);
-  /// Export pdf of the whole tree
-  void exportWholeTreePDF(void);
-  /// Print the tree
-  void print(void);
-  /// Print the search tree log
-  void printSearchLog(void);
-  /// Zoom the canvas so that the whole tree fits
-  void zoomToFit(void);
-  /// Center the view on the currently selected node
-  void centerCurrentNode(void);
-  /// Expand hidden node or pentagon
-  void expandCurrentNode();
-  /// Label all branches in subtree under current node
-  void labelBranches(void);
-  /// Label all branches on path to root node
-  void labelPath(void);
-
-  /// Show Indented Pixel Tree View
-  void showPixelTree(void);
-
-  /// Show Icicle Tree View
-  void showIcicleTree(void);
-
-  /// Delete Unexplored Nodes (needed e.g. for replaying with restart)
-  void deleteWhiteNodes();
-
-  /// Follow path from root
-  void followPath(void);
-
-  /// Analyze similar subtrees of current node
-  void analyzeSimilarSubtrees(void);
-
-  /// Show highlight nodes dialog
-  void highlightNodesMenu(void);
-
-  /// Show no-goods
-  void showNogoods(void);
-
-  /// Show node info
-  void showNodeInfo(void);
-
-  /// Show a node on a pixel tree
-  void showNodeOnPixelTree(void);
-
-  /// Collect ML stats from the current node
-  void collectMLStats(void);
-  /// Collect ML stats for a specified node
-  void collectMLStats(VisualNode* node);
-  /// Collect ML stats from the root
-  void collectMLStatsRoot(std::ostream& out);
-
-  /// calls when clicking right mouse button on a shape
-  void highlightShape(VisualNode* node);
-
-  void resetNodesHighlighting();
-
-  /// highlight nodes with non-empty info field
-  void highlightNodesWithInfo();
-
-  /// highlight failures caused by nogoods (nogoods in info)
-  void highlightFailedByNogoods();
-
-  /// Move selection to the parent of the selected node
-  void navUp(void);
-  /// Move selection to the first child of the selected node
-  void navDown(void);
-  /// Move selection to the left sibling of the selected node
-  void navLeft(void);
-  /// Move selection to the right sibling of the selected node
-  void navRight(void);
-  /// Move selection to the root node
-  void navRoot(void);
-  /// Move selection to next solution (in DFS order)
-  void navNextSol(bool back = false);
-  /// Move selection to next leaf (in DFS order)
-  void navNextLeaf(bool back = false);
-  /// Move selection to next pentagon (in DFS order)
-  void navNextPentagon(bool back = false);
-  /// Move selection to previous solution (in DFS order)
-  void navPrevSol(void);
-  /// Move selection to previous leaf (in DFS order)
-  void navPrevLeaf(void);
-  /// Bookmark current node
-  void bookmarkNode(void);
-  /// Re-emit status change information for current node
-  void emitStatusChanged(void);
-
-  /// Set preference whether to automatically hide failed subtrees
-  void setAutoHideFailed(bool b);
-  /// Set preference whether to automatically zoom to fit
-  void setAutoZoom(bool b);
-  /// Return preference whether to automatically hide failed subtrees
-  bool getAutoHideFailed(void);
-  /// Return preference whether to automatically zoom to fit
-  bool getAutoZoom(void);
-  /// Set refresh rate
-  void setRefresh(int i);
-  /// Set refresh pause in msec
-  void setRefreshPause(int i);
-  /// Return preference whether to use smooth scrolling and zooming
-  bool getSmoothScrollAndZoom(void);
-  /// Set preference whether to use smooth scrolling and zooming
-  void setSmoothScrollAndZoom(bool b);
-  /// Return preference whether to move cursor during search
-  bool getMoveDuringSearch(void);
-  /// Set preference whether to move cursor during search
-  void setMoveDuringSearch(bool b);
-  /// Resize to the outer widget size if auto zoom is enabled
-  void resizeToOuter(void);
-
-  /// Stop search and wait for it to finish
-  bool finish(void);
-
-Q_SIGNALS:
-
-  void scaleChanged(int);
-  /// The auto-zoom state was changed
-  void autoZoomChanged(bool);
-  /// Context menu triggered
-  void contextMenu(QContextMenuEvent*);
-  /// Status bar update
-  void statusChanged(VisualNode*, const Statistics&, bool);
-
-  void needActionsUpdate(VisualNode*, bool);
-  /// Signals that a solution has been found
-  void solution(int);
-  /// Signals that %Gist is finished
-  void searchFinished(void);
-  /// Signals that a bookmark has been added
-  void addedBookmark(const QString& id);
-  /// Signals that a bookmark has been removed
-  void removedBookmark(int idx);
-
-  void showNodeOnPixelTree(int gid);
-
-  void announceSelectNode(int gid);
 protected:
   /// Mutex for synchronizing acccess to the tree
   QMutex& mutex;
@@ -335,24 +121,6 @@ protected:
   bool smoothScrollAndZoom = false;
   /// Whether to move cursor during search
   bool moveDuringSearch = false;
-
-  /// Return the node corresponding to the \a event position
-  VisualNode* eventNode(QEvent *event);
-  /// General event handler, used for displaying tool tips
-  bool event(QEvent *event);
-  /// Paint the tree
-  void paintEvent(QPaintEvent* event);
-  /// Handle mouse press event
-  void mousePressEvent(QMouseEvent* event);
-  /// Handle mouse double click event
-  void mouseDoubleClickEvent(QMouseEvent* event);
-  /// Handle context menu event
-  void contextMenuEvent(QContextMenuEvent* event);
-  /// Handle resize event
-  void resizeEvent(QResizeEvent* event);
-  /// Handle mouse wheel events
-  void wheelEvent(QWheelEvent* event);
-
   /// Timer for smooth zooming
   QTimeLine zoomTimeLine{500};
   /// Timer for smooth scrolling
@@ -375,6 +143,23 @@ protected:
   /// Timer id for delaying the update
   int layoutDoneTimerId = 0;
 
+    /// Return the node corresponding to the \a event position
+  VisualNode* eventNode(QEvent *event);
+  /// General event handler, used for displaying tool tips
+  bool event(QEvent *event);
+  /// Paint the tree
+  void paintEvent(QPaintEvent* event);
+  /// Handle mouse press event
+  void mousePressEvent(QMouseEvent* event);
+  /// Handle mouse double click event
+  void mouseDoubleClickEvent(QMouseEvent* event);
+  /// Handle context menu event
+  void contextMenuEvent(QContextMenuEvent* event);
+  /// Handle resize event
+  void resizeEvent(QResizeEvent* event);
+  /// Handle mouse wheel events
+  void wheelEvent(QWheelEvent* event);
+
   /// Timer invoked for smooth zooming and scrolling
   virtual void timerEvent(QTimerEvent* e);
   /// Similar shapes dialog
@@ -383,18 +168,78 @@ protected:
   VisualNode* shapeHighlighted;
 public:
 
+  TreeCanvas(Execution* execution, QGridLayout* layout, CanvasType type, QWidget* parent);
+
+  ~TreeCanvas();
+
+  /// each new consequent Canvas will get an id
+  int _id;
+
+  const CanvasType canvasType;
+
+  std::string getLabel(unsigned int gid) {
+    return execution->getLabel(gid);
+  }
+  unsigned long long getTotalTime() const { return execution->getTotalTime(); }
+  std::string getTitle() const { return execution->getTitle(); }
+  DbEntry* getEntry(unsigned int gid) { return execution->getEntry(gid); }
+
+  const Statistics& get_stats() const { return execution->getStatistics(); }
+
+  /// TODO(maxim): funny const here
+  Execution* getExecution() const { return execution; }
+
+  /// ***** GETTERS *****
+
+  unsigned int getTreeDepth();
+
+  /// *******************
+
+  /// Return number of solved children in the node
+  int getNoOfSolvedLeaves(VisualNode* n);
+
+  void printSearchLogTo(const QString& file_name);
+
+  /// Apply `action` to every node that satisfies the predicate
+  void applyToEachNodeIf(std::function<void (VisualNode*)> action,
+                         std::function<bool (VisualNode*)> predicate);
+
   /// traverse every node and set hidden
-  void hideAll(void);
+  void hideAll();
 
+Q_SIGNALS:
 
+  void scaleChanged(int);
+  /// The auto-zoom state was changed
+  void autoZoomChanged(bool);
+  /// Context menu triggered
+  void contextMenu(QContextMenuEvent*);
+  /// Status bar update
+  void statusChanged(VisualNode*, const Statistics&, bool);
+
+  void needActionsUpdate(VisualNode*, bool);
+  /// Signals that a solution has been found
+  void solution(int);
+  /// Signals that %Gist is finished
+  void searchFinished();
+  /// Signals that a bookmark has been added
+  void addedBookmark(const QString& id);
+  /// Signals that a bookmark has been removed
+  void removedBookmark(int idx);
+
+  void showNodeOnPixelTree(int gid);
+
+  void announceSelectNode(int gid);
 
 public Q_SLOTS:
-  void maybeUpdateCanvas(void);
-  void updateCanvas(void);
+  void reset();
+
+  void maybeUpdateCanvas();
+  void updateCanvas();
   /// Update display
-  void update(void);
+  void update();
   /// React to scroll events
-  void scroll(void);
+  void scroll();
   /// Layout done
   void layoutDone(int w, int h, int scale0);
   /// Set the selected node to \a n
@@ -405,6 +250,141 @@ public Q_SLOTS:
 
   void deleteNode(Node* n);
 
+  /// Set scale factor to \a scale0
+  void scaleTree(int scale0, int zoomx=-1, int zoomy=-1);
+
+  /// Toggle hidden state of selected node
+  void toggleHidden();
+  /// Hide failed subtrees of selected node
+  void hideFailed();
+  /// Hide subtrees under a certain size
+  void hideSize();
+  /// Unhide all nodes below selected node
+  void unhideAll();
+  /// Unselect all nodes
+  void unselectAll();
+  /// Sets the node and its ancestry as not hidden;
+  /// marks the path as dirty
+  void unhideNode(VisualNode* node);
+  /// Do not stop at selected stop node
+  void toggleStop();
+  /// Do not stop at any stop node
+  void unstopAll();
+  /// Export pdf of the current subtree
+  void exportPDF();
+  /// Export pdf of the whole tree
+  void exportWholeTreePDF();
+  /// Print the tree
+  void print();
+  /// Print the search tree log
+  void printSearchLog();
+  /// Zoom the canvas so that the whole tree fits
+  void zoomToFit();
+  /// Center the view on the currently selected node
+  void centerCurrentNode();
+  /// Expand hidden node or pentagon
+  void expandCurrentNode();
+  /// Label all branches in subtree under current node
+  void labelBranches();
+  /// Label all branches on path to root node
+  void labelPath();
+
+  /// Show Indented Pixel Tree View
+  void showPixelTree();
+
+  /// Show Icicle Tree View
+  void showIcicleTree();
+
+  /// Delete Unexplored Nodes (needed e.g. for replaying with restart)
+  void deleteWhiteNodes();
+
+  /// Follow path from root
+  void followPath();
+
+  /// Analyze similar subtrees of current node
+  void analyzeSimilarSubtrees();
+
+  /// Show highlight nodes dialog
+  void highlightNodesMenu();
+
+  /// Show no-goods
+  void showNogoods();
+
+  /// Show node info
+  void showNodeInfo();
+
+  /// Show a node on a pixel tree
+  void showNodeOnPixelTree();
+
+  /// Collect ML stats from the current node
+  void collectMLStats();
+  /// Collect ML stats for a specified node
+  void collectMLStats(VisualNode* node);
+  /// Collect ML stats from the root
+  void collectMLStatsRoot(std::ostream& out);
+
+  /// calls when clicking right mouse button on a shape
+  void highlightShape(VisualNode* node);
+
+  void resetNodesHighlighting();
+
+  /// highlight nodes with non-empty info field
+  void highlightNodesWithInfo();
+
+  /// highlight failures caused by nogoods (nogoods in info)
+  void highlightFailedByNogoods();
+
+  /// Move selection to the parent of the selected node
+  void navUp();
+  /// Move selection to the first child of the selected node
+  void navDown();
+  /// Move selection to the left sibling of the selected node
+  void navLeft();
+  /// Move selection to the right sibling of the selected node
+  void navRight();
+  /// Move selection to the root node
+  void navRoot();
+  /// Move selection to next solution (in DFS order)
+  void navNextSol(bool back = false);
+  /// Move selection to next leaf (in DFS order)
+  void navNextLeaf(bool back = false);
+  /// Move selection to next pentagon (in DFS order)
+  void navNextPentagon(bool back = false);
+  /// Move selection to previous solution (in DFS order)
+  void navPrevSol();
+  /// Move selection to previous leaf (in DFS order)
+  void navPrevLeaf();
+  /// Bookmark current node
+  void bookmarkNode();
+  /// Re-emit status change information for current node
+  void emitStatusChanged();
+
+  /// Set preference whether to automatically hide failed subtrees
+  void setAutoHideFailed(bool b);
+  /// Set preference whether to automatically zoom to fit
+  void setAutoZoom(bool b);
+  /// Return preference whether to automatically hide failed subtrees
+  bool getAutoHideFailed();
+  /// Return preference whether to automatically zoom to fit
+  bool getAutoZoom();
+  /// Set refresh rate
+  void setRefresh(int i);
+  /// Set refresh pause in msec
+  void setRefreshPause(int i);
+  /// Return preference whether to use smooth scrolling and zooming
+  bool getSmoothScrollAndZoom();
+  /// Set preference whether to use smooth scrolling and zooming
+  void setSmoothScrollAndZoom(bool b);
+  /// Return preference whether to move cursor during search
+  bool getMoveDuringSearch();
+  /// Set preference whether to move cursor during search
+  void setMoveDuringSearch(bool b);
+  /// Resize to the outer widget size if auto zoom is enabled
+  void resizeToOuter();
+
+  /// Stop search and wait for it to finish
+  bool finish();
+
 #ifdef MAXIM_DEBUG
   void printDebugInfo();
   void addChildren();
@@ -413,7 +393,7 @@ public Q_SLOTS:
 #endif
 private Q_SLOTS:
   /// Set isUsed to true and update
-  void finalizeCanvas(void);
+  void finalizeCanvas();
   /// Search has finished
   void statusChanged(bool);
   /// Export PDF of the subtree of \a n
@@ -421,7 +401,7 @@ private Q_SLOTS:
   /// Scroll to \a i percent of the target
   void scroll(int i);
 
-  void updateViaTimer(void);
+  void updateViaTimer();
 };
 
 #endif // TREECANVAS_HH

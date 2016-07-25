@@ -361,6 +361,7 @@ void IcicleTreeCanvas::mouseMoveEvent(QMouseEvent* event) {
 
   if (node != selectedNode) {
     selectedNode = node;
+
     redrawAll();
   }
 

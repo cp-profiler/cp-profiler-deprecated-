@@ -50,8 +50,7 @@ class PixelTreeDialog : public QDialog {
 
   Q_SIGNALS :
 
-      void
-      windowResized(void);
+  void windowResized(void);
   void signalPixelSelected(int);
 
  public:

@@ -30,77 +30,102 @@ using namespace cpprofiler::pixeltree;
 PixelTreeDialog::PixelTreeDialog(TreeCanvas* tc) : QDialog(tc) {
   this->resize(INIT_WIDTH, INIT_HEIGHT);
 
-  /// set Title
   this->setWindowTitle(
       QString::fromStdString(tc->getExecution()->getData()->getTitle()));
 
-  auto layout = new QVBoxLayout();
-  auto controlLayout = new QHBoxLayout();
-  auto optionsLayout = new QHBoxLayout();
-
-  setLayout(layout);
-  layout->addWidget(&scrollArea);
-  layout->addLayout(controlLayout);
-  layout->addLayout(optionsLayout);
-
   canvas_ = new PixelTreeCanvas(&scrollArea, *tc);
 
-  /// ***** control panel *****
-  QPushButton* scaleUp = new QPushButton("+", this);
-  QPushButton* scaleDown = new QPushButton("-", this);
+  auto layout = new QVBoxLayout();
+  setLayout(layout);
 
-  // TODO(maxim): make sure this gets deleted
-  QLabel* compLabel = new QLabel("compression");
-  compLabel->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
+  layout->addWidget(&scrollArea);
 
-  QSpinBox* compressionSB = new QSpinBox(this);
-  compressionSB->setRange(1, 10000);
+  /// ********************
+  /// ******* INFO *******
+  /// ********************
+  {
+    auto infoLayout = new QHBoxLayout();
+    layout->addLayout(infoLayout);
 
-  controlLayout->addWidget(scaleDown);
-  controlLayout->addWidget(scaleUp);
-  controlLayout->addWidget(compLabel);
-  controlLayout->addWidget(compressionSB);
+    auto info_label = new QLabel("info: ");
+    info_label->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
+    infoLayout->addWidget(info_label);
+  }
+  /// ********************
+  /// ***** CONTROLS *****
+  /// ********************
+  {
+    auto controlLayout = new QHBoxLayout();
+    layout->addLayout(controlLayout);
 
-  QCheckBox* time_cb = new QCheckBox("time", this);
-  time_cb->setCheckState(Qt::Unchecked);
-  optionsLayout->addWidget(time_cb);
+    auto scaleDown = new QPushButton("-", this);
+    controlLayout->addWidget(scaleDown);
+    connect(scaleDown, &QPushButton::clicked, canvas_,
+            &PixelTreeCanvas::scaleDown);
 
-  connect(this, SIGNAL(windowResized()), canvas_, SLOT(resizeCanvas()));
+    auto scaleUp = new QPushButton("+", this);
+    controlLayout->addWidget(scaleUp);
+    connect(scaleUp, &QPushButton::clicked, canvas_, &PixelTreeCanvas::scaleUp);
 
-  connect(time_cb, SIGNAL(stateChanged(int)), canvas_,
-          SLOT(toggleTimeHistogram(int)));
+    auto compLabel = new QLabel("compression");
+    compLabel->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
+    controlLayout->addWidget(compLabel);
 
-  QCheckBox* domains_cb = new QCheckBox("domains", this);
-  domains_cb->setCheckState(Qt::Unchecked);
-  optionsLayout->addWidget(domains_cb);
-  connect(domains_cb, SIGNAL(stateChanged(int)), canvas_,
-          SLOT(toggleDomainsHistogram(int)));
-
-  QCheckBox* depth_analysis_cb = new QCheckBox("depth analysis", this);
-  depth_analysis_cb->setCheckState(Qt::Checked);
-  optionsLayout->addWidget(depth_analysis_cb);
-  connect(depth_analysis_cb, SIGNAL(stateChanged(int)), canvas_,
-          SLOT(toggleDepthAnalysisHistogram(int)));
-
-  QCheckBox* decision_vars_cb = new QCheckBox("vars", this);
-  decision_vars_cb->setCheckState(Qt::Checked);
-  optionsLayout->addWidget(decision_vars_cb);
-  connect(decision_vars_cb, SIGNAL(stateChanged(int)), canvas_,
-          SLOT(toggleVarsHistogram(int)));
-
-  QCheckBox* bj_analysis_cb = new QCheckBox("backjumps", this);
-  bj_analysis_cb->setCheckState(Qt::Checked);
-  optionsLayout->addWidget(bj_analysis_cb);
-  connect(bj_analysis_cb, SIGNAL(stateChanged(int)), canvas_,
-          SLOT(toggleBjHistogram(int)));
-
-  connect(scaleDown, SIGNAL(clicked()), canvas_, SLOT(scaleDown()));
-  connect(scaleUp, SIGNAL(clicked()), canvas_, SLOT(scaleUp()));
-  connect(compressionSB, SIGNAL(valueChanged(int)), canvas_,
+    auto compressionSB = new QSpinBox(this);
+    compressionSB->setRange(1, 10000);
+    controlLayout->addWidget(compressionSB);
+    connect(compressionSB, SIGNAL(valueChanged(int)), canvas_,
           SLOT(compressionChanged(int)));
+
+    auto dfs_type_cb = new QComboBox();
+    dfs_type_cb->addItem("pre-order");
+    dfs_type_cb->addItem("post-order");
+    controlLayout->addWidget(dfs_type_cb);
+  }
+
+  /// *******************
+  /// ***** OPTIONS *****
+  /// *******************
+  {
+    auto optionsLayout = new QHBoxLayout();
+    layout->addLayout(optionsLayout);
+
+    auto time_cb = new QCheckBox("time", this);
+    time_cb->setCheckState(Qt::Unchecked);
+    optionsLayout->addWidget(time_cb);
+
+    connect(time_cb, SIGNAL(stateChanged(int)), canvas_,
+            SLOT(toggleTimeHistogram(int)));
+
+    auto domains_cb = new QCheckBox("domains", this);
+    domains_cb->setCheckState(Qt::Unchecked);
+    optionsLayout->addWidget(domains_cb);
+    connect(domains_cb, SIGNAL(stateChanged(int)), canvas_,
+            SLOT(toggleDomainsHistogram(int)));
+
+    auto depth_analysis_cb = new QCheckBox("depth analysis", this);
+    depth_analysis_cb->setCheckState(Qt::Checked);
+    optionsLayout->addWidget(depth_analysis_cb);
+    connect(depth_analysis_cb, SIGNAL(stateChanged(int)), canvas_,
+            SLOT(toggleDepthAnalysisHistogram(int)));
+
+    auto decision_vars_cb = new QCheckBox("vars", this);
+    decision_vars_cb->setCheckState(Qt::Checked);
+    optionsLayout->addWidget(decision_vars_cb);
+    connect(decision_vars_cb, SIGNAL(stateChanged(int)), canvas_,
+            SLOT(toggleVarsHistogram(int)));
+
+    auto bj_analysis_cb = new QCheckBox("backjumps", this);
+    bj_analysis_cb->setCheckState(Qt::Checked);
+    optionsLayout->addWidget(bj_analysis_cb);
+    connect(bj_analysis_cb, SIGNAL(stateChanged(int)), canvas_,
+            SLOT(toggleBjHistogram(int)));
+  }
 
   connect(this, SIGNAL(signalPixelSelected(int)), canvas_,
           SLOT(setPixelSelected(int)));
+
+  connect(this, SIGNAL(windowResized()), canvas_, SLOT(resizeCanvas()));
 
   setAttribute(Qt::WA_QuitOnClose, true);
   setAttribute(Qt::WA_DeleteOnClose, true);
