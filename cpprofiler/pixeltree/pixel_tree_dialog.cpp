@@ -33,7 +33,7 @@ PixelTreeDialog::PixelTreeDialog(TreeCanvas* tc) : QDialog(tc) {
   this->setWindowTitle(
       QString::fromStdString(tc->getExecution()->getData()->getTitle()));
 
-  canvas_ = new PixelTreeCanvas(&scrollArea, *tc);
+  canvas_ = new PixelTreeCanvas(&scrollArea, *tc, m_infoPanel);
 
   auto layout = new QVBoxLayout();
   setLayout(layout);
@@ -50,6 +50,7 @@ PixelTreeDialog::PixelTreeDialog(TreeCanvas* tc) : QDialog(tc) {
     auto info_label = new QLabel("info: ");
     info_label->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
     infoLayout->addWidget(info_label);
+    infoLayout->addWidget(m_infoPanel.info_label());
   }
   /// ********************
   /// ***** CONTROLS *****
@@ -81,6 +82,8 @@ PixelTreeDialog::PixelTreeDialog(TreeCanvas* tc) : QDialog(tc) {
     dfs_type_cb->addItem("pre-order");
     dfs_type_cb->addItem("post-order");
     controlLayout->addWidget(dfs_type_cb);
+    connect(dfs_type_cb, SIGNAL(currentTextChanged(const QString&)), canvas_,
+          SLOT(changeTraversalType(const QString&)));
   }
 
   /// *******************
@@ -91,7 +94,7 @@ PixelTreeDialog::PixelTreeDialog(TreeCanvas* tc) : QDialog(tc) {
     layout->addLayout(optionsLayout);
 
     auto time_cb = new QCheckBox("time", this);
-    time_cb->setCheckState(Qt::Unchecked);
+    time_cb->setCheckState(Qt::Checked);
     optionsLayout->addWidget(time_cb);
 
     connect(time_cb, SIGNAL(stateChanged(int)), canvas_,

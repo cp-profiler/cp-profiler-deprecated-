@@ -25,6 +25,7 @@
 #include <utility>
 
 #include "cpprofiler/analysis/backjumps.hh"
+#include "pixel_tree_dialog.hh"
 #include "libs/perf_helper.hh"
 #include "data.hh"
 
@@ -47,9 +48,10 @@ using std::string;
 
 /// ******** PIXEL_TREE_CANVAS ********
 
-PixelTreeCanvas::PixelTreeCanvas(QWidget* parent, TreeCanvas& tc)
+PixelTreeCanvas::PixelTreeCanvas(QWidget* parent, TreeCanvas& tc, InfoPanel& ip)
     : QWidget(parent),
       _tc(tc),
+      infoPanel(ip),
       _data(*tc.getExecution()->getData()),
       _na(tc.getExecution()->getNA()),
       depthAnalysis(tc) {
@@ -84,17 +86,36 @@ PixelTreeCanvas::PixelTreeCanvas(QWidget* parent, TreeCanvas& tc)
   bj_data = bj.findBackjumps(_na[0], _na);
 
   // perfHelper.begin("construct/compress pixel tree");
-  constructPixelTree();
-  compressPixelTree(1);
+  const int compr = m_State.approximation;
+  const bool post_order = false;
+  reset(post_order, compr);
+
   compressDepthAnalysis(da_data_compressed, 1);
-  compressTimeHistogram(time_arr, 1);
   getDomainDataCompressed(domain_arr, 1);
-  gatherVarData();
-  compressVarData(var_decisions_compressed, 1);
+
   gatherNogoodData();
   compressNogoodData(1);
   // perfHelper.end();
 
+}
+
+void PixelTreeCanvas::reset(bool post_order, int compr) {
+  constructPixelTree(post_order);
+  compressPixelTree(compr);
+
+  compressTimeHistogram(time_arr, compr);
+
+  gatherVarData();
+  compressVarData(var_decisions_compressed, compr);
+}
+
+void PixelTreeCanvas::changeTraversalType(const QString& type_str) {
+
+  bool post_order = (type_str == "post-order");
+  const int compr = m_State.approximation;
+  reset(post_order, compr);
+
+  redrawAll();
 }
 
 void PixelTreeCanvas::paintEvent(QPaintEvent*) {
@@ -106,13 +127,16 @@ void PixelTreeCanvas::paintEvent(QPaintEvent*) {
 
 }
 
-void PixelTreeCanvas::constructPixelTree(void) {
+void PixelTreeCanvas::constructPixelTree(bool post_order) {
 
   /// get a root
   auto root = _na[0];
 
-  // pixel_data = traverseTree(root);
-  pixel_data = traverseTreePostOrder(root);
+  if (!post_order) {
+    pixel_data = traverseTree(root);
+  } else {
+    pixel_data = traverseTreePostOrder(root);
+  }
 
 }
 
@@ -242,7 +266,7 @@ void PixelTreeCanvas::compressVarData(vector<vector<int>>& compressed,
 
   compressed.at(0).resize(compression);
 
-  for (unsigned i = 0; i < var_decisions.size(); i++) {
+  for (auto i = 0u; i < var_decisions.size(); i++) {
     group_count++;
 
     compressed.at(vline).at(group_count - 1) = var_decisions[i];
@@ -280,6 +304,7 @@ static size_t findAnyOf(const string& str, T first, Delimiters... args) {
 void PixelTreeCanvas::gatherVarData() {
 
   auto data_length = pixel_data.pixel_list.size();
+  var_decisions.clear();
   var_decisions.reserve(data_length);
 
   for (auto& pixel : pixel_data.pixel_list) {
@@ -577,14 +602,18 @@ void PixelTreeCanvas::drawVarData() {
   const auto xoff = _sa->horizontalScrollBar()->value();
   const auto yoff = _sa->verticalScrollBar()->value();
 
+  assert(yoff == 0);
+
   const int zero_level = current_image_height + vars.size() - yoff;
+
+  hisogramDesc.var_end = zero_level;
   pixel_image.drawHorizontalLine(current_image_height - yoff,
                                  PixelImage::PIXEL_COLOR::LIGTH_GRAY);
   pixel_image.drawHorizontalLine(zero_level,
                                  PixelImage::PIXEL_COLOR::LIGTH_GRAY);
 
-  for (unsigned vline = 0; vline < var_decisions_compressed.size(); vline++) {
-    for (unsigned i = 0; i < var_decisions_compressed.at(vline).size(); i++) {
+  for (auto vline = 0u; vline < var_decisions_compressed.size(); ++vline) {
+    for (auto i = 0u; i < var_decisions_compressed.at(vline).size(); ++i) {
       const auto var_id = var_decisions_compressed[vline][i];
 
       /// cast to `int` as to see if the value < 0
@@ -601,6 +630,7 @@ void PixelTreeCanvas::drawVarData() {
     }
   }
 
+  hisogramDesc.var_begin = current_image_height;
   current_image_height += vars.size() + MARGIN;
 }
 
@@ -619,7 +649,7 @@ void PixelTreeCanvas::drawNogoodData() {
   pixel_image.drawHorizontalLine(zero_level,
                                  PixelImage::PIXEL_COLOR::LIGTH_GRAY);
 
-  for (unsigned vline = 0; vline < nogood_counts_compressed.size(); vline++) {
+  for (auto vline = 0u; vline < nogood_counts_compressed.size(); vline++) {
     const auto value = nogood_counts_compressed[vline];
 
     /// cast to `int` as to see if the value < 0
@@ -650,7 +680,7 @@ void PixelTreeCanvas::drawDomainReduction() {
   // drawHistogram(2, domain_red_arr, l_vline, r_vline, qRgb(40, 150, 150));
 }
 
-void PixelTreeCanvas::drawHistogram(vector<float>& data, int color) {
+void PixelTreeCanvas::drawHistogram(const vector<float>& data, int color) {
   auto xoff = _sa->horizontalScrollBar()->value();
   auto yoff = _sa->verticalScrollBar()->value();
 
@@ -951,6 +981,7 @@ void PixelTreeCanvas::resizeCanvas(void) {
 }
 
 void PixelTreeCanvas::compressionChanged(int value) {
+  m_State.approximation = value;
   compressPixelTree(value);
   compressDepthAnalysis(da_data_compressed, value);
   compressTimeHistogram(time_arr, value);
@@ -1040,8 +1071,35 @@ void PixelTreeCanvas::mouseMoveEvent(QMouseEvent* event) {
 
     const auto vline = x + xoff;
 
+
     /// calls redrawAll not more often than 60hz
     maybeCaller.call([this, x, y, vline]() {
+
+#ifdef MAXIM_DEBUG
+      if (vline < var_decisions_compressed.size()) {
+        string var_info = "";
+        // for (const auto& var_id : var_decisions_compressed[vline]) {
+          // var_info += " " + vars.at(var_id);
+        // }
+
+        if (y > hisogramDesc.var_begin && y <= hisogramDesc.var_end) {
+
+
+          int rel_y = hisogramDesc.var_end - y;
+          const std::vector<int>& var_ids = var_decisions_compressed[vline];
+
+          for (auto var_id : var_ids) {
+            if (var_id == rel_y) {
+              var_info += vars[var_id];
+              break;
+            }
+          }
+
+        }
+
+        infoPanel.set_var_info(var_info);
+      }
+#endif
 
       pixel_image.drawMouseGuidelines(x, y);
       pixel_image.update();

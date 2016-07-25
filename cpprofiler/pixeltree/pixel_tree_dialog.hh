@@ -24,6 +24,8 @@
 #define CPPROFILER_PIXELVIEW_PIXELTREEDIALOG_HH
 
 #include <QDialog>
+#include <QLabel>
+#include <QDebug>
 #include <QAbstractScrollArea>
 
 class QCheckBox;
@@ -35,6 +37,21 @@ namespace pixeltree {
 
 class PixelTreeCanvas;
 
+class InfoPanel {
+  QLabel m_infoLabel;
+
+  std::string m_varInfo;
+
+public:
+  QLabel* info_label() {
+    return &m_infoLabel;
+  }
+  void set_var_info(const std::string& str) {
+    m_varInfo = str;
+    m_infoLabel.setText(str.c_str());
+  }
+};
+
 class PixelTreeDialog : public QDialog {
   Q_OBJECT
 
@@ -45,6 +62,9 @@ class PixelTreeDialog : public QDialog {
   QCheckBox* domains_cb;
   QCheckBox* decision_vars_cb;
   QCheckBox* depth_analysis_cb;
+
+  InfoPanel m_infoPanel;
+
 
   PixelTreeCanvas* canvas_;
 

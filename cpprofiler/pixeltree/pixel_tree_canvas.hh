@@ -26,6 +26,7 @@
 #include <QWidget>
 #include <vector>
 #include <string>
+#include <QDebug>
 
 #include "cpprofiler/analysis/depth_analysis.hh"
 #include "cpprofiler/analysis/backjumps.hh"
@@ -56,12 +57,33 @@ using cpprofiler::analysis::BackjumpItem;
 using cpprofiler::analysis::BackjumpData;
 
 class PixelItem;
+class InfoPanel;
+
+class HistogramDesc {
+public:
+  int var_begin;
+  int var_end;
+
+  int time_begin;
+  int time_end;
+
+  void infoAtXY(int vline, int y) {
+    qDebug() << "x: " << vline << " y: " << y;
+    if (y > var_begin && y <= var_end) {
+      qDebug() << "INSIDE!";
+
+      // const std::vector<int>& var_ids = var_decisions_compressed[vline];
+
+      // qDebug() << var_ids[var_end - y];
+    }
+  }
+};
 
 class PixelTreeCanvas : public QWidget {
   Q_OBJECT
 
   struct PixelTreeState {
-    bool show_time_histogram = false;
+    bool show_time_histogram = true;
     bool show_domain_histogram = false;
     bool show_decision_vars_histogram = true;
     bool show_depth_analysis_histogram = true;
@@ -84,6 +106,9 @@ class PixelTreeCanvas : public QWidget {
   Data& _data;
   NodeAllocator& _na;
   QPixmap pixmap;
+
+  HistogramDesc hisogramDesc;
+  InfoPanel& infoPanel;
 
   QAbstractScrollArea* _sa;
 
@@ -145,7 +170,7 @@ class PixelTreeCanvas : public QWidget {
   void compressNogoodData(int value);
   void drawNogoodData();
 
-  void constructPixelTree();  /// Initial Search Tree traversal
+  void constructPixelTree(bool post_order = false);  /// Initial Search Tree traversal
   /// Apply compression (to get vlineData)
   void compressPixelTree(int value);
   void compressDepthAnalysis(std::vector<std::vector<unsigned int>>& data,
@@ -155,8 +180,11 @@ class PixelTreeCanvas : public QWidget {
   PixelData traverseTree(VisualNode* node);
   PixelData traverseTreePostOrder(VisualNode* node);
 
+  /// Re-calculate the entire tree (i.e. with different traversal type)
+  void reset(bool post_order, int compression);
+
   void redrawAll();
-  void drawHistogram(std::vector<float>& data, int color);
+  void drawHistogram(const std::vector<float>& data, int color);
 
   void drawSolutionLine();
 
@@ -183,7 +211,7 @@ class PixelTreeCanvas : public QWidget {
   PixelItem& gid2PixelItem(int gid);
 
  public:
-  PixelTreeCanvas(QWidget* parent, TreeCanvas& tc);
+  PixelTreeCanvas(QWidget* parent, TreeCanvas& tc, InfoPanel& ip);
 
  protected:
   void paintEvent(QPaintEvent* event);
@@ -197,6 +225,8 @@ class PixelTreeCanvas : public QWidget {
   void compressionChanged(int value);
   void resizeCanvas(void);
   void sliderChanged(int value);
+
+  void changeTraversalType(const QString& type);
 
   void toggleTimeHistogram(int state);
   void toggleDomainsHistogram(int state);
