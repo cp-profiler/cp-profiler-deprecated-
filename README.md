@@ -1,4 +1,4 @@
-# cp-profiler
+# CP-Profiler
 Profiling and Visualisation for Constraint Programming
 
 Pre-release binaries for Linux are available here:
@@ -8,7 +8,7 @@ Dependencies:
 
   * 5.4.x ≤ Qt < 5.6.x
 
-Linux/Mac:
+Compiling Linux/Mac:
 
     mkdir build && cd build
     qmake .. && make
@@ -45,6 +45,16 @@ Be default the **CP Profiler** will be constructing the search tree in the backg
 
 ![Search Tree Example](https://github.com/msgmaxim/profiler_pictures/raw/master/alpha_tree.png "Search Tree Example")
 
+##### Node Actions
+When a node is selected (a selected node will be displayed in yellow colour), some actions will become available for the user. These actions can be found under *Node* menu. Some these actions have keyboard shortcuts assigned. For example, pressing `L` on the keyboard will display search decisions for the subtree under the selected node, while `Shift+L` will display search decisions for nodes on the path from the root to the current node.
+
+Some other common actions:
+
+| Key       | Description               |
+| :---------------: | ----------------------------------- |
+| `F`       | Collapse descendant subtrees with no solutions |
+| `H`       | Collapse the entire subtree |
+| `U`       | Undo any collapsing done under selected node |
 
 ##### Changing *display refresh rate*
 ***Display refresh rate*** determines how many nodes should be received between any two consecutive updates of the search tree drawing.
