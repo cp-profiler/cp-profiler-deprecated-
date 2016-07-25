@@ -34,6 +34,7 @@ using std::chrono::duration_cast;
 using std::chrono::duration;
 using std::vector;
 using std::list;
+using std::string;
 
 /// TODO(maxim): fix histograms going outside their boundaries
 /// TODO(maxim): use correct height for the content
@@ -260,6 +261,27 @@ void PixelTreeCanvas::compressVarData(vector<vector<int>>& compressed,
   }
 }
 
+
+/// Helper function for the one below
+template<typename T>
+static size_t findAnyOf(const string& str, T el) {
+  return str.find(el);
+}
+
+/// Return the position of some substrings from args in str,
+/// starting from the end of the list
+template <typename T, typename... Delimiters>
+static size_t findAnyOf(const string& str, T first, Delimiters... args) {
+
+  auto pos = findAnyOf(str, args...);
+
+  if (pos != string::npos) return pos;
+
+  pos = findAnyOf(str, first);
+
+  return pos;
+}
+
 void PixelTreeCanvas::gatherVarData() {
   auto time_begin = high_resolution_clock::now();
 
@@ -270,7 +292,7 @@ void PixelTreeCanvas::gatherVarData() {
     auto label = _data.getLabel(pixel.node()->getIndex(_na));  /// 1. get label
 
     /// 2. get variable name
-    auto found = label.find(' ');
+    auto found = findAnyOf(label, "=", "!=", "<", ">", ">=", "=<");
 
     std::string var = "";
     if (found != std::string::npos) var = label.substr(0, found);
