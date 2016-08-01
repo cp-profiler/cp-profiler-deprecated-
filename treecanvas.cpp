@@ -1129,7 +1129,9 @@ void TreeCanvas::setCurrentNode(VisualNode* n, bool finished, bool update) {
   if (finished) mutex.lock();
 
   if (n != nullptr) {
-    currentNode->setMarked(false);
+    if (currentNode) {
+      currentNode->setMarked(false);
+    }
     bool changed = (n != currentNode);
     currentNode = n;
     currentNode->setMarked(true);

@@ -89,7 +89,7 @@ protected:
   /// The root node of the tree
   VisualNode* root;
   /// The currently selected node
-  VisualNode* currentNode;
+  VisualNode* currentNode = nullptr;
   /// The head of the currently selected path
   VisualNode* pathHead;
 

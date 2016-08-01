@@ -222,7 +222,7 @@ CmpTreeDialog::showPentagonHist() {
 static string empty_string = "";
 
 // string& getNogoodById(int ng_id, const Execution& e) {
-string& getNogoodById(int ng_id, const std::unordered_map<int64_t, string>& ng_map) {
+string& getNogoodById(int64_t ng_id, const std::unordered_map<int64_t, string>& ng_map) {
 
 
   string& nogood = empty_string;
@@ -309,7 +309,7 @@ PentListWindow::populateNogoodTable(const vector<int>& nogoods) {
 
   _nogoodTable.setRowCount(nogoods.size());
 
-  for (unsigned int i = 0; i < nogoods.size(); i++) {
+  for (auto i = 0u; i < nogoods.size(); i++) {
 
     int ng_id = nogoods[i]; /// is this sid of gid???
     _nogoodTable.setItem(i, 0, new QTableWidgetItem(QString::number(ng_id)));
@@ -475,7 +475,9 @@ CmpTreeDialog::showResponsibleNogoods() {
 
   ng_table->setRowCount(ng_stats.size());
 
-  auto nogood_map = comparison_->left_execution().getNogoods();
+  auto& nogood_map = comparison_->left_execution().getNogoods();
+
+  qDebug() << "map2: " << (void*)(&nogood_map);
 
   int row = 0;
   for (auto ng : ng_stats_vector) {

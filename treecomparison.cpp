@@ -28,7 +28,9 @@
 using std::string;
 
 TreeComparison::TreeComparison(Execution& ex1, Execution& ex2)
-    : _ex1(ex1), _ex2(ex2), _na1(ex1.getNA()), _na2(ex2.getNA()) {}
+    : _ex1(ex1), _ex2(ex2), _na1(ex1.getNA()), _na2(ex2.getNA()) {
+        qDebug() << "map: " << (void*)(&m_responsibleNogoodStats);
+    }
 
 void
 TreeComparison::sortPentagons() {
@@ -155,9 +157,9 @@ TreeComparison::compare(TreeCanvas* new_tc, bool with_labels) {
         /// ----------------------------------------------------
 
         bool equal = TreeComparison::copmareNodes(node1, node2, with_labels);
-        qDebug() << "compare nodes";
+        // qDebug() << "compare nodes";
         if (equal) {
-            qDebug() << "nodes are equal";
+            // qDebug() << "nodes are equal";
             uint kids = node1->getNumberOfChildren();
             for (uint i = 0; i < kids; ++i) {
                 stack1.push(node1->getChild(_na1, kids - i - 1));
@@ -169,7 +171,7 @@ TreeComparison::compare(TreeCanvas* new_tc, bool with_labels) {
                 next = new_tc->root;
                 rootBuilt = true;
             } else {
-                qDebug() << "stack.pop()";
+                // qDebug() << "stack.pop()";
                 next = stack.pop();
             }
 
@@ -194,7 +196,7 @@ TreeComparison::compare(TreeCanvas* new_tc, bool with_labels) {
 
         } else {
             /// not equal
-            qDebug() << "nodes are not equal";
+            // qDebug() << "nodes are not equal";
             next = stack.pop();
             next->setNumberOfChildren(2, na);
             next->setStatus(MERGING);
@@ -240,7 +242,7 @@ TreeComparison::compare(TreeCanvas* new_tc, bool with_labels) {
 
         }
 
-        qDebug() << "comparison na: " << (void*)(&na);
+        // qDebug() << "comparison na: " << (void*)(&na);
 
         next->dirtyUp(na);
         new_tc->update();

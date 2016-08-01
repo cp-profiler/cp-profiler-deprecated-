@@ -66,7 +66,7 @@ class TreeComparison {
   const std::vector<PentagonItem>& pentagon_items() const {
     return m_pentagonItems;
   }
-  const std::unordered_map<int, NogoodCmpStats>& responsible_nogood_stats()
+  const std::unordered_map<int64_t, NogoodCmpStats>& responsible_nogood_stats()
       const {
     return m_responsibleNogoodStats;
   }
@@ -78,7 +78,7 @@ class TreeComparison {
   };
 
   std::vector<PentagonItem> m_pentagonItems;
-  std::unordered_map<int, NogoodCmpStats> m_responsibleNogoodStats;
+  std::unordered_map<int64_t, NogoodCmpStats> m_responsibleNogoodStats;
 
   /// The four needed for extracting labels
   const Execution& _ex1;
