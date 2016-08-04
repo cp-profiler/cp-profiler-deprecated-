@@ -1,8 +1,11 @@
                 LICENSE AGREEMENT
                 
 This software and its documentation are copyrighted by the
-individual authors as listed in each file. The following
-terms apply to all files associated with the software unless
+individual authors as listed in each file. 
+
+For the files in the protobuf directory see protobuf/LICENSE.
+
+The following terms apply to all files associated with the software unless
 explicitly disclaimed in individual files.
 
 Permission is hereby granted, free of charge, to any person obtaining
