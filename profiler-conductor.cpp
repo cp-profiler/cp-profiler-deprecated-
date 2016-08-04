@@ -171,6 +171,7 @@ void ProfilerConductor::newExecution(Execution* execution) {
           SLOT(onSomeFinishedReceiving()));
   connect(execution, SIGNAL(doneBuilding()), this,
           SLOT(onSomeFinishedBuilding()));
+  show();
 }
 
 void ProfilerConductor::updateList(void) {
