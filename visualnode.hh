@@ -239,13 +239,13 @@ public:
   void unstopAll(const NodeAllocator& na);
 
   /// Return the shape of this node
-  Shape* getShape(void);
+  Shape* getShape(void) const;
   /// Set the shape of this node
   void setShape(Shape* s);
   /// Compute the shape according to the shapes of the children
   void computeShape(const NodeAllocator& na);
   /// Return the bounding box
-  BoundingBox getBoundingBox(void);
+  BoundingBox getBoundingBox(void) const;
   /// Find a node in this subtree at coordinates \a x, \a y
   VisualNode* findNode(const NodeAllocator& na, int x, int y);
 

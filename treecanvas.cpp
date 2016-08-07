@@ -36,6 +36,7 @@
 #include "highlight_nodes_dialog.hpp"
 #include "nogood_dialog.hh"
 #include "node_info_dialog.hh"
+#include "libs/perf_helper.hh"
 
 #include "third-party/json.hpp"
 
@@ -250,15 +251,6 @@ void TreeCanvas::statusChanged(bool finished) {
   emit needActionsUpdate(currentNode, finished);
 }
 
-int TreeCanvas::getNoOfSolvedLeaves(VisualNode* n) {
-  int count = 0;
-
-  CountSolvedCursor csc(n, execution->getNA(), count);
-  PreorderNodeVisitor<CountSolvedCursor>(csc).run();
-
-  return count;
-}
-
 void TreeCanvas::showPixelTree(void) {
   using cpprofiler::pixeltree::PixelTreeDialog;
   auto pixelTreeDialog = new PixelTreeDialog(this);
@@ -443,36 +435,22 @@ void TreeCanvas::collectMLStatsRoot(std::ostream& out) {
   ::collectMLStats(root, execution->getNA(), execution, out);
 }
 
-void TreeCanvas::highlightShape(VisualNode* node) {
+void TreeCanvas::highlightSubtrees(std::vector<VisualNode*>& nodes) {
   QMutexLocker locker_1(&mutex);
   QMutexLocker locker_2(&layoutMutex);
+
   root->unhideAll(execution->getNA());
   root->layout(execution->getNA());
+
   UnhighlightCursor uhc(root, execution->getNA());
   PreorderNodeVisitor<UnhighlightCursor>(uhc).run();
 
-  // highlight shape if it is not already highlighted
-  if (node != shapeHighlighted) {
-    shapeHighlighted = node;
-
-    ShapeI toFind(getNoOfSolvedLeaves(node), node);
-
-    // get all nodes with similar shape
-    auto range = shapesWindow->shapeSet.equal_range(toFind);
-
-    // TODO(maxim): better foreach
-    for (auto it = range.first; it != range.second; ++it) {
-      VisualNode* targetNode = it->node;
-
-      targetNode->setHighlighted(true);
-    }
-
-    HideNotHighlightedCursor hnhc(root, execution->getNA());
-    PostorderNodeVisitor<HideNotHighlightedCursor>(hnhc).run();
-
-  } else {
-    shapeHighlighted = nullptr;
+  for (auto& node : nodes) {
+    node->setHighlighted(true);
   }
+
+  HideNotHighlightedCursor hnhc(root, execution->getNA());
+  PostorderNodeVisitor<HideNotHighlightedCursor>(hnhc).run();
 
   update();
 }
@@ -1298,7 +1276,7 @@ void TreeCanvas::applyToEachNodeIf(std::function<void(VisualNode*)> action,
 }
 
 void unhighlightAllNodes(NodeAllocator& na) {
-  for (auto i = 0u; i < na.size(); ++i) {
+  for (auto i = 0; i < na.size(); ++i) {
     na[i]->setHovered(false);
   }
 }

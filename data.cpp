@@ -149,7 +149,6 @@ int Data::handleNodeCallback(message::Node& node) {
     pushInstance(entry);
 
     if (node.has_nogood() && node.nogood().length() > 0) {
-        qDebug() << "(!)" << entry->full_sid << " -> " << node.nogood().c_str();
         sid2nogood[entry->s_node_id] = node.nogood();
     }
 

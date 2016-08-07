@@ -2,6 +2,8 @@
 #define SIMILAR_SHAPES_HH
 
 #include <QDialog>
+#include <QDebug>
+#include <QLabel>
 #include <set>
 #include <memory>
 
@@ -33,18 +35,37 @@ struct ShapeI {
   ShapeI& operator=(const ShapeI& other);
 };
 
-class Filters {
- public:
-  explicit Filters(const SimilarShapesWindow& ssw);
-  void setMinDepth(int);
-  void setMinCount(int);
-  bool apply(const ShapeI& s);
-
- private:
-  int m_minDepth = 2;
-  int m_minCount = 2;
-  const SimilarShapesWindow& m_ssWindow;
+struct SubtreeInfo {
+  VisualNode* node;
+  int size;
+  int height;
+  int count;
+  bool marked;
 };
+
+namespace detail {
+
+  struct FiltersInfo {
+    int height;
+    int count;
+  };
+
+  class Filters {
+   public:
+    explicit Filters(const SimilarShapesWindow& ssw);
+    void setMinDepth(int);
+    void setMinCount(int);
+    bool apply(const ShapeI& s);
+    bool apply(const FiltersInfo& s);
+
+   private:
+    int m_minDepth = 2;
+    int m_minCount = 2;
+    const SimilarShapesWindow& m_ssWindow;
+  };
+}
+
+
 
 /// less operator needed for the map
 struct CompareShapes {
@@ -56,32 +77,25 @@ enum class ShapeProperty { SIZE, COUNT, HEIGHT };
 
 using GroupsOfNodes_t = std::vector<std::vector<VisualNode*>>;
 
+enum class SimilarityType {
+  SHAPE, SUBTREE
+};
+
 class SimilarShapesWindow : public QDialog {
   Q_OBJECT
 
   friend class ::SimilarShapesCursor;
-  friend class Filters;
+  friend class detail::Filters;
   friend class ::TreeCanvas;
 
-  void drawHistogram();
- public:
-  explicit SimilarShapesWindow(TreeCanvas* tc, const NodeTree& nt);
-  void drawAlternativeHistogram();
-
- public Q_SLOTS:
-  void depthFilterChanged(int val);
-  void countFilterChanged(int val);
-
  private:
-  /// Loop through all nodes and add them to the multimap
-  void collectSimilarShapes();
-
-  void initInterface();
-
-  bool m_done = false;
 
   TreeCanvas* m_tc;
   const NodeTree& node_tree;
+
+  bool m_done = false;
+
+  SimilarityType simType = SimilarityType::SHAPE;
 
   ShapeCanvas* shapeCanvas;
   std::multiset<ShapeI, CompareShapes> shapeSet;
@@ -90,62 +104,75 @@ class SimilarShapesWindow : public QDialog {
   QAbstractScrollArea* m_scrollArea;
   QGraphicsView* view;
   std::unique_ptr<QGraphicsScene> scene;
-  Filters filters;
+  detail::Filters filters;
 
   ShapeProperty m_histType = ShapeProperty::SIZE;
   ShapeProperty m_sortType = ShapeProperty::SIZE;
 
   GroupsOfNodes_t m_identicalGroups;
+
+#ifdef MAXIM_DEBUG
+  QLabel debug_label{"debug info"};
+#endif
+
+private:
+    /// Loop through all nodes and add them to the multimap
+  void collectSimilarShapes();
+  void initInterface();
+
+  void updateHistogram();
+  void drawHistogram();
+
+ public:
+  SimilarShapesWindow(TreeCanvas* tc, const NodeTree& nt);
+  void drawAlternativeHistogram();
+  void highlightSubtrees(VisualNode* n);
+
+ public Q_SLOTS:
+  void depthFilterChanged(int val);
+  void countFilterChanged(int val);
+
+
 };
 
 class ShapeCanvas : public QWidget {
-  Q_OBJECT
- public:
-  ShapeCanvas(QAbstractScrollArea* parent, TreeCanvas* tc,
-              const std::multiset<ShapeI, CompareShapes>& sm,
-              const GroupsOfNodes_t& groups);
-  void highlightShape(VisualNode* node);
-
- private:
+Q_OBJECT
+  const NodeTree& m_NodeTree;
   const QAbstractScrollArea* m_sa;
-  VisualNode* m_targetNode = nullptr;  // what is it?
-  TreeCanvas* m_tc;
-  // TODO(maxim): maybe this isn't necessary here
-  const std::multiset<ShapeI, CompareShapes>& m_shapesSet;
-  const GroupsOfNodes_t m_identicalGroups;
+  VisualNode* m_targetNode = nullptr;
 
   int xtrans;
 
-  // width and height of the shape
-  int width, height;
-
- protected:
-  /// Paint the shape
+  /// paint the shape
   void paintEvent(QPaintEvent* event);
- protected Q_SLOTS:
-  void scroll();
+public:
+  ShapeCanvas(QAbstractScrollArea* parent, const NodeTree& nt);
+  void highlightShape(VisualNode* node);
 };
 
 class ShapeRect : public QGraphicsRectItem {
- public:
+public:
   static constexpr int HEIGHT = 16;
   static constexpr int HALF_HEIGHT = HEIGHT / 2;
   static constexpr int PIXELS_PER_VALUE = 5;
   static constexpr int SELECTION_WIDTH = 600;
 
-  ShapeRect(int x, int y, int width, VisualNode*, ShapeCanvas*,
-            QGraphicsItem* parent = nullptr);
-  VisualNode* getNode();
+private:
+  VisualNode* const m_node;
+  SimilarShapesWindow* const m_ssWindow;
+
+public:
+  ShapeRect(int x, int y, int width, VisualNode*, SimilarShapesWindow*);
+
+  VisualNode* getNode() const;
   // add to the scene
   void draw(QGraphicsScene* scene);
   QGraphicsRectItem visibleArea;
 
- protected:
+protected:
   void mousePressEvent(QGraphicsSceneMouseEvent*);
 
- private:
-  VisualNode* m_node;
-  ShapeCanvas* m_canvas;
+
 };
 }
 }

@@ -259,7 +259,7 @@ GroupsOfNodes_t findIdenticalShapes(TreeCanvas* tc,
 
     result[i].reserve(items.size());
 
-    qDebug() << "copying " << items.size() << " elements";
+    // qDebug() << "copying " << items.size() << " elements";
     for (auto j = 0u; j < items.size(); ++j) {
       result[i].push_back(items[j].node);
     }

@@ -189,14 +189,7 @@ public:
   /// TODO(maxim): funny const here
   Execution* getExecution() const { return execution; }
 
-  /// ***** GETTERS *****
-
   unsigned int getTreeDepth();
-
-  /// *******************
-
-  /// Return number of solved children in the node
-  int getNoOfSolvedLeaves(VisualNode* n);
 
   void printSearchLogTo(const QString& file_name);
 
@@ -323,8 +316,7 @@ public Q_SLOTS:
   /// Collect ML stats from the root
   void collectMLStatsRoot(std::ostream& out);
 
-  /// calls when clicking right mouse button on a shape
-  void highlightShape(VisualNode* node);
+  void highlightSubtrees(std::vector<VisualNode*>& nodes);
 
   void resetNodesHighlighting();
 

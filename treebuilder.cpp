@@ -71,7 +71,7 @@ bool TreeBuilder::processRoot(DbEntry& dbEntry) {
   QMutexLocker locker(&execution->getMutex());
   QMutexLocker layoutLocker(&execution->getLayoutMutex());
 
-  std::cerr << "process root: " << dbEntry << "\n";
+  // std::cerr << "process root: " << dbEntry << "\n";
 
   auto& gid2entry = _data->gid2entry;
 

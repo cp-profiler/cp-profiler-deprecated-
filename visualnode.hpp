@@ -236,12 +236,12 @@ inline int VisualNode::getSubtreeSize(void) {
   return size;
 }
 
-inline Shape* VisualNode::getShape(void) {
+inline Shape* VisualNode::getShape(void) const {
   if (isHidden()) return (getStatus() == MERGING) ? Shape::leaf : Shape::hidden;
   return shape;
 }
 
-inline BoundingBox VisualNode::getBoundingBox(void) {
+inline BoundingBox VisualNode::getBoundingBox(void) const {
   return getShape()->getBoundingBox();
 }
 
