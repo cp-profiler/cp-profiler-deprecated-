@@ -4,6 +4,23 @@ Profiling and Visualisation for Constraint Programming
 Pre-release binaries for Linux are available here:
   https://github.com/cp-profiler/cp-profiler/releases/tag/0.1
 
+## Table of Contents
+- [Building from Source](#building-from-source)
+- [How to Use](#how-to-use)
+  - [Connecting with a Solver](#connecting-with-a-solver)
+  - [Basic Search Tree Visualisation](#basic-search-tree-visualisation)
+    - [Node Actions](#node-actions)
+    - [Changing *display refresh rate*](#changing-display-refresh-rate)
+  - [Alternative Ways of Displaying the Search](#alternative-ways-of-displaying-the-search)
+    - [Hiding by size](#hiding-by-size)
+    - [Pixel Tree view](#pixel-tree-view)
+    - [Icicle Tree view](#icicle-tree-view)
+  - [Analysis Techniques](#analysis-techniques)
+
+
+
+### Building from Source
+
 Dependencies:
 
   * 5.4.x ≤ Qt < 5.6.x
@@ -14,7 +31,8 @@ Compiling Linux/Mac:
     qmake .. && make
 
 
-### How to use:
+### How to Use:
+#### Connecting with a solver
 1. Start the profiler
 
   (from *cp-profiler/build* directory):
@@ -41,7 +59,7 @@ Note: Because every new *node* can potentially cause the entire *search tree* la
 
 Be default the **CP Profiler** will be constructing the search tree in the background. Selecting an execution from the list and clicking *show tree* will display the corresponding search tree (updating it in real time if the solver is still running.)
 
-### Basic Search Tree Visualisation
+#### Basic Search Tree Visualisation
 
 ![Search Tree Example](https://github.com/msgmaxim/profiler_pictures/raw/master/alpha_tree.png "Search Tree Example")
 
@@ -61,13 +79,19 @@ Some other common actions:
 
 The property is available under *Preferences...* sub-menu and its value will persist for any further solver executions.
 
-### Different ways to display the search
+#### Alternative Ways of Displaying the Search
 
 [coming soon]
 
-#### Hiding by size
-#### Pixel Search Tree view
+##### Hiding by size
+todo
+##### Pixel Tree view
+todo
+##### Icicle Tree view
+todo
 
-### Search Tree Comparison
+#### Analysis Techniques
+##### Similar Subtree Analysis
+##### Search Tree Comparison
 
 In the current implementation the first and the second executions will be compared.
