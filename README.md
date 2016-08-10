@@ -81,12 +81,28 @@ The property is available under *Preferences...* sub-menu and its value will per
 
 #### Alternative Ways of Displaying the Search
 
-[coming soon]
-
 ##### Hiding by size
-todo
+
+
+
 ##### Pixel Tree view
-todo
+
+In *Pixel Tree view* nodes are represented by *squares* (pixels), and edges only implicitly by the indentation between the *squares*. Parent nodes are placed immediately to the left of their subtree and the leaves of each subtree are grouped to the rightmost position.
+
+The image below shows a correspondence between nodes in a *traditional view* and those in a *Pixel Tree* view. Note that a *green vertical line* indicates a *solution* found at the corresponding node.
+
+![Pixel Tree View Basic Example](https://raw.githubusercontent.com/msgmaxim/profiler_pictures/master/basic_pt.png "Pixel Tree View Basic Example")
+
+One of the main advantages of the pixel tree view is the ability to **compress it while preserving large scale patterns** and thus providing a good overview of the search. The compression is done by simply allowing multiple nodes on the same horizontal position.
+
+The example below shows a tree with around *100K* nodes with *compression* set to `500` (`500` nodes for every horizontal position).
+
+![Pixel Tree View Larger Example](https://raw.githubusercontent.com/msgmaxim/profiler_pictures/master/pixel_tree.png "Pixel Tree View Larger Example")
+
+TODO: talk about histograms underneath
+
+This view is available under *Tree* submenu.
+
 ##### Icicle Tree view
 todo
 
