@@ -110,4 +110,15 @@ todo
 ##### Similar Subtree Analysis
 ##### Search Tree Comparison
 
-In the current implementation the first and the second executions will be compared.
+The following example demonstrates a comparison of two executions of the *Golomb Ruler* problem with 5 marks: one with a *symmetry breaking constraint* and one without. Here the two executions have been captured by the profiler and their search tree visualised (currently visualising is required prior to comparing).
+
+
+![Two executions](https://raw.githubusercontent.com/msgmaxim/profiler_pictures/master/comparison_conductor.png "Two executions")
+
+
+![Golomb 5](https://raw.githubusercontent.com/msgmaxim/profiler_pictures/master/golomb5.png "Golomb 5")
+![Golomb 5 with symmetry breaking](https://raw.githubusercontent.com/msgmaxim/profiler_pictures/master/golomb5_sym_brk.png "Golomb 5 with symmetry breaking")
+
+Clicking **compare trees** button from *execution conductor* menu will initiate the comparison of the two selected executions.
+
+![Merged Tree](https://raw.githubusercontent.com/msgmaxim/profiler_pictures/master/golomb5merged.png "Merged Tree")
