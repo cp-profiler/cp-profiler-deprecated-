@@ -27,10 +27,62 @@
 
 using std::string;
 
-TreeComparison::TreeComparison(Execution& ex1, Execution& ex2)
-    : _ex1(ex1), _ex2(ex2), _na1(ex1.getNA()), _na2(ex2.getNA()) {
-        qDebug() << "map: " << (void*)(&m_responsibleNogoodStats);
+void find_and_replace_all(std::string& str, std::string substr_old, std::string substr_new) {
+    auto pos = str.find(substr_old);
+    while (pos != std::string::npos) {
+        str.replace(pos, std::string(substr_old).length(), substr_new);
+        pos = str.find(substr_old);
     }
+}
+
+/// Returns true/false depending on whether n1 ~ n2
+bool copmareNodes(const VisualNode* n1, const Execution& ex1,
+                  const VisualNode* n2, const Execution& ex2,
+                  bool with_labels) {
+  const auto kids1 = n1->getNumberOfChildren();
+  const auto kids2 = n2->getNumberOfChildren();
+  if (kids1 != kids2) return false;
+
+  if (n1->getStatus() != n2->getStatus()) return false;
+
+  /// check labels
+  if (with_labels) {
+    for (auto i = 0u; i < kids1; i++) {
+      int id1 = n1->getChild(i);
+      int id2 = n2->getChild(i);
+
+      auto label1 = ex1.getLabel(id1);
+      auto label2 = ex2.getLabel(id2);
+
+      /// NOTE(maxim): removes whitespaces before comparing;
+      /// this will be necessary as long as Chuffed and Gecode don't agree
+      /// on whether to put whitespaces around operators (Gecode uses ' '
+      /// for parsing logbrancher while Chuffed uses them as a delimiter
+      /// between literals)
+
+      label1.erase(remove_if(label1.begin(), label1.end(), isspace),
+                   label1.end());
+      label2.erase(remove_if(label2.begin(), label2.end(), isspace),
+                   label2.end());
+
+      /// Replace `==` with `=`
+
+      find_and_replace_all(label1, "==", "=");
+      find_and_replace_all(label2, "==", "=");
+
+      if (label1.compare(label2) != 0) {
+        qDebug() << "labels not equal: " << label1.c_str() << " "
+                 << label2.c_str();
+        return false;
+      }
+    }
+  }
+
+  return true;
+}
+
+TreeComparison::TreeComparison(const Execution& ex1, const Execution& ex2)
+    : _ex1(ex1), _ex2(ex2), _na1(ex1.getNA()), _na2(ex2.getNA()) {}
 
 void
 TreeComparison::sortPentagons() {
@@ -78,7 +130,7 @@ TreeComparison::compare(TreeCanvas* new_tc, bool with_labels) {
 
     Execution& execution = *new_tc->getExecution();
 
-    VisualNode* root = execution.getNA()[0];
+    VisualNode* root = execution.getRootNode();
     stack.push(root);
 
     bool rootBuilt = false;
@@ -103,8 +155,8 @@ TreeComparison::compare(TreeCanvas* new_tc, bool with_labels) {
         do {
             implied_child = -1;
 
-            unsigned int kids = node1->getNumberOfChildren();
-            for (unsigned int i = 0; i < kids; i++) {
+            auto kids = node1->getNumberOfChildren();
+            for (auto i = 0u; i < kids; i++) {
 
                 int child_gid = node1->getChild(i);
                 std::string label = _ex1.getLabel(child_gid);
@@ -131,8 +183,8 @@ TreeComparison::compare(TreeCanvas* new_tc, bool with_labels) {
         do {
             implied_child = -1;
 
-            unsigned int kids = node2->getNumberOfChildren();
-            for (unsigned int i = 0; i < kids; i++) {
+            auto kids = node2->getNumberOfChildren();
+            for (auto i = 0u; i < kids; i++) {
 
                 int child_gid = node2->getChild(i);
                 std::string label = _ex2.getLabel(child_gid);
@@ -156,12 +208,12 @@ TreeComparison::compare(TreeCanvas* new_tc, bool with_labels) {
 
         /// ----------------------------------------------------
 
-        bool equal = TreeComparison::copmareNodes(node1, node2, with_labels);
-        // qDebug() << "compare nodes";
+        bool equal = copmareNodes(node1, _ex1, node2, _ex2, with_labels);
+
         if (equal) {
             // qDebug() << "nodes are equal";
-            uint kids = node1->getNumberOfChildren();
-            for (uint i = 0; i < kids; ++i) {
+            auto kids = node1->getNumberOfChildren();
+            for (auto i = 0u; i < kids; ++i) {
                 stack1.push(node1->getChild(_na1, kids - i - 1));
                 stack2.push(node2->getChild(_na2, kids - i - 1));
             }
@@ -171,7 +223,6 @@ TreeComparison::compare(TreeCanvas* new_tc, bool with_labels) {
                 next = new_tc->root;
                 rootBuilt = true;
             } else {
-                // qDebug() << "stack.pop()";
                 next = stack.pop();
             }
 
@@ -184,13 +235,13 @@ TreeComparison::compare(TreeCanvas* new_tc, bool with_labels) {
 
             /// point to the source node
 
-            unsigned int source_index = node2->getIndex(_na2);
-            unsigned int target_index = next->getIndex(na);
+            auto source_index = node2->getIndex(_na2);
+            auto target_index = next->getIndex(na);
 
-            DbEntry* entry = _ex2.getEntry(source_index);
-            new_tc->getExecution()->getData()->connectNodeToEntry(target_index, entry);
+            auto entry = _ex2.getEntry(source_index);
+            execution.getData()->connectNodeToEntry(target_index, entry);
 
-            for (unsigned int i = 0; i < kids; ++i) {
+            for (auto i = 0u; i < kids; ++i) {
                 stack.push(next->getChild(na, kids - i - 1));
             }
 
@@ -210,8 +261,8 @@ TreeComparison::compare(TreeCanvas* new_tc, bool with_labels) {
             stack.push(next->getChild(na, 1));
             stack.push(next->getChild(na, 0));
 
-            int left = copyTree(stack.pop(), new_tc, node1, _ex1, 1);
-            int right = copyTree(stack.pop(), new_tc, node2, _ex2, 2);
+            int left_size = copyTree(stack.pop(), new_tc, node1, _ex1, 1);
+            int right_size = copyTree(stack.pop(), new_tc, node2, _ex2, 2);
 
             /// hide the nodes one level below a pentagon
             /// if they are hidden on the original tree
@@ -230,14 +281,14 @@ TreeComparison::compare(TreeCanvas* new_tc, bool with_labels) {
             if (node1->getStatus() == FAILED) {
                 info_str = _ex1.getInfo(*node1);
 
-                int search_reduction = -1;
-                assert(left == 1);
-                search_reduction = right - left;
+                int search_reduction = right_size - left_size;
                 /// identify nogoods and increment counters
-                if (info_str) analyseNogoods(*info_str, search_reduction);
+                if (info_str) {
+                    analyseNogoods(*info_str, search_reduction);
+                }
             }
 
-            m_pentagonItems.emplace_back(PentagonItem{left, right, next, info_str});
+            m_pentagonItems.emplace_back(PentagonItem{left_size, right_size, next, info_str});
 
 
         }
@@ -312,58 +363,6 @@ TreeComparison::copyTree(VisualNode* target, TreeCanvas* tc,
     }
 
     return count;
-}
-
-void find_and_replace_all(std::string& str, std::string substr_old, std::string substr_new) {
-    auto pos = str.find(substr_old);
-    while (pos != std::string::npos) {
-        str.replace(pos, std::string(substr_old).length(), substr_new);
-        pos = str.find(substr_old);
-    }
-}
-
-bool
-TreeComparison::copmareNodes(const VisualNode* n1, const VisualNode* n2, bool with_labels) {
-    unsigned kids = n1->getNumberOfChildren();
-    if (kids != n2->getNumberOfChildren())
-        return false;
-
-    if (n1->getStatus() != n2->getStatus())
-        return false;
-
-    /// check labels
-    if (with_labels) {
-        for (unsigned i = 0; i < kids; i++) {
-
-            int id1 = n1->getChild(i);
-            int id2 = n2->getChild(i);
-
-            auto label1 = _ex1.getLabel(id1);
-            auto label2 = _ex2.getLabel(id2);
-
-            /// NOTE(maxim): removes whitespaces before comparing;
-            /// this will be necessary as long as Chuffed and Gecode don't agree
-            /// on whether to put whitespaces around operators (Gecode uses ' '
-            /// for parsing logbrancher while Chuffed uses them as a delimiter
-            /// between literals)
-
-            label1.erase(remove_if(label1.begin(), label1.end(), isspace), label1.end());
-            label2.erase(remove_if(label2.begin(), label2.end(), isspace), label2.end());
-
-            /// Replace `==` with `=`
-
-            find_and_replace_all(label1, "==", "=");
-            find_and_replace_all(label2, "==", "=");
-
-            if (label1.compare(label2) != 0) {
-                qDebug() << "labels not equal: " << label1.c_str() << " " << label2.c_str();
-                return false;
-            }
-
-        }
-    }
-
-    return true;
 }
 
 int

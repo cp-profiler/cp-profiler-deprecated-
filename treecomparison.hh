@@ -51,7 +51,7 @@ struct NogoodCmpStats {
 
 class TreeComparison {
  public:
-  TreeComparison(Execution& ex1, Execution& ex2);
+  TreeComparison(const Execution& ex1, const Execution& ex2);
   void compare(TreeCanvas* new_tc, bool with_labels);
   void sortPentagons();
 
@@ -92,9 +92,6 @@ class TreeComparison {
 private: /// methods
  void analyseNogoods(const std::string& info, int search_reduction);
 
- /// Returns true/false depending on whether n1 ~ n2
- bool copmareNodes(const VisualNode* n1, const VisualNode* n2,
-                   bool with_labels);
 
  /// 'which' is treated as a colour, usually 1 or 2 depending on which tree is a
  /// source

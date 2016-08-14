@@ -31,10 +31,8 @@
 
 using std::string;
 
-/// TODO(maxim): use normal Gist window for comparison instead???
-
 CmpTreeDialog::CmpTreeDialog(QWidget* parent, Execution* execution, bool with_labels,
-                             TreeCanvas* tc1, TreeCanvas* tc2)
+                             const Execution& ex1, const Execution& ex2)
     : QDialog{parent} {
 
   auto main_layout = new QHBoxLayout();
@@ -91,7 +89,7 @@ CmpTreeDialog::CmpTreeDialog(QWidget* parent, Execution* execution, bool with_la
   auto mergedLabel = new QLabel("0");
   hbl->addWidget(mergedLabel);
 
-  comparison_ = new TreeComparison{*tc1->getExecution(), *tc2->getExecution()};
+  comparison_ = new TreeComparison{ex1, ex2};
 
   auto nodeMenu = menuBar->addMenu(tr("&Node"));
   auto analysisMenu = menuBar->addMenu(tr("&Analysis"));
@@ -108,6 +106,7 @@ CmpTreeDialog::CmpTreeDialog(QWidget* parent, Execution* execution, bool with_la
 }
 
 CmpTreeDialog::~CmpTreeDialog() {
+  delete comparison_;
   delete m_Canvas;
 }
 
@@ -290,12 +289,16 @@ void initNogoodTable(QTableWidget& ng_table) {
 
 std::vector<int>
 infoToNogoodVector(const string& info) {
-  auto info_json = nlohmann::json::parse(info);
 
-  auto nogoods = info_json["nogoods"];
+  // TODO(maxim): better way for checking if json?
+  if (info.size() > 0 && info[0] == '{') {
+    auto info_json = nlohmann::json::parse(info);
 
-  if (nogoods.is_array()) {
-    return nogoods;
+    auto nogoods = info_json["nogoods"];
+
+    if (nogoods.is_array()) {
+      return nogoods;
+    }
   }
 
   return {};

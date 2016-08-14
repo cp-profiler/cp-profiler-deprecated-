@@ -218,8 +218,8 @@ void ProfilerConductor::compareExecutions(bool auto_save) {
   if (gmw1 == nullptr || gmw2 == nullptr) return;
 
   CmpTreeDialog* ctd = new CmpTreeDialog(
-      this, e, withLabels, gmw1->getGist()->getCanvas(),
-      gmw2->getGist()->getCanvas());
+      this, e, withLabels, *gmw1->getGist()->getExecution(),
+      *gmw2->getGist()->getExecution());
   (void)ctd;
 
   // if (auto_save) {

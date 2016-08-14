@@ -81,7 +81,7 @@ private:
 public:
 
   CmpTreeDialog(QWidget* parent, Execution* execution, bool withLabels,
-                TreeCanvas *tc1, TreeCanvas *tc2);
+                const Execution& ex1, const Execution& ex2);
 
   ~CmpTreeDialog();
 
