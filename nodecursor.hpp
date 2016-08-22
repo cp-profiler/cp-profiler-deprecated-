@@ -661,6 +661,27 @@ SearchLogCursor::SearchLogCursor(VisualNode *theNode,
       _execution(execution)
 {}
 
+static std::string reverseOp(const char* op) {
+  if (strcmp(op, "=") == 0) { return "!="; }
+  if (strcmp(op, ">") == 0) { return "<="; }
+  if (strcmp(op, "<") == 0) { return ">="; }
+  if (strcmp(op, "<=") == 0) { return ">"; }
+  if (strcmp(op, ">=") == 0) { return "<"; }
+}
+
+static std::string reverseLabel(const std::string& str) {
+  auto operators = {"<=", ">=", "!=", "=", "<", ">"}; /// order matters here
+  for (auto op : operators) {
+    auto pos = str.find(op);
+    if (pos == std::string::npos) continue;
+
+    return str.substr(0, pos) + reverseOp(op) + str.substr(pos + strlen(op));
+    break;
+  }
+  abort();
+  return "";
+}
+
 inline void
 SearchLogCursor::processCurrentNode(void) {
     VisualNode* n = node();
@@ -673,10 +694,18 @@ SearchLogCursor::processCurrentNode(void) {
         int childIndex = n->getChild(i);
 
         int child_gid = n->getChild(i);
-        auto child_label = QString::fromStdString(_execution.getLabel(child_gid));
+        auto child_label = _execution.getLabel(child_gid);
+
+        if (i == 1 && numChildren == 2 && child_label == "") {
+          auto prev = _execution.getLabel(n->getChild(0));
+
+          if (prev != "") {
+            child_label = reverseLabel(prev);
+          }
+        }
 
         // The child's index and its label.
-        _out << " " << childIndex << " " << child_label;
+        _out << " " << childIndex << " " << child_label.c_str();
     }
 
     // Terminate the line.

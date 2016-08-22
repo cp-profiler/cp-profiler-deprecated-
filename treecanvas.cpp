@@ -297,8 +297,10 @@ void TreeCanvas::deleteWhiteNodes() {
   // 1. swap deleted nodes in *na* with the last in *na*
   // and remap array ids.
   qDebug() << "size before: " << na.size();
-  for (auto i = 0u; i < na.size(); ++i) {
+  for (auto i = 0; i < na.size(); ++i) {
     auto node = na[i];
+    // TODO(maxim): play around with omitting SKIPPED nodes:
+    // if (node->getStatus() == UNDETERMINED || node->getStatus() == SKIPPED) {
     if (node->getStatus() == UNDETERMINED) {
       deleteNode(node);
     }

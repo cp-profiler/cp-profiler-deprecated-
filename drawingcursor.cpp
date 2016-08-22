@@ -121,7 +121,7 @@ DrawingCursor::processCurrentNode(void) {
                 painter.setBrush(QColor(150, 255, 255, 255));
             break;
             case 2:
-                painter.setBrush(QColor(255, 150, 255, 255));
+                painter.setBrush(QColor(255, 206, 153, 255));
             break;
             case 3:
                 painter.setBrush(QColor(150, 255, 150, 255));
