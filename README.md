@@ -1,8 +1,7 @@
 # CP-Profiler
 Profiling and Visualisation for Constraint Programming
 
-Pre-release binaries for Linux are available here:
-  https://github.com/cp-profiler/cp-profiler/releases/tag/0.1
+Most recent binaries for Linux and Mac are available [here](https://github.com/cp-profiler/cp-profiler/releases/tag/0.2).
 
 ## Table of Contents
 - [Building from Source](#building-from-source)
@@ -24,6 +23,7 @@ Pre-release binaries for Linux are available here:
 Dependencies:
 
   * 5.4.x ≤ Qt < 5.6.x
+  * Protocol Buffers 2.6.x
 
 Compiling Linux/Mac:
 
@@ -32,32 +32,30 @@ Compiling Linux/Mac:
 
 
 ### How to Use:
-#### Connecting with a solver
-1. Start the profiler
+#### Connecting to a solver
+1. Start CP-Profiler
 
   (from *cp-profiler/build* directory):
 
   `cp-profiler.app/Contents/MacOS/cp-profiler` (Mac)
 
-2. Run a solver that supports the profiling protocol
+2. Run a solver of interest. The solver must support the protocol for profiling. We provide integration libraries if you wish to add the support for a new solver (see [C++](https://github.com/cp-profiler/cpp-integration) and [Java](https://github.com/cp-profiler/java-integration) integration libraries).
 
-  To use Gecode (from *gecode-profiling* directory):
+  For example, to use integrated version of Gecode ([source code](https://github.com/cp-profiler/gecode-profiling) and [binaries](https://github.com/cp-profiler/cp-profiler/releases)), just execute a model normally with CP-Profiler running in the background:
 
     `tools/flatzinc/fzn-gecode my-model.fzn`
 
-    Note: if you didn't `make install` Gecode, then add *gecode-profiling* directory to the shared libraries path like so:
-
-    `LD_LIBRARY_PATH=$PWD tools/flatzinc/fzn-gecode my-model.fzn` (Linux)
-    `DYLD_LIBRARY_PATH=$PWD tools/flatzinc/fzn-gecode my-model.fzn` (Mac)
-
-
-3. The solver will be *sending* information about the execution in real time, which the profiler will use to incrementally *draw* the *search tree*.
+3. If CP-Profiler is running in the background, the solver will start *sending* information about the execution in real time, which CP-Profiler will use to incrementally *draw* the *search tree*. If a connection to CP-Profiler could not be established (e.g. CP-Profiler is closed), the solver will execute normally without profiling.
 
 Note: Because every new *node* can potentially cause the entire *search tree* layout to be recalculated (and slow down the drawing), it is recommended that ***display refresh rate*** is set to a reasonably high number (>1000), unless the rate at which the solver explores the nodes is low as well.
 
 ![Execution Manager](https://raw.githubusercontent.com/msgmaxim/profiler_pictures/master/profiler_menu.png "Execution Manager View")
 
-Be default the **CP Profiler** will be constructing the search tree in the background. Selecting an execution from the list and clicking *show tree* will display the corresponding search tree (updating it in real time if the solver is still running.)
+
+
+Multiple executions can be analysed at the same time (e.g. for the purpose of comparison) and will be listed in the *execution manager* above.
+
+During a solver execution, **CP-Profiler** will be constructing the search tree in the background by default. Selecting an execution from the list and clicking *show tree* will display the corresponding search tree (updating it in real time if the solver is still running).
 
 #### Basic Search Tree Visualisation
 
