@@ -122,3 +122,14 @@ The following example demonstrates a comparison of two executions of the *Golomb
 Clicking **compare trees** button from *execution conductor* menu will initiate the comparison of the two selected executions.
 
 ![Merged Tree](https://raw.githubusercontent.com/msgmaxim/profiler_pictures/master/golomb5merged.png "Merged Tree")
+
+The resulting **merged** tree will consist of:
+- the part that is common for both executions
+
+- (multiple) *pentagon subtrees* indicated by pentagons ![Pentagon Image](https://raw.githubusercontent.com/msgmaxim/profiler_pictures/master/pentagon_icon.png "pentagon image")
+
+A *pentagon* is found where the two executions diverge. It is a parent node for two subtrees:  one for each of the executions compared.
+
+ The two subtrees represent exploration of the same search space. For example, the right-most pentagon on the image above has one failure node on the right that corresponds to the execution with a symmetry breaking constraint. Without the constraint, the solver had to do significantly more work as indicated by the highlighted subtree on the left.
+
+**Pentagon list** option under *Analysis* submenu will bring up a list of pentagons. Each pentagon is displayed along with the information about the size of the subtrees it contains (*left* subtree, and *right* subtree). The list is sorted by the difference in the number of nodes each pair of subtrees contain. Clicking on a row will navigate to the corresponding pentagon node on the tree view.
