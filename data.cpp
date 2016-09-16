@@ -116,11 +116,6 @@ int Data::handleNodeCallback(message::Node& node) {
     int backjump_distance = node.backjump_distance();
     int decision_level = node.decision_level();
 
-    if (node.has_info() && node.info().length() > 0) {
-
-        sid2info[sid] = new std::string(node.info());
-    }
-
     /// thread id and node id are stored in one variable (for hashing)
     int64_t real_pid = -1;
     if (pid != -1) {
@@ -145,6 +140,10 @@ int Data::handleNodeCallback(message::Node& node) {
                     usesAssumptions,
                     backjump_distance,
                     decision_level);
+
+    if (node.has_info() && node.info().length() > 0) {
+        sid2info[entry->full_sid] = new std::string(node.info());
+    }
 
     pushInstance(entry);
 

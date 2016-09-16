@@ -124,7 +124,7 @@ public:
 
   /// for multithreaded search (drawing)
   /// thread id
-  char _tid;  // TODO: take out of Node class; assigned in treebuilder
+  char _tid = 0;  // TODO: take out of Node class; assigned in treebuilder
 
 #ifdef MAXIM_DEBUG
   int debug_id;

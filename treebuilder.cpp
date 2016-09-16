@@ -85,14 +85,19 @@ bool TreeBuilder::processRoot(DbEntry& dbEntry) {
   int kids = dbEntry.numberOfKids;
 
   if (execution->isRestarts()) {
-    int restart_root =
-        (_na)[0]->addChild(_na);  // create a node for a new root
+    // create a node for a new root
+    int restart_root = (_na)[0]->addChild(_na);
     root = (_na)[restart_root];
-    root->_tid = dbEntry.thread_id;
+    // root->_tid = dbEntry.thread_id;
+
+    /// TODO(maxim): figure out where this is set (to 3?)
+    (_na)[0]->_tid = 0;
 
     // The "super root" now has an extra child, so its children
     // haven't been laid out yet.
     (_na)[0]->setChildrenLayoutDone(false);
+    (_na)[0]->setHasOpenChildren(true);
+    // (_na)[0]->setDirty(true);
 
     // The "super root" is effectively a branch node.
     (_na)[0]->setStatus(BRANCH);
@@ -201,6 +206,7 @@ bool TreeBuilder::processNode(DbEntry& dbEntry, bool is_delayed) {
     stats.maxDepth = std::max(stats.maxDepth, static_cast<int>(dbEntry.depth));
 
     node._tid = dbEntry.thread_id;  /// TODO: tid should be in node's flags
+
     node.setNumberOfChildren(nalt, _na);
 
     switch (status) {

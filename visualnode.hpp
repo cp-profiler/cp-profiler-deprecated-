@@ -68,6 +68,9 @@ inline int NodeAllocator::allocateRoot() {
 }
 
 inline VisualNode* NodeAllocator::operator[](int i) const {
+#ifdef MAXIM_DEBUG
+  // qDebug() << "nodes[" << i << "]";
+#endif
   assert(static_cast<uint>(i) < nodes.size());
   return nodes[i];
 }
@@ -86,7 +89,7 @@ inline void NodeAllocator::clearLabel(VisualNode* n) { labels.remove(n); }
 
 inline QString NodeAllocator::getLabel(VisualNode* n) const {
 #ifdef MAXIM_DEBUG
-  // return " " + QString::number(n->debug_id) + " ";
+   return " " + QString::number(n->debug_id) + " ";
 #endif
   return labels.value(n);
 }
@@ -188,7 +191,10 @@ inline void VisualNode::setOffset(int n) { offset = n; }
 
 inline bool VisualNode::isDirty(void) { return getFlag(DIRTY); }
 
-inline void VisualNode::setDirty(bool d) { setFlag(DIRTY, d); }
+inline void VisualNode::setDirty(bool d) {
+  // std::cerr << "node [" << this->debug_id << "] set dirty: " << d << "\n"; 
+  setFlag(DIRTY, d);
+}
 
 inline bool VisualNode::childrenLayoutIsDone(void) {
   return getFlag(CHILDRENLAYOUTDONE);

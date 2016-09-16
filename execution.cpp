@@ -50,7 +50,7 @@ const std::string* Execution::getNogood(const Node& node) const {
 const std::string* Execution::getInfo(const Node& node) const {
     auto entry = getEntry(node);
     if (!entry) return nullptr;
-    auto info = m_Data->sid2info.find(entry->s_node_id);
+    auto info = m_Data->sid2info.find(entry->full_sid);
     if (info == m_Data->sid2info.end()) return nullptr;
     return info->second;
 }

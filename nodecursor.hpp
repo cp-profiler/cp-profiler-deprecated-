@@ -119,7 +119,18 @@ NodeCursor<Node>::moveSidewards(void) {
 inline bool
 HideFailedCursor::mayMoveDownwards(void) {
 
+    // std::cerr << "--- mayMoveDownwards ---\n";
+
     VisualNode* n = node();
+
+    // std::cerr << "id: " << n->debug_id;
+
+    // std::cerr << "   isDirty: " << n->isDirty() << "\n";
+    // std::cerr << "   mayMoveDownwards: " << NodeCursor<VisualNode>::mayMoveDownwards() << "\n";
+    // std::cerr << "   hasSolvedChildren: " << n->hasSolvedChildren() << "\n";
+    // std::cerr << "   number of open kids: " << n->getNoOfOpenChildren(na) << "\n";
+    // std::cerr << "   isHidden: " << n->isHidden() << "\n";
+    // std::cerr << "------------------------\n";
     return (!onlyDirty || n->isDirty()) &&
             NodeCursor<VisualNode>::mayMoveDownwards() &&
             (n->hasSolvedChildren() || n->getNoOfOpenChildren(na) > 0) &&
