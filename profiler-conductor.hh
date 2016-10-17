@@ -2,26 +2,23 @@
 #define PROFILER_CONDUCTOR_HH
 
 #include <QListWidget>
+#include <QCheckBox>
 #include <QMainWindow>
 
+#include <memory>
+
 class Execution;
-class QCheckBox;
 class WebscriptView;
 class GistMainWindow;
 
+class ProfilerTcpServer;
+
 class ExecutionInfo {
 public:
-    WebscriptView* sunburstView;
-    WebscriptView* icicleView;
-    WebscriptView* variablesView;
-    GistMainWindow* gistWindow;
-
-    ExecutionInfo()
-        : sunburstView(NULL),
-          icicleView(NULL),
-          variablesView(NULL),
-          gistWindow(NULL)
-    {}
+    WebscriptView* sunburstView  = nullptr;
+    WebscriptView* icicleView    = nullptr;
+    WebscriptView* variablesView = nullptr;
+    GistMainWindow* gistWindow   = nullptr;
 };
 
 class ProfilerConductor : public QMainWindow {
@@ -30,33 +27,32 @@ class ProfilerConductor : public QMainWindow {
   QList<Execution*> executions;
   QHash<Execution*, ExecutionInfo*> executionInfoHash;
 
-  QListWidget* executionList;
-  QCheckBox* compareWithLabelsCB;
+  QListWidget executionList;
+  QCheckBox   compareWithLabelsCB;
+
+  std::unique_ptr<ProfilerTcpServer> listener;
+
+  void addExecution(Execution& execution);
+  WebscriptView* getWebscriptView(Execution* execution, std::string id);
+  void registerWebscriptView(Execution* execution, std::string id, WebscriptView* webView);
+  void tellVisualisationsSelectNode(Execution* execution, int gid);
+  void tellVisualisationsSelectManyNodes(Execution* execution, QList<QVariant> gids);
+
  private slots:
-  void gistButtonClicked(bool checked);
-  void compareButtonClicked(bool checked);
-  void gatherStatisticsClicked(bool checked);
-  void webscriptClicked(bool checked);
-  void saveExecutionClicked(bool checked);
-  void loadExecutionClicked(bool checked);
-  void deleteExecutionClicked(bool checked);
+  void gistButtonClicked();
+  void compareButtonClicked();
+  void gatherStatisticsClicked();
+  void webscriptClicked();
+  void saveExecutionClicked();
+  void loadExecutionClicked();
+  void deleteExecutionClicked();
   void createDebugExecution();
+  void updateTitles();
 
  public:
   ProfilerConductor();
-  void newExecution(Execution* execution);
+  ~ProfilerConductor();
   void loadExecution(std::string filename);
-  void compareExecutions(bool auto_save);
-
-  void registerWebscriptView(Execution* execution, std::string id, WebscriptView* webView);
-  WebscriptView* getWebscriptView(Execution* execution, std::string id);
-  void tellVisualisationsSelectNode(Execution* execution, int gid);
-  void tellVisualisationsSelectManyNodes(Execution* execution, QList<QVariant> gids);
-  
- public slots:
-  void updateList();
-  void onSomeFinishedReceiving();
-  void onSomeFinishedBuilding();
 };
 
 #endif

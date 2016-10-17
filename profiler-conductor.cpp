@@ -7,6 +7,7 @@
 #include "globalhelper.hh"
 #include "libs/perf_helper.hh"
 #include "treecanvas.hh"
+#include "receiverthread.hh"
 
 #include <google/protobuf/io/zero_copy_stream_impl.h>
 #include <google/protobuf/io/coded_stream.h>
@@ -61,14 +62,18 @@ Execution* loadSaved(Execution* e, std::string path) {
     bool ok = readDelimitedFrom(&raw_input, &msg);
     if (!ok) break;
     switch (msg.type()) {
-    case message::Node::NODE:
-        e->handleNewNode(msg);
-        break;
-    case message::Node::START:
+      case message::Node::NODE: {
+          e->handleNewNode(msg);
+          break;
+      }
+      case message::Node::START: {
+        bool is_restarts = (msg.restart_id() == 0);
+        e->start("loaded from " + path, is_restarts);
         if (msg.has_info()) {
             e->setVariableListString(msg.info());
         }
         break;
+      }
     }
   }
   e->doneReceiving();
@@ -76,155 +81,159 @@ Execution* loadSaved(Execution* e, std::string path) {
 }
 
 ProfilerConductor::ProfilerConductor() : QMainWindow() {
-  // this->setMinimumHeight(320);
-  // this->setMinimumWidth(320);
 
-  /// NOTE(maxim): required by the comparison script
-  // std::cout << "READY TO LISTEN" << std::endl;
+  executionList.setSelectionMode(QAbstractItemView::MultiSelection);
+  compareWithLabelsCB.setText("with labels");
 
-  QWidget* centralWidget = new QWidget(this);
+  auto centralWidget = new QWidget(this);
   setCentralWidget(centralWidget);
 
-  executionList = new QListWidget;
-  executionList->setSelectionMode(QAbstractItemView::MultiSelection);
+  auto gistButton = new QPushButton("show tree");
+  connect(gistButton, SIGNAL(clicked()), this,
+          SLOT(gistButtonClicked()));
 
-  QPushButton* gistButton = new QPushButton("show tree");
-  connect(gistButton, SIGNAL(clicked(bool)), this,
-          SLOT(gistButtonClicked(bool)));
+  auto compareButton = new QPushButton("compare trees");
+  connect(compareButton, SIGNAL(clicked()), this,
+          SLOT(compareButtonClicked()));
 
-  QPushButton* compareButton = new QPushButton("compare trees");
-  connect(compareButton, SIGNAL(clicked(bool)), this,
-          SLOT(compareButtonClicked(bool)));
+  auto gatherStatisticsButton = new QPushButton("gather statistics");
+  connect(gatherStatisticsButton, SIGNAL(clicked()), this,
+          SLOT(gatherStatisticsClicked()));
 
-  compareWithLabelsCB = new QCheckBox("with labels");
+  auto webscriptButton = new QPushButton("webscript view");
+  connect(webscriptButton, SIGNAL(clicked()), this,
+          SLOT(webscriptClicked()));
 
-  QPushButton* gatherStatisticsButton = new QPushButton("gather statistics");
-  connect(gatherStatisticsButton, SIGNAL(clicked(bool)), this,
-          SLOT(gatherStatisticsClicked(bool)));
+  auto saveExecutionButton = new QPushButton("save execution");
+  connect(saveExecutionButton, SIGNAL(clicked()), this,
+          SLOT(saveExecutionClicked()));
 
-  QPushButton* webscriptButton = new QPushButton("webscript view");
-  connect(webscriptButton, SIGNAL(clicked(bool)), this,
-          SLOT(webscriptClicked(bool)));
+  auto loadExecutionButton = new QPushButton("load execution");
+  connect(loadExecutionButton, SIGNAL(clicked()), this,
+          SLOT(loadExecutionClicked()));
 
-  QPushButton* saveExecutionButton = new QPushButton("save execution");
-  connect(saveExecutionButton, SIGNAL(clicked(bool)), this,
-          SLOT(saveExecutionClicked(bool)));
+  auto deleteExecutionButton = new QPushButton("delete execution");
+  connect(deleteExecutionButton, SIGNAL(clicked()), this,
+          SLOT(deleteExecutionClicked()));
 
-  QPushButton* loadExecutionButton = new QPushButton("load execution");
-  connect(loadExecutionButton, SIGNAL(clicked(bool)), this,
-          SLOT(loadExecutionClicked(bool)));
-
-  QPushButton* deleteExecutionButton = new QPushButton("delete execution");
-  connect(deleteExecutionButton, SIGNAL(clicked(bool)), this,
-          SLOT(deleteExecutionClicked(bool)));
-
-  QPushButton* debugExecutionButton = new QPushButton("debug execution");
+  auto debugExecutionButton = new QPushButton("debug execution");
   connect(debugExecutionButton, SIGNAL(clicked()), this,
           SLOT(createDebugExecution()));
 
-  QGridLayout* layout = new QGridLayout();
+  auto layout = new QGridLayout();
 
-  layout->addWidget(executionList, 0, 0, 1, 2);
-  layout->addWidget(gistButton, 1, 0, 1, 2);
+  layout->addWidget(&executionList,         0, 0, 1, 2);
+  layout->addWidget(gistButton,             1, 0, 1, 2);
 
-  layout->addWidget(compareButton, 2, 0, 1, 1);
-  layout->addWidget(compareWithLabelsCB, 2, 1, 1, 1);
+  layout->addWidget(compareButton,          2, 0, 1, 1);
+  layout->addWidget(&compareWithLabelsCB,   2, 1, 1, 1);
 
   layout->addWidget(gatherStatisticsButton, 3, 0, 1, 2);
-  layout->addWidget(webscriptButton, 4, 0, 1, 2);
-  layout->addWidget(saveExecutionButton, 5, 0, 1, 2);
-  layout->addWidget(loadExecutionButton, 6, 0, 1, 2);
-  layout->addWidget(deleteExecutionButton, 7, 0, 1, 2);
+  layout->addWidget(webscriptButton,        3, 0, 1, 2);
+  layout->addWidget(saveExecutionButton,    5, 0, 1, 2);
+  layout->addWidget(loadExecutionButton,    6, 0, 1, 2);
+  layout->addWidget(deleteExecutionButton,  7, 0, 1, 2);
 
 #ifdef MAXIM_DEBUG
-  layout->addWidget(debugExecutionButton, 7, 0, 1, 2);
+  layout->addWidget(debugExecutionButton,   7, 0, 1, 2);
 #endif
 
   centralWidget->setLayout(layout);
 
   // Listen for new executions.
-  ProfilerTcpServer* listener = new ProfilerTcpServer(this);
+  listener.reset(new ProfilerTcpServer([this](qintptr socketDescriptor) {
+    auto execution = new Execution();
+
+    /// TODO(maxim): receiver should be destroyed when done
+    auto receiver = new ReceiverThread(socketDescriptor, execution, this);
+
+    addExecution(*execution);
+
+    receiver->start();
+  }));
+
   listener->listen(QHostAddress::Any, 6565);
 }
 
+ProfilerConductor::~ProfilerConductor() = default;
+
 class ExecutionListItem : public QListWidgetItem {
  public:
-  ExecutionListItem(Execution* execution, QListWidget* parent, int type = Type)
-      : QListWidgetItem(parent, type),
-        execution_(execution)
+  ExecutionListItem(Execution& execution, QListWidget* parent)
+      : QListWidgetItem{parent, QListWidgetItem::Type},
+        execution_{execution}
     {}
 
-  Execution* execution_;
+  Execution& execution_;
 };
 
-void ProfilerConductor::newExecution(Execution* execution) {
-  ExecutionListItem* newItem = new ExecutionListItem(execution, executionList);
+
+void ProfilerConductor::addExecution(Execution& execution) {
+  auto newItem = new ExecutionListItem(execution, &executionList);
   newItem->setText("some execution");
   newItem->setSelected(true);
-  executionList->addItem(newItem);
-  executions << execution;
+  executionList.addItem(newItem);
+  executions << &execution;
 
-  executionInfoHash.insert(execution, new ExecutionInfo);
+  executionInfoHash.insert(&execution, new ExecutionInfo);
 
-  connect(execution, SIGNAL(titleKnown()), this, SLOT(updateList()));
-  connect(execution, SIGNAL(doneReceiving()), this,
+  /// updates titles when a new one becomes known
+  connect(&execution, SIGNAL(titleKnown()), this, SLOT(updateTitles()));
+
+  /// displays the tree when finished receiving
+  /// (requires an option i.e. for automatic comparison etc.)
+  connect(&execution, SIGNAL(doneReceiving()), this,
           SLOT(onSomeFinishedReceiving()));
-  connect(execution, SIGNAL(doneBuilding()), this,
+
+  /// performs some action when finished building the tree
+  /// (requires an option i.e. for automatic comparison etc.)
+  connect(&execution, SIGNAL(doneBuilding()), this,
           SLOT(onSomeFinishedBuilding()));
+
   show();
 }
 
-void ProfilerConductor::updateList(void) {
+void ProfilerConductor::updateTitles(void) {
   for (int i = 0; i < executions.size(); i++) {
-    executionList->item(i)
+    executionList.item(i)
         ->setText(QString::fromStdString(executions[i]->getTitle()));
   }
 }
 
-void ProfilerConductor::gistButtonClicked(bool) {
-  QList<QListWidgetItem*> selected = executionList->selectedItems();
+void ProfilerConductor::gistButtonClicked() {
+  QList<QListWidgetItem*> selected = executionList.selectedItems();
   for (int i = 0; i < selected.size(); i++) {
     ExecutionListItem* item = static_cast<ExecutionListItem*>(selected[i]);
-    Execution* execution = item->execution_;
-    GistMainWindow* gistMW = executionInfoHash[execution]->gistWindow;
+    Execution& execution = item->execution_;
+    GistMainWindow* gistMW = executionInfoHash[&execution]->gistWindow;
     if (gistMW == nullptr) {
-      gistMW = new GistMainWindow(execution, this);
+      gistMW = new GistMainWindow(&execution, this);
       gistMW->changeTitle(item->text());
-      executionInfoHash[execution]->gistWindow = gistMW;
+      executionInfoHash[&execution]->gistWindow = gistMW;
     }
     gistMW->show();
     gistMW->activateWindow();
-    connect(item->execution_, SIGNAL(doneReceiving()), gistMW,
+    connect(&item->execution_, SIGNAL(doneReceiving()), gistMW,
             SIGNAL(doneReceiving()));
     connect(gistMW->getGist()->getCanvas(), &TreeCanvas::announceSelectNode,
-            this, [this, execution](int gid){this->tellVisualisationsSelectNode(execution, gid);});
+            this, [this, &execution](int gid){this->tellVisualisationsSelectNode(&execution, gid);});
   }
 }
 
-void ProfilerConductor::compareButtonClicked(bool) { compareExecutions(false); }
-
-void ProfilerConductor::compareExecutions(bool auto_save) {
-  /// NOTE(maxim): compare with labels when using a script (auto_save == true)
-  const bool withLabels = compareWithLabelsCB->isChecked() || auto_save;
-
-  QList<QListWidgetItem*> selected = executionList->selectedItems();
+void ProfilerConductor::compareButtonClicked() {
+  QList<QListWidgetItem*> selected = executionList.selectedItems();
   if (selected.size() != 2) return;
-  ExecutionListItem* item1 = static_cast<ExecutionListItem*>(selected[0]);
-  ExecutionListItem* item2 = static_cast<ExecutionListItem*>(selected[1]);
-  Execution* e = new Execution;
 
-  GistMainWindow* gmw1 = executionInfoHash[item1->execution_]->gistWindow;
-  GistMainWindow* gmw2 = executionInfoHash[item2->execution_]->gistWindow;
+  auto ex1 = &static_cast<ExecutionListItem*>(selected[0])->execution_;
+  auto ex2 = &static_cast<ExecutionListItem*>(selected[1])->execution_;
+
+  auto gmw1 = executionInfoHash[ex1]->gistWindow;
+  auto gmw2 = executionInfoHash[ex2]->gistWindow;
   if (gmw1 == nullptr || gmw2 == nullptr) return;
 
-  CmpTreeDialog* ctd = new CmpTreeDialog(
-      this, e, withLabels, *gmw1->getGist()->getExecution(),
-      *gmw2->getGist()->getExecution());
-  (void)ctd;
+  const bool withLabels = compareWithLabelsCB.isChecked();
 
-  // if (auto_save) {
-  //     ctd->saveComparisonStatsTo("/home/maxim/temp_stats.txt");
-  // }
+  new CmpTreeDialog(this, new Execution{}, withLabels, *ex1, *ex2);
 }
 
 class StatsHelper {
@@ -257,16 +266,16 @@ bool writeDelimitedTo(const google::protobuf::MessageLite& message,
   return true;
 }
 
-void ProfilerConductor::gatherStatisticsClicked(bool) {
-  QList<QListWidgetItem*> selected = executionList->selectedItems();
+void ProfilerConductor::gatherStatisticsClicked() {
+  QList<QListWidgetItem*> selected = executionList.selectedItems();
   for (int i = 0; i < selected.size(); i++) {
     ExecutionListItem* item = static_cast<ExecutionListItem*>(selected[i]);
 
-    GistMainWindow* g = executionInfoHash[item->execution_]->gistWindow;
+    GistMainWindow* g = executionInfoHash[&item->execution_]->gistWindow;
 
     if (g == nullptr) {
-      g = new GistMainWindow(item->execution_, this);
-      executionInfoHash[item->execution_]->gistWindow = g;
+      g = new GistMainWindow(&item->execution_, this);
+      executionInfoHash[&item->execution_]->gistWindow = g;
     }
     //        g->hide();
 
@@ -283,32 +292,32 @@ void ProfilerConductor::gatherStatisticsClicked(bool) {
   }
 }
 
-void ProfilerConductor::webscriptClicked(bool) {
-    QList<QListWidgetItem*> selected = executionList->selectedItems();
+void ProfilerConductor::webscriptClicked() {
+    QList<QListWidgetItem*> selected = executionList.selectedItems();
     for (int i = 0; i < selected.size(); i++) {
         ExecutionListItem* item = static_cast<ExecutionListItem*>(selected[i]);
-        Execution* execution = item->execution_;
+        Execution& execution = item->execution_;
 
         const char* paths[] = { "webscripts/sunburst.html", "webscripts/icicle.html", "webscripts/variables.html" };
         const char* ids[] = { "sunburst", "icicle", "variables" };
         std::stringstream ss;
-        ::collectMLStats(execution->getRootNode(), execution->getNA(), execution, ss);
+        ::collectMLStats(execution.getRootNode(), execution.getNA(), &execution, ss);
 
         for (int i = 0 ; i < 3 ; i++) {
-            if (getWebscriptView(execution, ids[i]) == NULL) {
+            if (getWebscriptView(&execution, ids[i]) == NULL) {
                 QDialog* dialog = new QDialog(this);
-                WebscriptView* web = new WebscriptView(dialog, paths[i], execution, ss.str());
-                registerWebscriptView(execution, ids[i], web);
+                WebscriptView* web = new WebscriptView(dialog, paths[i], &execution, ss.str());
+                registerWebscriptView(&execution, ids[i], web);
             
                 QHBoxLayout* layout = new QHBoxLayout;
                 layout->addWidget(web);
                 dialog->setLayout(layout);
 
                 connect(web, &WebscriptView::announceSelectNode,
-                        this, [this, execution](int gid){this->tellVisualisationsSelectNode(execution, gid);});
+                        this, [this, &execution](int gid){this->tellVisualisationsSelectNode(&execution, gid);});
                 connect(web, &WebscriptView::announceSelectManyNodes,
-                        this, [this, execution](QList<QVariant> gids){
-                            this->tellVisualisationsSelectManyNodes(execution, gids);
+                        this, [this, &execution](QList<QVariant> gids){
+                            this->tellVisualisationsSelectManyNodes(&execution, gids);
                         });
             
                 dialog->show();
@@ -316,7 +325,7 @@ void ProfilerConductor::webscriptClicked(bool) {
 
             // We get the parent widget here because we want to show()
             // the containing QDialog, not the inner WebEngineView.
-            getWebscriptView(execution, ids[i])->parentWidget()->show();
+            getWebscriptView(&execution, ids[i])->parentWidget()->show();
         }
     }
 }
@@ -339,86 +348,40 @@ void ProfilerConductor::tellVisualisationsSelectManyNodes(Execution* execution, 
     g = executionInfoHash[execution]->gistWindow;    if (g) g->selectManyNodes(gids);
 }
 
-void ProfilerConductor::onSomeFinishedBuilding() {
-  /// ***** Save Search Log *****
-  if (GlobalParser::isSet(GlobalParser::save_log)) {
-    if (executions.size() == 1) {
-      auto item = static_cast<ExecutionListItem*>(executionList->item(0));
-
-      auto file_name = GlobalParser::value(GlobalParser::save_log);
-
-      GistMainWindow* g = executionInfoHash[item->execution_]->gistWindow;
-      g->getGist()->getCanvas()->printSearchLogTo(file_name);
-    }
-  }
-
-  if (GlobalParser::isSet(GlobalParser::auto_compare)) {
-    if (executions.size() == 2) {
-      compareExecutions(true);
-    }
-  }
-
-  if (GlobalParser::isSet(GlobalParser::auto_stats)) {
-    if (executions.size() == 1) {
-      auto item = static_cast<ExecutionListItem*>(executionList->item(0));
-      auto file_name = GlobalParser::value(GlobalParser::auto_stats);
-      GistMainWindow* g = executionInfoHash[item->execution_]->gistWindow;
-      g->setStatsFilename(file_name);
-      g->gatherStatistics();
-      // bye bye
-      qDebug() << "auto stats, terminate";
-      qApp->exit();
-    }
-  }
-}
-
-void ProfilerConductor::onSomeFinishedReceiving() {
-  // NOTE(maixm): if running in a script mode, build the trees
-  // immediately after the data is fully received
-  if (GlobalParser::isSet(GlobalParser::save_log)) {
-    if (executions.size() == 1) {
-      gistButtonClicked(true);
-    }
-  }
-
-  if (GlobalParser::isSet(GlobalParser::auto_compare)) {
-    if (executions.size() == 2) {
-      gistButtonClicked(true);
-    }
-  }
-
-  if (GlobalParser::isSet(GlobalParser::auto_stats)) {
-    if (executions.size() == 1) {
-      gistButtonClicked(true);
-    }
-  }
-}
-
-void ProfilerConductor::saveExecutionClicked(bool) {
-  QList<QListWidgetItem*> selected = executionList->selectedItems();
+void ProfilerConductor::saveExecutionClicked() {
+  QList<QListWidgetItem*> selected = executionList.selectedItems();
   if (selected.size() != 1) return;
-  ExecutionListItem* item = static_cast<ExecutionListItem*>(selected[0]);
+  auto item = static_cast<ExecutionListItem*>(selected[0]);
 
   QString filename =
       QFileDialog::getSaveFileName(this, "Save execution", QDir::currentPath());
   std::ofstream outputFile(filename.toStdString(),
                            std::ios::out | std::ios::binary);
   OstreamOutputStream raw_output(&outputFile);
-  Data* data = item->execution_->getData();
+  auto data = item->execution_.getData();
 
   std::vector<unsigned int> keys;
-  for (auto it = data->gid2entry.begin(); it != data->gid2entry.end(); it++) {
-    keys.push_back(it->first);
+  keys.reserve(data->gid2entry.size());
+
+  for (const auto& pair : data->gid2entry) {
+    keys.push_back(pair.first);
   }
   sort(keys.begin(), keys.end());
 
   message::Node start_node;
   start_node.set_type(message::Node::START);
-  start_node.set_info(item->execution_->getVariableListString());
+
+  if (item->execution_.isRestarts()) {
+    start_node.set_restart_id(0);
+  } else {
+    start_node.set_restart_id(-1);
+  }
+
+  start_node.set_info(item->execution_.getVariableListString());
   writeDelimitedTo(start_node, &raw_output);
 
-  for (auto it = keys.begin(); it != keys.end(); it++) {
-    DbEntry* entry = data->gid2entry[*it];
+  for (auto& key : keys) {
+    DbEntry* entry = data->gid2entry[key];
     message::Node node;
     node.set_type(message::Node::NODE);
     node.set_sid(entry->s_node_id);
@@ -440,7 +403,7 @@ void ProfilerConductor::saveExecutionClicked(bool) {
   }
 }
 
-void ProfilerConductor::loadExecutionClicked(bool) {
+void ProfilerConductor::loadExecutionClicked() {
   QString filename =
       QFileDialog::getOpenFileName(this, "Load execution", QDir::currentPath());
   if (!filename.isNull())
@@ -450,23 +413,21 @@ void ProfilerConductor::loadExecutionClicked(bool) {
 
 
 void ProfilerConductor::loadExecution(std::string filename) {
-  Execution* e = new Execution();
-  newExecution(e);
+  auto e = new Execution();
+  addExecution(*e);
   /// TODO(maxim): should somehow know if it was restarts, TRUE for now
-  e->start("loaded from " + filename, true);
   loadSaved(e, filename);
 }
 
-void ProfilerConductor::deleteExecutionClicked(bool checked) {
-  (void)checked;
-  QList<QListWidgetItem*> selected = executionList->selectedItems();
+void ProfilerConductor::deleteExecutionClicked() {
+  QList<QListWidgetItem*> selected = executionList.selectedItems();
   for (int i = 0; i < selected.size(); i++) {
     ExecutionListItem* item = static_cast<ExecutionListItem*>(selected[i]);
-    executions.removeOne(item->execution_);
-    delete item->execution_;
-    if (executionInfoHash[item->execution_]->gistWindow != NULL) {
-        executionInfoHash[item->execution_]->gistWindow->stopReceiver();
-        delete executionInfoHash[item->execution_]->gistWindow;
+    executions.removeOne(&item->execution_);
+    delete &item->execution_;
+    if (executionInfoHash[&item->execution_]->gistWindow != NULL) {
+        executionInfoHash[&item->execution_]->gistWindow->stopReceiver();
+        delete executionInfoHash[&item->execution_]->gistWindow;
     }
     delete item;
   }
@@ -489,7 +450,7 @@ void ProfilerConductor::registerWebscriptView(Execution* execution, std::string 
 void ProfilerConductor::createDebugExecution() {
   qDebug() << "createDebugExecution";
   auto e = new Execution{};
-  newExecution(e);
+  addExecution(*e);
 
   // auto& na = e->getNA();
 

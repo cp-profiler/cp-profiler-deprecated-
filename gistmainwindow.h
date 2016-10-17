@@ -26,13 +26,6 @@
 
 #include <QMainWindow>
 
-/// Display information about %Gist
-class AboutGist : public QDialog {
-public:
-  /// Constructor
-  AboutGist(QWidget* parent = 0);
-};
-
 /**
  * \brief Main window for stand-alone %Gist
  *
@@ -63,8 +56,6 @@ private:
   Gist* m_Gist;
   /// A menu bar
   QMenuBar* menuBar;
-  /// About dialog
-  AboutGist aboutGist;
 
   QString statsFilename;
 
@@ -78,8 +69,6 @@ Q_SIGNALS:
 protected Q_SLOTS:
   /// The status has changed (e.g., new solutions have been found)
   void statusChanged(const Statistics& stats, bool finished);
-  /// Open the about dialog
-  void about(void);
   /// Open the preferences dialog
   void preferences(bool setup=false);
   /// Populate the bookmarks menus from the actions found in Gist

@@ -28,31 +28,8 @@
 #include <cmath>
 #include <fstream>
 
-AboutGist::AboutGist(QWidget* parent) : QDialog(parent) {
 
-  setMinimumSize(300, 240);
-  setMaximumSize(300, 240);
-  QVBoxLayout* layout = new QVBoxLayout();
-  QLabel* aboutLabel =
-    new QLabel(tr("<h2>Gist</h2>"
-                   "<p><b>The Gecode Interactive Search Tool</b</p> "
-                  "<p>You can find more information about Gecode and Gist "
-                  "at</p>"
-                  "<p><a href='http://www.gecode.org'>www.gecode.org</a>"
-                  "</p"));
-  aboutLabel->setOpenExternalLinks(true);
-  aboutLabel->setWordWrap(true);
-  aboutLabel->setAlignment(Qt::AlignCenter);
-  layout->addWidget(aboutLabel);
-  setLayout(layout);
-  setWindowTitle(tr("About Gist"));
-  setAttribute(Qt::WA_QuitOnClose, false);
-  setAttribute(Qt::WA_DeleteOnClose, false);
-}
-
-
-
-GistMainWindow::GistMainWindow(Execution* execution, QWidget* parent) : QMainWindow(parent), aboutGist(this) {
+GistMainWindow::GistMainWindow(Execution* execution, QWidget* parent) : QMainWindow(parent) {
     m_Gist = new Gist(execution, this);
   setCentralWidget(m_Gist);
   setWindowTitle(tr("CP-Profiler"));
@@ -111,9 +88,7 @@ GistMainWindow::GistMainWindow(Execution* execution, QWidget* parent) : QMainWin
   nodeMenu->addSeparator();
   nodeMenu->addAction(m_Gist->zoomToFit);
   nodeMenu->addAction(m_Gist->center);
-#if QT_VERSION >= 0x040400
   nodeMenu->addAction(m_Gist->exportPDF);
-#endif
 
   /// ***** Tree Visualisaitons *****
 
@@ -126,12 +101,6 @@ GistMainWindow::GistMainWindow(Execution* execution, QWidget* parent) : QMainWin
   treeVisMenu->addAction(m_Gist->hideSize);
   treeVisMenu->addAction(m_Gist->followPath);
   treeVisMenu->addAction(m_Gist->deleteWhiteNodes);
-
-
-  QMenu* helpMenu = menuBar->addMenu(tr("&Help"));
-  QAction* aboutAction = helpMenu->addAction(tr("About"));
-  connect(aboutAction, SIGNAL(triggered()),
-          this, SLOT(about()));
 
   // Don't add the menu bar on Mac OS X
 #ifndef Q_WS_MAC
@@ -211,11 +180,6 @@ GistMainWindow::statusChanged(const Statistics& stats, bool finished) {
   failedLabel->setNum(stats.failures);
   choicesLabel->setNum(stats.choices);
   openLabel->setNum(stats.undetermined);
-}
-
-void
-GistMainWindow::about(void) {
-  aboutGist.show();
 }
 
 void

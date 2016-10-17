@@ -2,6 +2,7 @@
 #define PROFILER_TCP_SERVER_HH
 
 #include <QTcpServer>
+#include <functional>
 
 class ProfilerConductor;
 
@@ -9,13 +10,14 @@ class ProfilerTcpServer : public QTcpServer {
   Q_OBJECT
 
  public:
-  ProfilerTcpServer(ProfilerConductor* parent);
+  ProfilerTcpServer(std::function<void(qintptr)> callback);
+  // ~ProfilerTcpServer();
 
  protected:
   void incomingConnection(qintptr socketDescriptor) override;
 
  private:
-  ProfilerConductor& _conductor;
+  std::function<void(qintptr)> onConnectionCallback;
 };
 
 #endif
