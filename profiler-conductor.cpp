@@ -129,13 +129,13 @@ ProfilerConductor::ProfilerConductor() : QMainWindow() {
   layout->addWidget(&compareWithLabelsCB,   2, 1, 1, 1);
 
   layout->addWidget(gatherStatisticsButton, 3, 0, 1, 2);
-  layout->addWidget(webscriptButton,        3, 0, 1, 2);
+  layout->addWidget(webscriptButton,        4, 0, 1, 2);
   layout->addWidget(saveExecutionButton,    5, 0, 1, 2);
   layout->addWidget(loadExecutionButton,    6, 0, 1, 2);
   layout->addWidget(deleteExecutionButton,  7, 0, 1, 2);
 
 #ifdef MAXIM_DEBUG
-  layout->addWidget(debugExecutionButton,   7, 0, 1, 2);
+  layout->addWidget(debugExecutionButton,   8, 0, 1, 2);
 #endif
 
   centralWidget->setLayout(layout);
@@ -179,16 +179,6 @@ void ProfilerConductor::addExecution(Execution& execution) {
 
   /// updates titles when a new one becomes known
   connect(&execution, SIGNAL(titleKnown()), this, SLOT(updateTitles()));
-
-  /// displays the tree when finished receiving
-  /// (requires an option i.e. for automatic comparison etc.)
-  connect(&execution, SIGNAL(doneReceiving()), this,
-          SLOT(onSomeFinishedReceiving()));
-
-  /// performs some action when finished building the tree
-  /// (requires an option i.e. for automatic comparison etc.)
-  connect(&execution, SIGNAL(doneBuilding()), this,
-          SLOT(onSomeFinishedBuilding()));
 
   show();
 }
@@ -422,7 +412,7 @@ void ProfilerConductor::loadExecution(std::string filename) {
 void ProfilerConductor::deleteExecutionClicked() {
   QList<QListWidgetItem*> selected = executionList.selectedItems();
   for (int i = 0; i < selected.size(); i++) {
-    ExecutionListItem* item = static_cast<ExecutionListItem*>(selected[i]);
+    auto item = static_cast<ExecutionListItem*>(selected[i]);
     executions.removeOne(&item->execution_);
     delete &item->execution_;
     if (executionInfoHash[&item->execution_]->gistWindow != NULL) {

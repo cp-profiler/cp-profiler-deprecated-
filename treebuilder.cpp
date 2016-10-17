@@ -37,18 +37,18 @@ double get_wall_time() {
   return (double)time.tv_sec + (double)time.tv_usec * .000001;
 }
 
-TreeBuilder::TreeBuilder(Execution* execution_, QObject* parent)
+TreeBuilder::TreeBuilder(Execution* exec, QObject* parent)
     : QThread(parent),
-      _na(execution_->getNA()),
-      execution(execution_) {
+      execution(*exec),
+      _data{*execution.getData()},
+      _na(execution.getNA()) {
 
-  _data = execution->getData();
-  read_queue.reset(new ReadingQueue(_data->getEntries()));
+  read_queue.reset(new ReadingQueue(_data.getEntries()));
 
-  qDebug() << "starting TreeBuilder on execution" << execution;
+  qDebug() << "starting TreeBuilder on execution" << &execution;
     
   connect(this, &TreeBuilder::doneBuilding,
-          execution, &Execution::doneBuilding);
+          &execution, &Execution::doneBuilding);
 }
 
 void TreeBuilder::initRoot(int kids, NodeStatus status) {
@@ -65,17 +65,15 @@ void TreeBuilder::initRoot(int kids, NodeStatus status) {
 
 TreeBuilder::~TreeBuilder() {}
 
-void TreeBuilder::setDoneReceiving() { _data->setDoneReceiving(); }
-
 bool TreeBuilder::processRoot(DbEntry& dbEntry) {
-  QMutexLocker locker(&execution->getMutex());
-  QMutexLocker layoutLocker(&execution->getLayoutMutex());
+  QMutexLocker locker(&execution.getMutex());
+  QMutexLocker layoutLocker(&execution.getLayoutMutex());
 
   // std::cerr << "process root: " << dbEntry << "\n";
 
-  auto& gid2entry = _data->gid2entry;
+  auto& gid2entry = _data.gid2entry;
 
-  Statistics& stats = execution->getStatistics();
+  Statistics& stats = execution.getStatistics();
 
   stats.choices++;
 
@@ -84,7 +82,7 @@ bool TreeBuilder::processRoot(DbEntry& dbEntry) {
 
   int kids = dbEntry.numberOfKids;
 
-  if (execution->isRestarts()) {
+  if (execution.isRestarts()) {
     // create a node for a new root
     int restart_root = (_na)[0]->addChild(_na);
     root = (_na)[restart_root];
@@ -132,17 +130,17 @@ bool TreeBuilder::processRoot(DbEntry& dbEntry) {
 }
 
 bool TreeBuilder::processNode(DbEntry& dbEntry, bool is_delayed) {
-  QMutexLocker locker(&execution->getMutex());
-  QMutexLocker layoutLocker(&execution->getLayoutMutex());
+  QMutexLocker locker(&execution.getMutex());
+  QMutexLocker layoutLocker(&execution.getLayoutMutex());
 
   int64_t pid = dbEntry.parent_sid;  /// parent ID as it comes from Solver
   int alt = dbEntry.alt;             /// which alternative the current node is
   int nalt = dbEntry.numberOfKids;   /// number of kids in current node
   int status = dbEntry.status;
 
-  Statistics& stats = execution->getStatistics();
+  Statistics& stats = execution.getStatistics();
 
-  const auto& sid2aid = _data->sid2aid;
+  const auto& sid2aid = _data.sid2aid;
   
   /// find out if node exists
   auto pid_it = sid2aid.find(pid);
@@ -153,7 +151,7 @@ bool TreeBuilder::processNode(DbEntry& dbEntry, bool is_delayed) {
     return false;
   }
 
-  const DbEntry& parentEntry = *_data->getEntries()[pid_it->second];
+  const DbEntry& parentEntry = *_data.getEntries()[pid_it->second];
   /// parent ID as it is in Node Allocator (Gist)
   int parent_gid = parentEntry.gid;  
 
@@ -201,7 +199,7 @@ bool TreeBuilder::processNode(DbEntry& dbEntry, bool is_delayed) {
     // dbEntry.decisionLevel =
     //     parentEntry.decisionLevel + (thisIsRightmost ? 0 : 1);
 
-    _data->gid2entry[gid] = &dbEntry;
+    _data.gid2entry[gid] = &dbEntry;
 
     stats.maxDepth = std::max(stats.maxDepth, static_cast<int>(dbEntry.depth));
 
@@ -302,9 +300,9 @@ void TreeBuilder::run() {
   beginTime = get_wall_time();
   // qDebug() << "### in run method of tc:" << m_tc._id;
 
-  QMutex& dataMutex = _data->dataMutex;
+  QMutex& dataMutex = _data.dataMutex;
 
-  Statistics& stats = execution->getStatistics();
+  Statistics& stats = execution.getStatistics();
   stats.undetermined = 1;
 
   bool is_delayed;
@@ -319,7 +317,7 @@ void TreeBuilder::run() {
     if (!read_queue->canRead()) {
       dataMutex.unlock();
 
-      if (_data->isDone()) {
+      if (_data.isDone()) {
 // <<<<<<< HEAD
 //         qDebug() << "stop because done ";
 //                  // << "tc_id: " << _tc->_id;

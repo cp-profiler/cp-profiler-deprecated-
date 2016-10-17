@@ -42,10 +42,9 @@ class TreeBuilder : public QThread {
   Q_OBJECT
 
  private:
-  Data* _data;
+  Execution& execution;
+  Data& _data; /// Note: mutable as builder changes dbEntries
   NodeAllocator& _na;
-  Execution* execution;
-  QMutex* layout_mutex;
 
   std::vector<DbEntry*> ignored_entries;
 
@@ -59,17 +58,13 @@ class TreeBuilder : public QThread {
   void initRoot(int kids, NodeStatus status);
 
  public:
-  TreeBuilder(Execution* execution, QObject* parent = 0);
+  TreeBuilder(Execution* execution, QObject* parent = nullptr);
   ~TreeBuilder();
 
 Q_SIGNALS:
   void doneBuilding(bool finished);
   void addedNode(void);
   void addedRoot(void);
-
- public Q_SLOTS:
-  void setDoneReceiving(void);
-
 };
 
 #endif  // TREEBUILDER_H

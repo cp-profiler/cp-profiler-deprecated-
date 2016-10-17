@@ -33,8 +33,8 @@ int main(int argc, char *argv[]) {
   // qDebug() << "scroll bar size: " <<
   // a.style()->pixelMetric(QStyle::PM_ScrollBarExtent);
 
-  QCoreApplication::setApplicationName("cpprof");
-  QCoreApplication::setApplicationVersion("0.1");
+  QCoreApplication::setApplicationName("cpprof (build from 17.10.2016)");
+  QCoreApplication::setApplicationVersion("0.2");
 
   GlobalParser clParser;
 

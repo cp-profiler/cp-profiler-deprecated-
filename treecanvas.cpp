@@ -141,7 +141,6 @@ TreeCanvas::TreeCanvas(Execution* execution_, QGridLayout* layout,
 }
 
 TreeCanvas::~TreeCanvas() {
-  qDebug() << "~TreeCanvas";
   if (root) {
     DisposeCursor dc(root, execution->getNA());
     PreorderNodeVisitor<DisposeCursor>(dc).run();
