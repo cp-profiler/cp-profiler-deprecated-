@@ -118,6 +118,8 @@ public:
   /// Return the number of children
   unsigned int getNumberOfChildren(void) const;
 
+  void removeChild(int n, NodeAllocator& na);
+
   /// for multithreaded search (drawing)
   /// thread id
   char _tid = 0;  // TODO: take out of Node class; assigned in treebuilder
