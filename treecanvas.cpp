@@ -394,6 +394,14 @@ void TreeCanvas::showNodeInfo(void) {
   auto info = execution->getInfo(*currentNode);
 
   std::string extra_info = (info) ? *info : "";
+  extra_info += "\n";
+
+  auto id = currentNode->getIndex(na);
+  auto depth = execution->nodeTree().calculateDepth(*currentNode);
+
+  extra_info += "--------------------------------------------\n";
+  extra_info += " id: " + std::to_string(id) + "\tdepth: " + std::to_string(depth) + "\n";
+  extra_info += "--------------------------------------------\n";
 
 #ifdef MAXIM_DEBUG
   extra_info += "--------------------------------------------\n";
@@ -405,15 +413,13 @@ void TreeCanvas::showNodeInfo(void) {
   extra_info += "number of direct children: " + std::to_string(currentNode->getNumberOfChildren()) + "\n";
   extra_info += "--------------------------------------------\n";
 
-  auto gid = currentNode->getIndex(na);
-  auto db_entry = getEntry(gid);
+  auto db_entry = getEntry(id);
 
   extra_info += "gecode/na id: " + std::to_string(currentNode->getIndex(na)) + "\n";
   // extra_info += "array index: " + std::to_string(db_entry) + "\n";
 
-  assert (na[gid] == currentNode);
+  assert (na[id] == currentNode);
 #endif
-
 
   NodeInfoDialog* nidialog = new NodeInfoDialog(this, extra_info);
   nidialog->show();

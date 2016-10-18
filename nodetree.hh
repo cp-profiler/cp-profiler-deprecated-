@@ -32,8 +32,22 @@ public:
         return na[0];
     }
 
+    VisualNode* getChild(const VisualNode& node, int alt) const {
+        return na[node.getChild(alt)];
+    }
+
     Statistics& getStatistics() {
         return stats;
+    }
+
+    int calculateDepth(const VisualNode& node) const {
+        int count = 0;
+
+        auto it = &node;
+
+        while (it = it->getParent(na)) { count++; }
+
+        return count;
     }
 
     QMutex& getMutex() { return mutex; }

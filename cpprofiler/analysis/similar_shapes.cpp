@@ -19,7 +19,6 @@ namespace analysis {
 /// TODO(maxim): show all subtrees of a particular shape
 
 class TreeStructure {
-  // NodeAllocator m_na;
 
 public:
   TreeStructure() {
@@ -272,17 +271,19 @@ inline bool compareNodes(const VisualNode& n1, const VisualNode& n2) {
   return true;
 }
 
-bool compareSubtrees(const NodeAllocator& na, const VisualNode& root1,
+static bool compareSubtrees(const NodeTree& nt, const VisualNode& root1,
                      const VisualNode& root2) {
   // compare roots
   bool equal = compareNodes(root1, root2);
   if (!equal) return false;
 
   // if nodes have children, compare them recursively:
-  for (uint i = 0; i < root1.getNumberOfChildren(); ++i) {
-    auto new_root1 = root1.getChild(na, i);
-    auto new_root2 = root2.getChild(na, i);
-    bool equal = compareSubtrees(na, *new_root1, *new_root2);
+  for (auto i = 0u; i < root1.getNumberOfChildren(); ++i) {
+
+    auto new_root1 = nt.getChild(root1, i);
+    auto new_root2 = nt.getChild(root2, i);
+
+    bool equal = compareSubtrees(nt, *new_root1, *new_root2);
     if (!equal) return false;
   }
 
@@ -290,13 +291,13 @@ bool compareSubtrees(const NodeAllocator& na, const VisualNode& root1,
 }
 
 // compare subtrees of the same shape
-bool areShapesIdentical(const NodeAllocator& na,
+static bool areShapesIdentical(const NodeTree& nt,
                         const std::multiset<ShapeI, CompareShapes>& set,
                         const ShapeI& shape) {
   auto first_it = set.lower_bound(shape);
 
   for (auto it = ++first_it; it != set.upper_bound(shape); ++it) {
-    auto equal = compareSubtrees(na, *first_it->node, *it->node);
+    auto equal = compareSubtrees(nt, *first_it->node, *it->node);
     if (!equal) return false;
   }
   return true;
@@ -522,7 +523,7 @@ void SimilarShapesWindow::drawHistogram() {
     const int size = it->shape_size;
     const int height = it->shape_height;
     const int count = shapeSet.count(*it);
-    const bool equal = detail::areShapesIdentical(node_tree.getNA(), shapeSet, *it);
+    const bool equal = detail::areShapesIdentical(node_tree, shapeSet, *it);
     vec.push_back({it->node, size, height, count, !equal});
   }
 

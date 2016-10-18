@@ -40,7 +40,6 @@
 
 #include <cassert>
 #include <QHash>
-#include <QString>
 
 class VisualNode;
 
@@ -110,9 +109,6 @@ public:
   /// Check if this node is the root of a tree
   bool isRoot(void) const;
 
-  /// Debug method
-  void removeChild(int n, NodeAllocator& na);
-
   /// Set the number of children to \a n and initialize children
   void setNumberOfChildren(unsigned int n, NodeAllocator& na);
 
@@ -129,6 +125,9 @@ public:
 #ifdef MAXIM_DEBUG
   int debug_id;
   static int debug_instance_counter;
+
+    /// Debug method
+  void removeChild(int n, NodeAllocator& na);
 #endif
 
 };
