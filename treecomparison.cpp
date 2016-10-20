@@ -71,8 +71,10 @@ bool copmareNodes(const VisualNode* n1, const Execution& ex1,
       find_and_replace_all(label2, "==", "=");
 
       if (label1.compare(label2) != 0) {
+#ifdef MAXIM_DEBUG
         qDebug() << "labels not equal: " << label1.c_str() << " "
                  << label2.c_str();
+#endif
         return false;
       }
     }
