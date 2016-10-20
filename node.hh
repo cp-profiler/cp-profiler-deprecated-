@@ -128,8 +128,6 @@ public:
   int debug_id;
   static int debug_instance_counter;
 
-    /// Debug method
-  void removeChild(int n, NodeAllocator& na);
 #endif
 
 };

@@ -80,7 +80,6 @@ Node::setNumberOfChildren(unsigned int n, NodeAllocator& na) {
     }
 }
 
-#ifdef MAXIM_DEBUG
 void
 Node::removeChild(int n, NodeAllocator& na) {
     /// ***** one child *****
@@ -121,7 +120,6 @@ Node::removeChild(int n, NodeAllocator& na) {
 
     /// ***** more children *****
 }
-#endif
 
 int
 Node::addChild(NodeAllocator &na) {
