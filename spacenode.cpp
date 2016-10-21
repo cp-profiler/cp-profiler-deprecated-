@@ -97,7 +97,7 @@
 
 
   int
-  SpaceNode::getNoOfOpenChildren(const NodeAllocator& na) {
+  SpaceNode::getNoOfOpenChildren(const NodeAllocator& na) const {
     if (!hasOpenChildren())
       return 0;
     int noOfOpenChildren = 0;

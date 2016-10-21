@@ -90,24 +90,23 @@ class SimilarShapesWindow : public QDialog {
 
  private:
 
-  TreeCanvas* m_tc;
+  TreeCanvas& m_tc;
   const NodeTree& node_tree;
 
   bool m_done = false;
 
   SimilarityType simType = SimilarityType::SHAPE;
+  ShapeProperty m_histType = ShapeProperty::SIZE;
+  ShapeProperty m_sortType = ShapeProperty::SIZE;
 
-  ShapeCanvas* shapeCanvas;
+  std::unique_ptr<ShapeCanvas> m_ShapeCanvas;
+  std::unique_ptr<QGraphicsScene> m_scene;
   std::multiset<ShapeI, CompareShapes> shapeSet;
   std::vector<ShapeI> shapesShown;
 
   QAbstractScrollArea* m_scrollArea;
   QGraphicsView* view;
-  std::unique_ptr<QGraphicsScene> scene;
   detail::Filters filters;
-
-  ShapeProperty m_histType = ShapeProperty::SIZE;
-  ShapeProperty m_sortType = ShapeProperty::SIZE;
 
   GroupsOfNodes_t m_identicalGroups;
 
@@ -135,19 +134,18 @@ private:
 
 };
 
+
+/// "Connects" to a tree and shows a part of it
 class ShapeCanvas : public QWidget {
 Q_OBJECT
+  const QAbstractScrollArea* m_ScrollArea;
   const NodeTree& m_NodeTree;
-  const QAbstractScrollArea* m_sa;
   VisualNode* m_targetNode = nullptr;
 
-  int xtrans;
-
-  /// paint the shape
-  void paintEvent(QPaintEvent* event);
+  void paintEvent(QPaintEvent* event) override;
 public:
   ShapeCanvas(QAbstractScrollArea* parent, const NodeTree& nt);
-  void highlightShape(VisualNode* node);
+  void showShape(VisualNode* node);
 };
 
 class ShapeRect : public QGraphicsRectItem {
@@ -158,15 +156,13 @@ public:
   static constexpr int SELECTION_WIDTH = 600;
 
 private:
-  VisualNode* const m_node;
+  VisualNode& m_node;
   SimilarShapesWindow* const m_ssWindow;
 
 public:
-  ShapeRect(int x, int y, int width, VisualNode*, SimilarShapesWindow*);
+  ShapeRect(int x, int y, int width, VisualNode& n, SimilarShapesWindow*);
 
-  VisualNode* getNode() const;
-  // add to the scene
-  void draw(QGraphicsScene* scene);
+  void addToScene(QGraphicsScene* scene);
   QGraphicsRectItem visibleArea;
 
 protected:

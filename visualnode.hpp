@@ -189,7 +189,7 @@ inline int VisualNode::getOffset(void) { return offset; }
 
 inline void VisualNode::setOffset(int n) { offset = n; }
 
-inline bool VisualNode::isDirty(void) { return getFlag(DIRTY); }
+inline bool VisualNode::isDirty(void) const { return getFlag(DIRTY); }
 
 inline void VisualNode::setDirty(bool d) {
   // std::cerr << "node [" << this->debug_id << "] set dirty: " << d << "\n"; 
@@ -204,27 +204,27 @@ inline void VisualNode::setChildrenLayoutDone(bool d) {
   setFlag(CHILDRENLAYOUTDONE, d);
 }
 
-inline bool VisualNode::isMarked(void) { return getFlag(MARKED); }
+inline bool VisualNode::isMarked(void) const { return getFlag(MARKED); }
 
 inline void VisualNode::setMarked(bool m) { setFlag(MARKED, m); }
 
-inline bool VisualNode::isSelected(void) { return getFlag(SELECTED); }
+inline bool VisualNode::isSelected(void) const { return getFlag(SELECTED); }
 
 inline void VisualNode::setSelected(bool m) { setFlag(SELECTED, m); }
 
-inline bool VisualNode::isHovered(void) { return getFlag(HOVEREDOVER); }
+inline bool VisualNode::isHovered(void) const { return getFlag(HOVEREDOVER); }
 
 inline void VisualNode::setHovered(bool m) { setFlag(HOVEREDOVER, m); }
 
-inline bool VisualNode::isBookmarked(void) { return getFlag(BOOKMARKED); }
+inline bool VisualNode::isBookmarked(void) const { return getFlag(BOOKMARKED); }
 
 inline void VisualNode::setBookmarked(bool m) { setFlag(BOOKMARKED, m); }
 
-inline bool VisualNode::isHighlighted(void) { return getFlag(HIGHLIGHTED); }
+inline bool VisualNode::isHighlighted(void) const { return getFlag(HIGHLIGHTED); }
 
 inline void VisualNode::setHighlighted(bool m) { setFlag(HIGHLIGHTED, m); }
 
-inline bool VisualNode::isOnPath(void) { return getFlag(ONPATH); }
+inline bool VisualNode::isOnPath(void) const { return getFlag(ONPATH); }
 
 inline void VisualNode::setOnPath(bool b) { setFlag(ONPATH, b); }
 

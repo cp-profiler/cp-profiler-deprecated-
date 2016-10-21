@@ -19,14 +19,19 @@
  *
  */
 
+#include <QAction>
+#include <QGridLayout>
+
 #include "qtgist.hh"
 
+#include "nodestats.hh"
 #include "nodevisitor.hh"
 #include "nodecursor.hh"
 
 #include "message.pb.hh"
 #include "execution.hh"
 #include "cmp_tree_dialog.hh"
+
 
 Gist::Gist(Execution& e, QWidget* parent)
     : QWidget(parent), execution(e) {
@@ -44,13 +49,12 @@ Gist::Gist(Execution& e, QWidget* parent)
 
   setLayout(layout);
 
-  m_Canvas.reset(new TreeCanvas(&execution, layout, CanvasType::REGULAR,
-                            scrollArea->viewport()));
+  m_Canvas.reset(new TreeCanvas(&execution, layout, scrollArea->viewport()));
   m_Canvas->setPalette(*myPalette);
   m_Canvas->setObjectName("canvas");
 
   layout->addWidget(scrollArea, 0, 0, -1, 1);
-  layout->addWidget(m_Canvas->scaleBar, 1, 1, Qt::AlignHCenter);
+  layout->addWidget(m_Canvas->scaleBar(), 1, 1, Qt::AlignHCenter);
   layout->addWidget(m_Canvas->smallBox, 1, 2, Qt::AlignBottom);
 
   addActions();
@@ -608,6 +612,7 @@ Gist::addActions() {
 #endif
 
 }
+
 
 TreeCanvas* Gist::getCanvas() { return m_Canvas.get(); }
 Execution* Gist::getExecution() { return &execution; }

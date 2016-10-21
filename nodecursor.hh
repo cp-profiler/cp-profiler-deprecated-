@@ -59,7 +59,7 @@ public:
     /// \name Cursor interface
     //@{
     /// Test if the cursor may move to the first child node
-    bool mayMoveDownwards(void);
+    bool mayMoveDownwards(void) const;
     /// Process node
     void processCurrentNode(void);
     //@}
@@ -100,7 +100,7 @@ public:
     /// \name Cursor interface
     //@{
     /// Test if the cursor may move to the parent node
-    bool mayMoveUpwards(void);
+    bool mayMoveUpwards(void) const;
     /// Process node
     void processCurrentNode(void);
     //@}
@@ -138,7 +138,7 @@ private:
     /// Whether to search backwards
     bool back;
     /// Whether the current node is not a solution
-    bool notOnSol(void);
+    bool notOnSol(void) const;
 public:
     /// Constructor
     NextSolCursor(VisualNode* theNode, bool backwards,
@@ -148,13 +148,13 @@ public:
     /// Do nothing
     void processCurrentNode(void);
     /// Test if the cursor may move to the parent node
-    bool mayMoveUpwards(void);
+    bool mayMoveUpwards(void) const;
     /// Test if cursor may move to the first child node
-    bool mayMoveDownwards(void);
+    bool mayMoveDownwards(void) const;
     /// Move cursor to the first child node
     void moveDownwards(void);
     /// Test if cursor may move to the first sibling
-    bool mayMoveSidewards(void);
+    bool mayMoveSidewards(void) const;
     /// Move cursor to the first sibling
     void moveSidewards(void);
     //@}
@@ -166,7 +166,7 @@ private:
     /// Whether to search backwards
     bool back;
     /// Whether the current node is not a leaf
-    bool notOnLeaf(void);
+    bool notOnLeaf(void) const;
 public:
     /// Constructor
     NextLeafCursor(VisualNode* theNode, bool backwards,
@@ -176,13 +176,13 @@ public:
     /// Do nothing
     void processCurrentNode(void);
     /// Test if the cursor may move to the parent node
-    bool mayMoveUpwards(void);
+    bool mayMoveUpwards(void) const;
     /// Test if cursor may move to the first child node
-    bool mayMoveDownwards(void);
+    bool mayMoveDownwards(void) const;
     /// Move cursor to the first child node
     void moveDownwards(void);
     /// Test if cursor may move to the first sibling
-    bool mayMoveSidewards(void);
+    bool mayMoveSidewards(void) const;
     /// Move cursor to the first sibling
     void moveSidewards(void);
     //@}
@@ -194,7 +194,7 @@ private:
     /// Whether to search backwards
     bool back;
     /// Whether the current node is not a pentagon
-    bool notOnPentagon(void);
+    bool notOnPentagon(void) const;
 public:
     /// Constructor
     NextPentagonCursor(VisualNode* theNode, bool backwards,
@@ -204,13 +204,13 @@ public:
     /// Do nothing
     void processCurrentNode(void);
     /// Test if the cursor may move to the parent node
-    bool mayMoveUpwards(void);
+    bool mayMoveUpwards(void) const;
     /// Test if cursor may move to the first child node
-    bool mayMoveDownwards(void);
+    bool mayMoveDownwards(void) const;
     /// Move cursor to the first child node
     void moveDownwards(void);
     /// Test if cursor may move to the first sibling
-    bool mayMoveSidewards(void);
+    bool mayMoveSidewards(void) const;
     /// Move cursor to the first sibling
     void moveSidewards(void);
     //@}
@@ -288,7 +288,6 @@ public:
 
 class CountSolvedCursor : public NodeCursor<VisualNode> {
 public:
-  // Constructor
   CountSolvedCursor(VisualNode* startNode, const NodeAllocator& na, int &count);
   // Count solved leaves and store the nubmer in count variable
   void processCurrentNode(void);
@@ -320,7 +319,7 @@ public:
   /// Process node
   void processCurrentNode(void);
   /// Test if cursor may move to the first child node
-  bool mayMoveDownwards(void);
+  bool mayMoveDownwards(void) const;
 };
 
 

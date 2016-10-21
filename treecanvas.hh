@@ -50,22 +50,45 @@ namespace cpprofiler { namespace analysis {
 
 class TreeDialog;
 
-enum class CanvasType {
-  REGULAR,
-  MERGED
-};
-
-
+/// TODO(maxim): slowing down search does not work anymore?
 
 /// \brief A canvas that displays the search tree
 class TreeCanvas : public QWidget {
   Q_OBJECT
 
-  /// TODO: try to reduce the number of these
+  struct DisplayOptions {
+    /// Whether to hide failed subtrees automatically
+    bool autoHideFailed = true;
+    /// Whether to zoom automatically
+    bool autoZoom = false;
+    /// Refresh rate
+    int refreshRate = 500;
+    /// Time (in msec) to pause after each refresh
+    int refreshPause = 0;
+    /// Whether to use smooth scrolling and zooming
+    bool smoothScrollAndZoom = false;
+    /// Whether to move cursor during search
+    bool moveDuringSearch = false;
+    /// Current scale factor
+    double scale;
+  };
+
+  struct ViewState {
+    /// Target x coordinate after smooth scrolling
+    int targetX = 0;
+    /// Source x coordinate after smooth scrolling
+    int sourceX = 0;
+    /// Target y coordinate after smooth scrolling
+    int targetY = 0;
+    /// Target y coordinate after smooth scrolling
+    int sourceY = 0;
+    /// Target scale after layout
+    int targetScale = 0;
+    /// Offset on the x axis so that the tree is centered
+    int xtrans;
+  };
+
   friend class Gist;
-  friend class ShapeCanvas;
-  friend class TreeComparison;
-  friend class CmpTreeDialog;
 
   /// to generate ids
   static int counter;
@@ -77,68 +100,38 @@ class TreeCanvas : public QWidget {
   int nodeCount = 0;
   QTimer* updateTimer;
 
+  DisplayOptions m_options;
+  ViewState m_view;
+
   /// Mutex for synchronizing acccess to the tree
   QMutex& mutex;
   /// Mutex for synchronizing layout and drawing
   QMutex& layoutMutex;
-  /// Flag signalling that Gist is ready to be closed
-  bool finishedFlag;
   /// Allocator for nodes
   NodeAllocator& na;
   /// The root node of the tree
   VisualNode* root;
   /// The currently selected node
   VisualNode* currentNode = nullptr;
-  /// The head of the currently selected path
-  VisualNode* pathHead;
 
+    /// Similar shapes dialog
+  std::unique_ptr<cpprofiler::analysis::SimilarShapesWindow> shapesWindow;
+  
   /// The bookmarks map
   QVector<VisualNode*> bookmarks;
 
+  /// TODO(maxim): should be taken out to gist
   /// The scale bar
-  QSlider* scaleBar;
+  QSlider* m_scaleBar;
 
   /// Box for selecting "small subtree" size
   QLineEdit* smallBox;
 
-  /// Current scale factor
-  double scale;
-  /// Offset on the x axis so that the tree is centered
-  int xtrans;
-
-  /// Whether to hide failed subtrees automatically
-  bool autoHideFailed = true;
-  /// Whether to zoom automatically
-  bool autoZoom = false;
-  /// Whether to show copies in the tree
-  bool showCopies;
-  /// Refresh rate
-  int refresh = 500;
-  /// Time (in msec) to pause after each refresh
-  int refreshPause = 0;
-  /// Whether to use smooth scrolling and zooming
-  bool smoothScrollAndZoom = false;
-  /// Whether to move cursor during search
-  bool moveDuringSearch = false;
   /// Timer for smooth zooming
   QTimeLine zoomTimeLine{500};
   /// Timer for smooth scrolling
   QTimeLine scrollTimeLine{1000};
-  /// Target x coordinate after smooth scrolling
-  int targetX = 0;
-  /// Source x coordinate after smooth scrolling
-  int sourceX = 0;
-  /// Target y coordinate after smooth scrolling
-  int targetY = 0;
-  /// Target y coordinate after smooth scrolling
-  int sourceY = 0;
 
-  /// Target width after layout
-  int targetW = 0;
-  /// Target height after layout
-  int targetH = 0;
-  /// Target scale after layout
-  int targetScale = 0;
   /// Timer id for delaying the update
   int layoutDoneTimerId = 0;
 
@@ -161,16 +154,14 @@ class TreeCanvas : public QWidget {
 
   /// Timer invoked for smooth zooming and scrolling
   virtual void timerEvent(QTimerEvent* e);
-  /// Similar shapes dialog
-  std::unique_ptr<cpprofiler::analysis::SimilarShapesWindow> shapesWindow;
-  // Node that represents the shape currently selected
-  VisualNode* shapeHighlighted;
 
 public:
 
-  TreeCanvas(Execution* execution, QGridLayout* layout, CanvasType type, QWidget* parent);
+  TreeCanvas(Execution* execution, QGridLayout* layout, QWidget* parent);
 
   ~TreeCanvas();
+
+  QSlider* scaleBar() const { return m_scaleBar; }
 
   std::string getLabel(unsigned int gid) {
     return execution.getLabel(gid);
@@ -367,9 +358,6 @@ public Q_SLOTS:
   void setMoveDuringSearch(bool b);
   /// Resize to the outer widget size if auto zoom is enabled
   void resizeToOuter();
-
-  /// Stop search and wait for it to finish
-  bool finish();
 
 #ifdef MAXIM_DEBUG
   void printDebugInfo();

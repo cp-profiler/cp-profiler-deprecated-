@@ -50,8 +50,12 @@ inline Node*
 NodeCursor<Node>::node(void) { return _node; }
 
 template<class Node>
+inline const Node*
+NodeCursor<Node>::node(void) const { return _node; }
+
+template<class Node>
 inline unsigned int
-NodeCursor<Node>::alternative(void) { return _alternative; }
+NodeCursor<Node>::alternative(void) const { return _alternative; }
 
 template<class Node>
 inline void
@@ -62,12 +66,17 @@ inline Node*
 NodeCursor<Node>::startNode(void) { return _startNode; }
 
 template<class Node>
+inline const Node*
+NodeCursor<Node>::startNode(void) const { return _startNode; }
+
+template<class Node>
 inline void
 NodeCursor<Node>::node(Node* n) { _node = n; }
 
+
 template<class Node>
 inline bool
-NodeCursor<Node>::mayMoveUpwards(void) {
+NodeCursor<Node>::mayMoveUpwards(void) const {
     return _node != _startNode && !_node->isRoot();
 }
 
@@ -90,7 +99,7 @@ NodeCursor<Node>::moveUpwards(void) {
 
 template<class Node>
 inline bool
-NodeCursor<Node>::mayMoveDownwards(void) {
+NodeCursor<Node>::mayMoveDownwards(void) const {
     int n = _node->getNumberOfChildren();
     return (n > 0);
 }
@@ -104,7 +113,7 @@ NodeCursor<Node>::moveDownwards(void) {
 
 template<class Node>
 inline bool
-NodeCursor<Node>::mayMoveSidewards(void) {
+NodeCursor<Node>::mayMoveSidewards(void) const {
     return (!_node->isRoot()) && (_node != _startNode) &&
             (_alternative < _node->getParent(na)->getNumberOfChildren() - 1);
 }
@@ -117,20 +126,10 @@ NodeCursor<Node>::moveSidewards(void) {
 }
 
 inline bool
-HideFailedCursor::mayMoveDownwards(void) {
+HideFailedCursor::mayMoveDownwards(void) const {
 
-    // std::cerr << "--- mayMoveDownwards ---\n";
+    const VisualNode* n = node();
 
-    VisualNode* n = node();
-
-    // std::cerr << "id: " << n->debug_id;
-
-    // std::cerr << "   isDirty: " << n->isDirty() << "\n";
-    // std::cerr << "   mayMoveDownwards: " << NodeCursor<VisualNode>::mayMoveDownwards() << "\n";
-    // std::cerr << "   hasSolvedChildren: " << n->hasSolvedChildren() << "\n";
-    // std::cerr << "   number of open kids: " << n->getNoOfOpenChildren(na) << "\n";
-    // std::cerr << "   isHidden: " << n->isHidden() << "\n";
-    // std::cerr << "------------------------\n";
     return (!onlyDirty || n->isDirty()) &&
             NodeCursor<VisualNode>::mayMoveDownwards() &&
             (n->hasSolvedChildren() || n->getNoOfOpenChildren(na) > 0) &&
@@ -223,17 +222,17 @@ inline void
 NextSolCursor::processCurrentNode(void) {}
 
 inline bool
-NextSolCursor::notOnSol(void) {
+NextSolCursor::notOnSol(void) const {
     return node() == startNode() || node()->getStatus() != SOLVED;
 }
 
 inline bool
-NextSolCursor::mayMoveUpwards(void) {
+NextSolCursor::mayMoveUpwards(void) const {
     return notOnSol() && !node()->isRoot();
 }
 
 inline bool
-NextSolCursor::mayMoveDownwards(void) {
+NextSolCursor::mayMoveDownwards(void) const {
     return notOnSol() && !(back && node() == startNode())
             && node()->hasSolvedChildren()
             && NodeCursor<VisualNode>::mayMoveDownwards();
@@ -249,7 +248,7 @@ NextSolCursor::moveDownwards(void) {
 }
 
 inline bool
-NextSolCursor::mayMoveSidewards(void) {
+NextSolCursor::mayMoveSidewards(void) const {
     if (back) {
         return notOnSol() && !node()->isRoot() && alternative() > 0;
     } else {
@@ -283,7 +282,7 @@ inline void
 NextLeafCursor::processCurrentNode(void) {}
 
 inline bool
-NextLeafCursor::notOnLeaf(void) {
+NextLeafCursor::notOnLeaf(void) const {
   if (node() == startNode()) return true;
   NodeStatus s = node()->getStatus();
   bool isLeaf = s == SOLVED || s == FAILED;
@@ -291,12 +290,12 @@ NextLeafCursor::notOnLeaf(void) {
 }
 
 inline bool
-NextLeafCursor::mayMoveUpwards(void) {
+NextLeafCursor::mayMoveUpwards(void) const {
     return notOnLeaf() && !node()->isRoot();
 }
 
 inline bool
-NextLeafCursor::mayMoveDownwards(void) {
+NextLeafCursor::mayMoveDownwards(void) const {
     return notOnLeaf() && !(back && node() == startNode())
             && NodeCursor<VisualNode>::mayMoveDownwards();
 }
@@ -311,7 +310,7 @@ NextLeafCursor::moveDownwards(void) {
 }
 
 inline bool
-NextLeafCursor::mayMoveSidewards(void) {
+NextLeafCursor::mayMoveSidewards(void) const {
     if (back) {
         return notOnLeaf() && !node()->isRoot() && alternative() > 0;
     } else {
@@ -343,17 +342,17 @@ inline void
 NextPentagonCursor::processCurrentNode(void) {}
 
 inline bool
-NextPentagonCursor::notOnPentagon(void) {
+NextPentagonCursor::notOnPentagon(void) const {
     return node() == startNode() || node()->getStatus() != MERGING;
 }
 
 inline bool
-NextPentagonCursor::mayMoveUpwards(void) {
+NextPentagonCursor::mayMoveUpwards(void) const {
     return notOnPentagon() && !node()->isRoot();
 }
 
 inline bool
-NextPentagonCursor::mayMoveDownwards(void) {
+NextPentagonCursor::mayMoveDownwards(void) const {
     return notOnPentagon() && !(back && node() == startNode())
             && NodeCursor<VisualNode>::mayMoveDownwards();
 }
@@ -368,7 +367,7 @@ NextPentagonCursor::moveDownwards(void) {
 }
 
 inline bool
-NextPentagonCursor::mayMoveSidewards(void) {
+NextPentagonCursor::mayMoveSidewards(void) const {
     if (back) {
         return notOnPentagon() && !node()->isRoot() && alternative() > 0;
     } else {
@@ -495,7 +494,7 @@ CountSolvedCursor::CountSolvedCursor(VisualNode* startNode,
 
 inline void
 CountSolvedCursor::processCurrentNode(void) {
-  VisualNode* n = node();
+  const VisualNode* n = node();
   if (n->getStatus() == SOLVED){
     _count++;
   }
@@ -541,7 +540,7 @@ HideNotHighlightedCursor::processCurrentNode(void) {
 }
 
 inline bool
-HideNotHighlightedCursor::mayMoveDownwards(void) {
+HideNotHighlightedCursor::mayMoveDownwards(void) const {
   return NodeCursor<VisualNode>::mayMoveDownwards() &&
     (!node()->isHighlighted()) &&
     (!node()->isHidden());
@@ -737,6 +736,6 @@ UnhideAncestorsCursor::processCurrentNode(void) {
 }
 
 inline bool
-UnhideAncestorsCursor::mayMoveUpwards(void) {
+UnhideAncestorsCursor::mayMoveUpwards(void) const {
     return !node()->isRoot();
 }

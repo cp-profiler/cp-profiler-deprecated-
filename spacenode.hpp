@@ -111,12 +111,12 @@ SpaceNode::hasFailedChildren(void) {
 }
 
 inline bool
-SpaceNode::hasSolvedChildren(void) {
+SpaceNode::hasSolvedChildren(void) const {
   return getFlag(HASSOLVEDCHILDREN);
 }
 
 inline bool
-SpaceNode::hasOpenChildren(void) {
+SpaceNode::hasOpenChildren(void) const {
   return getFlag(HASOPENCHILDREN);
 }
 

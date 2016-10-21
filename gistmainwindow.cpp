@@ -19,6 +19,8 @@
  *
  */
 
+#include <QLabel>
+
 #include "gistmainwindow.h"
 #include "preferences.hh"
 #include "nodewidget.hh"
@@ -28,6 +30,7 @@
 #include <cmath>
 #include <fstream>
 
+#include <QAction>
 
 GistMainWindow::GistMainWindow(Execution& execution, QWidget* parent) : QMainWindow(parent) {
     m_Gist = new Gist(execution, this);

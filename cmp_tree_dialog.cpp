@@ -46,11 +46,10 @@ CmpTreeDialog::CmpTreeDialog(QWidget* parent, Execution* execution, bool with_la
 
   auto scrollArea = new QAbstractScrollArea(this);
 
-  m_Canvas.reset(new TreeCanvas(execution, layout, CanvasType::MERGED,
-                                scrollArea->viewport()));
+  m_Canvas.reset(new TreeCanvas(execution, layout, scrollArea->viewport()));
 
   layout->addWidget(scrollArea, 0, 0, 1, 1);
-  layout->addWidget(m_Canvas->scaleBar, 0, 1, Qt::AlignHCenter);
+  layout->addWidget(m_Canvas->scaleBar(), 0, 1, Qt::AlignHCenter);
 
   scrollArea->viewport()->setLayout(nc_layout);
 
@@ -298,7 +297,7 @@ infoToNogoodVector(const string& info) {
 }
 
 void
-PentListWindow::populateNogoodTable(const vector<int>& nogoods) {
+PentListWindow::populateNogoodTable(const std::vector<int>& nogoods) {
 
   auto ng_stats = m_Comparison.responsible_nogood_stats();
   auto nogood_map = m_Comparison.left_execution().getNogoods();

@@ -22,25 +22,20 @@
 #ifndef GIST_HH
 #define GIST_HH
 
-#include "nodestats.hh"
-#include <vector>
+#include <QSlider>
+#include <QVariant>
 #include <memory>
 
-/**
- * \brief %Gecode Interactive %Search Tool
- *
- * This class provides an interactive search tree viewer and explorer as
- * a Qt widget. You can embedd or inherit from this widget to use %Gist
- * in your own project.
- *
- * \ingroup TaskGist
- */
-
+class NodeStatInspector;
 class CmpTreeDialog;
 class TreeCanvas;
 class Execution;
-
-using std::vector;
+class Statistics;
+class VisualNode;
+class QAction;
+class QMenu;
+class QActionGroup;
+class QGridLayout;
 
 class Gist : public QWidget {
   Q_OBJECT
@@ -178,7 +173,6 @@ private:
   void addActions();
 
 public:
-
 
   Gist(Execution& execution, QWidget* parent);
 

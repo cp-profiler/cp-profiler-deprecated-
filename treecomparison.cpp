@@ -213,7 +213,7 @@ TreeComparison::compare(TreeCanvas* new_tc, bool with_labels) {
         bool equal = copmareNodes(node1, _ex1, node2, _ex2, with_labels);
 
         if (equal) {
-            // qDebug() << "nodes are equal";
+
             auto kids = node1->getNumberOfChildren();
             for (auto i = 0u; i < kids; ++i) {
                 stack1.push(node1->getChild(_na1, kids - i - 1));
@@ -222,7 +222,7 @@ TreeComparison::compare(TreeCanvas* new_tc, bool with_labels) {
 
             /// if roots are equal
             if (!rootBuilt) {
-                next = new_tc->root;
+                next = na[0];
                 rootBuilt = true;
             } else {
                 next = stack.pop();
@@ -231,7 +231,6 @@ TreeComparison::compare(TreeCanvas* new_tc, bool with_labels) {
             /// new node is built
 
             next->setNumberOfChildren(kids, na);
-            // next->setStatus(node1->getStatus());
             next->nstatus = node1->nstatus;
             next->_tid = 0;
 

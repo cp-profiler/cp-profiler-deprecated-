@@ -1,5 +1,6 @@
 #include "profiler-conductor.hh"
 #include "profiler-tcp-server.hh"
+
 #include "gistmainwindow.h"
 #include "cmp_tree_dialog.hh"
 #include "data.hh"

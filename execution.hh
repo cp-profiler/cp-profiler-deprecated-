@@ -22,7 +22,6 @@ class TreeBuilder;
 class Execution : public QObject {
     Q_OBJECT
 
-    friend class TreeCanvas;
 public:
     Execution();
     Execution(const Execution&) = delete;

@@ -26,11 +26,9 @@
 
 #include <QMainWindow>
 
-/**
- * \brief Main window for stand-alone %Gist
- *
- * \ingroup TaskGist
- */
+class QLabel;
+class QAction;
+
 class GistMainWindow : public QMainWindow {
   Q_OBJECT
 private:

@@ -59,8 +59,7 @@ using namespace cpprofiler::analysis;
 
 int TreeCanvas::counter = 0;
 
-TreeCanvas::TreeCanvas(Execution* e, QGridLayout* layout,
-                       CanvasType type, QWidget* parent)
+TreeCanvas::TreeCanvas(Execution* e, QGridLayout* layout, QWidget* parent)
     : QWidget{parent},
       execution{*e},
       mutex(execution.getMutex()),
@@ -73,7 +72,7 @@ TreeCanvas::TreeCanvas(Execution* e, QGridLayout* layout,
 
   root = execution.getRootNode();
 
-  scale = LayoutConfig::defScale / 100.0;
+  m_options.scale = LayoutConfig::defScale / 100.0;
 
   setAutoFillBackground(true);
 
@@ -94,35 +93,26 @@ TreeCanvas::TreeCanvas(Execution* e, QGridLayout* layout,
   connect(this, SIGNAL(autoZoomChanged(bool)), autoZoomButton,
           SLOT(setChecked(bool)));
 
-  connect(&execution, SIGNAL(newNode()), this, SLOT(maybeUpdateCanvas()));
+  connect(&execution, &Execution::newNode, this, &TreeCanvas::maybeUpdateCanvas);
   connect(&execution, &Execution::newRoot, this, &TreeCanvas::updateCanvas);
-
-  // connect(ptr_receiver, SIGNAL(update(int,int,int)), this,
-  //         SLOT(layoutDone(int,int,int)));
-
-  // connect(ptr_receiver, SIGNAL(statusChanged(bool)), this,
-  //         SLOT(statusChanged(bool)));
-
-  // connect(ptr_receiver, SIGNAL(receivedNodes(bool)), this,
-  //         SLOT(statusChanged(bool)));
 
   connect(&scrollTimeLine, SIGNAL(frameChanged(int)), this, SLOT(scroll(int)));
 
   scrollTimeLine.setCurveShape(QTimeLine::EaseInOutCurve);
 
-  scaleBar = new QSlider(Qt::Vertical, this);
-  scaleBar->setObjectName("scaleBar");
-  scaleBar->setMinimum(LayoutConfig::minScale);
-  scaleBar->setMaximum(LayoutConfig::maxScale);
-  scaleBar->setValue(LayoutConfig::defScale);
-  connect(scaleBar, SIGNAL(valueChanged(int)), this, SLOT(scaleTree(int)));
-  connect(this, SIGNAL(scaleChanged(int)), scaleBar, SLOT(setValue(int)));
+  m_scaleBar = new QSlider(Qt::Vertical, this);
+  m_scaleBar->setObjectName("scaleBar");
+  m_scaleBar->setMinimum(LayoutConfig::minScale);
+  m_scaleBar->setMaximum(LayoutConfig::maxScale);
+  m_scaleBar->setValue(LayoutConfig::defScale);
+  connect(m_scaleBar, SIGNAL(valueChanged(int)), this, SLOT(scaleTree(int)));
+  connect(this, SIGNAL(scaleChanged(int)), m_scaleBar, SLOT(setValue(int)));
 
   smallBox = new QLineEdit("100");
   smallBox->setMaximumWidth(50);
   connect(smallBox, SIGNAL(returnPressed()), this, SLOT(hideSize()));
 
-  connect(&zoomTimeLine, SIGNAL(frameChanged(int)), scaleBar,
+  connect(&zoomTimeLine, SIGNAL(frameChanged(int)), m_scaleBar,
           SLOT(setValue(int)));
   zoomTimeLine.setCurveShape(QTimeLine::EaseInOutCurve);
 
@@ -158,17 +148,17 @@ void TreeCanvas::scaleTree(int scale0, int zoomx, int zoomy) {
   if (zoomx == -1) zoomx = viewport_size.width() / 2;
   if (zoomy == -1) zoomy = viewport_size.height() / 2;
 
-  int xoff = (sa->horizontalScrollBar()->value() + zoomx) / scale;
-  int yoff = (sa->verticalScrollBar()->value() + zoomy) / scale;
+  int xoff = (sa->horizontalScrollBar()->value() + zoomx) / m_options.scale;
+  int yoff = (sa->verticalScrollBar()->value() + zoomy) / m_options.scale;
 
   BoundingBox bb;
   scale0 = std::min(std::max(scale0, LayoutConfig::minScale),
                     LayoutConfig::maxScale);
-  scale = (static_cast<double>(scale0)) / 100.0;
+  m_options.scale = (static_cast<double>(scale0)) / 100.0;
   bb = root->getBoundingBox();
-  int w = static_cast<int>((bb.right - bb.left + Layout::extent) * scale);
+  int w = static_cast<int>((bb.right - bb.left + Layout::extent) * m_options.scale);
   int h = static_cast<int>(2 * Layout::extent +
-                           root->getShape()->depth() * Layout::dist_y * scale);
+                           root->getShape()->depth() * Layout::dist_y * m_options.scale);
 
   sa->horizontalScrollBar()->setRange(0, w - viewport_size.width());
   sa->verticalScrollBar()->setRange(0, h - viewport_size.height());
@@ -177,8 +167,8 @@ void TreeCanvas::scaleTree(int scale0, int zoomx, int zoomy) {
   sa->horizontalScrollBar()->setSingleStep(Layout::extent);
   sa->verticalScrollBar()->setSingleStep(Layout::extent);
 
-  xoff *= scale;
-  yoff *= scale;
+  xoff *= m_options.scale;
+  yoff *= m_options.scale;
 
   sa->horizontalScrollBar()->setValue(xoff - zoomx);
   sa->verticalScrollBar()->setValue(yoff - zoomy);
@@ -197,11 +187,11 @@ void TreeCanvas::update(void) {
     root->layout(execution.getNA());
     BoundingBox bb = root->getBoundingBox();
 
-    int w = static_cast<int>((bb.right - bb.left + Layout::extent) * scale);
+    int w = static_cast<int>((bb.right - bb.left + Layout::extent) * m_options.scale);
     int h =
         static_cast<int>(2 * Layout::extent +
-                         root->getShape()->depth() * Layout::dist_y * scale);
-    xtrans = -bb.left + (Layout::extent / 2);
+                         root->getShape()->depth() * Layout::dist_y * m_options.scale);
+    m_view.xtrans = -bb.left + (Layout::extent / 2);
 
     QSize viewport_size = size();
     QAbstractScrollArea* sa =
@@ -213,7 +203,7 @@ void TreeCanvas::update(void) {
     sa->horizontalScrollBar()->setSingleStep(Layout::extent);
     sa->verticalScrollBar()->setSingleStep(Layout::extent);
   }
-  if (autoZoom) zoomToFit();
+  if (m_options.autoZoom) zoomToFit();
   layoutMutex.unlock();
   QWidget::update();
 }
@@ -222,9 +212,7 @@ void TreeCanvas::scroll(void) { QWidget::update(); }
 
 void TreeCanvas::layoutDone(int w, int h, int scale0) {
 
-  targetW = w;
-  targetH = h;
-  targetScale = scale0;
+  m_view.targetScale = scale0;
 
   QSize viewport_size = size();
   QAbstractScrollArea* sa =
@@ -564,13 +552,12 @@ void TreeCanvas::unstopAll(void) {
 
 void TreeCanvas::timerEvent(QTimerEvent* e) {
   if (e->timerId() == layoutDoneTimerId) {
-    if (!smoothScrollAndZoom) {
-      scaleTree(targetScale);
+    if (!m_options.smoothScrollAndZoom) {
+      scaleTree(m_view.targetScale);
     } else {
       zoomTimeLine.stop();
-      int zoomCurrent = static_cast<int>(scale * 100);
-      int targetZoom = targetScale;
-      targetZoom = std::min(std::max(targetZoom, LayoutConfig::minScale),
+      int zoomCurrent = static_cast<int>(m_options.scale * 100);
+      int targetZoom = std::min(std::max(m_view.targetScale, LayoutConfig::minScale),
                             LayoutConfig::maxAutoZoomScale);
       zoomTimeLine.setFrameRange(zoomCurrent, targetZoom);
       zoomTimeLine.start();
@@ -598,11 +585,11 @@ void TreeCanvas::zoomToFit(void) {
       if (scale0 > LayoutConfig::maxAutoZoomScale)
         scale0 = LayoutConfig::maxAutoZoomScale;
 
-      if (!smoothScrollAndZoom) {
+      if (!m_options.smoothScrollAndZoom) {
         scaleTree(scale0);
       } else {
         zoomTimeLine.stop();
-        int zoomCurrent = static_cast<int>(scale * 100);
+        int zoomCurrent = static_cast<int>(m_options.scale * 100);
         int targetZoom = scale0;
         targetZoom = std::min(std::max(targetZoom, LayoutConfig::minScale),
                               LayoutConfig::maxAutoZoomScale);
@@ -625,8 +612,8 @@ void TreeCanvas::centerCurrentNode(void) {
     c = c->getParent(execution.getNA());
   }
 
-  x = static_cast<int>((xtrans + x) * scale);
-  y = static_cast<int>(y * scale);
+  x = static_cast<int>((m_view.xtrans + x) * m_options.scale);
+  y = static_cast<int>(y * m_options.scale);
 
   QAbstractScrollArea* sa =
       static_cast<QAbstractScrollArea*>(parentWidget()->parentWidget());
@@ -634,21 +621,21 @@ void TreeCanvas::centerCurrentNode(void) {
   x -= sa->viewport()->width() / 2;
   y -= sa->viewport()->height() / 2;
 
-  sourceX = sa->horizontalScrollBar()->value();
-  targetX = std::max(sa->horizontalScrollBar()->minimum(), x);
-  targetX = std::min(sa->horizontalScrollBar()->maximum(), targetX);
-  sourceY = sa->verticalScrollBar()->value();
-  targetY = std::max(sa->verticalScrollBar()->minimum(), y);
-  targetY = std::min(sa->verticalScrollBar()->maximum(), targetY);
-  if (!smoothScrollAndZoom) {
-    sa->horizontalScrollBar()->setValue(targetX);
-    sa->verticalScrollBar()->setValue(targetY);
+  m_view.sourceX = sa->horizontalScrollBar()->value();
+  m_view.targetX = std::max(sa->horizontalScrollBar()->minimum(), x);
+  m_view.targetX = std::min(sa->horizontalScrollBar()->maximum(), m_view.targetX);
+  m_view.sourceY = sa->verticalScrollBar()->value();
+  m_view.targetY = std::max(sa->verticalScrollBar()->minimum(), y);
+  m_view.targetY = std::min(sa->verticalScrollBar()->maximum(), m_view.targetY);
+  if (!m_options.smoothScrollAndZoom) {
+    sa->horizontalScrollBar()->setValue(m_view.targetX);
+    sa->verticalScrollBar()->setValue(m_view.targetY);
   } else {
     scrollTimeLine.stop();
     scrollTimeLine.setFrameRange(0, 100);
     scrollTimeLine.setDuration(
-        std::max(200, std::min(1000, std::min(std::abs(sourceX - targetX),
-                                              std::abs(sourceY - targetY)))));
+        std::max(200, std::min(1000, std::min(std::abs(m_view.sourceX - m_view.targetX),
+                                              std::abs(m_view.sourceY - m_view.targetY)))));
     scrollTimeLine.start();
   }
 }
@@ -657,10 +644,10 @@ void TreeCanvas::scroll(int i) {
   QAbstractScrollArea* sa =
       static_cast<QAbstractScrollArea*>(parentWidget()->parentWidget());
   double p = static_cast<double>(i) / 100.0;
-  double xdiff = static_cast<double>(targetX - sourceX) * p;
-  double ydiff = static_cast<double>(targetY - sourceY) * p;
-  sa->horizontalScrollBar()->setValue(sourceX + static_cast<int>(xdiff));
-  sa->verticalScrollBar()->setValue(sourceY + static_cast<int>(ydiff));
+  double xdiff = static_cast<double>(m_view.targetX - m_view.sourceX) * p;
+  double ydiff = static_cast<double>(m_view.targetY - m_view.sourceY) * p;
+  sa->horizontalScrollBar()->setValue(m_view.sourceX + static_cast<int>(xdiff));
+  sa->verticalScrollBar()->setValue(m_view.sourceY + static_cast<int>(ydiff));
 }
 
 /// check what should be uncommented out.
@@ -706,8 +693,7 @@ void TreeCanvas::reset() {
 
   VisualNode* root = execution.getRootNode();
   currentNode = root;
-  pathHead = root;
-  scale = 1.0;
+  m_options.scale = 1.0;
   for (int i = bookmarks.size(); i--;) emit removedBookmark(i);
   bookmarks.clear();
 
@@ -926,7 +912,7 @@ void TreeCanvas::print(void) {
     QPainter painter(&printer);
     painter.setRenderHint(QPainter::Antialiasing);
     painter.scale(printScale, printScale);
-    painter.translate(xtrans, 0);
+    painter.translate(m_view.xtrans, 0);
     QRect clip(0, 0, 0, 0);
     DrawingCursor dc(root, execution.getNA(), painter, clip);
     PreorderNodeVisitor<DrawingCursor>(dc).run();
@@ -969,16 +955,16 @@ VisualNode* TreeCanvas::eventNode(QEvent* event) {
   }
   QAbstractScrollArea* sa =
       static_cast<QAbstractScrollArea*>(parentWidget()->parentWidget());
-  int xoff = sa->horizontalScrollBar()->value() / scale;
-  int yoff = sa->verticalScrollBar()->value() / scale;
+  int xoff = sa->horizontalScrollBar()->value() / m_options.scale;
+  int yoff = sa->verticalScrollBar()->value() / m_options.scale;
 
   BoundingBox bb = root->getBoundingBox();
-  int w = static_cast<int>((bb.right - bb.left + Layout::extent) * scale);
+  int w = static_cast<int>((bb.right - bb.left + Layout::extent) * m_options.scale);
   if (w < sa->viewport()->width()) xoff -= (sa->viewport()->width() - w) / 2;
 
   VisualNode* n;
-  n = root->findNode(execution.getNA(), static_cast<int>(x / scale - xtrans + xoff),
-                     static_cast<int>((y - 30) / scale + yoff));
+  n = root->findNode(execution.getNA(), static_cast<int>(x / m_options.scale - m_view.xtrans + xoff),
+                     static_cast<int>((y - 30) / m_options.scale + yoff));
   return n;
 }
 
@@ -999,7 +985,7 @@ bool TreeCanvas::event(QEvent* event) {
 }
 
 void TreeCanvas::resizeToOuter(void) {
-  if (autoZoom) zoomToFit();
+  if (m_options.autoZoom) zoomToFit();
 }
 
 void TreeCanvas::paintEvent(QPaintEvent* event) {
@@ -1009,21 +995,21 @@ void TreeCanvas::paintEvent(QPaintEvent* event) {
 
   QAbstractScrollArea* sa =
       static_cast<QAbstractScrollArea*>(parentWidget()->parentWidget());
-  int xoff = sa->horizontalScrollBar()->value() / scale;
-  int yoff = sa->verticalScrollBar()->value() / scale;
+  int xoff = sa->horizontalScrollBar()->value() / m_options.scale;
+  int yoff = sa->verticalScrollBar()->value() / m_options.scale;
 
   BoundingBox bb = root->getBoundingBox();
-  int w = static_cast<int>((bb.right - bb.left + Layout::extent) * scale);
+  int w = static_cast<int>((bb.right - bb.left + Layout::extent) * m_options.scale);
   if (w < sa->viewport()->width()) xoff -= (sa->viewport()->width() - w) / 2;
 
   QRect origClip = event->rect();
   painter.translate(0, 30);
-  painter.scale(scale, scale);
-  painter.translate(xtrans - xoff, -yoff);
-  QRect clip(static_cast<int>(origClip.x() / scale - xtrans + xoff),
-             static_cast<int>(origClip.y() / scale + yoff),
-             static_cast<int>(origClip.width() / scale),
-             static_cast<int>(origClip.height() / scale));
+  painter.scale(m_options.scale, m_options.scale);
+  painter.translate(m_view.xtrans - xoff, -yoff);
+  QRect clip(static_cast<int>(origClip.x() / m_options.scale - m_view.xtrans + xoff),
+             static_cast<int>(origClip.y() / m_options.scale + yoff),
+             static_cast<int>(origClip.width() / m_options.scale),
+             static_cast<int>(origClip.height() / m_options.scale));
 
   // perfHelper.begin("TreeCanvas: paint");
   DrawingCursor dc(root, execution.getNA(), painter, clip);
@@ -1086,20 +1072,12 @@ void TreeCanvas::resizeEvent(QResizeEvent* e) {
 void TreeCanvas::wheelEvent(QWheelEvent* event) {
   if (event->modifiers() & Qt::ShiftModifier) {
     event->accept();
-    if (event->orientation() == Qt::Vertical && !autoZoom)
-      scaleTree(scale * 100 + ceil(static_cast<double>(event->delta()) / 4.0),
+    if (event->orientation() == Qt::Vertical && !m_options.autoZoom)
+      scaleTree(m_options.scale * 100 + ceil(static_cast<double>(event->delta()) / 4.0),
                 event->x(), event->y());
   } else {
     event->ignore();
   }
-}
-
-bool TreeCanvas::finish(void) {
-  if (finishedFlag) return true;
-  finishedFlag = true;
-
-  // return !ptr_receiver->isRunning();
-  return false;
 }
 
 void TreeCanvas::finalizeCanvas(void) {
@@ -1161,41 +1139,41 @@ void TreeCanvas::mousePressEvent(QMouseEvent* event) {
   event->ignore();
 }
 
-void TreeCanvas::setAutoHideFailed(bool b) { autoHideFailed = b; }
+void TreeCanvas::setAutoHideFailed(bool b) { m_options.autoHideFailed = b; }
 
 void TreeCanvas::setAutoZoom(bool b) {
-  autoZoom = b;
-  if (autoZoom) {
+  m_options.autoZoom = b;
+  if (m_options.autoZoom) {
     zoomToFit();
   }
   emit autoZoomChanged(b);
-  scaleBar->setEnabled(!b);
+  m_scaleBar->setEnabled(!b);
 }
 
-bool TreeCanvas::getAutoHideFailed(void) { return autoHideFailed; }
+bool TreeCanvas::getAutoHideFailed(void) { return m_options.autoHideFailed; }
 
-bool TreeCanvas::getAutoZoom(void) { return autoZoom; }
+bool TreeCanvas::getAutoZoom(void) { return m_options.autoZoom; }
 
-void TreeCanvas::setRefresh(int i) { refresh = i; }
+void TreeCanvas::setRefresh(int i) { m_options.refreshRate = i; }
 
 void TreeCanvas::setRefreshPause(int i) {
-  refreshPause = i;
-  if (refreshPause > 0) refresh = 1;
+  m_options.refreshPause = i;
+  if (m_options.refreshPause > 0) m_options.refreshRate = 1;
 }
 
-bool TreeCanvas::getSmoothScrollAndZoom(void) { return smoothScrollAndZoom; }
+bool TreeCanvas::getSmoothScrollAndZoom(void) { return m_options.smoothScrollAndZoom; }
 
-void TreeCanvas::setSmoothScrollAndZoom(bool b) { smoothScrollAndZoom = b; }
+void TreeCanvas::setSmoothScrollAndZoom(bool b) { m_options.smoothScrollAndZoom = b; }
 
-bool TreeCanvas::getMoveDuringSearch(void) { return moveDuringSearch; }
+bool TreeCanvas::getMoveDuringSearch(void) { return m_options.moveDuringSearch; }
 
-void TreeCanvas::setMoveDuringSearch(bool b) { moveDuringSearch = b; }
+void TreeCanvas::setMoveDuringSearch(bool b) { m_options.moveDuringSearch = b; }
 
 // Call this when there is a new node, and the canvas will update if
 // the refresh rate says that it should.
 void TreeCanvas::maybeUpdateCanvas(void) {
   nodeCount++;
-  if (nodeCount >= refresh) {
+  if (nodeCount >= m_options.refreshRate) {
     nodeCount = 0;
     updateCanvas();
   } else {
@@ -1219,7 +1197,7 @@ void TreeCanvas::updateCanvas(void) {
 
   if (root == nullptr) return;
 
-  if (autoHideFailed) {
+  if (m_options.autoHideFailed) {
     root->hideFailed(execution.getNA(), true);
   }
 
@@ -1235,13 +1213,13 @@ void TreeCanvas::updateCanvas(void) {
   root->layout(execution.getNA());
   BoundingBox bb = root->getBoundingBox();
 
-  int w = static_cast<int>((bb.right - bb.left + Layout::extent) * scale);
+  int w = static_cast<int>((bb.right - bb.left + Layout::extent) * m_options.scale);
   int h = static_cast<int>(2 * Layout::extent +
-                           root->getShape()->depth() * Layout::dist_y * scale);
-  xtrans = -bb.left + (Layout::extent / 2);
+                           root->getShape()->depth() * Layout::dist_y * m_options.scale);
+  m_view.xtrans = -bb.left + (Layout::extent / 2);
 
-  int scale0 = static_cast<int>(scale * 100);
-  if (autoZoom) {
+  int scale0 = static_cast<int>(m_options.scale * 100);
+  if (m_options.autoZoom) {
     QWidget* p = parentWidget();
     if (p) {
       double newXScale = static_cast<double>(p->width()) /
@@ -1256,9 +1234,9 @@ void TreeCanvas::updateCanvas(void) {
         scale0 = LayoutConfig::maxAutoZoomScale;
       double scale = (static_cast<double>(scale0)) / 100.0;
 
-      w = static_cast<int>((bb.right - bb.left + Layout::extent) * scale);
+      w = static_cast<int>((bb.right - bb.left + Layout::extent) * m_options.scale);
       h = static_cast<int>(2 * Layout::extent +
-                           root->getShape()->depth() * Layout::dist_y * scale);
+                           root->getShape()->depth() * Layout::dist_y * m_options.scale);
     }
   }
 

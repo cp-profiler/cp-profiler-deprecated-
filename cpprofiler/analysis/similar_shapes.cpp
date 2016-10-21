@@ -72,7 +72,7 @@ QDebug& operator<<(QDebug& os, const std::vector<Group>& groups) {
 }
 
 SimilarShapesWindow::SimilarShapesWindow(TreeCanvas* tc, const NodeTree& nt)
-    : QDialog{tc}, m_tc{tc}, node_tree{nt}, shapeSet(CompareShapes{}), filters(*this) {
+    : QDialog{tc}, m_tc{*tc}, node_tree{nt}, shapeSet(CompareShapes{}), filters(*this) {
   perfHelper.begin("shapes: analyse");
   collectSimilarShapes();
   perfHelper.end();
@@ -87,9 +87,9 @@ SimilarShapesWindow::SimilarShapesWindow(TreeCanvas* tc, const NodeTree& nt)
   debug_label.setText(str.c_str());
 #endif
 
-  shapeCanvas = new ShapeCanvas(m_scrollArea, node_tree);
+  m_ShapeCanvas.reset(new ShapeCanvas(m_scrollArea, node_tree));
 
-  shapeCanvas->show();
+  m_ShapeCanvas->show();
 
   updateHistogram();
 }
@@ -106,7 +106,7 @@ int getNoOfSolvedLeaves(const NodeTree& node_tree, VisualNode* n) {
 void SimilarShapesWindow::highlightSubtrees(VisualNode* node) {
 
   /// TODO(maxim): does this do the right thing if SUBTREE?
-  shapeCanvas->highlightShape(node);
+  m_ShapeCanvas->showShape(node);
 
   const auto& na = node_tree.getNA();
   auto root = node_tree.getRootNode();
@@ -133,7 +133,7 @@ void SimilarShapesWindow::highlightSubtrees(VisualNode* node) {
     }
 
 
-    m_tc->highlightSubtrees(vec);
+    m_tc.highlightSubtrees(vec);
   } else if (simType == SimilarityType::SUBTREE) {
 
     /// find the right group
@@ -155,7 +155,7 @@ void SimilarShapesWindow::highlightSubtrees(VisualNode* node) {
         vec.push_back(n);
       }
 
-      m_tc->highlightSubtrees(vec);
+      m_tc.highlightSubtrees(vec);
       break;
     }
 
@@ -164,10 +164,10 @@ void SimilarShapesWindow::highlightSubtrees(VisualNode* node) {
 }
 
 void SimilarShapesWindow::initInterface() {
-  scene.reset(new QGraphicsScene{});
+  m_scene.reset(new QGraphicsScene{});
 
   view = new QGraphicsView{this};
-  view->setScene(scene.get());
+  view->setScene(m_scene.get());
   view->setAlignment(Qt::AlignLeft | Qt::AlignTop);
 
   m_scrollArea = new QAbstractScrollArea{this};
@@ -408,8 +408,8 @@ void drawAnalysisHistogram(QGraphicsScene* scene, SimilarShapesWindow* ssw,
 
     const int rect_max_w = ShapeRect::SELECTION_WIDTH;
     const int rect_width = rect_max_w * value / max_value;
-    auto rect = new ShapeRect(0, curr_y, rect_width, shape.node, ssw);
-    rect->draw(scene);
+    auto rect = new ShapeRect(0, curr_y, rect_width, *shape.node, ssw);
+    rect->addToScene(scene);
 
     if (shape.marked) {
       auto flag = new QGraphicsRectItem(0, curr_y - 5, 10, 10);
@@ -478,18 +478,18 @@ void SimilarShapesWindow::drawAlternativeHistogram() {
 
 
 
-  drawAnalysisHistogram(scene.get(), this, m_histType, vec);
+  drawAnalysisHistogram(m_scene.get(), this, m_histType, vec);
 
 }
 
 void SimilarShapesWindow::updateHistogram() {
 
-  scene.reset(new QGraphicsScene{});
-  view->setScene(scene.get());
+  m_scene.reset(new QGraphicsScene{});
+  view->setScene(m_scene.get());
 
-  addText("hight", 10, 10, *scene);
-  addText("count", 10 + COLUMN_WIDTH, 10, *scene);
-  addText("size", 10 + COLUMN_WIDTH * 2, 10, *scene);
+  addText("hight", 10, 10, *m_scene);
+  addText("count", 10 + COLUMN_WIDTH, 10, *m_scene);
+  addText("size", 10 + COLUMN_WIDTH * 2, 10, *m_scene);
 
   switch (simType) {
     case SimilarityType::SHAPE:
@@ -529,7 +529,7 @@ void SimilarShapesWindow::drawHistogram() {
 
   sortSubtrees(vec, m_sortType);
 
-  drawAnalysisHistogram(scene.get(), this, m_histType, vec);
+  drawAnalysisHistogram(m_scene.get(), this, m_histType, vec);
 }
 
 void SimilarShapesWindow::depthFilterChanged(int val) {
@@ -569,7 +569,11 @@ namespace detail {
 
 static const QColor transparent_red{255, 0, 0, 50};
 
-ShapeRect::ShapeRect(int x, int y, int width, VisualNode* node, SimilarShapesWindow* ssw)
+/// ******************************************
+/// ************ SHAPE RECTANGLE *************
+/// ******************************************
+
+ShapeRect::ShapeRect(int x, int y, int width, VisualNode& node, SimilarShapesWindow* ssw)
     : QGraphicsRectItem(x, y - HALF_HEIGHT, SELECTION_WIDTH, HEIGHT, nullptr),
       visibleArea(x, y - HALF_HEIGHT + 1, width, HEIGHT - 2),
       m_node{node},
@@ -582,20 +586,22 @@ ShapeRect::ShapeRect(int x, int y, int width, VisualNode* node, SimilarShapesWin
   visibleArea.setPen(whitepen);
 }
 
-void ShapeRect::draw(QGraphicsScene* scene) {
+void ShapeRect::addToScene(QGraphicsScene* scene) {
   scene->addItem(this);
   scene->addItem(&visibleArea);
 }
 
-VisualNode* ShapeRect::getNode() const { return m_node; }
-
 void ShapeRect::mousePressEvent(QGraphicsSceneMouseEvent*) {
-  m_ssWindow->highlightSubtrees(m_node);
+  m_ssWindow->highlightSubtrees(&m_node);
 }
+
+/// ******************************************
+/// ************* SHAPE CANVAS ***************
+/// ******************************************
 
 ShapeCanvas::ShapeCanvas(QAbstractScrollArea* sa, const NodeTree& nt)
     : QWidget{sa},
-      m_sa{sa},
+      m_ScrollArea{sa},
       m_NodeTree{nt} {}
 
 void ShapeCanvas::paintEvent(QPaintEvent* event) {
@@ -606,11 +612,11 @@ void ShapeCanvas::paintEvent(QPaintEvent* event) {
 
   if (!m_targetNode) return;
 
-  const int view_w = m_sa->viewport()->width();
-  const int view_h = m_sa->viewport()->height();
+  const int view_w = m_ScrollArea->viewport()->width();
+  const int view_h = m_ScrollArea->viewport()->height();
 
-  int xoff = m_sa->horizontalScrollBar()->value();
-  int yoff = m_sa->verticalScrollBar()->value();
+  int xoff = m_ScrollArea->horizontalScrollBar()->value();
+  int yoff = m_ScrollArea->verticalScrollBar()->value();
 
   const BoundingBox bb = m_targetNode->getBoundingBox();
 
@@ -625,12 +631,12 @@ void ShapeCanvas::paintEvent(QPaintEvent* event) {
 
   setFixedSize(view_w, view_h);
 
-  xtrans = -bb.left + (Layout::extent / 2);
+  int xtrans = -bb.left + (Layout::extent / 2);
 
-  m_sa->horizontalScrollBar()->setRange(0, w - view_w);
-  m_sa->verticalScrollBar()->setRange(0, h - view_h);
-  m_sa->horizontalScrollBar()->setPageStep(view_w);
-  m_sa->verticalScrollBar()->setPageStep(view_h);
+  m_ScrollArea->horizontalScrollBar()->setRange(0, w - view_w);
+  m_ScrollArea->verticalScrollBar()->setRange(0, h - view_h);
+  m_ScrollArea->horizontalScrollBar()->setPageStep(view_w);
+  m_ScrollArea->verticalScrollBar()->setPageStep(view_h);
 
   QRect origClip = event->rect();
   painter.translate(0, 30);
@@ -642,11 +648,13 @@ void ShapeCanvas::paintEvent(QPaintEvent* event) {
   PreorderNodeVisitor<DrawingCursor>(dc).run();
 }
 
-void ShapeCanvas::highlightShape(VisualNode* node) {
+void ShapeCanvas::showShape(VisualNode* node) {
   m_targetNode = node;
 
   QWidget::update();
 }
+
+/// ******************************************
 
 ShapeI::ShapeI(int sol0, VisualNode* node0)
     : sol(sol0), node(node0), s(Shape::copy(node->getShape())) {

@@ -96,11 +96,7 @@ class SpaceNode;
 class SpaceNode : public Node {
 
     friend class TreeBuilder;
-    friend class TreeComparison;
 
-protected:
-  /// Reference to node in database
-//  int db_id;
 protected:
 
   /** \brief Status of the node
@@ -193,11 +189,11 @@ public:
   /// Return whether the subtree of this node has any failed children
   bool hasFailedChildren(void);
   /// Return whether the subtree of this node has any solved children
-  bool hasSolvedChildren(void);
+  bool hasSolvedChildren(void) const;
   /// Return whether the subtree of this node has any open children
-  bool hasOpenChildren(void);
+  bool hasOpenChildren(void) const;
   /// Return number of open children
-  int getNoOfOpenChildren(const NodeAllocator& na);
+  int getNoOfOpenChildren(const NodeAllocator& na) const;
   /// Set number of open children to \a n
   void setNoOfOpenChildren(int n);
 

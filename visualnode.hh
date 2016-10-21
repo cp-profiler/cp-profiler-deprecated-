@@ -131,8 +131,6 @@ public:
 /// \brief %Node class that supports visual layout
 class VisualNode : public SpaceNode {
 
-    friend class Data;
-
 protected:
   /// Flags for VisualNodes
   enum VisualNodeFlags {
@@ -179,7 +177,7 @@ public:
   /// Set offset of this node, relative to its parent
   void setOffset(int n);
   /// Return whether node is marked as dirty
-  bool isDirty(void);
+  bool isDirty(void) const;
   /// Mark node as dirty
   void setDirty(bool d);
   /// Return whether the layout of the node's children has been completed
@@ -187,23 +185,23 @@ public:
   /// Mark node whether the layout of the node's children has been completed
   void setChildrenLayoutDone(bool d);
   /// Return whether node is marked
-  bool isMarked(void);
+  bool isMarked(void) const;
   /// Set mark of this node
   void setMarked(bool m);
   /// Return whether node is selected
-  bool isSelected(void);
+  bool isSelected(void) const;
   /// Set selected flag of this node
   void setSelected(bool m);
   /// Return whether node is hovered over
-  bool isHovered(void);
+  bool isHovered(void) const;
   /// Set hovered over flag of this node
   void setHovered(bool m);
   /// Return whether node is bookmarked
-  bool isBookmarked(void);
+  bool isBookmarked(void) const;
   /// Set bookmark of this node
   void setBookmarked(bool m);
   /// Return whether node is highlighted
-  bool isHighlighted(void);
+  bool isHighlighted(void) const;
   /// Highlight the node for similar shapes visualization
   void setHighlighted(bool m);
   /// Set all nodes from the node to the root to be on the path
@@ -211,7 +209,7 @@ public:
   /// Set all nodes from the node to the root not to be on the path
   void unPathUp(const NodeAllocator& na);
   /// Return whether node is on the path
-  bool isOnPath(void);
+  bool isOnPath(void) const;
   /// Return the alternative of the child that is on the path (-1 if none)
   int getPathAlternative(const NodeAllocator& na);
   /// Set whether node is on the path
