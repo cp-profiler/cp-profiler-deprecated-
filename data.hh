@@ -144,7 +144,7 @@ public:
     /// can't use vector because sid is too big with threads
     std::unordered_map<int64_t, int> sid2aid;
 
-    /// used to access Data instance from different threads (in parallel solver)
+    /// synchronise access to data entries
     QMutex dataMutex;
 
 private:

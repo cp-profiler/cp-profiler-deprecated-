@@ -89,7 +89,7 @@ inline void NodeAllocator::clearLabel(VisualNode* n) { labels.remove(n); }
 
 inline QString NodeAllocator::getLabel(VisualNode* n) const {
 #ifdef MAXIM_DEBUG
-   return " " + QString::number(n->debug_id) + " ";
+   // return " " + QString::number(n->debug_id) + " ";
 #endif
   return labels.value(n);
 }

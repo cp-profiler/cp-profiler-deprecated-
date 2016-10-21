@@ -18,7 +18,6 @@
  *  WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include "gistmainwindow.h"
 #include "globalhelper.hh"
 #include "profiler-conductor.hh"
 #include <QApplication>
@@ -29,9 +28,6 @@ int main(int argc, char *argv[]) {
 #endif
 
   QApplication a(argc, argv);
-
-  // qDebug() << "scroll bar size: " <<
-  // a.style()->pixelMetric(QStyle::PM_ScrollBarExtent);
 
   QCoreApplication::setApplicationName("cpprof (build from 20.10.2016)");
   QCoreApplication::setApplicationVersion("0.2");
@@ -47,7 +43,6 @@ int main(int argc, char *argv[]) {
 
   ProfilerConductor w;
 
-  // GistMainWindow w;
   w.show();
 
   /// NOTE(maxim): only can load 1 execution for now
@@ -56,9 +51,6 @@ int main(int argc, char *argv[]) {
     qDebug() << "loading execuiton: " << file_name;
     w.loadExecution(file_name.toStdString());
   }
-  // for (int i = 1 ; i < argc ; i++) {
-  //     w.loadExecution(argv[i]);
-  // }
 
   return a.exec();
 }

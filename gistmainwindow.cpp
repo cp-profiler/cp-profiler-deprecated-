@@ -29,7 +29,7 @@
 #include <fstream>
 
 
-GistMainWindow::GistMainWindow(Execution* execution, QWidget* parent) : QMainWindow(parent) {
+GistMainWindow::GistMainWindow(Execution& execution, QWidget* parent) : QMainWindow(parent) {
     m_Gist = new Gist(execution, this);
   setCentralWidget(m_Gist);
   setWindowTitle(tr("CP-Profiler"));

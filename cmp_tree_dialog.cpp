@@ -19,21 +19,23 @@
  *
  */
 
+#include <algorithm>
+#include <cmath>
+#include "third-party/json.hpp"
+
 #include "cmp_tree_dialog.hh"
 #include "nodewidget.hh"
 #include "treecomparison.hh"
 #include "treecanvas.hh"
 #include "data.hh"
 
-#include "third-party/json.hpp"
-#include <algorithm>
-#include <cmath>
-
 using std::string;
 
 CmpTreeDialog::CmpTreeDialog(QWidget* parent, Execution* execution, bool with_labels,
                              const Execution& ex1, const Execution& ex2)
     : QDialog{parent} {
+
+  qDebug() << "new CmpTreeDialog";
 
   auto main_layout = new QHBoxLayout();
   layout = new QGridLayout(this);
@@ -44,16 +46,26 @@ CmpTreeDialog::CmpTreeDialog(QWidget* parent, Execution* execution, bool with_la
 
   auto scrollArea = new QAbstractScrollArea(this);
 
-  m_Canvas = new TreeCanvas(execution, layout, CanvasType::MERGED, scrollArea->viewport());
+  m_Canvas.reset(new TreeCanvas(execution, layout, CanvasType::MERGED,
+                                scrollArea->viewport()));
 
   layout->addWidget(scrollArea, 0, 0, 1, 1);
   layout->addWidget(m_Canvas->scaleBar, 0, 1, Qt::AlignHCenter);
 
   scrollArea->viewport()->setLayout(nc_layout);
 
-  nc_layout->addWidget(m_Canvas);
+  connect(scrollArea->horizontalScrollBar(), SIGNAL(valueChanged(int)),
+            m_Canvas.get(), SLOT(scroll(void)));
+  connect(scrollArea->verticalScrollBar(), SIGNAL(valueChanged(int)),
+            m_Canvas.get(), SLOT(scroll(void)));
+
+  nc_layout->addWidget(m_Canvas.get());
 
   auto menuBar = new QMenuBar(this);
+  auto nodeMenu = menuBar->addMenu(tr("&Node"));
+  auto analysisMenu = menuBar->addMenu(tr("&Analysis"));
+
+  addActions(nodeMenu, analysisMenu);
 
     // Don't add the menu bar on Mac OS X
   #ifndef Q_WS_MAC
@@ -64,51 +76,32 @@ CmpTreeDialog::CmpTreeDialog(QWidget* parent, Execution* execution, bool with_la
 
   QWidget* stw = new QWidget();
   statusBar->addPermanentWidget(stw);
+  statusBar->showMessage("Ready");
   layout->addWidget(statusBar);
 
   auto hbl = new QHBoxLayout();
   hbl->setContentsMargins(0,0,0,0);
-
-  stw->setLayout(hbl);
-
-  statusBar->showMessage("Ready");
-
-  /// ***********************************
-
-  connect(scrollArea->horizontalScrollBar(), SIGNAL(valueChanged(int)),
-            m_Canvas, SLOT(scroll(void)));
-  connect(scrollArea->verticalScrollBar(), SIGNAL(valueChanged(int)),
-            m_Canvas, SLOT(scroll(void)));
-
-  resize(500, 400);
-  show();
-
-
   hbl->addWidget(new NodeWidget(MERGING));
 
   auto mergedLabel = new QLabel("0");
   hbl->addWidget(mergedLabel);
 
-  comparison_ = new TreeComparison{ex1, ex2};
+  stw->setLayout(hbl);
 
-  auto nodeMenu = menuBar->addMenu(tr("&Node"));
-  auto analysisMenu = menuBar->addMenu(tr("&Analysis"));
-
-  addActions(nodeMenu, analysisMenu);
-
+  m_Comparison.reset(new TreeComparison{ex1, ex2});
+  m_Comparison->compare(m_Canvas.get(), with_labels);
   /// sort the pentagons by nodes diff:
-  comparison_->compare(m_Canvas, with_labels);
+  m_Comparison->sortPentagons();
 
-  comparison_->sortPentagons();
+  mergedLabel->setNum(m_Comparison->get_no_pentagons());
 
-  mergedLabel->setNum(comparison_->get_no_pentagons());
+  setAttribute( Qt::WA_DeleteOnClose );
 
+  resize(500, 400);
+  show();
 }
 
-CmpTreeDialog::~CmpTreeDialog() {
-  delete comparison_;
-  delete m_Canvas;
-}
+CmpTreeDialog::~CmpTreeDialog() = default;
 
 void
 CmpTreeDialog::addActions(QMenu* nodeMenu, QMenu* analysisMenu) {
@@ -135,13 +128,13 @@ CmpTreeDialog::addActions(QMenu* nodeMenu, QMenu* analysisMenu) {
   labelBranches->setShortcut(QKeySequence("L"));
   addAction(labelBranches);
   nodeMenu->addAction(labelBranches);
-  connect(labelBranches, SIGNAL(triggered()), m_Canvas, SLOT(labelBranches()));
+  connect(labelBranches, SIGNAL(triggered()), m_Canvas.get(), SLOT(labelBranches()));
 
   auto showInfo = new QAction("Show info", this);
   showInfo->setShortcut(QKeySequence("I"));
   addAction(showInfo);
   nodeMenu->addAction(showInfo);
-  connect(showInfo, SIGNAL(triggered()), m_Canvas, SLOT(showNodeInfo()));
+  connect(showInfo, SIGNAL(triggered()), m_Canvas.get(), SLOT(showNodeInfo()));
 
   auto showPentagonHist = new QAction("Pentagon list", this);
   analysisMenu->addAction(showPentagonHist);
@@ -173,7 +166,7 @@ CmpTreeDialog::statusChanged(VisualNode*, const Statistics&, bool finished) {
     qDebug() << "Done in " + t + "s";
 
     /// no need to change stats after done
-    disconnect(m_Canvas, SIGNAL(statusChanged(VisualNode*, const Statistics&, bool)),
+    disconnect(m_Canvas.get(), SIGNAL(statusChanged(VisualNode*, const Statistics&, bool)),
           this, SLOT(statusChanged(VisualNode*, const Statistics&, bool)));
 
   } else {
@@ -184,7 +177,7 @@ CmpTreeDialog::statusChanged(VisualNode*, const Statistics&, bool finished) {
 
 void
 CmpTreeDialog::navFirstPentagon() {
-  const auto pentagon_items = comparison_->pentagon_items();
+  const auto pentagon_items = m_Comparison->pentagon_items();
 
   if (pentagon_items.size() == 0) {
     qDebug() << "warning: pentagons.size() == 0";
@@ -212,7 +205,7 @@ CmpTreeDialog::navPrevPentagon() {
 void
 CmpTreeDialog::showPentagonHist() {
 
-  auto pentagon_window = new PentListWindow(this, comparison_->pentagon_items());
+  auto pentagon_window = new PentListWindow(this, m_Comparison->pentagon_items());
   pentagon_window->createList();
   pentagon_window->show();
 }
@@ -242,8 +235,8 @@ CmpTreeDialog::saveComparisonStatsTo(const QString& file_name) {
         if (outputFile.open(QFile::WriteOnly | QFile::Truncate)) {
             QTextStream out(&outputFile);
 
-            auto ng_stats = comparison_->responsible_nogood_stats();
-            auto nogood_map = comparison_->left_execution().getNogoods();
+            auto ng_stats = m_Comparison->responsible_nogood_stats();
+            auto nogood_map = m_Comparison->left_execution().getNogoods();
 
             out << "id,occur,score,nogood\n";
 
@@ -307,8 +300,8 @@ infoToNogoodVector(const string& info) {
 void
 PentListWindow::populateNogoodTable(const vector<int>& nogoods) {
 
-  auto ng_stats = comparison_.responsible_nogood_stats();
-  auto nogood_map = comparison_.left_execution().getNogoods();
+  auto ng_stats = m_Comparison.responsible_nogood_stats();
+  auto nogood_map = m_Comparison.left_execution().getNogoods();
 
   _nogoodTable.setRowCount(nogoods.size());
 
@@ -332,11 +325,11 @@ PentListWindow::populateNogoodTable(const vector<int>& nogoods) {
 }
 
 PentListWindow::PentListWindow(CmpTreeDialog* parent, const std::vector<PentagonItem>& items)
-: QDialog(parent), _pentagonTable{this}, _items(items), comparison_(parent->comparison()) {
+: QDialog(parent), _pentagonTable{this}, _items(items), m_Comparison(parent->comparison()) {
 
   resize(600, 400);
 
-  setAttribute(Qt::WA_DeleteOnClose, true);
+  setAttribute( Qt::WA_DeleteOnClose );
 
   connect(&_pentagonTable, &QTableWidget::cellDoubleClicked, [this, parent](int row, int) {
     static_cast<CmpTreeDialog*>(parent)->selectPentagon(row);
@@ -416,7 +409,7 @@ PentListWindow::createList()
 
 void
 CmpTreeDialog::selectPentagon(int row) {
-  const auto items = comparison_->pentagon_items();
+  const auto items = m_Comparison->pentagon_items();
 
   auto node = items[row].node;
 
@@ -460,7 +453,7 @@ CmpTreeDialog::showResponsibleNogoods() {
 
   /// *** edit table ***
 
-  auto ng_stats = comparison_->responsible_nogood_stats();
+  auto ng_stats = m_Comparison->responsible_nogood_stats();
 
   /// map to vector
   std::vector<std::pair<int, NogoodCmpStats> > ng_stats_vector;
@@ -478,7 +471,7 @@ CmpTreeDialog::showResponsibleNogoods() {
 
   ng_table->setRowCount(ng_stats.size());
 
-  auto& nogood_map = comparison_->left_execution().getNogoods();
+  auto& nogood_map = m_Comparison->left_execution().getNogoods();
 
   qDebug() << "map2: " << (void*)(&nogood_map);
 
@@ -500,8 +493,8 @@ CmpTreeDialog::showResponsibleNogoods() {
 
   ng_table->resizeColumnsToContents();
 
-  auto total_reduced = comparison_->get_total_reduced();
-  auto total_nodes = comparison_->right_execution().getData()->size();
+  auto total_reduced = m_Comparison->get_total_reduced();
+  auto total_nodes = m_Comparison->right_execution().getData()->size();
 
   auto reduction_label = QString{"Nodes reduced: "} +
                          QString::number(total_reduced) +

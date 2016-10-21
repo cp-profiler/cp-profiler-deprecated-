@@ -23,7 +23,7 @@
 
 #include <QTableWidget>
 #include <QDialog>
-#include <QLayout>
+#include <memory>
 
 struct PentagonItem;
 class Gist;
@@ -36,11 +36,10 @@ class TreeCanvas;
 class QLabel;
 class VisualNode;
 class Statistics;
+class QGridLayout;
 
 class PentListWindow : public QDialog {
 Q_OBJECT
-
-friend class CmpTreeDialog;
 
 private:
 
@@ -48,15 +47,15 @@ private:
   QTableWidget _nogoodTable;
 
   const std::vector<PentagonItem>& _items;
-  const TreeComparison& comparison_;
+  const TreeComparison& m_Comparison;
 
 private:
-  void createList(); /// make this a free function
+  
   void populateNogoodTable(const std::vector<int>& nogoods);
-
 
 public:
   PentListWindow(CmpTreeDialog* parent, const std::vector<PentagonItem>& items);
+  void createList(); /// TODO(maxim): make this a free function?
 };
 
 class CmpTreeDialog : public QDialog {
@@ -64,13 +63,14 @@ Q_OBJECT
 
 private:
 
+  std::unique_ptr<TreeComparison> m_Comparison;
+
+  std::unique_ptr<TreeCanvas> m_Canvas;
+
   QGridLayout* layout;
 
   QStatusBar* statusBar;
 
-  TreeComparison* comparison_;
-
-  TreeCanvas* m_Canvas;
 
 private:
 
@@ -88,7 +88,7 @@ public:
   void saveComparisonStatsTo(const QString& file_name);
   void selectPentagon(int row);
 
-  const TreeComparison& comparison() { return *comparison_; }
+  const TreeComparison& comparison() const { return *m_Comparison.get(); }
 
 private Q_SLOTS:
   /// The status has changed (e.g., new solutions have been found)

@@ -36,8 +36,6 @@ class GistMainWindow : public QMainWindow {
 private:
   /// Whether search is currently running
   bool isSearching;
-//  /// Measure search time
-//  Support::Timer searchTimer;
   /// Status bar label for maximum depth indicator
   QLabel* depthLabel;
   /// Status bar label for number of solutions
@@ -82,16 +80,14 @@ public Q_SLOTS:
   void selectManyNodes(QVariantList gids);
 public:
   /// Constructor
-  GistMainWindow(Execution* execution, QWidget* parent);
+  GistMainWindow(Execution& execution, QWidget* parent);
 
   Gist* getGist(void) { return m_Gist; }
 
   void setStatsFilename(QString filename) {
       statsFilename = filename;
   }
-protected:
-  /// Close Gist
-  /* void closeEvent(QCloseEvent* event); */
+
 };
 
 #endif // MAINWINDOW_H

@@ -91,7 +91,6 @@ public:
 };
 
 class SpaceNode;
-// class TreeComparison;
 
 /// \brief A node of a search tree of %Gecode spaces
 class SpaceNode : public Node {

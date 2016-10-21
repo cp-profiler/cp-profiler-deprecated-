@@ -24,6 +24,7 @@
 
 #include "nodestats.hh"
 #include <vector>
+#include <memory>
 
 /**
  * \brief %Gecode Interactive %Search Tool
@@ -47,14 +48,10 @@ class Gist : public QWidget {
   QPalette* myPalette;
   QGridLayout* layout;
 
-  /// The canvas implementation
-  TreeCanvas* m_Canvas;
+  std::unique_ptr<TreeCanvas> m_Canvas;
 
-  void addActions();
+  Execution& execution;
 
-  Execution* execution;
-
-private:
   /// The time slider
   QSlider* timeBar;
   /// Context menu
@@ -176,15 +173,16 @@ public:
   QAction* dirtyUpNode;
 #endif
 
+private:
+
+  void addActions();
 
 public:
 
 
-  explicit Gist(Execution* execution, QWidget* parent);
+  Gist(Execution& execution, QWidget* parent);
 
-  /// Destructor
-  ~Gist(void);
-
+  ~Gist();
 
   /// Set preference whether to automatically hide failed subtrees
   void setAutoHideFailed(bool b);
@@ -220,8 +218,8 @@ public:
 
 
   /// ***** GETTERS *****
-  TreeCanvas* getCanvas() { return m_Canvas; }
-  Execution* getExecution() { return execution; }
+  TreeCanvas* getCanvas();
+  Execution* getExecution();
 
 Q_SIGNALS:
 

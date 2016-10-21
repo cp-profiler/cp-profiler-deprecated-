@@ -310,21 +310,14 @@ void TreeBuilder::run() {
   perfHelper.begin("building a tree");
 
   while (true) {
-    while (!dataMutex.tryLock()) {/* qDebug() << "Can't lock, trying again"; */
-    };
+    /// TODO(maxim): isn't it the same as `lock`?
+    while (!dataMutex.tryLock()) {/* qDebug() << "Can't lock, trying again"; */};
 
     /// check if done
     if (!read_queue->canRead()) {
       dataMutex.unlock();
 
       if (_data.isDone()) {
-// <<<<<<< HEAD
-//         qDebug() << "stop because done ";
-//                  // << "tc_id: " << _tc->_id;
-// =======
-//         qDebug() << "stop because done "
-//                  << "tc_id: " << m_tc._id;
-// >>>>>>> origin/master
         break;
       }
       /// can't read, but receiving not done, waiting...

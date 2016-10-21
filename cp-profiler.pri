@@ -14,6 +14,7 @@ SOURCES += \
     $$PWD/spacenode.cpp \
     $$PWD/node.cpp \
     $$PWD/data.cpp \
+    $$PWD/nodetree.cpp \
     $$PWD/cmp_tree_dialog.cpp \
     $$PWD/receiverthread.cpp \
     $$PWD/treebuilder.cpp \

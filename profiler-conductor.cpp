@@ -197,7 +197,7 @@ void ProfilerConductor::gistButtonClicked() {
     Execution& execution = item->execution_;
     GistMainWindow* gistMW = executionInfoHash[&execution]->gistWindow;
     if (gistMW == nullptr) {
-      gistMW = new GistMainWindow(&execution, this);
+      gistMW = new GistMainWindow(execution, this);
       gistMW->changeTitle(item->text());
       executionInfoHash[&execution]->gistWindow = gistMW;
     }
@@ -223,6 +223,7 @@ void ProfilerConductor::compareButtonClicked() {
 
   const bool withLabels = compareWithLabelsCB.isChecked();
 
+  /// NOTE(maxim): the new window will delete itself when closed
   new CmpTreeDialog(this, new Execution{}, withLabels, *ex1, *ex2);
 }
 
@@ -264,7 +265,7 @@ void ProfilerConductor::gatherStatisticsClicked() {
     GistMainWindow* g = executionInfoHash[&item->execution_]->gistWindow;
 
     if (g == nullptr) {
-      g = new GistMainWindow(&item->execution_, this);
+      g = new GistMainWindow(item->execution_, this);
       executionInfoHash[&item->execution_]->gistWindow = g;
     }
     //        g->hide();

@@ -668,6 +668,10 @@ static std::string reverseOp(const char* op) {
   if (strcmp(op, "<") == 0) { return ">="; }
   if (strcmp(op, "<=") == 0) { return ">"; }
   if (strcmp(op, ">=") == 0) { return "<"; }
+
+  std::cerr << "no such operator, aborting...\n";
+  abort();
+  return "";
 }
 
 static std::string reverseLabel(const std::string& str) {

@@ -57,16 +57,12 @@ Data::Data() {
     current_time = begin_time;
     last_interval_time = begin_time;
     last_interval_nc = 0;
-
-    // if (_tc->canvasType == CanvasType::MERGED) {
-    //     _isDone = true;
-    //     _total_time = 0;
-    // }
-
 }
 
 void Data::setDoneReceiving(void) {
-    std::cerr << "Data::setDoneReceiving\n";
+#ifdef MAXIM_DEBUG
+    std::cerr << "done receiving\n";
+#endif
     QMutexLocker locker(&dataMutex);
 
     // _total_nodes = nodes_arr.size();
@@ -140,6 +136,8 @@ int Data::handleNodeCallback(message::Node& node) {
                     usesAssumptions,
                     backjump_distance,
                     decision_level);
+
+    /// TODO(maxim): do sid2info and sid2nogood need to be protected by a mutex?
 
     if (node.has_info() && node.info().length() > 0) {
         sid2info[entry->full_sid] = new std::string(node.info());

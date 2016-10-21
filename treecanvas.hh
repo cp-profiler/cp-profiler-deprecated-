@@ -50,14 +50,12 @@ namespace cpprofiler { namespace analysis {
 
 class TreeDialog;
 
-/// *********************
-/// SIMILAR SUBTREES
-/// *********************
-
 enum class CanvasType {
   REGULAR,
   MERGED
 };
+
+
 
 /// \brief A canvas that displays the search tree
 class TreeCanvas : public QWidget {
@@ -72,12 +70,13 @@ class TreeCanvas : public QWidget {
   /// to generate ids
   static int counter;
 
-  Execution* execution;
+  int _id;
+
+  Execution& execution;
 
   int nodeCount = 0;
   QTimer* updateTimer;
 
-protected:
   /// Mutex for synchronizing acccess to the tree
   QMutex& mutex;
   /// Mutex for synchronizing layout and drawing
@@ -166,28 +165,23 @@ protected:
   std::unique_ptr<cpprofiler::analysis::SimilarShapesWindow> shapesWindow;
   // Node that represents the shape currently selected
   VisualNode* shapeHighlighted;
+
 public:
 
   TreeCanvas(Execution* execution, QGridLayout* layout, CanvasType type, QWidget* parent);
 
   ~TreeCanvas();
 
-  /// each new consequent Canvas will get an id
-  int _id;
-
-  const CanvasType canvasType;
-
   std::string getLabel(unsigned int gid) {
-    return execution->getLabel(gid);
+    return execution.getLabel(gid);
   }
-  unsigned long long getTotalTime() const { return execution->getTotalTime(); }
-  std::string getTitle() const { return execution->getTitle(); }
-  DbEntry* getEntry(unsigned int gid) { return execution->getEntry(gid); }
+  unsigned long long getTotalTime() const { return execution.getTotalTime(); }
+  std::string getTitle() const { return execution.getTitle(); }
+  DbEntry* getEntry(unsigned int gid) { return execution.getEntry(gid); }
 
-  const Statistics& get_stats() const { return execution->getStatistics(); }
+  const Statistics& get_stats() const { return execution.getStatistics(); }
 
-  /// TODO(maxim): funny const here
-  Execution* getExecution() const { return execution; }
+  Execution* getExecution() const { return &execution; }
 
   unsigned int getTreeDepth();
 
