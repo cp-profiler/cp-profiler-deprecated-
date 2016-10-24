@@ -206,7 +206,7 @@ void ProfilerConductor::gistButtonClicked() {
     gistMW->activateWindow();
     connect(&item->execution_, SIGNAL(doneReceiving()), gistMW,
             SIGNAL(doneReceiving()));
-    connect(gistMW->getGist()->getCanvas(), &TreeCanvas::announceSelectNode,
+    connect(gistMW->getCanvas(), &TreeCanvas::announceSelectNode,
             this, [this, &execution](int gid){this->tellVisualisationsSelectNode(&execution, gid);});
   }
 }

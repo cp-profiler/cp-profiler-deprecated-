@@ -10,7 +10,6 @@ SOURCES += \
     $$PWD/visualnode.cpp \
     $$PWD/nodestats.cpp \
     $$PWD/preferences.cpp \
-    $$PWD/qtgist.cpp \
     $$PWD/spacenode.cpp \
     $$PWD/node.cpp \
     $$PWD/data.cpp \
@@ -38,7 +37,6 @@ SOURCES += \
 
 HEADERS  += \
     $$PWD/globalhelper.hh \
-    $$PWD/qtgist.hh \
     $$PWD/gistmainwindow.h \
     $$PWD/treecanvas.hh \
     $$PWD/visualnode.hh \

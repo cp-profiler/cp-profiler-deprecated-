@@ -88,6 +88,7 @@ class TreeCanvas : public QWidget {
     int xtrans;
   };
 
+  friend class GistMainWindow;
   friend class Gist;
 
   /// to generate ids

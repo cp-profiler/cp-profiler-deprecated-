@@ -145,6 +145,8 @@ void TreeCanvas::scaleTree(int scale0, int zoomx, int zoomy) {
   QAbstractScrollArea* sa =
       static_cast<QAbstractScrollArea*>(parentWidget()->parentWidget());
 
+  qDebug() << "QAbstractScrollArea width: " << sa->width();
+
   if (zoomx == -1) zoomx = viewport_size.width() / 2;
   if (zoomy == -1) zoomy = viewport_size.height() / 2;
 
