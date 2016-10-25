@@ -22,7 +22,6 @@
 #ifndef GISTMAINWINDOW_H
 #define GISTMAINWINDOW_H
 
-#include "qtgist.hh"
 
 #include <QMainWindow>
 #include <QVariant>
