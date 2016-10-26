@@ -53,7 +53,7 @@ PixelTreeCanvas::PixelTreeCanvas(QWidget* parent, TreeCanvas& tc, InfoPanel& ip)
       _tc(tc),
       infoPanel(ip),
       _data(*tc.getExecution()->getData()),
-      _na(tc.getExecution()->getNA()),
+      _na(tc.getExecution()->nodeTree().getNA()),
       depthAnalysis(tc) {
   using cpprofiler::analysis::Backjumps;
 

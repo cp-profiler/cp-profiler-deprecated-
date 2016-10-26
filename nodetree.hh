@@ -42,8 +42,13 @@ public:
     const NodeAllocator& getNA() const;
     NodeAllocator& getNA();
 
-    VisualNode* getRootNode() const;
+    const VisualNode* getRoot() const;
+    VisualNode* getRoot();
 
+    const VisualNode* getNode(int gid) const;
+    VisualNode* getNode(int gid);
+
+    int getIndex(const VisualNode*) const;
 
     Statistics& getStatistics();
 

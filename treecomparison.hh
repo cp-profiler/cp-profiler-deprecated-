@@ -22,17 +22,15 @@
 #ifndef TREE_COMPARISON
 #define TREE_COMPARISON
 
-#include <QStack>
 #include <vector>
-#include <utility>
 #include <unordered_map>
 
-#include "execution.hh"
-
+class Execution;
 class TreeCanvas;
 class VisualNode;
 class Node;
 class NodeAllocator;
+class ComparisonResult;
 
 struct PentagonItem {
   int l_size;               /// left subtree size
@@ -49,54 +47,50 @@ struct NogoodCmpStats {
   int search_eliminated;
 };
 
-class TreeComparison {
+namespace treecomparison {
+  std::unique_ptr<ComparisonResult> compare(TreeCanvas* new_tc,
+                                            const Execution& ex1,
+                                            const Execution& ex2,
+                                            bool with_labels);
+}
+
+
+class ComparisonResult {
+  friend std::unique_ptr<ComparisonResult> treecomparison::compare(
+      TreeCanvas* new_tc, const Execution& ex1, const Execution& ex2,
+      bool with_labels);
+
+  std::vector<PentagonItem> m_pentagonItems;
+  std::unordered_map<int64_t, NogoodCmpStats> m_responsibleNogoodStats;
+  int m_totalReduced = 0;
+  const Execution& _ex1;
+  const Execution& _ex2;
+
  public:
-  TreeComparison(const Execution& ex1, const Execution& ex2);
-  void compare(TreeCanvas* new_tc, bool with_labels);
+  ComparisonResult(const Execution& ex1, const Execution& ex2)
+      : _ex1{ex1}, _ex2{ex2} {};
+
+  void analyseNogoods(const std::string& info, int search_reduction);
   void sortPentagons();
 
-  const Execution& left_execution() const { return _ex1; }
-  const Execution& right_execution() const { return _ex2; }
-
-  int get_no_pentagons();
-  int get_total_reduced() const { return m_totalReduced; }
-
-  /// NOTE(maxim): if use a pointer to an item here and vector is modified ->
-  /// could be a problem
   const std::vector<PentagonItem>& pentagon_items() const {
     return m_pentagonItems;
   }
+
   const std::unordered_map<int64_t, NogoodCmpStats>& responsible_nogood_stats()
       const {
     return m_responsibleNogoodStats;
   }
 
- private:
-  /// aggregate comparison stats
-  struct {
-    int m_totalReduced = 0;
-  };
+  int get_no_pentagons() const {
+    return static_cast<int>(m_pentagonItems.size());
+  }
 
-  std::vector<PentagonItem> m_pentagonItems;
-  std::unordered_map<int64_t, NogoodCmpStats> m_responsibleNogoodStats;
+  int get_total_reduced() const { return m_totalReduced; }
 
-  /// The four needed for extracting labels
-  const Execution& _ex1;
-  const Execution& _ex2;
-
-  const NodeAllocator& _na1;
-  const NodeAllocator& _na2;
-
-  // Execution execution;
-
-private: /// methods
- void analyseNogoods(const std::string& info, int search_reduction);
-
-
- /// 'which' is treated as a colour, usually 1 or 2 depending on which tree is a
- /// source
- int copyTree(VisualNode*, TreeCanvas*, const VisualNode*, const Execution&,
-              int which = 0);
+  const Execution& left_execution() const { return _ex1; }
+  const Execution& right_execution() const { return _ex2; }
 };
+
 
 #endif

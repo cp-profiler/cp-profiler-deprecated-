@@ -95,11 +95,10 @@ Q_OBJECT
 
 /// step for node rate counter (in microseconds)
     static constexpr int NODE_RATE_STEP = 1000;
-
-    std::vector<DbEntry*> nodes_arr;
-
     /// counts instances of Data
     static int instance_counter;
+
+    std::vector<DbEntry*> nodes_arr;
 
     // Whether received DONE_SENDING message
     bool _isDone;
@@ -127,8 +126,12 @@ Q_OBJECT
 
     /// Map solver Id to no-good string
     std::unordered_map<int64_t, std::string> sid2nogood;
+
 public:
 
+    /// Mapping from solver Id to array Id (nodes_arr)
+    /// can't use vector because sid is too big with threads
+    std::unordered_map<int64_t, int> sid2aid;
     /// On which node each interval starts
     std::vector<int> nr_intervals;
 
@@ -136,19 +139,15 @@ public:
     /// i.e. needed for a merged tree to show labels etc.
     /// TODO(maixm): this should probably be a vector?
     std::unordered_map<int, DbEntry*> gid2entry;
-
-
+    
     std::unordered_map<int64_t, std::string*> sid2info;
 
-    /// Mapping from solver Id to array Id (nodes_arr)
-    /// can't use vector because sid is too big with threads
-    std::unordered_map<int64_t, int> sid2aid;
+    
 
     /// synchronise access to data entries
     QMutex dataMutex;
 
 private:
-    // int _total_nodes;
 
     /// Populate nodes_arr with the data coming from
     void pushInstance(DbEntry* entry);

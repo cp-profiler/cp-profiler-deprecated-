@@ -100,9 +100,8 @@ void IcicleTreeDialog::resizeEvent(QResizeEvent* event) {
 VisualNode* IcicleTreeCanvas::findLeftLeaf() {
   VisualNode* res = nullptr;
   int maxD = -1;
-  auto& na = tc_.getExecution()->getNA();
   for (IcicleRect i: icicle_rects_) if (i.x == 0 && i.y > maxD) {
-    int idx = i.node.getIndex(na);
+    int idx = node_tree.getIndex(&i.node);
     if (statistic[idx].height >= compressLevel) {
       maxD = i.y;
       res = &i.node;
@@ -112,7 +111,7 @@ VisualNode* IcicleTreeCanvas::findLeftLeaf() {
 }
 
 void IcicleTreeCanvas::compressLevelChanged(int value) {
-  auto& na = tc_.getExecution()->getNA();
+  auto& na = node_tree.getNA();
   int leafIndex;
   compressLevel = value;
   compressInit(*na[0], 0, 0);
@@ -128,7 +127,7 @@ void IcicleTreeCanvas::compressLevelChanged(int value) {
 
 bool IcicleTreeCanvas::compressInit(VisualNode& root, int idx, int absX) {
   const int kids = root.getNumberOfChildren();
-  auto& na = tc_.getExecution()->getNA();
+  auto& na = node_tree.getNA();
   bool hasSolved = false;
   int leafCnt = 0, expectSolvedCnt = 0, actualSolvedCnt = 0;
   statistic[idx].ns = root.getStatus();
@@ -153,9 +152,9 @@ bool IcicleTreeCanvas::compressInit(VisualNode& root, int idx, int absX) {
 }
 
 IcicleTreeCanvas::IcicleTreeCanvas(QAbstractScrollArea* parent, TreeCanvas* tc)
-    : QWidget(parent), sa_(*parent), tc_(*tc) {
+    : QWidget(parent), sa_(*parent), tc_(*tc), node_tree(tc->getExecution()->nodeTree()) {
   compressLevel = 0;
-  auto& na = tc_.getExecution()->getNA();
+  auto& na = node_tree.getNA();
   statistic.resize(na.size());
   initTreeStatistic(*na[0], 0, 0);
   connect(sa_.horizontalScrollBar(), SIGNAL(valueChanged(int)), this,
@@ -212,7 +211,7 @@ void IcicleTreeCanvas::redrawAll() {
 
 void IcicleTreeCanvas::drawIcicleTree() {
   icicle_rects_.clear();
-  auto& na = tc_.getExecution()->getNA();
+  auto& na = node_tree.getNA();
   auto& root = *na[0];
   int idx = 0, curx = 0, cury = 0;
   int yoff = 0 / icicle_image_.pixel_height();
@@ -267,7 +266,7 @@ QRgb IcicleTreeCanvas::getColorByType(const VisualNode& node) {
   if (selectedNode == &node) { return QColor::fromHsv(0, 150, 150).rgba();}
 
   QRgb color;
-  auto& na = tc_.getExecution()->getNA();
+  auto& na = node_tree.getNA();
   auto data = tc_.getExecution()->getData();
   auto gid = node.getIndex(na);
   auto* entry = data->getEntry(gid);
@@ -300,7 +299,7 @@ void IcicleTreeCanvas::dfsVisible(VisualNode& root, int idx, int curx, int cury,
   if (cury > depth) return;
 
   const int kids = root.getNumberOfChildren();
-  auto& na = tc_.getExecution()->getNA();
+  auto& na = node_tree.getNA();
   int nextxL = curx;
   int nextxR;
   for (int i = 0; i < kids; i++) {
@@ -392,7 +391,7 @@ void IcicleTreeCanvas::mousePressEvent(QMouseEvent*) {
 
 IcicleNodeStatistic IcicleTreeCanvas::initTreeStatistic(VisualNode& root, int idx, int absX) {
   const int kids = root.getNumberOfChildren();
-  auto& na = tc_.getExecution()->getNA();
+  auto& na = node_tree.getNA();
   IcicleNodeStatistic cntRoot = IcicleNodeStatistic{kids?0: 1, 0, absX, root.getStatus()};
   for (int i=0; i < kids; i++) {
     VisualNode& kid = *root.getChild(na, i);

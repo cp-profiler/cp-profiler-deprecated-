@@ -293,7 +293,7 @@ void ProfilerConductor::webscriptClicked() {
         const char* paths[] = { "webscripts/sunburst.html", "webscripts/icicle.html", "webscripts/variables.html" };
         const char* ids[] = { "sunburst", "icicle", "variables" };
         std::stringstream ss;
-        ::collectMLStats(execution.getRootNode(), execution.getNA(), &execution, ss);
+        ::collectMLStats(execution.nodeTree().getRoot(), execution.nodeTree().getNA(), &execution, ss);
 
         for (int i = 0 ; i < 3 ; i++) {
             if (getWebscriptView(&execution, ids[i]) == NULL) {

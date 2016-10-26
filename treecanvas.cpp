@@ -64,13 +64,13 @@ TreeCanvas::TreeCanvas(Execution* e, QGridLayout* layout, QWidget* parent)
       execution{*e},
       mutex(execution.getMutex()),
       layoutMutex(execution.getLayoutMutex()),
-      na(execution.getNA())
+      na(execution.nodeTree().getNA())
   {
   QMutexLocker locker(&mutex);
 
   _id = TreeCanvas::counter++;
 
-  root = execution.getRootNode();
+  root = execution.nodeTree().getRoot();
 
   m_options.scale = LayoutConfig::defScale / 100.0;
 
@@ -129,7 +129,7 @@ TreeCanvas::TreeCanvas(Execution* e, QGridLayout* layout, QWidget* parent)
 
 TreeCanvas::~TreeCanvas() {
   if (root) {
-    DisposeCursor dc(root, execution.getNA());
+    DisposeCursor dc(root, execution.nodeTree().getNA());
     PreorderNodeVisitor<DisposeCursor>(dc).run();
   }
 }
@@ -186,7 +186,7 @@ void TreeCanvas::update(void) {
   // std::cerr << "TreeCanvas::update\n";
   if (root != nullptr) {
     // std::cerr << "root->layout\n";
-    root->layout(execution.getNA());
+    root->layout(execution.nodeTree().getNA());
     BoundingBox bb = root->getBoundingBox();
 
     int w = static_cast<int>((bb.right - bb.left + Layout::extent) * m_options.scale);
@@ -252,7 +252,7 @@ void TreeCanvas::printSearchLogTo(const QString& file_name) {
     QFile outputFile(file_name);
     if (outputFile.open(QFile::WriteOnly | QFile::Truncate)) {
       QTextStream out(&outputFile);
-      SearchLogCursor slc(root, out, execution.getNA(), execution);
+      SearchLogCursor slc(root, out, execution.nodeTree().getNA(), execution);
       PreorderNodeVisitor<SearchLogCursor>(slc).run();
       qDebug() << "writing to the file: " << file_name;
       /// NOTE(maxim): required by the comparison script
@@ -306,10 +306,10 @@ void TreeCanvas::followPath(void) {
       int numChildren = n->getNumberOfChildren();
       for (int j = 0; j < numChildren; j++) {
         int childIndex = n->getChild(j);
-        VisualNode* c = (execution.getNA())[childIndex];
+        VisualNode* c = execution.nodeTree().getNode(childIndex);
         // If we find the right label, follow it and go to the next
         // iteration of the outer loop.
-        if (execution.getNA().getLabel(c) == choices[i]) {
+        if (execution.nodeTree().getNA().getLabel(c) == choices[i]) {
           n = c;
           goto found;
         }
@@ -341,7 +341,7 @@ void TreeCanvas::highlightNodesMenu(void) {
 void TreeCanvas::showNogoods(void) {
   std::vector<int> selected_gids;
 
-  GetIndexesCursor gic(currentNode, execution.getNA(), selected_gids);
+  GetIndexesCursor gic(currentNode, execution.nodeTree().getNA(), selected_gids);
   PreorderNodeVisitor<GetIndexesCursor>(gic).run();
 
   NogoodDialog* ngdialog =
@@ -412,37 +412,37 @@ void TreeCanvas::showNodeInfo(void) {
 }
 
 void TreeCanvas::showNodeOnPixelTree(void) {
-  int gid = currentNode->getIndex(execution.getNA());
+  int gid = currentNode->getIndex(execution.nodeTree().getNA());
   emit showNodeOnPixelTree(gid);
 }
 
 void TreeCanvas::collectMLStats(void) {
-  ::collectMLStats(currentNode, execution.getNA(), &execution);
+  ::collectMLStats(currentNode, execution.nodeTree().getNA(), &execution);
 }
 
 void TreeCanvas::collectMLStats(VisualNode* node) {
-  ::collectMLStats(node, execution.getNA(), &execution);
+  ::collectMLStats(node, execution.nodeTree().getNA(), &execution);
 }
 
 void TreeCanvas::collectMLStatsRoot(std::ostream& out) {
-  ::collectMLStats(root, execution.getNA(), &execution, out);
+  ::collectMLStats(root, execution.nodeTree().getNA(), &execution, out);
 }
 
 void TreeCanvas::highlightSubtrees(std::vector<VisualNode*>& nodes) {
   QMutexLocker locker_1(&mutex);
   QMutexLocker locker_2(&layoutMutex);
 
-  root->unhideAll(execution.getNA());
-  root->layout(execution.getNA());
+  root->unhideAll(execution.nodeTree().getNA());
+  root->layout(execution.nodeTree().getNA());
 
-  UnhighlightCursor uhc(root, execution.getNA());
+  UnhighlightCursor uhc(root, execution.nodeTree().getNA());
   PreorderNodeVisitor<UnhighlightCursor>(uhc).run();
 
   for (auto& node : nodes) {
     node->setHighlighted(true);
   }
 
-  HideNotHighlightedCursor hnhc(root, execution.getNA());
+  HideNotHighlightedCursor hnhc(root, execution.nodeTree().getNA());
   PostorderNodeVisitor<HideNotHighlightedCursor>(hnhc).run();
 
   update();
@@ -464,7 +464,7 @@ class SearchItem {
 
 void TreeCanvas::toggleHidden(void) {
   QMutexLocker locker(&mutex);
-  currentNode->toggleHidden(execution.getNA());
+  currentNode->toggleHidden(execution.nodeTree().getNA());
   update();
   centerCurrentNode();
   emit statusChanged(currentNode, get_stats(), true);
@@ -473,7 +473,7 @@ void TreeCanvas::toggleHidden(void) {
 
 void TreeCanvas::hideFailed(void) {
   QMutexLocker locker(&mutex);
-  currentNode->hideFailed(execution.getNA());
+  currentNode->hideFailed(execution.nodeTree().getNA());
   update();
   centerCurrentNode();
   emit statusChanged(currentNode, get_stats(), true);
@@ -484,7 +484,7 @@ void TreeCanvas::hideSize() {
   QMutexLocker locker(&mutex);
   QString boxContents = smallBox->text();
   int threshold = boxContents.toInt();
-  currentNode->hideSize(threshold, execution.getNA());
+  currentNode->hideSize(threshold, execution.nodeTree().getNA());
   update();
   centerCurrentNode();
   emit statusChanged(currentNode, get_stats(), true);
@@ -495,7 +495,7 @@ void TreeCanvas::hideAll(void) {
   QMutexLocker locker_1(&mutex);
   QMutexLocker locker_2(&layoutMutex);
 
-  HideAllCursor hac(root, execution.getNA());
+  HideAllCursor hac(root, execution.nodeTree().getNA());
   PostorderNodeVisitor<HideAllCursor>(hac).run();
 
   update();
@@ -507,7 +507,7 @@ void TreeCanvas::hideAll(void) {
 void TreeCanvas::unhideAll(void) {
   QMutexLocker locker(&mutex);
   QMutexLocker layoutLocker(&layoutMutex);
-  currentNode->unhideAll(execution.getNA());
+  currentNode->unhideAll(execution.nodeTree().getNA());
   update();
   centerCurrentNode();
   emit statusChanged(currentNode, get_stats(), true);
@@ -517,7 +517,7 @@ void TreeCanvas::unhideAll(void) {
 void TreeCanvas::unselectAll(void) {
   QMutexLocker locker(&mutex);
   QMutexLocker layoutLocker(&layoutMutex);
-  root->unselectAll(execution.getNA());
+  root->unselectAll(execution.nodeTree().getNA());
   update();
   centerCurrentNode();
   emit statusChanged(currentNode, get_stats(), true);
@@ -525,17 +525,17 @@ void TreeCanvas::unselectAll(void) {
 }
 
 void TreeCanvas::unhideNode(VisualNode* node) {
-  node->dirtyUp(execution.getNA());
+  node->dirtyUp(execution.nodeTree().getNA());
 
   auto* next = node;
   do {
     next->setHidden(false);
-  } while ((next = next->getParent(execution.getNA())));
+  } while ((next = next->getParent(execution.nodeTree().getNA())));
 }
 
 void TreeCanvas::toggleStop(void) {
   QMutexLocker locker(&mutex);
-  currentNode->toggleStop(execution.getNA());
+  currentNode->toggleStop(execution.nodeTree().getNA());
   update();
   centerCurrentNode();
   emit statusChanged(currentNode, get_stats(), true);
@@ -545,7 +545,7 @@ void TreeCanvas::toggleStop(void) {
 void TreeCanvas::unstopAll(void) {
   QMutexLocker locker(&mutex);
   QMutexLocker layoutLocker(&layoutMutex);
-  currentNode->unstopAll(execution.getNA());
+  currentNode->unstopAll(execution.nodeTree().getNA());
   update();
   centerCurrentNode();
   emit statusChanged(currentNode, get_stats(), true);
@@ -611,7 +611,7 @@ void TreeCanvas::centerCurrentNode(void) {
   while (c != nullptr) {
     x += c->getOffset();
     y += Layout::dist_y;
-    c = c->getParent(execution.getNA());
+    c = c->getParent(execution.nodeTree().getNA());
   }
 
   x = static_cast<int>((m_view.xtrans + x) * m_options.scale);
@@ -667,13 +667,13 @@ void TreeCanvas::expandCurrentNode() {
     return;
   }
 
-  currentNode->dirtyUp(execution.getNA());
+  currentNode->dirtyUp(execution.nodeTree().getNA());
   update();
 }
 
 void TreeCanvas::labelBranches(void) {
   QMutexLocker locker(&mutex);
-  currentNode->labelBranches(execution.getNA(), *this);
+  currentNode->labelBranches(execution.nodeTree().getNA(), *this);
   update();
   centerCurrentNode();
   emit statusChanged(currentNode, get_stats(), true);
@@ -681,7 +681,7 @@ void TreeCanvas::labelBranches(void) {
 }
 void TreeCanvas::labelPath(void) {
   QMutexLocker locker(&mutex);
-  currentNode->labelPath(execution.getNA(), *this);
+  currentNode->labelPath(execution.nodeTree().getNA(), *this);
   update();
   centerCurrentNode();
   emit statusChanged(currentNode, get_stats(), true);
@@ -693,7 +693,7 @@ void TreeCanvas::labelPath(void) {
 void TreeCanvas::reset() {
   QMutexLocker locker(&mutex);
 
-  VisualNode* root = execution.getRootNode();
+  VisualNode* root = execution.nodeTree().getRoot();
   currentNode = root;
   m_options.scale = 1.0;
   for (int i = bookmarks.size(); i--;) emit removedBookmark(i);
@@ -726,7 +726,7 @@ void TreeCanvas::bookmarkNode(void) {
     bookmarks.remove(idx);
     emit removedBookmark(idx);
   }
-  currentNode->dirtyUp(execution.getNA());
+  currentNode->dirtyUp(execution.nodeTree().getNA());
   update();
 }
 
@@ -737,7 +737,7 @@ void TreeCanvas::emitStatusChanged(void) {
 
 void TreeCanvas::navUp(void) {
   QMutexLocker locker(&mutex);
-  VisualNode* p = currentNode->getParent(execution.getNA());
+  VisualNode* p = currentNode->getParent(execution.nodeTree().getNA());
 
   setCurrentNode(p);
 
@@ -754,8 +754,8 @@ void TreeCanvas::navDown(void) {
       case UNSTOP:
       case MERGING:
       case BRANCH: {
-        int alt = std::max(0, currentNode->getPathAlternative(execution.getNA()));
-        VisualNode* n = currentNode->getChild(execution.getNA(), alt);
+        int alt = std::max(0, currentNode->getPathAlternative(execution.nodeTree().getNA()));
+        VisualNode* n = currentNode->getChild(execution.nodeTree().getNA(), alt);
         setCurrentNode(n);
         centerCurrentNode();
         break;
@@ -771,11 +771,11 @@ void TreeCanvas::navDown(void) {
 
 void TreeCanvas::navLeft(void) {
   QMutexLocker locker(&mutex);
-  VisualNode* p = currentNode->getParent(execution.getNA());
+  VisualNode* p = currentNode->getParent(execution.nodeTree().getNA());
   if (p != nullptr) {
-    int alt = currentNode->getAlternative(execution.getNA());
+    int alt = currentNode->getAlternative(execution.nodeTree().getNA());
     if (alt > 0) {
-      VisualNode* n = p->getChild(execution.getNA(), alt - 1);
+      VisualNode* n = p->getChild(execution.nodeTree().getNA(), alt - 1);
       setCurrentNode(n);
       centerCurrentNode();
     }
@@ -784,11 +784,11 @@ void TreeCanvas::navLeft(void) {
 
 void TreeCanvas::navRight(void) {
   QMutexLocker locker(&mutex);
-  VisualNode* p = currentNode->getParent(execution.getNA());
+  VisualNode* p = currentNode->getParent(execution.nodeTree().getNA());
   if (p != nullptr) {
-    uint alt = currentNode->getAlternative(execution.getNA());
+    uint alt = currentNode->getAlternative(execution.nodeTree().getNA());
     if (alt + 1 < p->getNumberOfChildren()) {
-      VisualNode* n = p->getChild(execution.getNA(), alt + 1);
+      VisualNode* n = p->getChild(execution.nodeTree().getNA(), alt + 1);
       setCurrentNode(n);
       centerCurrentNode();
     }
@@ -803,7 +803,7 @@ void TreeCanvas::navRoot(void) {
 
 void TreeCanvas::navNextSol(bool back) {
   QMutexLocker locker(&mutex);
-  NextSolCursor nsc(currentNode, back, execution.getNA());
+  NextSolCursor nsc(currentNode, back, execution.nodeTree().getNA());
   PreorderNodeVisitor<NextSolCursor> nsv(nsc);
   nsv.run();
   VisualNode* n = nsv.getCursor().node();
@@ -815,7 +815,7 @@ void TreeCanvas::navNextSol(bool back) {
 
 void TreeCanvas::navNextLeaf(bool back) {
   QMutexLocker locker(&mutex);
-  NextLeafCursor nsc(currentNode, back, execution.getNA());
+  NextLeafCursor nsc(currentNode, back, execution.nodeTree().getNA());
   PreorderNodeVisitor<NextLeafCursor> nsv(nsc);
   nsv.run();
   VisualNode* n = nsv.getCursor().node();
@@ -827,7 +827,7 @@ void TreeCanvas::navNextLeaf(bool back) {
 
 void TreeCanvas::navNextPentagon(bool back) {
   QMutexLocker locker(&mutex);
-  NextPentagonCursor nsc(currentNode, back, execution.getNA());
+  NextPentagonCursor nsc(currentNode, back, execution.nodeTree().getNA());
   PreorderNodeVisitor<NextPentagonCursor> nsv(nsc);
   nsv.run();
   VisualNode* n = nsv.getCursor().node();
@@ -872,7 +872,7 @@ void TreeCanvas::exportNodePDF(VisualNode* n) {
 
     painter.translate(printxtrans, Layout::dist_y / 2);
     QRect clip(0, 0, 0, 0);
-    DrawingCursor dc(n, execution.getNA(), painter, clip);
+    DrawingCursor dc(n, execution.nodeTree().getNA(), painter, clip);
     currentNode->setMarked(false);
     PreorderNodeVisitor<DrawingCursor>(dc).run();
     currentNode->setMarked(true);
@@ -916,7 +916,7 @@ void TreeCanvas::print(void) {
     painter.scale(printScale, printScale);
     painter.translate(m_view.xtrans, 0);
     QRect clip(0, 0, 0, 0);
-    DrawingCursor dc(root, execution.getNA(), painter, clip);
+    DrawingCursor dc(root, execution.nodeTree().getNA(), painter, clip);
     PreorderNodeVisitor<DrawingCursor>(dc).run();
   }
 }
@@ -965,7 +965,7 @@ VisualNode* TreeCanvas::eventNode(QEvent* event) {
   if (w < sa->viewport()->width()) xoff -= (sa->viewport()->width() - w) / 2;
 
   VisualNode* n;
-  n = root->findNode(execution.getNA(), static_cast<int>(x / m_options.scale - m_view.xtrans + xoff),
+  n = root->findNode(execution.nodeTree().getNA(), static_cast<int>(x / m_options.scale - m_view.xtrans + xoff),
                      static_cast<int>((y - 30) / m_options.scale + yoff));
   return n;
 }
@@ -976,7 +976,7 @@ bool TreeCanvas::event(QEvent* event) {
       VisualNode* n = eventNode(event);
       if (n != nullptr) {
         QHelpEvent* he = static_cast<QHelpEvent*>(event);
-        QToolTip::showText(he->globalPos(), QString(n->toolTip(execution.getNA()).c_str()));
+        QToolTip::showText(he->globalPos(), QString(n->toolTip(execution.nodeTree().getNA()).c_str()));
       } else {
         QToolTip::hideText();
       }
@@ -1014,7 +1014,7 @@ void TreeCanvas::paintEvent(QPaintEvent* event) {
              static_cast<int>(origClip.height() / m_options.scale));
 
   // perfHelper.begin("TreeCanvas: paint");
-  DrawingCursor dc(root, execution.getNA(), painter, clip);
+  DrawingCursor dc(root, execution.nodeTree().getNA(), painter, clip);
   PreorderNodeVisitor<DrawingCursor>(dc).run();
   // perfHelper.end();
   // int nodesLayouted = 1;
@@ -1099,7 +1099,7 @@ void TreeCanvas::setCurrentNode(VisualNode* n, bool finished, bool update) {
     emit statusChanged(currentNode, get_stats(), finished);
     emit needActionsUpdate(currentNode, finished);
     if (changed) {
-        emit announceSelectNode(n->getIndex(execution.getNA()));
+        emit announceSelectNode(n->getIndex(execution.nodeTree().getNA()));
     }
     if (update) {
       setCursor(QCursor(Qt::ArrowCursor));
@@ -1112,11 +1112,11 @@ void TreeCanvas::setCurrentNode(VisualNode* n, bool finished, bool update) {
 void TreeCanvas::navigateToNodeById(int gid) {
   QMutexLocker locker(&mutex);
 
-  VisualNode* node = (execution.getNA())[gid];
+  VisualNode* node = (execution.nodeTree().getNA())[gid];
 
   setCurrentNode(node, true, true);
 
-  UnhideAncestorsCursor unhideCursor(node, execution.getNA());
+  UnhideAncestorsCursor unhideCursor(node, execution.nodeTree().getNA());
   AncestorNodeVisitor<UnhideAncestorsCursor> unhideAncestors(unhideCursor);
   unhideAncestors.run();
 
@@ -1200,10 +1200,10 @@ void TreeCanvas::updateCanvas(void) {
   if (root == nullptr) return;
 
   if (m_options.autoHideFailed) {
-    root->hideFailed(execution.getNA(), true);
+    root->hideFailed(execution.nodeTree().getNA(), true);
   }
 
-  for (VisualNode* n = currentNode; n != nullptr; n = n->getParent(execution.getNA())) {
+  for (VisualNode* n = currentNode; n != nullptr; n = n->getParent(execution.nodeTree().getNA())) {
     if (n->isHidden()) {
       currentNode->setMarked(false);
       currentNode = n;
@@ -1212,7 +1212,7 @@ void TreeCanvas::updateCanvas(void) {
     }
   }
 
-  root->layout(execution.getNA());
+  root->layout(execution.nodeTree().getNA());
   BoundingBox bb = root->getBoundingBox();
 
   int w = static_cast<int>((bb.right - bb.left + Layout::extent) * m_options.scale);
@@ -1249,8 +1249,8 @@ void TreeCanvas::updateCanvas(void) {
 
 void TreeCanvas::applyToEachNodeIf(std::function<void(VisualNode*)> action,
                                    std::function<bool(VisualNode*)> predicate) {
-  for (int i = 0; i < execution.getNA().size(); ++i) {
-    VisualNode* node = (execution.getNA())[i];
+  for (int i = 0; i < execution.nodeTree().getNA().size(); ++i) {
+    VisualNode* node = (execution.nodeTree().getNA())[i];
 
     if (predicate(node)) {
       action(node);
@@ -1265,14 +1265,14 @@ void unhighlightAllNodes(NodeAllocator& na) {
 }
 
 void TreeCanvas::resetNodesHighlighting() {
-  unhighlightAllNodes(execution.getNA());
+  unhighlightAllNodes(execution.nodeTree().getNA());
 
   update();
 }
 
 void TreeCanvas::highlightNodesWithInfo() {
   /// TODO(maxim): unhighlight all nodes first
-  unhighlightAllNodes(execution.getNA());
+  unhighlightAllNodes(execution.nodeTree().getNA());
 
   auto action = [](VisualNode* node) { node->setHovered(true); };
 
@@ -1295,7 +1295,7 @@ void TreeCanvas::highlightNodesWithInfo() {
 
 void TreeCanvas::highlightFailedByNogoods() {
   /// TODO(maxim): unhighlight all nodes first
-  unhighlightAllNodes(execution.getNA());
+  unhighlightAllNodes(execution.nodeTree().getNA());
 
   auto action = [](VisualNode* node) { node->setHovered(true); };
 

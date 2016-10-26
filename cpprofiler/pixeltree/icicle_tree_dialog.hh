@@ -29,6 +29,7 @@
 #include "spacenode.hh"
 
 class TreeCanvas;
+class NodeTree;
 class SpaceNode;
 class QAbstractScrollArea;
 class QComboBox;
@@ -82,6 +83,7 @@ class IcicleTreeCanvas : public QWidget {
  private:
   QAbstractScrollArea& sa_;
   TreeCanvas& tc_;
+  NodeTree& node_tree;
   PixelImage icicle_image_;
   std::vector<IcicleRect> icicle_rects_;
   std::vector<VisualNode*> nodes_selected;  // to know which nodes to deselect

@@ -27,7 +27,7 @@
 
 struct PentagonItem;
 class Gist;
-class TreeComparison;
+class ComparisonResult;
 class CmpTreeDialog;
 class Execution;
 class QStatusBar;
@@ -46,15 +46,15 @@ private:
   QTableWidget _pentagonTable;
   QTableWidget _nogoodTable;
 
+  const ComparisonResult& cmp_result;
   const std::vector<PentagonItem>& _items;
-  const TreeComparison& m_Comparison;
 
 private:
   
   void populateNogoodTable(const std::vector<int>& nogoods);
 
 public:
-  PentListWindow(CmpTreeDialog* parent, const std::vector<PentagonItem>& items);
+  PentListWindow(CmpTreeDialog* parent, const ComparisonResult& items);
   void createList(); /// TODO(maxim): make this a free function?
 };
 
@@ -63,7 +63,7 @@ Q_OBJECT
 
 private:
 
-  std::unique_ptr<TreeComparison> m_Comparison;
+  std::unique_ptr<ComparisonResult> m_Cmp_result;
 
   std::unique_ptr<TreeCanvas> m_Canvas;
 
@@ -87,8 +87,6 @@ public:
 
   void saveComparisonStatsTo(const QString& file_name);
   void selectPentagon(int row);
-
-  const TreeComparison& comparison() const { return *m_Comparison.get(); }
 
 private Q_SLOTS:
   /// The status has changed (e.g., new solutions have been found)

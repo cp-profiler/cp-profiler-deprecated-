@@ -136,7 +136,6 @@ Node::getIndex(const NodeAllocator& na) const {
   Node* p = na[parent];
   for (int i=p->getNumberOfChildren(); i--;)
     if (p->getChild(na,i) == this){
-//      j = p->getChild(i);
       return p->getChild(i);
     }
   GECODE_NEVER;

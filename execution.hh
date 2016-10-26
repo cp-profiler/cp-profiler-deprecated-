@@ -39,19 +39,13 @@ public:
     }
     
     DbEntry* getEntry(const Node& node) const {
-        auto gid = node.getIndex(getNA());
+        auto gid = node.getIndex(node_tree.getNA());
         return getEntry(gid);
     }
-    const NodeAllocator& getNA() const {
-        return node_tree.getNA();
-    }
-    NodeAllocator& getNA() {
-        return node_tree.getNA();
-    }
 
-    const NodeTree& nodeTree() const {
-        return node_tree;
-    }
+    const NodeTree& nodeTree() const { return node_tree; }
+
+    NodeTree& nodeTree() { return node_tree; }
 
     const std::unordered_map<int64_t, std::string>& getNogoods() const;
     std::unordered_map<int64_t, std::string*>& getInfo(void) const;
@@ -66,10 +60,6 @@ public:
 
     bool isDone() const { return _is_done; }
     bool isRestarts() const { return _is_restarts; }
-
-    VisualNode* getRootNode() const {
-        return node_tree.getRootNode();
-    }
 
     Statistics& getStatistics() {
         return node_tree.getStatistics();

@@ -41,7 +41,7 @@ TreeBuilder::TreeBuilder(Execution* exec, QObject* parent)
     : QThread(parent),
       execution(*exec),
       _data{*execution.getData()},
-      _na(execution.getNA()) {
+      _na(execution.nodeTree().getNA()) {
 
   read_queue.reset(new ReadingQueue(_data.getEntries()));
 
@@ -71,7 +71,6 @@ bool TreeBuilder::processRoot(DbEntry& dbEntry) {
 
   // std::cerr << "process root: " << dbEntry << "\n";
 
-  auto& gid2entry = _data.gid2entry;
 
   Statistics& stats = execution.getStatistics();
 
@@ -108,9 +107,8 @@ bool TreeBuilder::processRoot(DbEntry& dbEntry) {
     dbEntry.gid = 0;
     dbEntry.depth = 1;
   }
-  // Assume the solver sends this.
-  // dbEntry.decisionLevel = 0;
 
+  auto& gid2entry = _data.gid2entry;
   gid2entry[dbEntry.gid] = &dbEntry;
 
   /// setNumberOfChildren

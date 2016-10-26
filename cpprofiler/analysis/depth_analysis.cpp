@@ -5,7 +5,8 @@
 
 using namespace cpprofiler::analysis;
 
-DepthAnalysis::DepthAnalysis(TreeCanvas& tc) : _tc(tc), _na(tc.getExecution()->getNA()) {}
+DepthAnalysis::DepthAnalysis(TreeCanvas& tc) : _tc(tc),
+  _na(tc.getExecution()->nodeTree().getNA()) {}
 
 std::vector<Direction> DepthAnalysis::collectDepthData() {
   SpaceNode* root = _na[0];

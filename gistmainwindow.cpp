@@ -302,7 +302,7 @@ GistMainWindow::selectManyNodes(QVariantList gids) {
     for (int i = 0 ; i < gids.size() ; i++) {
         double d = gids[i].toDouble();
         int gid = (int) d;
-        VisualNode* node = (m_Canvas->getExecution()->getNA())[gid];
+        VisualNode* node = execution.nodeTree().getNode(gid);
         node->setSelected(true);
     }
     m_Canvas->updateCanvas();
@@ -611,7 +611,7 @@ GistMainWindow::updateActions(VisualNode* n, bool finished) {
             navDown->setEnabled(false);
         }
 
-        VisualNode* p = n->getParent(execution.getNA());
+        VisualNode* p = n->getParent(execution.nodeTree().getNA());
 
         if (p == nullptr) {
             navUp->setEnabled(false);
@@ -620,7 +620,7 @@ GistMainWindow::updateActions(VisualNode* n, bool finished) {
         } else {
             navUp->setEnabled(true);
 
-            unsigned int alt = n->getAlternative(execution.getNA());
+            unsigned int alt = n->getAlternative(execution.nodeTree().getNA());
 
             navRight->setEnabled(alt + 1 < p->getNumberOfChildren());
             navLeft->setEnabled(alt > 0);
@@ -639,7 +639,7 @@ void
 GistMainWindow::statusChanged(VisualNode* n, const Statistics& stats,
                               bool finished) {
 
-    nodeStatInspector->node(execution.getNA(),n,stats,finished); /// for single node stats
+    nodeStatInspector->node(execution.nodeTree().getNA(),n,stats,finished); /// for single node stats
 
     if (!finished) {
         showNodeStats->setEnabled(false);
@@ -694,15 +694,15 @@ GistMainWindow::statusChanged(VisualNode* n, const Statistics& stats,
 
         VisualNode* root = n;
         while (!root->isRoot()) {
-            root = root->getParent(execution.getNA());
+            root = root->getParent(execution.nodeTree().getNA());
         }
-        NextSolCursor nsc(n, false, execution.getNA());
+        NextSolCursor nsc(n, false, execution.nodeTree().getNA());
 
         PreorderNodeVisitor<NextSolCursor> nsv(nsc);
         nsv.run();
         navNextSol->setEnabled(nsv.getCursor().node() != root);
 
-        NextSolCursor psc(n, true, execution.getNA());
+        NextSolCursor psc(n, true, execution.nodeTree().getNA());
 
         PreorderNodeVisitor<NextSolCursor> psv(psc);
         psv.run();

@@ -91,7 +91,7 @@ class SimilarShapesWindow : public QDialog {
  private:
 
   TreeCanvas& m_tc;
-  const NodeTree& node_tree;
+  NodeTree& node_tree;
 
   bool m_done = false;
 
@@ -123,7 +123,7 @@ private:
   void drawHistogram();
 
  public:
-  SimilarShapesWindow(TreeCanvas* tc, const NodeTree& nt);
+  SimilarShapesWindow(TreeCanvas* tc, NodeTree& nt);
   void drawAlternativeHistogram();
   void highlightSubtrees(VisualNode* n);
 

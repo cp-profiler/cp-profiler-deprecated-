@@ -4,6 +4,9 @@ namespace analysis {
 
 struct ChildInfo {
   int alt;
+
+  /// has to be mutable as used in highlighting
+  /// TODO(maxim): use some form of id instead?
   VisualNode* node;
 };
 
@@ -54,14 +57,14 @@ int getSubtreeHeight(const VisualNode* n, const NodeAllocator& na,
 
 /// Groups nodes by height of their underlying subtree
 /// TODO(maxim): NodeTree should be able to tell its depth
-static std::vector<Group> groupByHeight(const TreeCanvas& tc, const NodeTree& nt) {
+static std::vector<Group> groupByHeight(const TreeCanvas& tc, NodeTree& nt) {
   int max_depth = tc.get_stats().maxDepth;
 
   /// start from 1 for convenience
   std::vector<Group> groups(max_depth + 1);
 
   auto& na = nt.getNA();
-  auto* root = nt.getRootNode();
+  auto* root = nt.getRoot();
 
   getSubtreeHeight(root, na, groups);
 
@@ -144,8 +147,7 @@ std::pair<int, int> findNodeInGroups(
 //--------------------------------------------
 //-------- FINDING IDENTICAL SUBTREES --------
 //--------------------------------------------
-GroupsOfNodes_t findIdenticalShapes(TreeCanvas* tc,
-                                                          const NodeTree& nt) {
+GroupsOfNodes_t findIdenticalShapes(TreeCanvas* tc, NodeTree& nt) {
   /// ------ 0) group by height ------
   std::vector<Group> groups = detail::groupByHeight(*tc, nt);
 

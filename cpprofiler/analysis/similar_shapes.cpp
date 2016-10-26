@@ -71,7 +71,7 @@ QDebug& operator<<(QDebug& os, const std::vector<Group>& groups) {
   return os;
 }
 
-SimilarShapesWindow::SimilarShapesWindow(TreeCanvas* tc, const NodeTree& nt)
+SimilarShapesWindow::SimilarShapesWindow(TreeCanvas* tc, NodeTree& nt)
     : QDialog{tc}, m_tc{*tc}, node_tree{nt}, shapeSet(CompareShapes{}), filters(*this) {
   perfHelper.begin("shapes: analyse");
   collectSimilarShapes();
@@ -109,7 +109,7 @@ void SimilarShapesWindow::highlightSubtrees(VisualNode* node) {
   m_ShapeCanvas->showShape(node);
 
   const auto& na = node_tree.getNA();
-  auto root = node_tree.getRootNode();
+  auto root = node_tree.getRoot();
 
   if (simType == SimilarityType::SHAPE) {
 
@@ -306,7 +306,7 @@ static bool areShapesIdentical(const NodeTree& nt,
 
 void SimilarShapesWindow::collectSimilarShapes() {
   auto& na = node_tree.getNA();
-  VisualNode* root = node_tree.getRootNode();
+  VisualNode* root = node_tree.getRoot();
 
   root->unhideAll(na);
   root->layout(na);
@@ -453,7 +453,7 @@ void SimilarShapesWindow::drawAlternativeHistogram() {
   vec.reserve(m_identicalGroups.size());
 
   auto& na = node_tree.getNA();
-  VisualNode* root = node_tree.getRootNode();
+  VisualNode* root = node_tree.getRoot();
 
   root->unhideAll(na);
   root->layout(na);

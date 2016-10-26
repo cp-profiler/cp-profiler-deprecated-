@@ -87,12 +87,12 @@ CmpTreeDialog::CmpTreeDialog(QWidget* parent, Execution* execution, bool with_la
 
   stw->setLayout(hbl);
 
-  m_Comparison.reset(new TreeComparison{ex1, ex2});
-  m_Comparison->compare(m_Canvas.get(), with_labels);
-  /// sort the pentagons by nodes diff:
-  m_Comparison->sortPentagons();
+  m_Cmp_result = treecomparison::compare(m_Canvas.get(), ex1, ex2, with_labels);
 
-  mergedLabel->setNum(m_Comparison->get_no_pentagons());
+  /// sort the pentagons by nodes diff:
+  m_Cmp_result->sortPentagons();
+
+  mergedLabel->setNum(m_Cmp_result->get_no_pentagons());
 
   setAttribute( Qt::WA_DeleteOnClose );
 
@@ -176,7 +176,7 @@ CmpTreeDialog::statusChanged(VisualNode*, const Statistics&, bool finished) {
 
 void
 CmpTreeDialog::navFirstPentagon() {
-  const auto pentagon_items = m_Comparison->pentagon_items();
+  const auto pentagon_items = m_Cmp_result->pentagon_items();
 
   if (pentagon_items.size() == 0) {
     qDebug() << "warning: pentagons.size() == 0";
@@ -204,7 +204,7 @@ CmpTreeDialog::navPrevPentagon() {
 void
 CmpTreeDialog::showPentagonHist() {
 
-  auto pentagon_window = new PentListWindow(this, m_Comparison->pentagon_items());
+  auto pentagon_window = new PentListWindow(this, *m_Cmp_result);
   pentagon_window->createList();
   pentagon_window->show();
 }
@@ -234,8 +234,8 @@ CmpTreeDialog::saveComparisonStatsTo(const QString& file_name) {
         if (outputFile.open(QFile::WriteOnly | QFile::Truncate)) {
             QTextStream out(&outputFile);
 
-            auto ng_stats = m_Comparison->responsible_nogood_stats();
-            auto nogood_map = m_Comparison->left_execution().getNogoods();
+            auto ng_stats = m_Cmp_result->responsible_nogood_stats();
+            auto nogood_map = m_Cmp_result->left_execution().getNogoods();
 
             out << "id,occur,score,nogood\n";
 
@@ -299,8 +299,8 @@ infoToNogoodVector(const string& info) {
 void
 PentListWindow::populateNogoodTable(const std::vector<int>& nogoods) {
 
-  auto ng_stats = m_Comparison.responsible_nogood_stats();
-  auto nogood_map = m_Comparison.left_execution().getNogoods();
+  auto ng_stats = cmp_result.responsible_nogood_stats();
+  auto nogood_map = cmp_result.left_execution().getNogoods();
 
   _nogoodTable.setRowCount(nogoods.size());
 
@@ -323,8 +323,12 @@ PentListWindow::populateNogoodTable(const std::vector<int>& nogoods) {
 
 }
 
-PentListWindow::PentListWindow(CmpTreeDialog* parent, const std::vector<PentagonItem>& items)
-: QDialog(parent), _pentagonTable{this}, _items(items), m_Comparison(parent->comparison()) {
+PentListWindow::PentListWindow(CmpTreeDialog* parent,
+                               const ComparisonResult& result)
+    : QDialog(parent),
+      _pentagonTable{this},
+      cmp_result(result),
+      _items(result.pentagon_items()) {
 
   resize(600, 400);
 
@@ -408,7 +412,7 @@ PentListWindow::createList()
 
 void
 CmpTreeDialog::selectPentagon(int row) {
-  const auto items = m_Comparison->pentagon_items();
+  const auto items = m_Cmp_result->pentagon_items();
 
   auto node = items[row].node;
 
@@ -452,7 +456,7 @@ CmpTreeDialog::showResponsibleNogoods() {
 
   /// *** edit table ***
 
-  auto ng_stats = m_Comparison->responsible_nogood_stats();
+  auto ng_stats = m_Cmp_result->responsible_nogood_stats();
 
   /// map to vector
   std::vector<std::pair<int, NogoodCmpStats> > ng_stats_vector;
@@ -470,7 +474,7 @@ CmpTreeDialog::showResponsibleNogoods() {
 
   ng_table->setRowCount(ng_stats.size());
 
-  auto& nogood_map = m_Comparison->left_execution().getNogoods();
+  auto& nogood_map = m_Cmp_result->left_execution().getNogoods();
 
   qDebug() << "map2: " << (void*)(&nogood_map);
 
@@ -492,8 +496,8 @@ CmpTreeDialog::showResponsibleNogoods() {
 
   ng_table->resizeColumnsToContents();
 
-  auto total_reduced = m_Comparison->get_total_reduced();
-  auto total_nodes = m_Comparison->right_execution().getData()->size();
+  auto total_reduced = m_Cmp_result->get_total_reduced();
+  auto total_nodes = m_Cmp_result->right_execution().getData()->size();
 
   auto reduction_label = QString{"Nodes reduced: "} +
                          QString::number(total_reduced) +
