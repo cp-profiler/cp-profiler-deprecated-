@@ -60,9 +60,8 @@ Data::Data() {
 }
 
 void Data::setDoneReceiving(void) {
-#ifdef MAXIM_DEBUG
-    std::cerr << "done receiving\n";
-#endif
+
+    qDebug() << "done receiving";
     QMutexLocker locker(&dataMutex);
 
     // _total_nodes = nodes_arr.size();
@@ -71,7 +70,7 @@ void Data::setDoneReceiving(void) {
     if (_total_time != 0) {
         _time_per_node = _total_time / _total_time;
     } else {
-        // qDebug() << "(!) _total_time cannot be 0";
+        qDebug() << "(!) _total_time cannot be 0";
     }
 
     /// *** Flush_node_rate ***

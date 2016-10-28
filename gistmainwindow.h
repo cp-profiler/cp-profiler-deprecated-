@@ -52,7 +52,7 @@ private:
 
   Execution& execution;
   /// Whether search is currently running
-  bool isSearching;
+  bool isSearching = false;
   /// Status bar label for maximum depth indicator
   QLabel* depthLabel;
   /// Status bar label for number of solutions

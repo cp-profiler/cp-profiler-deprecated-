@@ -75,6 +75,10 @@ GistMainWindow::GistMainWindow(Execution& execution,
 
   connect(this, SIGNAL(doneReceiving()), m_Canvas.get(), SLOT(statusFinished()));
 
+  if (execution.getData()->isDone()) {
+    m_Canvas->statusFinished();
+  }
+
   // m_Canvas->show();
 
   resize(500, 400);
@@ -227,24 +231,19 @@ GistMainWindow::GistMainWindow(Execution& execution,
 
 void
 GistMainWindow::statusChanged(const Statistics& stats, bool finished) {
-  if (stats.maxDepth==0) {
-    isSearching = false;
-    statusBar()->showMessage("Ready");
-  } else if (isSearching && finished) {
-    isSearching = false;
 
-    /// TODO(maxim): this should be done in here (delete include of data.hh)
-    /// add total time to 'Done' label
+  /// a quick hack for now
+  if (execution.getData()->isDone()) {
+
     QString t;
     unsigned long long totalTime = execution.getData()->getTotalTime();
     float seconds = totalTime / 1000000.0;
     t.setNum(seconds);
     statusBar()->showMessage("Done in " + t + "s");
-
-  } else if (!isSearching && !finished) {
+  } else {
     statusBar()->showMessage("Searching");
-    isSearching = true;
   }
+
   depthLabel->setNum(stats.maxDepth);
   solvedLabel->setNum(stats.solutions);
   failedLabel->setNum(stats.failures);

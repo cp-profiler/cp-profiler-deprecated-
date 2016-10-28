@@ -30,10 +30,6 @@ void Execution::start(std::string label, bool isRestarts) {
     m_Data->setTitle(label + " (" + ts + ")");
 
     connect(this, SIGNAL(doneReceiving(void)), m_Data.get(), SLOT(setDoneReceiving(void)));
-    connect(this, &Execution::doneReceiving, [this]() {
-            _is_done = true;
-            std::cerr << "execution " << this << " done receiving\n";
-        });
 
     std::cerr << "Execution::start on " << this << "\n";
 

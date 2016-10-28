@@ -84,8 +84,8 @@ TreeCanvas::TreeCanvas(Execution* e, QGridLayout* layout, QWidget* parent)
   auto autoZoomButton = new QToolButton(this);
   autoZoomButton->setCheckable(true);
   autoZoomButton->setIcon(zoomPic);
-
-  (void)layout;
+  autoZoomButton->setFixedSize(30, 30);
+  autoZoomButton->setFocusPolicy(Qt::NoFocus);
 
   layout->addWidget(autoZoomButton, 1,1, Qt::AlignHCenter);
 

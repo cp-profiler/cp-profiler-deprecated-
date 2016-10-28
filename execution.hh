@@ -62,7 +62,6 @@ public:
 
     void start(std::string label, bool isRestarts);
 
-    bool isDone() const { return _is_done; }
     bool isRestarts() const { return _is_restarts; }
 
     Statistics& getStatistics() {
@@ -85,7 +84,6 @@ signals:
     void newNode();
     void newRoot();
     void titleKnown();
-    void startReceiving();
     void doneReceiving();
     void doneBuilding();
 
@@ -93,7 +91,6 @@ private:
     std::unique_ptr<NodeTree> m_NodeTree;
     std::unique_ptr<Data> m_Data;
     std::unique_ptr<TreeBuilder> m_Builder;
-    bool _is_done = false;
     bool _is_restarts;
     std::string variableListString;
 public Q_SLOTS:

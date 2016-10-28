@@ -35,7 +35,6 @@ ReceiverThread::ReceiverThread(int socketDescriptor, Execution* execution, QObje
       socketDescriptor(socketDescriptor),
       execution(execution)
 {
-    connect(this, SIGNAL(startReceiving()), execution, SIGNAL(startReceiving()));
     connect(this, SIGNAL(doneReceiving()), execution, SIGNAL(doneReceiving()));
 }
 
@@ -52,9 +51,8 @@ ReceiverThread::run(void) {
     ReceiverWorker* worker = new ReceiverWorker(tcpSocket, execution);
     connect(tcpSocket, SIGNAL(readyRead()), worker, SLOT(doRead()));
 
-    connect(worker, SIGNAL(startReceiving(void)), this, SIGNAL(startReceiving(void)));
-    connect(worker, SIGNAL(doneReceiving(void)), this, SLOT(quit(void)));
     connect(worker, SIGNAL(doneReceiving(void)), this, SIGNAL(doneReceiving(void)));
+    connect(worker, SIGNAL(doneReceiving(void)), this, SLOT(quit(void)));
 
     connect(tcpSocket, SIGNAL(disconnected(void)), this, SLOT(quit(void)));
     connect(tcpSocket, SIGNAL(disconnected(void)), this, SIGNAL(doneReceiving(void)));
@@ -63,6 +61,12 @@ ReceiverThread::run(void) {
     exec();
     // std::cerr << "Receiver thread " << this << " terminating\n";
 }
+
+static quint32 ArrayToInt(const QByteArray& ba) {
+  const char* p = ba.data();
+  return *(reinterpret_cast<const quint32*>(p));
+}
+
 
 // This function is called whenever there is new data available to be
 // read on the socket.
@@ -94,15 +98,12 @@ ReceiverWorker::doRead()
 
                 size = 0;
 
-                // std::cerr << "message type: " << msg1.type() << "\n";
-
                 switch (msg1.type()) {
                 case message::Node::NODE:
                     execution->handleNewNode(msg1);
                     break;
                 case message::Node::START:
                 {
-                    // qDebug() << "START RECEIVING: " << msg1.label().c_str();
 
                     if (msg1.has_info()) {
                         execution->setVariableListString(msg1.info());
@@ -115,14 +116,10 @@ ReceiverWorker::doRead()
 
                     bool is_restarts = (msg1.restart_id() != -1);
 
-                    qDebug() << "is_restarts: " << is_restarts;
-
                     execution->start(msg1.label(), is_restarts);
-                    emit startReceiving();
                 }
                 break;
                 case message::Node::DONE:
-                    // qDebug() << "received DONE SENDING";
                     emit doneReceiving();
                     break;
                 }

@@ -60,5 +60,4 @@ class GlobalParser {
   static void process(const QCoreApplication& app);
 };
 
-
 #endif
