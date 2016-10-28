@@ -195,6 +195,8 @@ int64_t Data::gid2sid(int gid) {
 
 unsigned long long Data::getTotalTime(void) {
 
+    if (nodes_arr.size() == 0) return 0;
+
     if (_isDone)
         return _total_time;
     return nodes_arr.back()->time_stamp;
@@ -225,9 +227,9 @@ void Data::pushInstance(DbEntry* entry) {
     /// NOTE(maxim): `sid` != `nodes_arr.size`, because there are also
     /// '-1' nodes (backjumped) that dont get counted
 
-    auto full_sid = entry->full_sid;
     nodes_arr.push_back(entry);
 
+    auto full_sid = entry->full_sid;
     sid2aid[full_sid] = nodes_arr.size() - 1;
 
     // qDebug() << "sid2aid[" << full_sid << "] = " << sid2aid[full_sid];

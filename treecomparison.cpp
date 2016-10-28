@@ -62,14 +62,15 @@ static int copyTree(VisualNode* target_node, Execution& ex_target,
         next->nstatus = n->nstatus;
 
         /// point to the source node
-        int source_index = source_tree.getIndex(n);
-        int target_index = target_tree.getIndex(next);
 
         if (n->getStatus() != NodeStatus::UNDETERMINED) {
             auto source_data = ex_source.getData();
+
+            int source_index = source_tree.getIndex(n);
             DbEntry* entry = source_data->getEntry(source_index);
 
             auto this_data = ex_target.getData();
+            int target_index = target_tree.getIndex(next);
             this_data->connectNodeToEntry(target_index, entry);
 
             /// TODO(maxim): connect nogoods as well

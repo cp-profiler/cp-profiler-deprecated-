@@ -562,9 +562,6 @@ BranchLabelCursor::processCurrentNode(void) {
                 int gid = n->getIndex(_na);
                 std::string l = _tc.getLabel(gid);
                 _na.setLabel(n,QString(l.c_str()));
-//                if (n->getNumberOfChildren() < 1 &&
-//                        alternative() == p->getNumberOfChildren()-1)
-//                    p->purge(_na);
             } else {
                 _na.setLabel(n,"");
             }

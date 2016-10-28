@@ -37,6 +37,7 @@ class QAction;
 class QActionGroup;
 class VisualNode;
 class Statistics;
+class ProfilerConductor;
 
 class GistMainWindow : public QMainWindow {
   Q_OBJECT
@@ -46,6 +47,8 @@ private:
   QGridLayout* layout;
 
   std::unique_ptr<TreeCanvas> m_Canvas;
+
+  ProfilerConductor& conductor;
 
   Execution& execution;
   /// Whether search is currently running
@@ -172,6 +175,9 @@ private:
   /// Show webscript view
   QAction* showWebscript;
 
+  /// Extract subtree into a fake execution
+  QAction* extractSubtree;
+
   /// Group of all actions for comparators
   QActionGroup* comparatorGroup;
 
@@ -236,7 +242,7 @@ public Q_SLOTS:
   void selectNode(int gid);
   void selectManyNodes(QVariantList gids);
 public:
-  GistMainWindow(Execution& execution, QWidget* parent);
+  GistMainWindow(Execution& execution, ProfilerConductor* parent);
   ~GistMainWindow();
 
   void setStatsFilename(QString filename) {

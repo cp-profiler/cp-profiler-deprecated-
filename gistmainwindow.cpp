@@ -20,6 +20,7 @@
  */
 
 #include <QLabel>
+#include "profiler-conductor.hh"
 
 #include "gistmainwindow.h"
 #include "nodestats.hh"
@@ -37,10 +38,11 @@
 
 #include <QAction>
 
-GistMainWindow::GistMainWindow(Execution& execution, QWidget* parent)
-    : QMainWindow(parent), execution(execution) {
-
-  // *****
+GistMainWindow::GistMainWindow(Execution& execution,
+                               ProfilerConductor* conductor)
+    : QMainWindow(dynamic_cast<QMainWindow*>(conductor)),
+      conductor(*conductor),
+      execution(execution) {
 
   layout = new QGridLayout();
 
@@ -102,9 +104,6 @@ GistMainWindow::GistMainWindow(Execution& execution, QWidget* parent)
 
   addActions();
 
-  QMenu* nodeMenu = menuBar->addMenu(tr("&Node"));
-  nodeMenu->addAction(showNodeStats);
-
   QMenu* fileMenu = menuBar->addMenu(tr("&File"));
   fileMenu->addAction(print);
   fileMenu->addAction(printSearchLog);
@@ -116,6 +115,9 @@ GistMainWindow::GistMainWindow(Execution& execution, QWidget* parent)
   QAction* quitAction = fileMenu->addAction(tr("Quit"));
   quitAction->setShortcut(QKeySequence("Ctrl+Q"));
   connect(quitAction, SIGNAL(triggered()), this, SLOT(close()));
+
+  QMenu* nodeMenu = menuBar->addMenu(tr("&Node"));
+  nodeMenu->addAction(showNodeStats);
 
   
   bookmarksMenu->addAction(bookmarkNode);
@@ -228,7 +230,6 @@ GistMainWindow::statusChanged(const Statistics& stats, bool finished) {
   if (stats.maxDepth==0) {
     isSearching = false;
     statusBar()->showMessage("Ready");
-    prefAction->setEnabled(true);
   } else if (isSearching && finished) {
     isSearching = false;
 
@@ -240,9 +241,7 @@ GistMainWindow::statusChanged(const Statistics& stats, bool finished) {
     t.setNum(seconds);
     statusBar()->showMessage("Done in " + t + "s");
 
-    prefAction->setEnabled(true);
   } else if (!isSearching && !finished) {
-    // prefAction->setEnabled(false); /// TODO: leave active all the time instead?
     statusBar()->showMessage("Searching");
     isSearching = true;
   }
@@ -284,7 +283,6 @@ GistMainWindow::changeTitle(QString file_name) {
 
 void
 GistMainWindow::gatherStatistics(void) {
-  std::cerr << "GistMainWindow::gatherStatistics\n";
   std::ofstream out;
   out.open(statsFilename.toStdString(), std::ofstream::out);
   m_Canvas->collectMLStatsRoot(out);
@@ -312,6 +310,16 @@ GistMainWindow::selectManyNodes(QVariantList gids) {
 void GistMainWindow::addActions() {
 
   auto canvas = m_Canvas.get();
+
+  extractSubtree = new QAction("Extract Subtree", this);
+  addAction(extractSubtree);
+  connect(extractSubtree, &QAction::triggered, [this]() {
+
+    auto nt_and_data = m_Canvas->extractSubtree();
+
+    conductor.createExecution(std::move(nt_and_data.first),
+                              std::move(nt_and_data.second));
+  });
 
   reset = new QAction("Reset", this);
   addAction(reset);
@@ -582,6 +590,8 @@ void GistMainWindow::addActions() {
 
   contextMenu->addSeparator();
 
+  contextMenu->addAction(extractSubtree);
+
 #ifdef MAXIM_DEBUG
   contextMenu->addAction(deleteNode);
   contextMenu->addAction(dirtyUpNode);
@@ -639,7 +649,7 @@ void
 GistMainWindow::statusChanged(VisualNode* n, const Statistics& stats,
                               bool finished) {
 
-    nodeStatInspector->node(execution.nodeTree().getNA(),n,stats,finished); /// for single node stats
+    nodeStatInspector->node(execution.nodeTree().getNA(), n, stats, finished); /// for single node stats
 
     if (!finished) {
         showNodeStats->setEnabled(false);

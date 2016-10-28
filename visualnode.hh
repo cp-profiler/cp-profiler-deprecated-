@@ -262,13 +262,13 @@ public:
 };
 
 
-/// TODO(maxim): move anything to do with labels out
+
 class NodeAllocator {
 private:
 
   std::vector<VisualNode*> nodes;
 
-  /// Hash table mapping nodes to label text
+  /// Labels currently displayed
   QHash<VisualNode*, QString> labels;
 public:
   NodeAllocator();
@@ -281,10 +281,8 @@ public:
   int allocateRoot(void);
   /// Return node for index \a i
   VisualNode* operator [](int i) const;
-  /// Return branching label flag
-  bool showLabels(void) const;
-  /// Set branching label flag
-  void showLabels(bool b);
+
+  /// TODO(maxim): move anything to do with labels out
   /// Return whether node \a n has a label
   bool hasLabel(VisualNode* n) const;
   /// Set label of node \a n to \a l
@@ -292,7 +290,6 @@ public:
   /// Remove label of node \a n
   void clearLabel(VisualNode* n);
   /// Get label of node \a n
-  /// Note(maxim): did I add this?
   QString getLabel(VisualNode* n) const;
   /// returns the total number of nodes allocated
   int size() const;

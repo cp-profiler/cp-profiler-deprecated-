@@ -10,6 +10,8 @@
 class Execution;
 class WebscriptView;
 class GistMainWindow;
+class NodeTree;
+class Data;
 
 class ProfilerTcpServer;
 
@@ -33,6 +35,7 @@ class ProfilerConductor : public QMainWindow {
   std::unique_ptr<ProfilerTcpServer> listener;
 
   void addExecution(Execution& execution);
+  GistMainWindow* createGist(Execution&, QString title);
   WebscriptView* getWebscriptView(Execution* execution, std::string id);
   void registerWebscriptView(Execution* execution, std::string id, WebscriptView* webView);
   void tellVisualisationsSelectNode(Execution* execution, int gid);
@@ -52,7 +55,9 @@ class ProfilerConductor : public QMainWindow {
  public:
   ProfilerConductor();
   ~ProfilerConductor();
+
   void loadExecution(std::string filename);
+  void createExecution(std::unique_ptr<NodeTree> nt, std::unique_ptr<Data>);
 };
 
 #endif

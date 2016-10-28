@@ -4,7 +4,13 @@
 
 using std::string;
 
-Execution::Execution() : m_Data{new Data()}, m_Builder{new TreeBuilder(this)} {}
+Execution::Execution()
+    : m_NodeTree{new NodeTree},
+      m_Data{new Data()},
+      m_Builder{new TreeBuilder(this)} {}
+
+Execution::Execution(std::unique_ptr<NodeTree> nt, std::unique_ptr<Data> data)
+    : m_NodeTree{std::move(nt)},  m_Data{std::move(data)} {}
 
 Execution::~Execution() = default;
 

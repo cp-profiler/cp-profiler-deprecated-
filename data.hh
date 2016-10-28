@@ -79,8 +79,8 @@ public:
     std::string label;
     int thread_id; 
     int depth;
-    unsigned long long time_stamp;
-    unsigned long long node_time;
+    uint64_t time_stamp;
+    uint64_t node_time;
     float domain;
     int nogood_bld;
     bool usesAssumptions;
@@ -104,12 +104,12 @@ Q_OBJECT
     bool _isDone;
 
     // Name of the FlatZinc model
-    std::string _title;
+    std::string _title = "";
 
     // Total solver time in microseconds
-    unsigned long long _total_time;
+    uint64_t _total_time;
 
-    unsigned long int _prev_node_timestamp;
+    uint64_t _prev_node_timestamp;
 
     /// How many nodes received within each NODE_RATE_STEP interval
     std::vector<float> node_rate;
@@ -141,8 +141,6 @@ public:
     std::unordered_map<int, DbEntry*> gid2entry;
     
     std::unordered_map<int64_t, std::string*> sid2info;
-
-    
 
     /// synchronise access to data entries
     QMutex dataMutex;

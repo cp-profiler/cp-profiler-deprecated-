@@ -53,6 +53,8 @@
 #include <fstream>
 #include <iostream>
 
+#include <stack>
+
 #include "cpprofiler/analysis/similar_shapes.hh"
 
 using namespace cpprofiler::analysis;
@@ -225,7 +227,9 @@ void TreeCanvas::layoutDone(int w, int h, int scale0) {
   if (layoutDoneTimerId == 0) layoutDoneTimerId = startTimer(15);
 }
 
-void TreeCanvas::statusFinished() { statusChanged(true); }
+void TreeCanvas::statusFinished() { 
+  statusChanged(true); 
+}
 
 void TreeCanvas::statusChanged(bool finished) {
   if (finished) {
@@ -1324,6 +1328,97 @@ void TreeCanvas::deleteNode(Node* n) {
   if (!parent) return;
   parent->removeChild(n->getIndex(na), na);
   parent->dirtyUp(na);
+}
+
+
+using namespace std;
+
+/// Update stats based on the status of n
+static void updateStats(Statistics& stats, const VisualNode* n) {
+  auto status = n->getStatus();
+
+  switch (status) {
+    case BRANCH:
+      ++stats.choices;
+      break;
+    case SOLVED:
+      ++stats.solutions;
+      break;
+    case FAILED: /// meant to fall through
+    case SKIPPED:
+      ++stats.failures;
+      break;
+    case UNDETERMINED:
+      ++stats.undetermined;
+      break;
+    default:
+      qDebug() << "handle this case";
+  }
+}
+
+/// TODO(maxim): sometimes the new canvas is lagging (blocked by a mutex?)
+static void copyTree(VisualNode* target, NodeTree& tree_target,
+                     Data& data_target, const VisualNode* source,
+                     const NodeTree& tree_source, const Data& data_source) {
+  /// assumes that target is not assigned a number of children
+
+  auto& stats = tree_target.getStatistics();
+  stats.undetermined = 0; /// default is 1
+
+  std::stack<VisualNode*> target_stack;
+  std::stack<const VisualNode*> source_stack;
+
+  target_stack.push(target);
+  source_stack.push(source);
+
+  int depth = 0;
+
+  while (source_stack.size() > 0) {
+
+    /// TODO(maxim): isn't this info readily available somewhere?
+    depth = (source_stack.size() > depth) ? source_stack.size() : depth;
+
+    VisualNode* target = target_stack.top(); target_stack.pop();
+    const VisualNode* source = source_stack.top(); source_stack.pop();
+
+    auto no_kids = source->getNumberOfChildren();
+    target->setNumberOfChildren(no_kids, tree_target.getNA());
+    target->nstatus = source->nstatus;
+
+    target->dirtyUp(tree_target.getNA());
+
+    auto src_entry = data_source.getEntry(tree_source.getIndex(source));
+    auto target_index = tree_target.getIndex(target);
+    data_target.connectNodeToEntry(target_index, src_entry);
+
+    updateStats(stats, source);
+
+    for (auto i = 0u; i < no_kids; ++i) {
+      target_stack.push(tree_target.getChild(*target, i));
+      source_stack.push(tree_source.getChild(*source, i));
+    }
+
+  }
+
+  stats.maxDepth = depth;
+}
+
+/// TODO(maxim): shouldn't really be a part of TreeCanvas
+pair<unique_ptr<NodeTree>, unique_ptr<Data>>
+TreeCanvas::extractSubtree() {
+  
+  /// populate this
+  unique_ptr<NodeTree> nt{new NodeTree};
+  unique_ptr<Data> data{new Data};
+
+  data->setTitle("Extracted Subtree");
+
+  auto root = nt->getRoot();
+
+  copyTree(root, *nt, *data, currentNode, execution.nodeTree(),
+           *execution.getData());
+
+  return make_pair(std::move(nt), std::move(data));
 }
 
 #ifdef MAXIM_DEBUG

@@ -25,6 +25,7 @@
 
 #include <QtGui>
 #include <QtWidgets>
+#include <memory>
 
 #include <functional>
 #include "visualnode.hh"
@@ -186,6 +187,8 @@ public:
   /// traverse every node and set hidden
   void hideAll();
 
+  std::pair<std::unique_ptr<NodeTree>, std::unique_ptr<Data>> extractSubtree();
+
 Q_SIGNALS:
 
   void scaleChanged(int);
@@ -223,6 +226,8 @@ public Q_SLOTS:
   void layoutDone(int w, int h, int scale0);
   /// Set the selected node to \a n
   void setCurrentNode(VisualNode* n, bool finished=true, bool update=true);
+
+  const VisualNode* getCurrentNode() const { return currentNode; }
   /// Set the selected not to a node by solver id (from no-good table)
   void navigateToNodeById(int gid);
   void statusFinished();

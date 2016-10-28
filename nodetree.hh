@@ -30,14 +30,17 @@ class NodeTree {
 private:
     /// Mutex for synchronizing acccess to the tree
     QMutex mutex;
+    /// This should be a part of the `Visual Tree`
     /// Mutex for synchronizing layout and drawing
     QMutex layoutMutex;
     NodeAllocator na;
     Statistics stats;
 public:
     NodeTree();
+    ~NodeTree();
     int calculateDepth(const VisualNode& node) const;
-    VisualNode* getChild(const VisualNode& node, int alt) const;
+    VisualNode* getChild(const VisualNode& node, int alt);
+    const VisualNode* getChild(const VisualNode& node, int alt) const;
 
     const NodeAllocator& getNA() const;
     NodeAllocator& getNA();

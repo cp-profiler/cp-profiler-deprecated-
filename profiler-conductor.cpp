@@ -169,17 +169,19 @@ class ExecutionListItem : public QListWidgetItem {
 };
 
 
-void ProfilerConductor::addExecution(Execution& execution) {
-  auto newItem = new ExecutionListItem(execution, &executionList);
-  newItem->setText("some execution");
+void ProfilerConductor::addExecution(Execution& e) {
+  auto newItem = new ExecutionListItem(e, &executionList);
+
+  std::string title = (e.getTitle() == "") ? "some execution" : e.getTitle();
+  newItem->setText(title.c_str());
   newItem->setSelected(true);
   executionList.addItem(newItem);
-  executions << &execution;
+  executions << &e;
 
-  executionInfoHash.insert(&execution, new ExecutionInfo);
+  executionInfoHash.insert(&e, new ExecutionInfo);
 
   /// updates titles when a new one becomes known
-  connect(&execution, SIGNAL(titleKnown()), this, SLOT(updateTitles()));
+  connect(&e, SIGNAL(titleKnown()), this, SLOT(updateTitles()));
 
   show();
 }
@@ -191,6 +193,13 @@ void ProfilerConductor::updateTitles(void) {
   }
 }
 
+GistMainWindow* ProfilerConductor::createGist(Execution& e, QString title) {
+  auto gist = new GistMainWindow{e, this};
+  gist->changeTitle(title);
+  executionInfoHash[&e]->gistWindow = gist;
+  return gist;
+}
+
 void ProfilerConductor::gistButtonClicked() {
   QList<QListWidgetItem*> selected = executionList.selectedItems();
   for (int i = 0; i < selected.size(); i++) {
@@ -198,9 +207,7 @@ void ProfilerConductor::gistButtonClicked() {
     Execution& execution = item->execution_;
     GistMainWindow* gistMW = executionInfoHash[&execution]->gistWindow;
     if (gistMW == nullptr) {
-      gistMW = new GistMainWindow(execution, this);
-      gistMW->changeTitle(item->text());
-      executionInfoHash[&execution]->gistWindow = gistMW;
+      gistMW = createGist(execution, item->text());
     }
     gistMW->show();
     gistMW->activateWindow();
@@ -407,7 +414,6 @@ void ProfilerConductor::loadExecutionClicked() {
 void ProfilerConductor::loadExecution(std::string filename) {
   auto e = new Execution();
   addExecution(*e);
-  /// TODO(maxim): should somehow know if it was restarts, TRUE for now
   loadSaved(e, filename);
 }
 
@@ -463,4 +469,17 @@ void ProfilerConductor::createDebugExecution() {
   // kid1->dirtyUp(na);
   // kid2->dirtyUp(na);
 
+}
+
+using namespace std;
+
+void ProfilerConductor::createExecution(unique_ptr<NodeTree> nt,
+                                        unique_ptr<Data> data) {
+
+  auto e = new Execution(std::move(nt), std::move(data));
+  addExecution(*e);
+
+  auto gist = createGist(*e, e->getTitle().c_str());
+
+  gist->getCanvas()->statusFinished();
 }

@@ -75,8 +75,6 @@ inline VisualNode* NodeAllocator::operator[](int i) const {
   return nodes[i];
 }
 
-inline bool NodeAllocator::showLabels(void) const { return !labels.isEmpty(); }
-
 inline bool NodeAllocator::hasLabel(VisualNode* n) const {
   return labels.contains(n);
 }

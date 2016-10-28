@@ -26,6 +26,10 @@ public:
     Execution();
     Execution(const Execution&) = delete;
     Execution& operator=(const Execution&) = delete;
+
+    /// create an execution with an existing NodeTree and Data
+    Execution(std::unique_ptr<NodeTree> nt, std::unique_ptr<Data> data);
+
     ~Execution();
 
     const std::string* getNogood(const Node& node) const;
@@ -39,13 +43,13 @@ public:
     }
     
     DbEntry* getEntry(const Node& node) const {
-        auto gid = node.getIndex(node_tree.getNA());
+        auto gid = node.getIndex(m_NodeTree->getNA());
         return getEntry(gid);
     }
 
-    const NodeTree& nodeTree() const { return node_tree; }
+    const NodeTree& nodeTree() const { return *m_NodeTree.get(); }
 
-    NodeTree& nodeTree() { return node_tree; }
+    NodeTree& nodeTree() { return *m_NodeTree.get(); }
 
     const std::unordered_map<int64_t, std::string>& getNogoods() const;
     std::unordered_map<int64_t, std::string*>& getInfo(void) const;
@@ -62,11 +66,11 @@ public:
     bool isRestarts() const { return _is_restarts; }
 
     Statistics& getStatistics() {
-        return node_tree.getStatistics();
+        return m_NodeTree->getStatistics();
     }
 
-    QMutex& getMutex() { return node_tree.getMutex(); }
-    QMutex& getLayoutMutex() { return node_tree.getLayoutMutex(); }
+    QMutex& getMutex() { return m_NodeTree->getMutex(); }
+    QMutex& getLayoutMutex() { return m_NodeTree->getLayoutMutex(); }
 
     void setVariableListString(const std::string& s) {
         variableListString = s;
@@ -86,9 +90,9 @@ signals:
     void doneBuilding();
 
 private:
+    std::unique_ptr<NodeTree> m_NodeTree;
     std::unique_ptr<Data> m_Data;
     std::unique_ptr<TreeBuilder> m_Builder;
-    NodeTree node_tree;
     bool _is_done = false;
     bool _is_restarts;
     std::string variableListString;
