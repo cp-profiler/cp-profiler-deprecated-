@@ -87,8 +87,7 @@ TreeCanvas::TreeCanvas(Execution* e, QGridLayout* layout, QWidget* parent)
 
   (void)layout;
 
-  // layout->addWidget(autoZoomButton, 1,1, Qt::AlignTop); /// TODO: make
-  // available again
+  layout->addWidget(autoZoomButton, 1,1, Qt::AlignHCenter);
 
   connect(autoZoomButton, SIGNAL(toggled(bool)), this, SLOT(setAutoZoom(bool)));
 
@@ -146,8 +145,6 @@ void TreeCanvas::scaleTree(int scale0, int zoomx, int zoomy) {
   QSize viewport_size = size();
   QAbstractScrollArea* sa =
       static_cast<QAbstractScrollArea*>(parentWidget()->parentWidget());
-
-  qDebug() << "QAbstractScrollArea width: " << sa->width();
 
   if (zoomx == -1) zoomx = viewport_size.width() / 2;
   if (zoomy == -1) zoomy = viewport_size.height() / 2;

@@ -65,8 +65,8 @@ GistMainWindow::GistMainWindow(Execution& execution,
   main_widget->setLayout(layout);
 
   layout->addWidget(scrollArea, 0, 0, -1, 1);
-  layout->addWidget(m_Canvas->scaleBar(), 1, 1, Qt::AlignHCenter);
-  layout->addWidget(m_Canvas->smallBox, 1, 2, Qt::AlignBottom);
+  layout->addWidget(m_Canvas->scaleBar(), 2, 1, Qt::AlignHCenter);
+  layout->addWidget(m_Canvas->smallBox, 3, 1, Qt::AlignBottom);
 
   connect(scrollArea->horizontalScrollBar(), SIGNAL(valueChanged(int)),
           m_Canvas.get(), SLOT(scroll(void)));
