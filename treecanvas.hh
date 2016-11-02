@@ -140,22 +140,22 @@ class TreeCanvas : public QWidget {
     /// Return the node corresponding to the \a event position
   VisualNode* eventNode(QEvent *event);
   /// General event handler, used for displaying tool tips
-  bool event(QEvent *event);
+  bool event(QEvent *event) override;
   /// Paint the tree
-  void paintEvent(QPaintEvent* event);
+  void paintEvent(QPaintEvent* event) override;
   /// Handle mouse press event
-  void mousePressEvent(QMouseEvent* event);
+  void mousePressEvent(QMouseEvent* event) override;
   /// Handle mouse double click event
-  void mouseDoubleClickEvent(QMouseEvent* event);
+  void mouseDoubleClickEvent(QMouseEvent* event) override;
   /// Handle context menu event
-  void contextMenuEvent(QContextMenuEvent* event);
+  void contextMenuEvent(QContextMenuEvent* event) override;
   /// Handle resize event
-  void resizeEvent(QResizeEvent* event);
+  void resizeEvent(QResizeEvent* event) override;
   /// Handle mouse wheel events
-  void wheelEvent(QWheelEvent* event);
+  void wheelEvent(QWheelEvent* event) override;
 
   /// Timer invoked for smooth zooming and scrolling
-  virtual void timerEvent(QTimerEvent* e);
+  virtual void timerEvent(QTimerEvent* e) override;
 
 public:
 
@@ -200,8 +200,6 @@ Q_SIGNALS:
   void statusChanged(VisualNode*, const Statistics&, bool);
 
   void needActionsUpdate(VisualNode*, bool);
-  /// Signals that a solution has been found
-  void solution(int);
   /// Signals that %Gist is finished
   void searchFinished();
   /// Signals that a bookmark has been added

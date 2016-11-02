@@ -687,33 +687,47 @@ SearchLogCursor::processCurrentNode(void) {
     VisualNode* n = node();
     int numChildren = n->getNumberOfChildren();
 
-    // This node's index and the number of children.
-    _out << n->getIndex(_na) << " " << numChildren;
+    int nonskipped_kids = 0;
 
-    // Skipped node on the left branch (search timed out)
+    std::stringstream children_stream;
+
+    for (int i = 0 ; i < numChildren ; i++) {
+
+        VisualNode* child = n->getChild(_na, i);
+        int child_gid = n->getChild(i);
+
+        auto child_label = _execution.getLabel(child_gid);
+
+
+        // ignore "skipped nodes"
+        if (child->getStatus() == SKIPPED) continue;
+
+        // Impossible as such nodes would have been deleted
+        // assert(child_label != "");
+
+        ++nonskipped_kids;
+
+        // if (i == 1 && numChildren == 2 && child_label == "") {
+        //   auto prev = _execution.getLabel(n->getChild(0));
+
+        //   if (prev != "") {
+        //     qDebug() << "reversing: " << prev.c_str();
+        //     child_label = reverseLabel(prev);
+        //   }
+        // }
+
+        // The child's index and its label.
+        children_stream << " " << child_gid << " " << child_label.c_str();
+    }
+
+    _out << n->getIndex(_na) << " " << nonskipped_kids;
+
+    // Unexplored node on the left branch (search timed out)
     if ((numChildren == 0) && (n->getStatus() == BRANCH)) {
       _out << " stop";
     }
 
-    for (int i = 0 ; i < numChildren ; i++) {
-
-        int child_gid = n->getChild(i);
-        auto child_label = _execution.getLabel(child_gid);
-
-        if (i == 1 && numChildren == 2 && child_label == "") {
-          auto prev = _execution.getLabel(n->getChild(0));
-
-          if (prev != "") {
-            qDebug() << "reversing: " << prev.c_str();
-            child_label = reverseLabel(prev);
-          }
-        }
-
-        // The child's index and its label.
-        _out << " " << child_gid << " " << child_label.c_str();
-    }
-
-    // Terminate the line.
+    _out << children_stream.str().c_str();
     _out << "\n";
 }
 

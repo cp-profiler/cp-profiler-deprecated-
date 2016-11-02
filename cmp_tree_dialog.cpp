@@ -104,6 +104,39 @@ CmpTreeDialog::~CmpTreeDialog() = default;
 
 void
 CmpTreeDialog::addActions(QMenu* nodeMenu, QMenu* analysisMenu) {
+
+  /// Navigation
+
+  auto navUp = new QAction("Up", this);
+  addAction(navUp);
+  nodeMenu->addAction(navUp);
+  navUp->setShortcut(QKeySequence("Up"));
+  connect(navUp, SIGNAL(triggered()), m_Canvas.get(), SLOT(navUp()));
+
+  auto navDown = new QAction("Down", this);
+  addAction(navDown);
+  nodeMenu->addAction(navDown);
+  navDown->setShortcut(QKeySequence("Down"));
+  connect(navDown, SIGNAL(triggered()), m_Canvas.get(), SLOT(navDown()));
+
+  auto navLeft = new QAction("Left", this);
+  addAction(navLeft);
+  nodeMenu->addAction(navLeft);
+  navLeft->setShortcut(QKeySequence("Left"));
+  connect(navLeft, SIGNAL(triggered()), m_Canvas.get(), SLOT(navLeft()));
+
+  auto navRight = new QAction("Right", this);
+  addAction(navRight);
+  nodeMenu->addAction(navRight);
+  navRight->setShortcut(QKeySequence("Right"));
+  connect(navRight, SIGNAL(triggered()), m_Canvas.get(), SLOT(navRight()));
+
+  auto navRoot = new QAction("Root", this);
+  addAction(navRoot);
+  nodeMenu->addAction(navRoot);
+  navRoot->setShortcut(QKeySequence("R"));
+  connect(navRoot, SIGNAL(triggered()), m_Canvas.get(), SLOT(navRoot()));
+
   /// Note(maxim): Qt::WindowShortcut is default context
   auto navFirstPentagon = new QAction("To first pentagon", this);
   navFirstPentagon->setShortcut(QKeySequence("Ctrl+Shift+1"));

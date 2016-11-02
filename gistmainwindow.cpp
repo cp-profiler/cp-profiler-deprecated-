@@ -38,6 +38,54 @@
 
 #include <QAction>
 
+class NodeStatsBar : public QWidget {
+  /// Status bar label for maximum depth indicator
+  QLabel* depthLabel;
+  /// Status bar label for number of solutions
+  QLabel* solvedLabel;
+  /// Status bar label for number of failures
+  QLabel* failedLabel;
+  /// Status bar label for number of choices
+  QLabel* choicesLabel;
+  /// Status bar label for number of open nodes
+  QLabel* openLabel;
+
+public:
+
+  NodeStatsBar() {
+    QHBoxLayout* hbl = new QHBoxLayout{this};
+    hbl->setContentsMargins(0, 0, 0, 0);
+
+    hbl->addWidget(new QLabel("Depth:"));
+    depthLabel = new QLabel("0");
+    hbl->addWidget(depthLabel);
+
+    hbl->addWidget(new NodeWidget(SOLVED));
+    solvedLabel = new QLabel("0");
+    hbl->addWidget(solvedLabel);
+
+    hbl->addWidget(new NodeWidget(FAILED));
+    failedLabel = new QLabel("0");
+    hbl->addWidget(failedLabel);
+
+    hbl->addWidget(new NodeWidget(BRANCH));
+    choicesLabel = new QLabel("0");
+    hbl->addWidget(choicesLabel);
+
+    hbl->addWidget(new NodeWidget(UNDETERMINED));
+    openLabel = new QLabel("0");
+    hbl->addWidget(openLabel);
+  }
+
+  void update(const Statistics& stats) {
+    depthLabel->setNum(stats.maxDepth);
+    solvedLabel->setNum(stats.solutions);
+    failedLabel->setNum(stats.failures);
+    choicesLabel->setNum(stats.choices);
+    openLabel->setNum(stats.undetermined);
+  }
+};
+
 GistMainWindow::GistMainWindow(Execution& execution,
                                ProfilerConductor* conductor)
     : QMainWindow(dynamic_cast<QMainWindow*>(conductor)),
@@ -170,27 +218,9 @@ GistMainWindow::GistMainWindow(Execution& execution,
   setMenuBar(menuBar);
 #endif
 
-  // Set up status bar
-  QWidget* stw = new QWidget();
-  QHBoxLayout* hbl = new QHBoxLayout();
-  hbl->setContentsMargins(0,0,0,0);
-  hbl->addWidget(new QLabel("Depth:"));
-  depthLabel = new QLabel("0");
-  hbl->addWidget(depthLabel);
-  hbl->addWidget(new NodeWidget(SOLVED));
-  solvedLabel = new QLabel("0");
-  hbl->addWidget(solvedLabel);
-  hbl->addWidget(new NodeWidget(FAILED));
-  failedLabel = new QLabel("0");
-  hbl->addWidget(failedLabel);
-  hbl->addWidget(new NodeWidget(BRANCH));
-  choicesLabel = new QLabel("0");
-  hbl->addWidget(choicesLabel);
-  hbl->addWidget(new NodeWidget(UNDETERMINED));
-  openLabel = new QLabel("     0");
-  hbl->addWidget(openLabel);
-  stw->setLayout(hbl);
-  statusBar()->addPermanentWidget(stw);
+  m_NodeStatsBar = new NodeStatsBar();
+  statusBar()->addPermanentWidget(m_NodeStatsBar);
+
 
   isSearching = false;
   statusBar()->showMessage("Ready");
@@ -244,11 +274,8 @@ GistMainWindow::statusChanged(const Statistics& stats, bool finished) {
     statusBar()->showMessage("Searching");
   }
 
-  depthLabel->setNum(stats.maxDepth);
-  solvedLabel->setNum(stats.solutions);
-  failedLabel->setNum(stats.failures);
-  choicesLabel->setNum(stats.choices);
-  openLabel->setNum(stats.undetermined);
+
+  m_NodeStatsBar->update(stats);
 }
 
 void
@@ -543,19 +570,6 @@ void GistMainWindow::addActions() {
   showNodeStats->setShortcut(QKeySequence("S"));
   connect(showNodeStats, SIGNAL(triggered()),
           this, SLOT(showStats()));
-
-  nullComparator = new QAction("<none>",this);
-  nullComparator->setCheckable(true);
-  nullComparator->setChecked(false);
-  nullComparator->setEnabled(false);
-  comparatorGroup = new QActionGroup(this);
-  comparatorGroup->setExclusive(false);
-  comparatorGroup->addAction(nullComparator);
-//    connect(comparatorGroup, SIGNAL(triggered(QAction*)),
-//            this, SLOT(selectComparator(QAction*)));
-
-  comparatorMenu = new QMenu("Comparators", this);
-  comparatorMenu->addActions(comparatorGroup->actions());
 
   contextMenu = new QMenu(this);
   

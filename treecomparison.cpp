@@ -120,7 +120,7 @@ static bool compareLabels(std::string lhs, std::string rhs) {
     find_and_replace_all(lhs, "==", "=");
     find_and_replace_all(rhs, "==", "=");
 
-    qDebug() << "comparing: " << lhs.c_str() << " " << rhs.c_str();
+    // qDebug() << "comparing: " << lhs.c_str() << " " << rhs.c_str();
 
     if (lhs.compare(rhs) != 0) {
 #ifdef MAXIM_DEBUG

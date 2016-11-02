@@ -38,6 +38,8 @@ class QActionGroup;
 class VisualNode;
 class Statistics;
 class ProfilerConductor;
+class NodeStatsBar;
+
 
 class GistMainWindow : public QMainWindow {
   Q_OBJECT
@@ -53,16 +55,9 @@ private:
   Execution& execution;
   /// Whether search is currently running
   bool isSearching = false;
-  /// Status bar label for maximum depth indicator
-  QLabel* depthLabel;
-  /// Status bar label for number of solutions
-  QLabel* solvedLabel;
-  /// Status bar label for number of failures
-  QLabel* failedLabel;
-  /// Status bar label for number of choices
-  QLabel* choicesLabel;
-  /// Status bar label for number of open nodes
-  QLabel* openLabel;
+
+  NodeStatsBar* m_NodeStatsBar;
+
   /// Menu for bookmarks
   QMenu* bookmarksMenu;
   /// Action for activating the preferences menu
@@ -73,9 +68,6 @@ private:
   QString statsFilename;
 
   /// ****** FROM QTGIST ******
-
-    /// Menu of comparators // TODO(maxim): what is it?
-  QMenu* comparatorMenu;
 
     /// Context menu
   QMenu* contextMenu;
@@ -178,9 +170,6 @@ private:
   /// Extract subtree into a fake execution
   QAction* extractSubtree;
 
-  /// Group of all actions for comparators
-  QActionGroup* comparatorGroup;
-
 #ifdef MAXIM_DEBUG
   /// Delete a node from the tree
   QAction* deleteNode;
@@ -190,9 +179,6 @@ private:
 
     /// Information about individual nodes
   NodeStatInspector* nodeStatInspector;
-
-    /// Action used when no comparator is registered
-  QAction* nullComparator;
 
   /// *************************
 
