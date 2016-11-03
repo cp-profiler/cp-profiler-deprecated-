@@ -698,7 +698,6 @@ SearchLogCursor::processCurrentNode(void) {
 
         auto child_label = _execution.getLabel(child_gid);
 
-
         // ignore "skipped nodes"
         if (child->getStatus() == SKIPPED) continue;
 

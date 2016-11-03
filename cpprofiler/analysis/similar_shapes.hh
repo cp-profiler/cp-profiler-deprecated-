@@ -88,49 +88,47 @@ class SimilarShapesWindow : public QDialog {
   friend class detail::Filters;
   friend class ::TreeCanvas;
 
- private:
-
-  TreeCanvas& m_tc;
+  TreeCanvas& m_tc; /// for highlighting subtrees
   NodeTree& node_tree;
 
-  bool m_done = false;
-
-  SimilarityType simType = SimilarityType::SHAPE;
-  ShapeProperty m_histType = ShapeProperty::SIZE;
-  ShapeProperty m_sortType = ShapeProperty::SIZE;
+  SimilarityType  simType     = SimilarityType::SHAPE;
+  ShapeProperty   m_histType  = ShapeProperty::SIZE;
+  ShapeProperty   m_sortType  = ShapeProperty::SIZE;
 
   std::unique_ptr<ShapeCanvas> m_ShapeCanvas;
   std::unique_ptr<QGraphicsScene> m_scene;
+
+  /// the result of similar shapes analysis
   std::multiset<ShapeI, CompareShapes> shapeSet;
-  std::vector<ShapeI> shapesShown;
+
+  /// the result of identical subrees analysis
+  GroupsOfNodes_t m_identicalGroups;
 
   QAbstractScrollArea* m_scrollArea;
   QGraphicsView* view;
   detail::Filters filters;
 
-  GroupsOfNodes_t m_identicalGroups;
 
 #ifdef MAXIM_DEBUG
   QLabel debug_label{"debug info"};
 #endif
 
-private:
-    /// Loop through all nodes and add them to the multimap
+  /// Loop through all nodes and add them to the multimap
+  /// Called on construction
   void collectSimilarShapes();
+
   void initInterface();
 
+  /// Reset the scene and call drawHistorgram/drawAlternativeHistogram
   void updateHistogram();
   void drawHistogram();
+  void drawAlternativeHistogram();
 
  public:
   SimilarShapesWindow(TreeCanvas* tc, NodeTree& nt);
-  void drawAlternativeHistogram();
+  
+  /// Called from a rectangle representing a shape
   void highlightSubtrees(VisualNode* n);
-
- public Q_SLOTS:
-  void depthFilterChanged(int val);
-  void countFilterChanged(int val);
-
 
 };
 
@@ -159,15 +157,12 @@ private:
   VisualNode& m_node;
   SimilarShapesWindow* const m_ssWindow;
 
+  void mousePressEvent(QGraphicsSceneMouseEvent*) override;
 public:
   ShapeRect(int x, int y, int width, VisualNode& n, SimilarShapesWindow*);
 
   void addToScene(QGraphicsScene* scene);
   QGraphicsRectItem visibleArea;
-
-protected:
-  void mousePressEvent(QGraphicsSceneMouseEvent*);
-
 
 };
 }

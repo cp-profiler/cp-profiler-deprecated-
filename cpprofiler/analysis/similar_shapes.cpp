@@ -18,15 +18,6 @@ namespace analysis {
 
 /// TODO(maxim): show all subtrees of a particular shape
 
-class TreeStructure {
-
-public:
-  TreeStructure() {
-
-  }
-
-};
-
 ShapeProperty interpretShapeProperty(const QString& str) {
   if (str == "size") return ShapeProperty::SIZE;
   if (str == "count") return ShapeProperty::COUNT;
@@ -88,7 +79,6 @@ SimilarShapesWindow::SimilarShapesWindow(TreeCanvas* tc, NodeTree& nt)
 #endif
 
   m_ShapeCanvas.reset(new ShapeCanvas(m_scrollArea, node_tree));
-
   m_ShapeCanvas->show();
 
   updateHistogram();
@@ -198,14 +188,20 @@ void SimilarShapesWindow::initInterface() {
   auto depthFilterSB = new QSpinBox{this};
   depthFilterSB->setMinimum(1);
   depthFilterSB->setValue(2);
-  QObject::connect(depthFilterSB, SIGNAL(valueChanged(int)), this,
-                   SLOT(depthFilterChanged(int)));
+
+  connect(depthFilterSB, static_cast<void(QSpinBox::*)(int)>(&QSpinBox::valueChanged), [this] (int val) {
+    filters.setMinDepth(val);
+    updateHistogram();
+  });
 
   auto countFilterSB = new QSpinBox{this};
   countFilterSB->setMinimum(1);
   countFilterSB->setValue(2);
-  QObject::connect(countFilterSB, SIGNAL(valueChanged(int)), this,
-                   SLOT(countFilterChanged(int)));
+
+  connect(countFilterSB, static_cast<void(QSpinBox::*)(int)>(&QSpinBox::valueChanged), [this](int val) {
+    filters.setMinCount(val);
+    updateHistogram();
+  });
 
   auto histChoiceCB = new QComboBox();
   histChoiceCB->addItem("size");
@@ -260,7 +256,7 @@ namespace detail {
 /// equal if:
 /// 1. same node type
 /// 2. same number of children
-inline bool compareNodes(const VisualNode& n1, const VisualNode& n2) {
+static bool compareNodes(const VisualNode& n1, const VisualNode& n2) {
   if (n1.getStatus() != n2.getStatus()) {
     return false;
   }
@@ -428,6 +424,8 @@ void drawAnalysisHistogram(QGraphicsScene* scene, SimilarShapesWindow* ssw,
   }
 }
 
+
+/// TODO(maxim): make this more accurate
 int shapeSize(const Shape& s) {
   int total_size = 0;
 
@@ -436,18 +434,14 @@ int shapeSize(const Shape& s) {
 
   for (auto i = 0u; i < s.depth(); ++i) {
     total_size += std::abs((s[i].r + prev_r) - (s[i].l + prev_l));
-    prev_l = s[i].l;
-    prev_r = s[i].r;
+    prev_l += s[i].l;
+    prev_r += s[i].r;
   }
 
   return total_size;
 }
 
 void SimilarShapesWindow::drawAlternativeHistogram() {
-
-  int curr_y = 40;
-  const auto rect_max_w = ShapeRect::SELECTION_WIDTH;
-  int max_value = 100;
 
   std::vector<SubtreeInfo> vec;
   vec.reserve(m_identicalGroups.size());
@@ -476,8 +470,6 @@ void SimilarShapesWindow::drawAlternativeHistogram() {
 
   sortSubtrees(vec, m_sortType);
 
-
-
   drawAnalysisHistogram(m_scene.get(), this, m_histType, vec);
 
 }
@@ -503,8 +495,7 @@ void SimilarShapesWindow::updateHistogram() {
 
 void SimilarShapesWindow::drawHistogram() {
 
-
-  shapesShown.clear();
+  std::vector<ShapeI> shapesShown;
   shapesShown.reserve(shapeSet.size());
 
   for (auto it = shapeSet.begin(), end = shapeSet.end(); it != end;
@@ -530,16 +521,6 @@ void SimilarShapesWindow::drawHistogram() {
   sortSubtrees(vec, m_sortType);
 
   drawAnalysisHistogram(m_scene.get(), this, m_histType, vec);
-}
-
-void SimilarShapesWindow::depthFilterChanged(int val) {
-  filters.setMinDepth(val);
-  updateHistogram();
-}
-
-void SimilarShapesWindow::countFilterChanged(int val) {
-  filters.setMinCount(val);
-  updateHistogram();
 }
 
 // ---------------------------------------
@@ -650,6 +631,8 @@ void ShapeCanvas::paintEvent(QPaintEvent* event) {
 
 void ShapeCanvas::showShape(VisualNode* node) {
   m_targetNode = node;
+
+  shapeSize(*node->getShape());
 
   QWidget::update();
 }
