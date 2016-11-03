@@ -178,8 +178,6 @@ public:
 
   unsigned int getTreeDepth();
 
-  void printSearchLogTo(const QString& file_name);
-
   /// Apply `action` to every node that satisfies the predicate
   void applyToEachNodeIf(std::function<void (VisualNode*)> action,
                          std::function<bool (VisualNode*)> predicate);
@@ -304,8 +302,17 @@ public Q_SLOTS:
   void collectMLStats(VisualNode* node);
   /// Collect ML stats from the root
   void collectMLStatsRoot(std::ostream& out);
+  /// Hide all subtrees except for those represented by `nodes`
+  void highlightSubtrees(const std::vector<VisualNode*>& nodes);
 
-  void highlightSubtrees(std::vector<VisualNode*>& nodes);
+  /// Write path to `node` into `str`
+  void printPath(std::stringstream& str, const VisualNode* node);
+
+  /// Print paths to `nodes`
+  void printPaths(const std::vector<VisualNode*>& nodes);
+
+  /// Print paths to highlighted subtrees
+  void printHightlightedPaths();
 
   void resetNodesHighlighting();
 

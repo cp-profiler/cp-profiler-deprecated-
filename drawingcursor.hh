@@ -40,14 +40,8 @@ private:
 
     /// Test if current node is clipped
     bool isClipped(void);
-
-    void drawPentagon(int myx, int myy, bool shadow);
-    void drawTriangle(int myx, int myy, bool shadow);
-    void drawSizedTriangle(int myx, int myy, int size, bool shadow);
-    void drawDiamond(int myx, int myy, bool shadow);
-    void drawOctagon(int myx, int myy, bool shadow);
-    void drawShape(int myx, int myy, VisualNode* node);
 public:
+    /// The color for selected nodes
     static const QColor gold;
     /// The color for failed nodes
     static const QColor red;

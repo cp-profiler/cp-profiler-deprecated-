@@ -21,6 +21,7 @@
 
 #include "globalhelper.hh"
 #include <iostream>
+#include <QFileDialog>
 
 GlobalParser* GlobalParser::_self = nullptr;
 
@@ -77,3 +78,21 @@ QString GlobalParser::value(const QCommandLineOption& opt) {
 }
 
 GlobalParser::~GlobalParser() {}
+
+void Utils::writeToFile(const QString& str) {
+  QString file_name =
+      QFileDialog::getSaveFileName(nullptr, "Save File", "", "*.txt");
+
+  if (file_name == "") return;
+
+  QFile file(file_name);
+
+  if (file.open(QFile::WriteOnly | QFile::Truncate)) {
+    QTextStream out(&file);
+
+    out << str;
+
+  } else {
+    qDebug() << "could not open the file: " << file_name;
+  }
+}

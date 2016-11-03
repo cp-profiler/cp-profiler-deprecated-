@@ -54,6 +54,12 @@ namespace Pens {
     const QPen hovered = QPen{Qt::black, 3};
 }
 
+static void drawPentagon(QPainter& painter, int myx, int myy, bool shadow);
+static void drawTriangle(QPainter& painter, int myx, int myy, bool shadow);
+static void drawDiamond(QPainter& painter, int myx, int myy, bool shadow);
+static void drawOctagon(QPainter& painter, int myx, int myy, bool shadow);
+static void drawShape(QPainter& painter, int myx, int myy, VisualNode* node);
+static void drawSizedTriangle(QPainter& painter, int myx, int myy, int subtreeSize, bool shadow);
 
 DrawingCursor::DrawingCursor(VisualNode* root,
                              const NodeAllocator& na,
@@ -130,13 +136,13 @@ DrawingCursor::processCurrentNode(void) {
                 // painter.setBrush(QColor(200, 200, 200, 255));
                 painter.setBrush(QColor(255, 255, 255, 255));
         }
-        drawShape(myx, myy, n);
+        drawShape(painter, myx, myy, n);
     }
 
     // draw the shape if the node is highlighted
     painter.setBrush(QColor(160, 160, 160, 125));
     if (n->isHighlighted()) {
-      drawShape(myx, myy, n);
+      drawShape(painter, myx, myy, n);
     }
 
     // draw as currently selected
@@ -145,16 +151,16 @@ DrawingCursor::processCurrentNode(void) {
         painter.setPen(Qt::NoPen);
         if (n->isHidden()) {
             if (n->getStatus() == MERGING)
-                drawPentagon(myx, myy, true);
+                drawPentagon(painter, myx, myy, true);
             else
               if (n->getSubtreeSize() != -1)
-                drawSizedTriangle(myx, myy, n->getSubtreeSize(), true);
+                drawSizedTriangle(painter, myx, myy, n->getSubtreeSize(), true);
               else
-                drawTriangle(myx, myy, true);
+                drawTriangle(painter, myx, myy, true);
         } else {
             switch (n->getStatus()) {
             case SOLVED:
-                drawDiamond(myx, myy, true);
+                drawDiamond(painter, myx, myy, true);
                 break;
             case FAILED:
                 painter.drawRect(myx - HALF_FAILED_WIDTH + SHADOW_OFFSET,
@@ -162,7 +168,7 @@ DrawingCursor::processCurrentNode(void) {
                 break;
             case UNSTOP:
             case STOP:
-                drawOctagon(myx, myy, false);
+                drawOctagon(painter, myx, myy, false);
                 break;
             case BRANCH:
                 painter.drawEllipse(myx - HALF_NODE_WIDTH + SHADOW_OFFSET,
@@ -198,7 +204,7 @@ DrawingCursor::processCurrentNode(void) {
             } else {
                 painter.setBrush(orange);
             }
-            drawPentagon(myx, myy, false);
+            drawPentagon(painter, myx, myy, false);
         } else {
             if (n->hasOpenChildren()) {
             QLinearGradient gradient(myx - NODE_WIDTH, myy,
@@ -222,9 +228,9 @@ DrawingCursor::processCurrentNode(void) {
             }
 
             if (n->getSubtreeSize() != -1)
-              drawSizedTriangle(myx, myy, n->getSubtreeSize(), false);
+              drawSizedTriangle(painter, myx, myy, n->getSubtreeSize(), false);
             else
-              drawTriangle(myx, myy, false);
+              drawTriangle(painter, myx, myy, false);
         }
 
     } else {
@@ -235,11 +241,11 @@ DrawingCursor::processCurrentNode(void) {
             // } else {
                 painter.setBrush(QBrush(green));
             // }
-            drawDiamond(myx, myy, false);
+            drawDiamond(painter, myx, myy, false);
             break;
         case FAILED:
             if (n->isMarked())
-                painter.setBrush(QBrush(gold));
+                painter.setBrush(gold);
             else
                 painter.setBrush(QBrush(red));
             painter.drawRect(myx - HALF_FAILED_WIDTH, myy, FAILED_WIDTH, FAILED_WIDTH);
@@ -247,11 +253,11 @@ DrawingCursor::processCurrentNode(void) {
         case UNSTOP:
         case STOP:
             painter.setBrush(n->getStatus() == STOP ? QBrush(red) : QBrush(green));
-            drawOctagon(myx, myy, false);
+            drawOctagon(painter, myx, myy, false);
             break;
         case BRANCH:
             if (n->isMarked())
-                painter.setBrush(QBrush(gold));
+                painter.setBrush(gold);
             else
                 painter.setBrush(n->childrenLayoutIsDone() ? QBrush(blue) :
                                                              QBrush(white));
@@ -259,25 +265,25 @@ DrawingCursor::processCurrentNode(void) {
             break;
         case UNDETERMINED:
             if (n->isMarked())
-                painter.setBrush(QBrush(gold));
+                painter.setBrush(gold);
             else
                 painter.setBrush(Qt::white);
             painter.drawEllipse(myx - HALF_NODE_WIDTH, myy, NODE_WIDTH, NODE_WIDTH);
             break;
         case SKIPPED:
             if (n->isMarked())
-                painter.setBrush(QBrush(gold));
+                painter.setBrush(gold);
             else
                 painter.setBrush(Qt::gray);
             painter.drawRect(myx - HALF_FAILED_WIDTH, myy, FAILED_WIDTH, FAILED_WIDTH);
             break;
         case MERGING:
             if (n->isMarked()) {
-                painter.setBrush(QBrush(gold));
+                painter.setBrush(gold);
             } else {
                 painter.setBrush(orange);
             }
-            drawPentagon(myx, myy, false);
+            drawPentagon(painter, myx, myy, false);
             break;
         }
     }
@@ -289,8 +295,7 @@ DrawingCursor::processCurrentNode(void) {
 
 }
 
-inline void
-DrawingCursor::drawPentagon(int myx, int myy, bool shadow) {
+static void drawPentagon(QPainter& painter, int myx, int myy, bool shadow) {
     int shadowOffset = shadow? SHADOW_OFFSET : 0;
     QPointF points[5] = { QPointF(myx + shadowOffset, myy + shadowOffset),
         QPointF(myx + HALF_NODE_WIDTH + shadowOffset, myy + THIRD_NODE_WIDTH + shadowOffset),
@@ -302,8 +307,7 @@ DrawingCursor::drawPentagon(int myx, int myy, bool shadow) {
     painter.drawConvexPolygon(points, 5);
 }
 
-inline void
-DrawingCursor::drawTriangle(int myx, int myy, bool shadow){
+static void drawTriangle(QPainter& painter, int myx, int myy, bool shadow){
     int shadowOffset = shadow? SHADOW_OFFSET : 0;
     QPointF points[3] = { QPointF(myx + shadowOffset, myy + shadowOffset),
         QPointF(myx + NODE_WIDTH + shadowOffset, myy + HIDDEN_DEPTH + shadowOffset),
@@ -313,8 +317,7 @@ DrawingCursor::drawTriangle(int myx, int myy, bool shadow){
     painter.drawConvexPolygon(points, 3);
 }
 
-inline void
-  DrawingCursor::drawSizedTriangle(int myx, int myy, int subtreeSize, bool shadow){
+static void drawSizedTriangle(QPainter& painter, int myx, int myy, int subtreeSize, bool shadow) {
     int shadowOffset = shadow? SHADOW_OFFSET : 0;
     int height = HIDDEN_DEPTH * (subtreeSize + 1) / 4;
     QPointF points[3] = { QPointF(myx + shadowOffset, myy + shadowOffset),
@@ -325,8 +328,7 @@ inline void
     painter.drawConvexPolygon(points, 3);
 }
 
-inline void
-DrawingCursor::drawDiamond(int myx, int myy, bool shadow){
+static void drawDiamond(QPainter& painter, int myx, int myy, bool shadow) {
     int shadowOffset = shadow? SHADOW_OFFSET : 0;
     QPointF points[4] = { QPointF(myx + shadowOffset, myy + shadowOffset),
         QPointF(myx + HALF_NODE_WIDTH + shadowOffset, myy + HALF_NODE_WIDTH + shadowOffset),
@@ -334,11 +336,10 @@ DrawingCursor::drawDiamond(int myx, int myy, bool shadow){
         QPointF(myx - HALF_NODE_WIDTH + shadowOffset, myy + HALF_NODE_WIDTH + shadowOffset)
     };
 
-painter.drawConvexPolygon(points, 4);
+    painter.drawConvexPolygon(points, 4);
 }
 
-inline void
-DrawingCursor::drawOctagon(int myx, int myy, bool shadow){
+static void drawOctagon(QPainter& painter, int myx, int myy, bool shadow){
     int so = shadow? SHADOW_OFFSET : 0;
 
     QPointF points[8] = {
@@ -355,14 +356,13 @@ DrawingCursor::drawOctagon(int myx, int myy, bool shadow){
     painter.drawConvexPolygon(points, 8);
 }
 
-inline void
-DrawingCursor::drawShape(int myx, int myy, VisualNode* node){
+static void drawShape(QPainter& painter, int myx, int myy, VisualNode* node){
     painter.setPen(Qt::NoPen);
 
     Shape* shape = node->getShape();
     if (shape == nullptr) {
         std::cerr << "WARNING: node has no shape\n";
-        return; // this is wrong
+        abort();
     }
     int depth = shape->depth();
     QPointF *points = new QPointF[depth * 2];
@@ -385,7 +385,5 @@ DrawingCursor::drawShape(int myx, int myy, VisualNode* node){
     painter.drawConvexPolygon(points, shape->depth() * 2);
 
     delete[] points;
-
-    // delete[] shape;
 }
 

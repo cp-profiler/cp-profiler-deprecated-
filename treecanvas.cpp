@@ -248,22 +248,6 @@ void TreeCanvas::showPixelTree(void) {
   pixelTreeDialog->show();
 }
 
-void TreeCanvas::printSearchLogTo(const QString& file_name) {
-  if (file_name != "") {
-    QFile outputFile(file_name);
-    if (outputFile.open(QFile::WriteOnly | QFile::Truncate)) {
-      QTextStream out(&outputFile);
-      SearchLogCursor slc(root, out, execution.nodeTree().getNA(), execution);
-      PreorderNodeVisitor<SearchLogCursor>(slc).run();
-      qDebug() << "writing to the file: " << file_name;
-      /// NOTE(maxim): required by the comparison script
-      std::cout << "SEARCH LOG READY" << std::endl;
-    } else {
-      qDebug() << "could not open the file: " << file_name;
-    }
-  }
-}
-
 void TreeCanvas::showIcicleTree(void) {
   using cpprofiler::pixeltree::IcicleTreeDialog;
 
@@ -429,24 +413,75 @@ void TreeCanvas::collectMLStatsRoot(std::ostream& out) {
   ::collectMLStats(root, execution.nodeTree().getNA(), &execution, out);
 }
 
-void TreeCanvas::highlightSubtrees(std::vector<VisualNode*>& nodes) {
+void TreeCanvas::highlightSubtrees(const std::vector<VisualNode*>& nodes) {
   QMutexLocker locker_1(&mutex);
   QMutexLocker locker_2(&layoutMutex);
 
-  root->unhideAll(execution.nodeTree().getNA());
-  root->layout(execution.nodeTree().getNA());
+  auto& na = execution.nodeTree().getNA();
 
-  UnhighlightCursor uhc(root, execution.nodeTree().getNA());
+  root->unhideAll(na);
+  root->layout(na);
+
+  UnhighlightCursor uhc(root, na);
   PreorderNodeVisitor<UnhighlightCursor>(uhc).run();
 
-  for (auto& node : nodes) {
+  for (auto node : nodes) {
     node->setHighlighted(true);
   }
 
-  HideNotHighlightedCursor hnhc(root, execution.nodeTree().getNA());
+  HideNotHighlightedCursor hnhc(root, na);
   PostorderNodeVisitor<HideNotHighlightedCursor>(hnhc).run();
 
   update();
+}
+
+void TreeCanvas::printPath(std::stringstream& str, const VisualNode* node) {
+
+  str << "(node id: " << node->getIndex(na) << "):\t";
+
+  /// use a stack to reverse the order of labels
+  QStack<const VisualNode*> node_path;
+
+  while(true) {
+
+    node_path.push(node);
+
+    if (node->isRoot()) break;
+
+    node = node->getParent(na);
+  }
+
+  while(!node_path.isEmpty()) {
+    auto node = node_path.pop();
+    str << getLabel(node->getIndex(na)).c_str() << " ";
+  }
+
+  str << "\n";
+}
+
+void TreeCanvas::printPaths(const std::vector<VisualNode*>& nodes) {
+
+  const auto& na = execution.nodeTree().getNA();
+  std::stringstream str;
+
+  for (auto node : nodes) {
+    printPath(str, node);
+  }
+
+  Utils::writeToFile(str.str().c_str());
+}
+
+void TreeCanvas::printHightlightedPaths() {
+  std::vector<VisualNode*> nodes_to_print;
+
+  for (auto i=0; i < na.size(); ++i) {
+    auto node = na[i];
+    if (node->isHighlighted()) {
+      nodes_to_print.push_back(node);
+    }
+  }
+
+  printPaths(nodes_to_print);
 }
 
 /// A stack item for depth first search
@@ -842,45 +877,44 @@ void TreeCanvas::navPrevSol(void) { navNextSol(true); }
 void TreeCanvas::navPrevLeaf(void) { navNextLeaf(true); }
 
 void TreeCanvas::exportNodePDF(VisualNode* n) {
-#if QT_VERSION >= 0x040400
+
   QString filename = QFileDialog::getSaveFileName(
       this, tr("Export tree as pdf"), "", tr("PDF (*.pdf)"));
-  if (filename != "") {
-    QPrinter printer(QPrinter::ScreenResolution);
-    QMutexLocker locker(&mutex);
 
-    BoundingBox bb = n->getBoundingBox();
-    printer.setFullPage(true);
-    printer.setPaperSize(
-        QSizeF(bb.right - bb.left + Layout::extent,
-               n->getShape()->depth() * Layout::dist_y + Layout::extent),
-        QPrinter::Point);
-    printer.setOutputFileName(filename);
-    QPainter painter(&printer);
+  if (filename == "") return;
 
-    painter.setRenderHint(QPainter::Antialiasing);
+  QPrinter printer(QPrinter::ScreenResolution);
+  QMutexLocker locker(&mutex);
 
-    QRect pageRect = printer.pageRect();
-    double newXScale = static_cast<double>(pageRect.width()) /
-                       (bb.right - bb.left + Layout::extent);
-    double newYScale =
-        static_cast<double>(pageRect.height()) /
-        (n->getShape()->depth() * Layout::dist_y + Layout::extent);
-    double printScale = std::min(newXScale, newYScale);
-    painter.scale(printScale, printScale);
+  BoundingBox bb = n->getBoundingBox();
+  printer.setFullPage(true);
+  printer.setPaperSize(
+      QSizeF(bb.right - bb.left + Layout::extent,
+             n->getShape()->depth() * Layout::dist_y + Layout::extent),
+      QPrinter::Point);
+  printer.setOutputFileName(filename);
+  QPainter painter(&printer);
 
-    int printxtrans = -bb.left + (Layout::extent / 2);
+  painter.setRenderHint(QPainter::Antialiasing);
 
-    painter.translate(printxtrans, Layout::dist_y / 2);
-    QRect clip(0, 0, 0, 0);
-    DrawingCursor dc(n, execution.nodeTree().getNA(), painter, clip);
-    currentNode->setMarked(false);
-    PreorderNodeVisitor<DrawingCursor>(dc).run();
-    currentNode->setMarked(true);
-  }
-#else
-  (void)n;
-#endif
+  QRect pageRect = printer.pageRect();
+  double newXScale = static_cast<double>(pageRect.width()) /
+                     (bb.right - bb.left + Layout::extent);
+  double newYScale =
+      static_cast<double>(pageRect.height()) /
+      (n->getShape()->depth() * Layout::dist_y + Layout::extent);
+  double printScale = std::min(newXScale, newYScale);
+  painter.scale(printScale, printScale);
+
+  int printxtrans = -bb.left + (Layout::extent / 2);
+
+  painter.translate(printxtrans, Layout::dist_y / 2);
+  QRect clip(0, 0, 0, 0);
+  DrawingCursor dc(n, execution.nodeTree().getNA(), painter, clip);
+  currentNode->setMarked(false);
+  PreorderNodeVisitor<DrawingCursor>(dc).run();
+  currentNode->setMarked(true);
+
 }
 
 void TreeCanvas::exportWholeTreePDF(void) {
@@ -923,9 +957,14 @@ void TreeCanvas::print(void) {
 }
 
 void TreeCanvas::printSearchLog(void) {
-  QString filename =
-      QFileDialog::getSaveFileName(this, QString(""), "", QString(""));
-  printSearchLogTo(filename);
+
+  std::stringstream out;
+  SearchLogCursor slc(root, out, execution.nodeTree().getNA(), execution);
+  PreorderNodeVisitor<SearchLogCursor>(slc).run();
+
+  std::cout << "SEARCH LOG READY" << std::endl;
+
+  Utils::writeToFile(out.str().c_str());
 }
 
 VisualNode* TreeCanvas::eventNode(QEvent* event) {

@@ -648,7 +648,7 @@ SubtreeCountCursor::moveDownwards(void) {
 
 inline
 SearchLogCursor::SearchLogCursor(VisualNode *theNode,
-                                 QTextStream& outputStream,
+                                 std::stringstream& outputStream,
                                  const NodeAllocator& na,
                                  const Execution& execution)
     : NodeCursor<VisualNode>(theNode, na),

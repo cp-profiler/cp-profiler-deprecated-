@@ -168,6 +168,12 @@ GistMainWindow::GistMainWindow(Execution& execution,
   quitAction->setShortcut(QKeySequence("Ctrl+Q"));
   connect(quitAction, SIGNAL(triggered()), this, SLOT(close()));
 
+  auto printPaths = new QAction{"Print Paths to Highlighted Subtrees", this};
+  // addAction(deleteWhiteNodes);
+  connect(printPaths, &QAction::triggered, [this]() {
+    m_Canvas->printHightlightedPaths();
+  });
+
   QMenu* nodeMenu = menuBar->addMenu(tr("&Node"));
   nodeMenu->addAction(showNodeStats);
 
@@ -211,7 +217,10 @@ GistMainWindow::GistMainWindow(Execution& execution,
   treeVisMenu->addAction(showIcicleTree);
   treeVisMenu->addAction(hideSize);
   treeVisMenu->addAction(followPath);
+  treeVisMenu->addAction(printPaths);
   treeVisMenu->addAction(deleteWhiteNodes);
+
+
 
   // Don't add the menu bar on Mac OS X
 #ifndef Q_WS_MAC
@@ -381,6 +390,8 @@ void GistMainWindow::addActions() {
   deleteWhiteNodes = new QAction{"Delete Unexplored Nodes", this};
   addAction(deleteWhiteNodes);
   connect(deleteWhiteNodes, &QAction::triggered, canvas, &TreeCanvas::deleteWhiteNodes);
+
+
 
   navUp = new QAction("Up", this);
   addAction(navUp);

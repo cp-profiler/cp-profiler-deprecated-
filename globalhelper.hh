@@ -60,4 +60,12 @@ class GlobalParser {
   static void process(const QCoreApplication& app);
 };
 
+
+class Utils {
+public:
+  /// query the filename with a system dialog and fill it with `str`
+  static void writeToFile(const QString& str);
+
+};
+
 #endif

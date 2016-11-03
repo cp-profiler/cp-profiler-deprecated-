@@ -122,7 +122,6 @@ void SimilarShapesWindow::highlightSubtrees(VisualNode* node) {
       vec.push_back(it->node);
     }
 
-
     m_tc.highlightSubtrees(vec);
   } else if (simType == SimilarityType::SUBTREE) {
 

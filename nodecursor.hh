@@ -372,14 +372,14 @@ public:
 
 class SearchLogCursor : public NodeCursor<VisualNode> {
 private:
-    QTextStream& _out;
+    std::stringstream& _out;
     /// The node allocator
     const NodeAllocator& _na;
     /// TODO(maxim): should have a reference to the execution here
     const Execution& _execution;
 public:
     SearchLogCursor(VisualNode *theNode,
-                    QTextStream& outputStream,
+                    std::stringstream& outputStream,
                     const NodeAllocator& na,
                     const Execution& execution);
     void processCurrentNode(void);
