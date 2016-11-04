@@ -249,25 +249,6 @@ public:
 
 };
 
-namespace cpprofiler { namespace analysis {
-  class SimilarShapesWindow;
-}}
-
-
-class SimilarShapesCursor : public NodeCursor<VisualNode> {
-protected:
-  QHash<VisualNode*,int> nSols;
-public:
-  //Constructor
-  SimilarShapesCursor(VisualNode* root,
-                      const NodeAllocator& na,
-                      cpprofiler::analysis::SimilarShapesWindow& ssw);
-  //Add node to the map
-  void processCurrentNode(void);
-private:
-  cpprofiler::analysis::SimilarShapesWindow& m_ssWindow;
-};
-
 class HighlightCursor : public NodeCursor<VisualNode> {
 public:
   // Constructor

@@ -1298,6 +1298,38 @@ void TreeCanvas::applyToEachNodeIf(std::function<void(VisualNode*)> action,
   }
 }
 
+/// Post-Order traversal
+void TreeCanvas::applyToEachNodePO(std::function<void(VisualNode*)> action) {
+
+  /// PO-traversal requires two stacks
+  std::stack<VisualNode*> nodeStack1;
+  std::stack<VisualNode*> nodeStack2;
+
+  nodeStack1.push(root);
+
+  while (nodeStack1.size() > 0) {
+    VisualNode* node = nodeStack1.top();
+    nodeStack1.pop();
+
+
+    nodeStack2.push(node);
+
+    auto kids = node->getNumberOfChildren();
+    for (auto i = 0u; i < kids; ++i) {
+      auto kid = node->getChild(na, i);
+      nodeStack1.push(kid);
+    }
+  }
+
+  while (nodeStack2.size() > 0) {
+    VisualNode* node = nodeStack2.top();
+    nodeStack2.pop();
+
+    action(node);
+  }
+
+}
+
 void unhighlightAllNodes(NodeAllocator& na) {
   for (auto i = 0; i < na.size(); ++i) {
     na[i]->setHovered(false);

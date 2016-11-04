@@ -32,7 +32,7 @@ public:
 
 namespace detail {
 
-int getSubtreeHeight(const VisualNode* n, const NodeAllocator& na,
+static int getSubtreeHeight(const VisualNode* n, const NodeAllocator& na,
                      std::vector<Group>& groups) {
   int max = 0;
 
@@ -147,11 +147,11 @@ std::pair<int, int> findNodeInGroups(
 //--------------------------------------------
 //-------- FINDING IDENTICAL SUBTREES --------
 //--------------------------------------------
-GroupsOfNodes_t findIdenticalShapes(TreeCanvas* tc, NodeTree& nt) {
+GroupsOfNodes_t findIdenticalShapes(TreeCanvas& tc, NodeTree& nt) {
   /// ------ 0) group by height ------
-  std::vector<Group> groups = detail::groupByHeight(*tc, nt);
+  std::vector<Group> groups = detail::groupByHeight(tc, nt);
 
-  /// ------ assign a group id to each node -------
+  /// ------ 1) assign a group id to each node -------
   std::unordered_map<const VisualNode*, PosInGroups> node2groupID;
   for (auto group_idx = 1u; group_idx < groups.size(); ++group_idx) {
     auto& group = groups[group_idx];

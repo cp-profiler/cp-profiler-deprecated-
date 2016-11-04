@@ -423,47 +423,6 @@ StatCursor::moveUpwards(void) {
 }
 
 inline
-SimilarShapesCursor::SimilarShapesCursor(VisualNode* root,
-  const NodeAllocator& na, cpprofiler::analysis::SimilarShapesWindow& ssw)
-: NodeCursor<VisualNode>(root, na), m_ssWindow(ssw) {}
-
-//TODO(maxim): get rid of this
-#include "cpprofiler/analysis/similar_shapes.hh"
-
-inline void
-SimilarShapesCursor::processCurrentNode(void) {
-  VisualNode* n = node();
-  int nSol = 0;
-  switch (n->getStatus()) {
-      case SOLVED:
-        nSol = 1;
-      break;
-      case FAILED:
-        nSol = 0;
-      break;
-      case SKIPPED:
-        nSol = 0;
-      case UNDETERMINED:
-        nSol = 0;
-      break;
-      case BRANCH:
-        nSol = 0;
-        for (int i=n->getNumberOfChildren(); i--;) {
-          nSol += nSols.value(n->getChild(na,i));
-        }
-      break;
-      case STOP:
-      case UNSTOP:
-      case MERGING:
-      break;    /// To avoid compiler warnings
-  }
-  nSols[n] = nSol;
-  if (n->getNumberOfChildren() > 0) {
-    m_ssWindow.shapeSet.insert(cpprofiler::analysis::ShapeI(nSol,n));
-  }
-}
-
-inline
 HighlightCursor::HighlightCursor(VisualNode* startNode,
   const NodeAllocator& na)
 : NodeCursor<VisualNode>(startNode, na) {}

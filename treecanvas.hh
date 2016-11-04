@@ -182,6 +182,9 @@ public:
   void applyToEachNodeIf(std::function<void (VisualNode*)> action,
                          std::function<bool (VisualNode*)> predicate);
 
+  /// Aplly `action` to every node with post-order traversal
+  void applyToEachNodePO(std::function<void (VisualNode*)> action);
+
   /// traverse every node and set hidden
   void hideAll();
 

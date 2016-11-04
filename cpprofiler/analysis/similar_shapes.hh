@@ -15,7 +15,6 @@ class VisualNode;
 class Shape;
 
 class QAbstractScrollArea;
-class SimilarShapesCursor;
 class NodeTree;
 
 namespace cpprofiler {
@@ -51,17 +50,17 @@ namespace detail {
   };
 
   class Filters {
+    int m_minDepth = 2;
+    int m_minCount = 2;
+    const SimilarShapesWindow& m_ssWindow;
+
    public:
     explicit Filters(const SimilarShapesWindow& ssw);
     void setMinDepth(int);
     void setMinCount(int);
     bool apply(const ShapeI& s);
     bool apply(const FiltersInfo& s);
-
-   private:
-    int m_minDepth = 2;
-    int m_minCount = 2;
-    const SimilarShapesWindow& m_ssWindow;
+    
   };
 }
 
@@ -84,7 +83,6 @@ enum class SimilarityType {
 class SimilarShapesWindow : public QDialog {
   Q_OBJECT
 
-  friend class ::SimilarShapesCursor;
   friend class detail::Filters;
   friend class ::TreeCanvas;
 
@@ -115,7 +113,7 @@ class SimilarShapesWindow : public QDialog {
 
   /// Loop through all nodes and add them to the multimap
   /// Called on construction
-  void collectSimilarShapes();
+  std::multiset<ShapeI, CompareShapes> collectSimilarShapes();
 
   void initInterface();
 
@@ -132,7 +130,6 @@ class SimilarShapesWindow : public QDialog {
 
 };
 
-
 /// "Connects" to a tree and shows a part of it
 class ShapeCanvas : public QWidget {
 Q_OBJECT
@@ -146,25 +143,7 @@ public:
   void showShape(VisualNode* node);
 };
 
-class ShapeRect : public QGraphicsRectItem {
-public:
-  static constexpr int HEIGHT = 16;
-  static constexpr int HALF_HEIGHT = HEIGHT / 2;
-  static constexpr int PIXELS_PER_VALUE = 5;
-  static constexpr int SELECTION_WIDTH = 600;
 
-private:
-  VisualNode& m_node;
-  SimilarShapesWindow* const m_ssWindow;
-
-  void mousePressEvent(QGraphicsSceneMouseEvent*) override;
-public:
-  ShapeRect(int x, int y, int width, VisualNode& n, SimilarShapesWindow*);
-
-  void addToScene(QGraphicsScene* scene);
-  QGraphicsRectItem visibleArea;
-
-};
 }
 }
 
