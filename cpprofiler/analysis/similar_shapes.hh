@@ -10,6 +10,7 @@
 #include <QGraphicsScene>
 #include <QGraphicsRectItem>
 
+
 class TreeCanvas;
 class VisualNode;
 class Shape;
@@ -80,6 +81,7 @@ enum class SimilarityType {
   SHAPE, SUBTREE
 };
 
+
 class SimilarShapesWindow : public QDialog {
   Q_OBJECT
 
@@ -103,7 +105,7 @@ class SimilarShapesWindow : public QDialog {
   GroupsOfNodes_t m_identicalGroups;
 
   QAbstractScrollArea* m_scrollArea;
-  QGraphicsView* view;
+  QGraphicsView* hist_view;
   detail::Filters filters;
 
 

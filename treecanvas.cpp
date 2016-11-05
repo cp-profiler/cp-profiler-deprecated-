@@ -1311,7 +1311,6 @@ void TreeCanvas::applyToEachNodePO(std::function<void(VisualNode*)> action) {
     VisualNode* node = nodeStack1.top();
     nodeStack1.pop();
 
-
     nodeStack2.push(node);
 
     auto kids = node->getNumberOfChildren();

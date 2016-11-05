@@ -199,9 +199,9 @@ void SimilarShapesWindow::highlightSubtrees(VisualNode* node) {
 void SimilarShapesWindow::initInterface() {
   m_scene.reset(new QGraphicsScene{});
 
-  view = new QGraphicsView{this};
-  view->setScene(m_scene.get());
-  view->setAlignment(Qt::AlignLeft | Qt::AlignTop);
+  hist_view = new QGraphicsView{this};
+  hist_view->setScene(m_scene.get());
+  hist_view->setAlignment(Qt::AlignLeft | Qt::AlignTop);
 
   m_scrollArea = new QAbstractScrollArea{this};
   m_scrollArea->setAutoFillBackground(true);
@@ -224,7 +224,7 @@ void SimilarShapesWindow::initInterface() {
 
   auto splitter = new QSplitter{this};
 
-  splitter->addWidget(view);
+  splitter->addWidget(hist_view);
   splitter->addWidget(m_scrollArea);
   splitter->setSizes(QList<int>{1, 1});  // for splitter to be centered
 
@@ -284,7 +284,7 @@ void SimilarShapesWindow::initInterface() {
 
   auto globalLayout = new QVBoxLayout{this};
   globalLayout->addLayout(settingsLayout);
-  globalLayout->addWidget(splitter);
+  globalLayout->addWidget(splitter, 1);
   globalLayout->addLayout(filtersLayout);
 
 #ifdef MAXIM_DEBUG
@@ -447,7 +447,7 @@ static void sortSubtrees(std::vector<SubtreeInfo>& vec, ShapeProperty prop) {
 
 namespace detail {
 
-inline void addText(QGraphicsTextItem* text_item, int x, int y,
+inline void addText(QGraphicsSimpleTextItem* text_item, int x, int y,
                     QGraphicsScene& scene) {
   // center the item vertically at y
   int text_y_offset = text_item->boundingRect().height() / 2;
@@ -457,7 +457,7 @@ inline void addText(QGraphicsTextItem* text_item, int x, int y,
 };
 
 inline void addText(const char* text, int x, int y, QGraphicsScene& scene) {
-  auto str_text_item = new QGraphicsTextItem{text};
+  auto str_text_item = new QGraphicsSimpleTextItem{text};
   detail::addText(str_text_item, x, y, scene);
 }
 
@@ -466,7 +466,8 @@ constexpr int NUMBER_WIDTH = 50;
 constexpr int COLUMN_WIDTH = NUMBER_WIDTH + 10;
 
 inline void addText(int value, int x, int y, QGraphicsScene& scene) {
-  auto int_text_item = new QGraphicsTextItem{QString::number(value)};
+  /// this function is very expensive to call
+  auto int_text_item = new QGraphicsSimpleTextItem{QString::number(value)};
   // alignment to the right
   x += COLUMN_WIDTH - int_text_item->boundingRect().width();
   detail::addText(int_text_item, x, y, scene);
@@ -488,11 +489,6 @@ static int extractProperty(const SubtreeInfo& info, ShapeProperty prop) {
   }
 
   return value;
-}
-
-/// Called whenever the histogram's appearence needs to change
-void updateHistogram() {
-
 }
 
 void drawAnalysisHistogram(QGraphicsScene* scene, SimilarShapesWindow* ssw,
@@ -579,7 +575,7 @@ void SimilarShapesWindow::drawAlternativeHistogram() {
 void SimilarShapesWindow::updateHistogram() {
 
   m_scene.reset(new QGraphicsScene{});
-  view->setScene(m_scene.get());
+  hist_view->setScene(m_scene.get());
 
   addText("hight", 10, 10, *m_scene);
   addText("count", 10 + COLUMN_WIDTH, 10, *m_scene);
@@ -636,7 +632,9 @@ void SimilarShapesWindow::drawHistogram() {
 
   sortSubtrees(vec, m_sortType);
 
+  perfHelper.begin("actually drawing the histogram");
   drawAnalysisHistogram(m_scene.get(), this, m_histType, vec);
+  perfHelper.end();
 }
 
 // ---------------------------------------
