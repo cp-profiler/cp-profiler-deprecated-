@@ -343,15 +343,10 @@ static bool areShapesIdentical(const NodeTree& nt,
 }
 }
 
-std::multiset<ShapeI, CompareShapes> SimilarShapesWindow::collectSimilarShapes() {
+std::multiset<ShapeI, CompareShapes>
+SimilarShapesWindow::collectSimilarShapes() {
+
   auto& na = node_tree.getNA();
-  auto root = node_tree.getRoot();
-
-  std::multiset<ShapeI, CompareShapes> res;
-
-  root->unhideAll(na);
-  root->layout(na);
-
   QHash<VisualNode*, int> nSols;
 
   auto getNoOfSolutions = [&na, &nSols] (VisualNode* n) -> int {
@@ -383,6 +378,8 @@ std::multiset<ShapeI, CompareShapes> SimilarShapesWindow::collectSimilarShapes()
     return nSol;
   };
 
+  std::multiset<ShapeI, CompareShapes> res;
+
   auto action = [&res, &nSols, getNoOfSolutions](VisualNode* n) {
 
     auto nSol = getNoOfSolutions(n);
@@ -393,9 +390,10 @@ std::multiset<ShapeI, CompareShapes> SimilarShapesWindow::collectSimilarShapes()
     }
   };
 
-  auto predicate = [](VisualNode*) {
-    return true;
-  };
+  auto root = node_tree.getRoot();
+
+  root->unhideAll(na);
+  root->layout(na);
 
   m_tc.applyToEachNodePO(action);
 
@@ -490,6 +488,11 @@ static int extractProperty(const SubtreeInfo& info, ShapeProperty prop) {
   }
 
   return value;
+}
+
+/// Called whenever the histogram's appearence needs to change
+void updateHistogram() {
+
 }
 
 void drawAnalysisHistogram(QGraphicsScene* scene, SimilarShapesWindow* ssw,

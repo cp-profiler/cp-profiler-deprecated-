@@ -4,6 +4,7 @@
 #include "data.hh"
 
 #include <unordered_map>
+#include <set>
 
 // **************************************************
 // StatsEntry
