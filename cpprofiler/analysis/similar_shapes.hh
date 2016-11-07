@@ -23,6 +23,7 @@ namespace analysis {
 class ShapeCanvas;
 class SimilarShapesWindow;
 
+/// for temporary stuff
 struct ShapeI {
   int sol;
   int shape_size;
@@ -33,6 +34,14 @@ struct ShapeI {
   ~ShapeI();
   ShapeI(const ShapeI& sh);
   ShapeI& operator=(const ShapeI& other);
+};
+
+struct ShapeInfo {
+  int sol;
+  int size;
+  int height;
+  std::vector<VisualNode*> nodes;
+  Shape* s;
 };
 
 struct SubtreeInfo {
@@ -53,14 +62,12 @@ namespace detail {
   class Filters {
     int m_minDepth = 2;
     int m_minCount = 2;
-    const SimilarShapesWindow& m_ssWindow;
 
    public:
-    explicit Filters(const SimilarShapesWindow& ssw);
+    Filters();
     void setMinDepth(int);
     void setMinCount(int);
-    bool apply(const ShapeI& s);
-    bool apply(const FiltersInfo& s);
+    bool apply(const ShapeInfo& s);
     
   };
 }
@@ -99,7 +106,7 @@ class SimilarShapesWindow : public QDialog {
   std::unique_ptr<QGraphicsScene> m_scene;
 
   /// the result of similar shapes analysis
-  std::multiset<ShapeI, CompareShapes> shapeSet;
+  std::vector<ShapeInfo> shapes;
 
   /// the result of identical subrees analysis
   GroupsOfNodes_t m_identicalGroups;

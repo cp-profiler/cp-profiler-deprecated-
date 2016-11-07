@@ -112,12 +112,61 @@ QDebug& operator<<(QDebug& os, const std::vector<Group>& groups) {
   return os;
 }
 
+
+int countShapes(std::multiset<ShapeI, CompareShapes>& mset) {
+  int count = 0;
+
+  for (auto it = mset.begin(), end = mset.end(); it != end; it = mset.upper_bound(*it)) {
+    ++count;
+  }
+
+  return count;
+}
+
+
+
+/// conver to a vector of shape information
+static std::vector<ShapeInfo> toShapeVector(std::multiset<ShapeI, CompareShapes>&& mset) {
+
+  std::vector<ShapeInfo> shapes;
+  shapes.reserve(mset.size() / 5); /// arbitrary
+
+  auto it = mset.begin(); auto end = mset.end();
+
+  while (it != end) {
+
+    auto upper = mset.upper_bound(*it);
+
+    shapes.push_back({it->sol, it->shape_size, it->shape_height, {it->node}, it->s});
+    for (++it; it != upper; ++it) {
+      shapes[shapes.size() - 1].nodes.push_back(it->node);
+    }
+  }
+
+  return shapes;
+}
+
+/// NOTE: set's size is exactly n/2 (n = total nodes); why only half?
+void eliminateSubsumed(std::multiset<ShapeI, CompareShapes>& mset) {
+
+  // auto vec = toShapeVector(mset);
+
+
+  /// 1. find all shapes of depth/height 1
+  /// 2. find all shapes of depth/height 2
+  /// 3. remove from set (1) all subsumed by any in (2)
+}
+
 SimilarShapesWindow::SimilarShapesWindow(TreeCanvas* tc, NodeTree& nt)
-    : QDialog{tc}, m_tc{*tc}, node_tree{nt}, shapeSet(CompareShapes{}), filters(*this) {
+    : QDialog{tc}, m_tc{*tc}, node_tree{nt} {
 
   perfHelper.begin("shapes: analyse");
-  shapeSet = collectSimilarShapes();
+  shapes = toShapeVector(collectSimilarShapes());
   perfHelper.end();
+
+  // perfHelper.begin("subsumed shapes elimination");
+  // eliminateSubsumed(shapeSet);
+  // perfHelper.end();
 
   initInterface();
 
@@ -147,26 +196,20 @@ void SimilarShapesWindow::highlightSubtrees(VisualNode* node) {
 
   if (simType == SimilarityType::SHAPE) {
 
-      /// TODO(maxim): mutex here?
-    root->unhideAll(na);
+    auto shape_it = std::find_if(begin(shapes), end(shapes), [node] (const ShapeInfo& si) {
 
-    root->layout(na);
+      auto res = std::find(begin(si.nodes), end(si.nodes), node);
 
-    ShapeI toFind(getNoOfSolvedLeaves(node_tree, node), node);
+      return res != end(si.nodes);
+    });
 
-    // get all nodes with similar shape
-    auto range = shapeSet.equal_range(toFind);
+    // perfHelper.begin("actually highlighting");
+    /// TODO(maxim): slow, run this in a parallel thread?
+    if (shape_it != end(shapes)) {
+      m_tc.highlightSubtrees(shape_it->nodes);
 
-    const int count = std::distance(range.first, range.second);
-
-    std::vector<VisualNode*> vec;
-    vec.reserve(count);
-
-    for (auto it = range.first; it != range.second; ++it) {
-      vec.push_back(it->node);
     }
-
-    m_tc.highlightSubtrees(vec);
+    // perfHelper.end();
   } else if (simType == SimilarityType::SUBTREE) {
 
     /// find the right group
@@ -329,18 +372,20 @@ static bool compareSubtrees(const NodeTree& nt,
   return true;
 }
 
-// compare subtrees of the same shape
-static bool areShapesIdentical(const NodeTree& nt,
-                               const std::multiset<ShapeI, CompareShapes>& set,
-                               const ShapeI& shape) {
-  auto first_it = set.lower_bound(shape);
 
-  for (auto it = first_it; it != set.upper_bound(shape); ++it) {
-    auto equal = compareSubtrees(nt, *first_it->node, *it->node);
+static bool areShapesIdentical(const NodeTree& nt,
+                               const std::vector<VisualNode*>& nodes) {
+  auto first_node = nodes[0];
+
+  if (nodes.size() == 1) return true;
+
+  for (auto it = ++begin(nodes); it < end(nodes); ++it) {
+    auto equal = compareSubtrees(nt, *first_node, **it);
     if (!equal) return false;
   }
   return true;
 }
+
 }
 
 std::multiset<ShapeI, CompareShapes>
@@ -607,27 +652,29 @@ void SimilarShapesWindow::updateHistogram() {
 
 void SimilarShapesWindow::drawHistogram() {
 
-  std::vector<ShapeI> shapesShown;
-  shapesShown.reserve(shapeSet.size());
+  /// TODO(maxim): is it okay to make copies here?
 
-  for (auto it = shapeSet.begin(), end = shapeSet.end(); it != end;
-       it = shapeSet.upper_bound(*it)) {
-    if (!filters.apply(*it)) {
+  /// Apply filters
+  std::vector<ShapeInfo> shapesShown;
+  shapesShown.reserve(shapes.size());
+
+  for (auto& shape : shapes) {
+    if (!filters.apply(shape)) {
       continue;
     }
-
-    shapesShown.push_back(*it);
+    shapesShown.push_back(shape);
   }
 
+  /// TODO(maxim): I don't need to make copies here anymore
   std::vector<SubtreeInfo> vec;
   vec.reserve(shapesShown.size());
 
-  for (auto it = shapesShown.begin(), end = shapesShown.end(); it != end; ++it) {
-    const int size = it->shape_size;
-    const int height = it->shape_height;
-    const int count = shapeSet.count(*it);
-    const bool equal = detail::areShapesIdentical(node_tree, shapeSet, *it);
-    vec.push_back({it->node, size, height, count, !equal});
+  for (auto shape : shapesShown) {
+    const int size = shape.size;
+    const int height = shape.height;
+    const int count = shape.nodes.size();
+    const bool equal = detail::areShapesIdentical(node_tree, shape.nodes);
+    vec.push_back({shape.nodes[0], size, height, count, !equal});
   }
 
   sortSubtrees(vec, m_sortType);
@@ -641,17 +688,11 @@ void SimilarShapesWindow::drawHistogram() {
 
 namespace detail {
 
-  Filters::Filters(const SimilarShapesWindow& ssw) : m_ssWindow(ssw) {}
+  Filters::Filters() {}
 
-  bool Filters::apply(const ShapeI& si) {
-    if (si.shape_height < m_minDepth) return false;
-    if ((int)m_ssWindow.shapeSet.count(si) < m_minCount) return false;
-    return true;
-  }
-
-  bool Filters::apply(const FiltersInfo& fi) {
-    if (fi.height < m_minDepth) return false;
-    if (fi.count < m_minCount) return false;
+  bool Filters::apply(const ShapeInfo& si) {
+    if (si.height < m_minDepth) return false;
+    if (si.nodes.size() < m_minCount) return false;
     return true;
   }
 
