@@ -38,6 +38,8 @@ private:
 public:
     NodeTree();
     ~NodeTree();
+
+    /// The distance between current node to the root
     int calculateDepth(const VisualNode& node) const;
     VisualNode* getChild(const VisualNode& node, int alt);
     const VisualNode* getChild(const VisualNode& node, int alt) const;

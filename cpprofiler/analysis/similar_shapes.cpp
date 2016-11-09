@@ -146,15 +146,118 @@ static std::vector<ShapeInfo> toShapeVector(std::multiset<ShapeI, CompareShapes>
   return shapes;
 }
 
-/// NOTE: set's size is exactly n/2 (n = total nodes); why only half?
-void eliminateSubsumed(std::multiset<ShapeI, CompareShapes>& mset) {
 
-  // auto vec = toShapeVector(mset);
+namespace detail {
+
+  static void eliminateSubsumedStep(NodeTree& nt,
+                                    std::vector<VisualNode*>& subsumed,
+                                    const std::vector<ShapeInfo*>& small,
+                                    const std::vector<ShapeInfo*>& bigger) {
+
+    for (auto si : bigger) {
+      for (auto node : si->nodes) {
+
+        for (auto k = 0u; k < node->getNumberOfChildren(); ++k) {
+          auto kid = node->getChild(nt.getNA(), k);
+
+          for (auto si2 : small) {
+            /// binary search for kid in si2.nodes
+            auto it = lower_bound(begin(si2->nodes), end(si2->nodes), kid);
+            if ((it != end(si2->nodes)) && (*it == kid)) {
+              subsumed.push_back(kid);
+              break;
+            }
+
+          }
+        }
+
+      }
+    }
+
+    /// NOTE(maxim): can't remove subsumed nodes just yet: need them
+    ///              to find which subtrees they subsume
+    /// Unless I remove recursively all shapes that have this node as an ancestor
+    /// create VisualNode* to ShapeInfo map?
+  }
 
 
-  /// 1. find all shapes of depth/height 1
-  /// 2. find all shapes of depth/height 2
-  /// 3. remove from set (1) all subsumed by any in (2)
+}
+
+/// Filter out unique shapres (with occurrence = 1)
+static std::vector<ShapeInfo> filterOutUnique(const std::vector<ShapeInfo>& shapes) {
+  std::vector<ShapeInfo> filtered_shapes;
+  for (auto& si : shapes) {
+    if (si.nodes.size() != 1) {
+      filtered_shapes.push_back(si);
+    }
+  }
+
+  return filtered_shapes;
+}
+
+static void eliminateSubsumed(NodeTree& nt, std::vector<ShapeInfo>& shapes) {
+  
+  shapes = filterOutUnique(shapes);
+  
+  /// sort nodes within each shape:
+  for (auto& si : shapes) {
+    auto& nodes = si.nodes;
+    std::sort(begin(nodes), end(nodes));
+  }
+
+  /// shapes of height X
+  std::array<std::vector<ShapeInfo*>, 100> soh;
+
+  for (auto& shape : shapes) {
+    auto h = shape.height;
+    if (h >= 100) continue; /// TODO(maxim): determine max height
+    soh[h].push_back(&shape);
+  }
+
+  std::vector<VisualNode*> subsumed;
+  
+  /// find subsumed from top to bottom
+
+  for (int h = 3; h < soh.size(); ++h) {
+    if (soh[h].size() == 0) break; /// TODO(maxim): don't assume that there aren't holes
+    detail::eliminateSubsumedStep(nt, subsumed, soh[h - 1], soh[h]);
+  }
+
+  qDebug() << "subsumed nodes: " << subsumed.size();
+
+  /// remove subsumed from shapes
+
+  std::sort(begin(subsumed), end(subsumed));
+
+  VisualNode dummy_node; /// delete all pointers pointing to this node
+
+  for (auto& si : shapes) {
+    std::vector<VisualNode*> new_vec;
+    for (auto& n : si.nodes) {
+
+      auto it = std::lower_bound(begin(subsumed), end(subsumed), n);
+
+      if ((it != end(subsumed)) && (*it == n)) {
+        n = &dummy_node;
+      }
+    }
+
+    for (auto n : si.nodes) {
+      if (n != &dummy_node) {
+        new_vec.push_back(n);
+      }
+    }
+
+    if (si.nodes.size() != new_vec.size()) {
+      si.nodes = std::move(new_vec);
+    }
+  }
+
+  /// ****************************
+
+  /// some shapes may have become unique
+  shapes = filterOutUnique(shapes);
+  
 }
 
 SimilarShapesWindow::SimilarShapesWindow(TreeCanvas* tc, NodeTree& nt)
@@ -164,9 +267,9 @@ SimilarShapesWindow::SimilarShapesWindow(TreeCanvas* tc, NodeTree& nt)
   shapes = toShapeVector(collectSimilarShapes());
   perfHelper.end();
 
-  // perfHelper.begin("subsumed shapes elimination");
-  // eliminateSubsumed(shapeSet);
-  // perfHelper.end();
+  perfHelper.begin("subsumed shapes elimination");
+  eliminateSubsumed(nt, shapes);
+  perfHelper.end();
 
   initInterface();
 
