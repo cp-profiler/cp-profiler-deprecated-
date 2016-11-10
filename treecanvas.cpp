@@ -279,6 +279,18 @@ void TreeCanvas::deleteWhiteNodes() {
   qDebug() << "size after: " << na.size();
 }
 
+void TreeCanvas::deleteSkippedNodes() {
+
+  for (auto i = 0; i < na.size(); ++i) {
+    auto node = na[i];
+
+    if (node->getStatus() == SKIPPED) {
+      deleteNode(node);
+    }
+  }
+  update();
+}
+
 void TreeCanvas::followPath(void) {
   QMutexLocker locker(&mutex);
   bool ok;

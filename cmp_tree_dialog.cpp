@@ -96,6 +96,8 @@ CmpTreeDialog::CmpTreeDialog(QWidget* parent, Execution* execution, bool with_la
 
   setAttribute( Qt::WA_DeleteOnClose );
 
+  m_Canvas->setCurrentNode(m_Canvas->getExecution()->nodeTree().getRoot());
+
   resize(500, 400);
   show();
 }

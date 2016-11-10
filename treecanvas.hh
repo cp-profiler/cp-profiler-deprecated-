@@ -281,6 +281,9 @@ public Q_SLOTS:
   /// Delete Unexplored Nodes (needed e.g. for replaying with restart)
   void deleteWhiteNodes();
 
+  /// Delete Skipped Nodes (needed e.g. for replaying with restart)
+  void deleteSkippedNodes();
+
   /// Follow path from root
   void followPath();
 

@@ -151,8 +151,8 @@ namespace detail {
 
   static void eliminateSubsumedStep(NodeTree& nt,
                                     std::vector<VisualNode*>& subsumed,
-                                    const std::vector<ShapeInfo*>& small,
-                                    const std::vector<ShapeInfo*>& bigger) {
+                                    const std::vector<const ShapeInfo*>& small,
+                                    const std::vector<const ShapeInfo*>& bigger) {
 
     for (auto si : bigger) {
       for (auto node : si->nodes) {
@@ -206,11 +206,12 @@ static void eliminateSubsumed(NodeTree& nt, std::vector<ShapeInfo>& shapes) {
   }
 
   /// shapes of height X
-  std::array<std::vector<ShapeInfo*>, 100> soh;
+  auto maxDepth = nt.getStatistics().maxDepth;
+
+  std::vector<std::vector<const ShapeInfo*>> soh(maxDepth);
 
   for (auto& shape : shapes) {
     auto h = shape.height;
-    if (h >= 100) continue; /// TODO(maxim): determine max height
     soh[h].push_back(&shape);
   }
 
@@ -219,7 +220,7 @@ static void eliminateSubsumed(NodeTree& nt, std::vector<ShapeInfo>& shapes) {
   /// find subsumed from top to bottom
 
   for (int h = 3; h < soh.size(); ++h) {
-    if (soh[h].size() == 0) break; /// TODO(maxim): don't assume that there aren't holes
+    // if (soh[h].size() == 0) break; /// TODO(maxim): don't assume that there aren't holes
     detail::eliminateSubsumedStep(nt, subsumed, soh[h - 1], soh[h]);
   }
 

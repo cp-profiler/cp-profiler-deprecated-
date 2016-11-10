@@ -146,6 +146,8 @@ private:
   QAction* showIcicleTree;
   /// Remove Unexplored Nodes
   QAction* deleteWhiteNodes;
+  /// Remove Unexplored Nodes
+  QAction* deleteSkippedNodes;
 
   /// Hide subtrees by their size
   QAction* hideSize;

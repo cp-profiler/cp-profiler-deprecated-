@@ -219,6 +219,7 @@ GistMainWindow::GistMainWindow(Execution& execution,
   treeVisMenu->addAction(followPath);
   treeVisMenu->addAction(printPaths);
   treeVisMenu->addAction(deleteWhiteNodes);
+  treeVisMenu->addAction(deleteSkippedNodes);
 
 
 
@@ -391,7 +392,9 @@ void GistMainWindow::addActions() {
   addAction(deleteWhiteNodes);
   connect(deleteWhiteNodes, &QAction::triggered, canvas, &TreeCanvas::deleteWhiteNodes);
 
-
+  deleteSkippedNodes = new QAction{"Delete Skipped Nodes", this};
+  addAction(deleteSkippedNodes);
+  connect(deleteSkippedNodes, &QAction::triggered, canvas, &TreeCanvas::deleteSkippedNodes);
 
   navUp = new QAction("Up", this);
   addAction(navUp);

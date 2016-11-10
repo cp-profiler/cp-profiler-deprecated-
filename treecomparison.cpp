@@ -143,13 +143,25 @@ static bool copmareNodes(const VisualNode* n1, const Execution& ex1,
   if (n1->getStatus() != n2->getStatus()) return false;
 
   /// check labels
+  // if (with_labels) {
+  //   for (auto i = 0u; i < kids1; i++) {
+  //     int id1 = n1->getChild(i);
+  //     int id2 = n2->getChild(i);
+
+  //     auto label1 = ex1.getLabel(id1);
+  //     auto label2 = ex2.getLabel(id2);
+
+  //     if (!compareLabels(label1, label2)) return false;
+
+  //   }
+  // }
+
+  /// check your own labels only, not children's
   if (with_labels) {
     for (auto i = 0u; i < kids1; i++) {
-      int id1 = n1->getChild(i);
-      int id2 = n2->getChild(i);
 
-      auto label1 = ex1.getLabel(id1);
-      auto label2 = ex2.getLabel(id2);
+      auto label1 = ex1.getLabel(*n1);
+      auto label2 = ex2.getLabel(*n2);
 
       if (!compareLabels(label1, label2)) return false;
 

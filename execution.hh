@@ -56,6 +56,11 @@ public:
     DbEntry* getEntry(int gid) const;
     unsigned int getGidBySid(int sid);
     std::string getLabel(int gid) const;
+
+    std::string getLabel(const VisualNode& node) const {
+        auto gid = node.getIndex(m_NodeTree->getNA());
+        return getLabel(gid);
+    }
     unsigned long long getTotalTime();
 
     Data* getData() const;
