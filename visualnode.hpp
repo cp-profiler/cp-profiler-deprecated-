@@ -176,13 +176,6 @@ inline bool VisualNode::isHidden(void) const { return getFlag(HIDDEN); }
 
 inline void VisualNode::setHidden(bool h) { setFlag(HIDDEN, h); }
 
-inline void VisualNode::setStop(bool h) {
-  if (getStatus() == BRANCH && h)
-    setStatus(STOP);
-  else if (getStatus() == STOP && !h)
-    setStatus(UNSTOP);
-}
-
 inline int VisualNode::getOffset(void) { return offset; }
 
 inline void VisualNode::setOffset(int n) { offset = n; }

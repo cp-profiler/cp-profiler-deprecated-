@@ -190,6 +190,8 @@ public:
 
   std::pair<std::unique_ptr<NodeTree>, std::unique_ptr<Data>> extractSubtree();
 
+  void findSelectedShape();
+
 Q_SIGNALS:
 
   void scaleChanged(int);
@@ -249,10 +251,6 @@ public Q_SLOTS:
   /// Sets the node and its ancestry as not hidden;
   /// marks the path as dirty
   void unhideNode(VisualNode* node);
-  /// Do not stop at selected stop node
-  void toggleStop();
-  /// Do not stop at any stop node
-  void unstopAll();
   /// Export pdf of the current subtree
   void exportPDF();
   /// Export pdf of the whole tree

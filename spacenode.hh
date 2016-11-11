@@ -49,8 +49,8 @@ enum NodeStatus : char {
   FAILED,       ///< Node representing failure
   BRANCH,       ///< Node representing a branch
   UNDETERMINED, ///< Node that has not been explored yet
-  STOP,         ///< Node representing stop point
-  UNSTOP,       ///< Node representing ignored stop point
+  STOP,         ///< NOT used
+  UNSTOP,       ///< NOT used
   SKIPPED,       ///< Skipped by backjumping (basically failed)
   MERGING
 };

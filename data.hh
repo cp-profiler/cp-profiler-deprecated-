@@ -75,7 +75,7 @@ public:
     int64_t parent_sid; // TODO(maxim): this needs only 32 bit integer, as restart_id is known
     int alt; // which child by order
     int numberOfKids;
-    int status;
+    char status;
     std::string label;
     int thread_id; 
     int depth;

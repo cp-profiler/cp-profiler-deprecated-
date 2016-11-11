@@ -357,6 +357,12 @@ void GistMainWindow::addActions() {
                               std::move(nt_and_data.second));
   });
 
+  findSelectedShape = new QAction("Find All of This Shape", this);
+  addAction(findSelectedShape);
+  connect(findSelectedShape, &QAction::triggered, [this]() {
+    m_Canvas->findSelectedShape();
+  });
+
   reset = new QAction("Reset", this);
   addAction(reset);
   connect(reset, SIGNAL(triggered()), canvas, SLOT(reset()));
@@ -536,16 +542,6 @@ void GistMainWindow::addActions() {
   showNodeOnPixelTree->setShortcut(QKeySequence("J"));
   connect(showNodeOnPixelTree, SIGNAL(triggered()), canvas, SLOT(showNodeOnPixelTree()));
 
-  toggleStop = new QAction("Stop/unstop", this);
-  addAction(toggleStop);
-  toggleStop->setShortcut(QKeySequence("X"));
-  connect(toggleStop, SIGNAL(triggered()), canvas, SLOT(toggleStop()));
-
-  unstopAll = new QAction("Do not stop in subtree", this);
-  addAction(unstopAll);
-  unstopAll->setShortcut(QKeySequence("Shift+X"));
-  connect(unstopAll, SIGNAL(triggered()), canvas, SLOT(unstopAll()));
-
   zoomToFit = new QAction("Zoom to fit", this);
   addAction(zoomToFit);
   zoomToFit->setShortcut(QKeySequence("Z"));
@@ -607,9 +603,6 @@ void GistMainWindow::addActions() {
   contextMenu->addAction(showNogoods);
   contextMenu->addAction(showNodeInfo);
   contextMenu->addAction(showNodeOnPixelTree);
-  
-  contextMenu->addAction(toggleStop);
-  contextMenu->addAction(unstopAll);
 
   contextMenu->addSeparator();
 
@@ -714,17 +707,12 @@ GistMainWindow::statusChanged(VisualNode* n, const Statistics& stats,
             toggleHidden->setEnabled(true);
             hideFailed->setEnabled(true);
             // hideSize->setEnabled(true);
-            // unstopAll->setEnabled(true);
         } else {
             toggleHidden->setEnabled(false);
             hideFailed->setEnabled(false);
             // hideSize->setEnabled(false);
             // unhideAll->setEnabled(false);
-            // unstopAll->setEnabled(false);
         }
-
-        toggleStop->setEnabled(n->getStatus() == STOP ||
-                               n->getStatus() == UNSTOP);
 
         showNodeStats->setEnabled(true);
         labelPath->setEnabled(true);

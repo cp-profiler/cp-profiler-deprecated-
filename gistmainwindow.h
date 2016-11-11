@@ -161,16 +161,15 @@ private:
   
   /// Show on a pixel tree
   QAction* showNodeOnPixelTree;
-  
-  /// Bookmark current node
-  QAction* toggleStop;
-  /// Bookmark current node
-  QAction* unstopAll;
+
   /// Show webscript view
   QAction* showWebscript;
 
   /// Extract subtree into a fake execution
   QAction* extractSubtree;
+
+  /// Highlight subtrees similar to the one selected
+  QAction* findSelectedShape;
 
 #ifdef MAXIM_DEBUG
   /// Delete a node from the tree

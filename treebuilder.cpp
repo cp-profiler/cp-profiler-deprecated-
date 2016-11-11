@@ -134,7 +134,7 @@ bool TreeBuilder::processNode(DbEntry& dbEntry, bool is_delayed) {
   int64_t pid = dbEntry.parent_sid;  /// parent ID as it comes from Solver
   int alt = dbEntry.alt;             /// which alternative the current node is
   int nalt = dbEntry.numberOfKids;   /// number of kids in current node
-  int status = dbEntry.status;
+  char status = dbEntry.status;
 
   Statistics& stats = execution.getStatistics();
 

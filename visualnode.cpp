@@ -237,22 +237,6 @@ VisualNode::unselectAll(const NodeAllocator& na) {
     dirtyUp(na);
 }
 
-void
-VisualNode::toggleStop(const NodeAllocator& na) {
-    if (getStatus() == STOP)
-        setStatus(UNSTOP);
-    else if (getStatus() == UNSTOP)
-        setStatus(STOP);
-    dirtyUp(na);
-}
-
-void
-VisualNode::unstopAll(const NodeAllocator& na) {
-    UnstopAllCursor c(this,na);
-    PreorderNodeVisitor<UnstopAllCursor>(c).run();
-    dirtyUp(na);
-}
-
 bool
 VisualNode::containsCoordinateAtDepth(int x, int depth) {
     BoundingBox box = getShape()->getBoundingBox();

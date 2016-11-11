@@ -115,8 +115,6 @@ std::string statusToString(NodeStatus status) {
     case FAILED:        return "failed";
     case BRANCH:        return "branch";
     case UNDETERMINED:  return "undetermined";
-    case STOP:          return "stop";
-    case UNSTOP:        return "unstop";
     case SKIPPED:       return "skipped";
     case MERGING:       return "pentagon";
     default:            return "need to handle this status";

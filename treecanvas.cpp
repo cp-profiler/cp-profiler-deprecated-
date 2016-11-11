@@ -581,25 +581,6 @@ void TreeCanvas::unhideNode(VisualNode* node) {
   } while ((next = next->getParent(execution.nodeTree().getNA())));
 }
 
-void TreeCanvas::toggleStop(void) {
-  QMutexLocker locker(&mutex);
-  currentNode->toggleStop(execution.nodeTree().getNA());
-  update();
-  centerCurrentNode();
-  emit statusChanged(currentNode, get_stats(), true);
-  emit needActionsUpdate(currentNode, true);
-}
-
-void TreeCanvas::unstopAll(void) {
-  QMutexLocker locker(&mutex);
-  QMutexLocker layoutLocker(&layoutMutex);
-  currentNode->unstopAll(execution.nodeTree().getNA());
-  update();
-  centerCurrentNode();
-  emit statusChanged(currentNode, get_stats(), true);
-  emit needActionsUpdate(currentNode, true);
-}
-
 void TreeCanvas::timerEvent(QTimerEvent* e) {
   if (e->timerId() == layoutDoneTimerId) {
     if (!m_options.smoothScrollAndZoom) {
@@ -798,8 +779,6 @@ void TreeCanvas::navDown(void) {
   QMutexLocker locker(&mutex);
   if (!currentNode->isHidden()) {
     switch (currentNode->getStatus()) {
-      case STOP:
-      case UNSTOP:
       case MERGING:
       case BRANCH: {
         int alt = std::max(0, currentNode->getPathAlternative(execution.nodeTree().getNA()));
@@ -1498,6 +1477,10 @@ TreeCanvas::extractSubtree() {
            *execution.getData());
 
   return make_pair(std::move(nt), std::move(data));
+}
+
+void TreeCanvas::findSelectedShape() {
+  qDebug() << "find selected shape";
 }
 
 #ifdef MAXIM_DEBUG

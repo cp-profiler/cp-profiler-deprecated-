@@ -57,7 +57,6 @@ namespace Pens {
 static void drawPentagon(QPainter& painter, int myx, int myy, bool shadow);
 static void drawTriangle(QPainter& painter, int myx, int myy, bool shadow);
 static void drawDiamond(QPainter& painter, int myx, int myy, bool shadow);
-static void drawOctagon(QPainter& painter, int myx, int myy, bool shadow);
 static void drawShape(QPainter& painter, int myx, int myy, VisualNode* node);
 static void drawSizedTriangle(QPainter& painter, int myx, int myy, int subtreeSize, bool shadow);
 
@@ -81,14 +80,9 @@ DrawingCursor::processCurrentNode(void) {
     VisualNode* parent = n->getParent(na);
     double parentX = x - static_cast<double>(n->getOffset());
     double parentY = y - static_cast<double>(Layout::dist_y) + NODE_WIDTH;
-    if ( !n->isRoot() && (parent->getStatus() == STOP || parent->getStatus() == UNSTOP) )
-        parentY -= (NODE_WIDTH - FAILED_WIDTH) / 2;
 
     double myx = x;
     double myy = y;
-
-    if (n->getStatus() == STOP || n->getStatus() == UNSTOP)
-        myy += (NODE_WIDTH - FAILED_WIDTH) / 2;
 
     if (n != startNode()) {
         if (n->isOnPath())
@@ -165,10 +159,6 @@ DrawingCursor::processCurrentNode(void) {
             case FAILED:
                 painter.drawRect(myx - HALF_FAILED_WIDTH + SHADOW_OFFSET,
                     myy + SHADOW_OFFSET, FAILED_WIDTH, FAILED_WIDTH);
-                break;
-            case UNSTOP:
-            case STOP:
-                drawOctagon(painter, myx, myy, false);
                 break;
             case BRANCH:
                 painter.drawEllipse(myx - HALF_NODE_WIDTH + SHADOW_OFFSET,
@@ -249,11 +239,6 @@ DrawingCursor::processCurrentNode(void) {
             else
                 painter.setBrush(QBrush(red));
             painter.drawRect(myx - HALF_FAILED_WIDTH, myy, FAILED_WIDTH, FAILED_WIDTH);
-            break;
-        case UNSTOP:
-        case STOP:
-            painter.setBrush(n->getStatus() == STOP ? QBrush(red) : QBrush(green));
-            drawOctagon(painter, myx, myy, false);
             break;
         case BRANCH:
             if (n->isMarked())
@@ -339,22 +324,6 @@ static void drawDiamond(QPainter& painter, int myx, int myy, bool shadow) {
     painter.drawConvexPolygon(points, 4);
 }
 
-static void drawOctagon(QPainter& painter, int myx, int myy, bool shadow){
-    int so = shadow? SHADOW_OFFSET : 0;
-
-    QPointF points[8] = {
-        QPointF(myx - QUARTER_FAILED_WIDTH + so, myy  + so),
-        QPointF(myx + QUARTER_FAILED_WIDTH  + so, myy  + so),
-        QPointF(myx + HALF_FAILED_WIDTH  + so, myy + QUARTER_FAILED_WIDTH + so),
-        QPointF(myx + HALF_FAILED_WIDTH + so, myy + HALF_FAILED_WIDTH + QUARTER_FAILED_WIDTH + so),
-        QPointF(myx + QUARTER_FAILED_WIDTH + so, myy + FAILED_WIDTH + so),
-        QPointF(myx - QUARTER_FAILED_WIDTH + so, myy + FAILED_WIDTH + so),
-        QPointF(myx - HALF_FAILED_WIDTH + so, myy + HALF_FAILED_WIDTH + QUARTER_FAILED_WIDTH + so),
-        QPointF(myx - HALF_FAILED_WIDTH + so, myy + QUARTER_FAILED_WIDTH + so)
-    };
-
-    painter.drawConvexPolygon(points, 8);
-}
 
 static void drawShape(QPainter& painter, int myx, int myy, VisualNode* node){
     painter.setPen(Qt::NoPen);
@@ -386,4 +355,3 @@ static void drawShape(QPainter& painter, int myx, int myy, VisualNode* node){
 
     delete[] points;
 }
-

@@ -166,8 +166,6 @@ public:
   bool isHidden(void) const;
   /// Set hidden state to \a h
   void setHidden(bool h);
-  /// Set stop state to \a h
-  void setStop(bool h);
   /// Mark all nodes up the path to the parent as dirty
   void dirtyUp(const NodeAllocator& na);
   /// Compute layout for the subtree of this node
@@ -231,10 +229,6 @@ public:
   void unhideAll(const NodeAllocator& na);
   /// Unselect all nodes in the subtree of this node
   void unselectAll(const NodeAllocator& na);
-  /// Do not stop at this node
-  void toggleStop(const NodeAllocator& na);
-  /// Do not stop at any stop node in the subtree of this node
-  void unstopAll(const NodeAllocator& na);
 
   /// Return the shape of this node
   Shape* getShape(void) const;

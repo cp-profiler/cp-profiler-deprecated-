@@ -518,8 +518,6 @@ SimilarShapesWindow::collectSimilarShapes() {
             nSol += nSols.value(n->getChild(na,i));
           }
         break;
-        case STOP:
-        case UNSTOP:
         case MERGING:
         break;    /// To avoid compiler warnings
     }

@@ -200,20 +200,6 @@ HideAllCursor::processCurrentNode(void) {
 }
 
 inline
-UnstopAllCursor::UnstopAllCursor(VisualNode* root,
-                                 const NodeAllocator& na)
-    : NodeCursor<VisualNode>(root,na) {}
-
-inline void
-UnstopAllCursor::processCurrentNode(void) {
-    VisualNode* n = node();
-    if (n->getStatus() == STOP) {
-        n->setStop(false);
-        n->dirtyUp(na);
-    }
-}
-
-inline
 NextSolCursor::NextSolCursor(VisualNode* theNode, bool backwards,
                              const NodeAllocator& na)
     : NodeCursor<VisualNode>(theNode,na), back(backwards) {}

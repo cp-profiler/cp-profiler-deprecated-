@@ -119,19 +119,6 @@ public:
     //@}
 };
 
-/// \brief A cursor that marks all nodes in the tree as not stopping
-class UnstopAllCursor : public NodeCursor<VisualNode> {
-public:
-    /// Constructor
-    UnstopAllCursor(VisualNode* theNode,
-                    const NodeAllocator& na);
-    /// \name Cursor interface
-    //@{
-    /// Process node
-    void processCurrentNode(void);
-    //@}
-};
-
 /// \brief A cursor that finds the next solution
 class NextSolCursor : public NodeCursor<VisualNode> {
 private:
