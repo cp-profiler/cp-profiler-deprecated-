@@ -64,24 +64,24 @@ static int copyTree(VisualNode* target_node, Execution& ex_target,
         /// point to the source node
 
         if (n->getStatus() != NodeStatus::UNDETERMINED) {
-            auto source_data = ex_source.getData();
+            auto& source_data = ex_source.getData();
 
             int source_index = source_tree.getIndex(n);
-            DbEntry* entry = source_data->getEntry(source_index);
+            DbEntry* entry = source_data.getEntry(source_index);
 
-            auto this_data = ex_target.getData();
+            auto& this_data = ex_target.getData();
             int target_index = target_tree.getIndex(next);
-            this_data->connectNodeToEntry(target_index, entry);
+            this_data.connectNodeToEntry(target_index, entry);
 
             /// TODO(maxim): connect nogoods as well
 
             auto sid = entry->s_node_id;
-            auto info = source_data->sid2info.find(sid);
+            auto info = source_data.sid2info.find(sid);
 
             /// note(maxim): should have to maintain another map
             /// (even though info is only a pointer)
-            if (info != source_data->sid2info.end()) {
-                this_data->sid2info[sid] = info->second;
+            if (info != source_data.sid2info.end()) {
+                this_data.sid2info[sid] = info->second;
             }
 
         }
@@ -321,7 +321,7 @@ std::unique_ptr<ComparisonResult> compare(TreeCanvas* new_tc,
       auto target_index = next->getIndex(na);
 
       auto entry = ex2.getEntry(source_index);
-      execution.getData()->connectNodeToEntry(target_index, entry);
+      execution.getData().connectNodeToEntry(target_index, entry);
 
       for (auto i = 0u; i < kids; ++i) {
         stack.push(next->getChild(na, kids - i - 1));

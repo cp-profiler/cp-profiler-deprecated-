@@ -119,8 +119,6 @@ TreeCanvas::TreeCanvas(Execution* e, QGridLayout* layout, QWidget* parent)
 
   qRegisterMetaType<Statistics>("Statistics");
 
-  emit needActionsUpdate(currentNode, false);
-
   update();
 
   updateTimer = new QTimer(this);
@@ -182,9 +180,9 @@ void TreeCanvas::scaleTree(int scale0, int zoomx, int zoomy) {
 void TreeCanvas::update(void) {
   QMutexLocker locker(&mutex);
   layoutMutex.lock();
-  // std::cerr << "TreeCanvas::update\n";
+
   if (root != nullptr) {
-    // std::cerr << "root->layout\n";
+
     root->layout(execution.nodeTree().getNA());
     BoundingBox bb = root->getBoundingBox();
 
@@ -222,19 +220,6 @@ void TreeCanvas::layoutDone(int w, int h, int scale0) {
   sa->verticalScrollBar()->setRange(0, h - viewport_size.height());
 
   if (layoutDoneTimerId == 0) layoutDoneTimerId = startTimer(15);
-}
-
-void TreeCanvas::statusFinished() { 
-  statusChanged(true); 
-}
-
-void TreeCanvas::statusChanged(bool finished) {
-  if (finished) {
-    update();
-    centerCurrentNode();
-  }
-  emit statusChanged(currentNode, get_stats(), finished);
-  emit needActionsUpdate(currentNode, finished);
 }
 
 void TreeCanvas::showPixelTree(void) {
@@ -512,11 +497,10 @@ class SearchItem {
 
 void TreeCanvas::toggleHidden(void) {
   QMutexLocker locker(&mutex);
+  if (currentNode->getNumberOfChildren() == 0) return;
   currentNode->toggleHidden(execution.nodeTree().getNA());
   update();
   centerCurrentNode();
-  emit statusChanged(currentNode, get_stats(), true);
-  emit needActionsUpdate(currentNode, true);
 }
 
 void TreeCanvas::hideFailed(void) {
@@ -524,8 +508,6 @@ void TreeCanvas::hideFailed(void) {
   currentNode->hideFailed(execution.nodeTree().getNA());
   update();
   centerCurrentNode();
-  emit statusChanged(currentNode, get_stats(), true);
-  emit needActionsUpdate(currentNode, true);
 }
 
 void TreeCanvas::hideSize() {
@@ -535,8 +517,6 @@ void TreeCanvas::hideSize() {
   currentNode->hideSize(threshold, execution.nodeTree().getNA());
   update();
   centerCurrentNode();
-  emit statusChanged(currentNode, get_stats(), true);
-  emit needActionsUpdate(currentNode, true);
 }
 
 void TreeCanvas::hideAll(void) {
@@ -548,8 +528,6 @@ void TreeCanvas::hideAll(void) {
 
   update();
   centerCurrentNode();
-  emit statusChanged(currentNode, get_stats(), true);
-  emit needActionsUpdate(currentNode, true);
 }
 
 void TreeCanvas::unhideAll(void) {
@@ -558,8 +536,6 @@ void TreeCanvas::unhideAll(void) {
   currentNode->unhideAll(execution.nodeTree().getNA());
   update();
   centerCurrentNode();
-  emit statusChanged(currentNode, get_stats(), true);
-  emit needActionsUpdate(currentNode, true);
 }
 
 void TreeCanvas::unselectAll(void) {
@@ -568,8 +544,6 @@ void TreeCanvas::unselectAll(void) {
   root->unselectAll(execution.nodeTree().getNA());
   update();
   centerCurrentNode();
-  emit statusChanged(currentNode, get_stats(), true);
-  emit needActionsUpdate(currentNode, true);
 }
 
 void TreeCanvas::unhideNode(VisualNode* node) {
@@ -705,16 +679,12 @@ void TreeCanvas::labelBranches(void) {
   currentNode->labelBranches(execution.nodeTree().getNA(), *this);
   update();
   centerCurrentNode();
-  emit statusChanged(currentNode, get_stats(), true);
-  emit needActionsUpdate(currentNode, true);
 }
 void TreeCanvas::labelPath(void) {
   QMutexLocker locker(&mutex);
   currentNode->labelPath(execution.nodeTree().getNA(), *this);
   update();
   centerCurrentNode();
-  emit statusChanged(currentNode, get_stats(), true);
-  emit needActionsUpdate(currentNode, true);
 }
 
 /// TODO(maxim): this should not not re-build a tree, disabled for now
@@ -730,8 +700,6 @@ void TreeCanvas::reset() {
 
   // _builder->reset(execution, &execution->getNA());
   // _builder->start();
-
-  emit statusChanged(currentNode, get_stats(), false);
 
   updateCanvas();
 }
@@ -759,40 +727,23 @@ void TreeCanvas::bookmarkNode(void) {
   update();
 }
 
-void TreeCanvas::emitStatusChanged(void) {
-  emit statusChanged(currentNode, get_stats(), true);
-  emit needActionsUpdate(currentNode, true);
-}
-
 void TreeCanvas::navUp(void) {
   QMutexLocker locker(&mutex);
   VisualNode* p = currentNode->getParent(execution.nodeTree().getNA());
 
-  setCurrentNode(p);
-
   if (p != nullptr) {
+    setCurrentNode(p);
     centerCurrentNode();
   }
 }
 
 void TreeCanvas::navDown(void) {
   QMutexLocker locker(&mutex);
-  if (!currentNode->isHidden()) {
-    switch (currentNode->getStatus()) {
-      case MERGING:
-      case BRANCH: {
-        int alt = std::max(0, currentNode->getPathAlternative(execution.nodeTree().getNA()));
-        VisualNode* n = currentNode->getChild(execution.nodeTree().getNA(), alt);
-        setCurrentNode(n);
-        centerCurrentNode();
-        break;
-      }
-      case SOLVED:
-      case FAILED:
-      case SKIPPED:
-      case UNDETERMINED:
-        break;
-    }
+  if (!currentNode->isHidden() && currentNode->getNumberOfChildren() > 0) {
+    int alt = std::max(0, currentNode->getPathAlternative(execution.nodeTree().getNA()));
+    VisualNode* n = currentNode->getChild(execution.nodeTree().getNA(), alt);
+    setCurrentNode(n);
+    centerCurrentNode();
   }
 }
 
@@ -1113,10 +1064,6 @@ void TreeCanvas::wheelEvent(QWheelEvent* event) {
   }
 }
 
-void TreeCanvas::finalizeCanvas(void) {
-  statusChanged(true);
-}
-
 void TreeCanvas::setCurrentNode(VisualNode* n, bool finished, bool update) {
   if (finished) mutex.lock();
 
@@ -1127,10 +1074,9 @@ void TreeCanvas::setCurrentNode(VisualNode* n, bool finished, bool update) {
     bool changed = (n != currentNode);
     currentNode = n;
     currentNode->setMarked(true);
-    emit statusChanged(currentNode, get_stats(), finished);
-    emit needActionsUpdate(currentNode, finished);
     if (changed) {
         emit announceSelectNode(n->getIndex(execution.nodeTree().getNA()));
+        emit nodeSelected(n);
     }
     if (update) {
       setCursor(QCursor(Qt::ArrowCursor));
@@ -1209,6 +1155,7 @@ void TreeCanvas::maybeUpdateCanvas(void) {
   if (nodeCount >= m_options.refreshRate) {
     nodeCount = 0;
     updateCanvas();
+    emit moreNodesDrawn();
   } else {
     // Didn't update this time: set/update timer to update in
     // 100ms.
@@ -1223,18 +1170,19 @@ void TreeCanvas::updateViaTimer(void) {
 }
 
 void TreeCanvas::updateCanvas(void) {
-  statusChanged(false);
 
   QMutexLocker locker1(&mutex);
   QMutexLocker locker2(&layoutMutex);
 
   if (root == nullptr) return;
 
+  const auto& na = execution.nodeTree().getNA();
+
   if (m_options.autoHideFailed) {
-    root->hideFailed(execution.nodeTree().getNA(), true);
+    root->hideFailed(na, true);
   }
 
-  for (VisualNode* n = currentNode; n != nullptr; n = n->getParent(execution.nodeTree().getNA())) {
+  for (VisualNode* n = currentNode; n != nullptr; n = n->getParent(na)) {
     if (n->isHidden()) {
       currentNode->setMarked(false);
       currentNode = n;
@@ -1243,7 +1191,7 @@ void TreeCanvas::updateCanvas(void) {
     }
   }
 
-  root->layout(execution.nodeTree().getNA());
+  root->layout(na);
   BoundingBox bb = root->getBoundingBox();
 
   int w = static_cast<int>((bb.right - bb.left + Layout::extent) * m_options.scale);
@@ -1274,8 +1222,10 @@ void TreeCanvas::updateCanvas(void) {
   }
 
   update();
+
+  centerCurrentNode(); /// TODO(maxim): is this one needed?
   layoutDone(w, h, scale0);
-  // emit update(w,h,scale0);
+
 }
 
 void TreeCanvas::applyToEachNodeIf(std::function<void(VisualNode*)> action,
@@ -1474,7 +1424,7 @@ TreeCanvas::extractSubtree() {
   auto root = nt->getRoot();
 
   copyTree(root, *nt, *data, currentNode, execution.nodeTree(),
-           *execution.getData());
+           execution.getData());
 
   return make_pair(std::move(nt), std::move(data));
 }
@@ -1485,7 +1435,7 @@ void TreeCanvas::findSelectedShape() {
 
 #ifdef MAXIM_DEBUG
 void TreeCanvas::printDebugInfo() {
-  print_debug(na, *execution.getData());
+  print_debug(na, execution.getData());
   qDebug() << "debug info recorded into debug.txt";
 }
 
@@ -1494,9 +1444,18 @@ void TreeCanvas::addChildren() {
     currentNode->setNumberOfChildren(2, na);
     currentNode->dirtyUp(na);
 
-    /// update data entry for this node
+    // emit addedNode();
 
-    // stats.maxDepth = std::max(stats.maxDepth, static_cast<int>(dbEntry.depth));
+    auto& stats = execution.getStatistics();
+    stats.undetermined += 2;
+
+    /// update data entry for this node
+    auto& data = execution.getData();
+
+    int depth = execution.nodeTree().calculateDepth(*currentNode) + 1;
+    int new_depth = depth + 1;
+
+    stats.maxDepth = std::max(stats.maxDepth, new_depth);
   }
   
   updateCanvas();

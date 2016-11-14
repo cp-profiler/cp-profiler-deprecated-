@@ -44,7 +44,7 @@
 #endif
 
 class VisualNode;
-class NodeAllocator;
+class NodeTree;
 class Statistics;
 
 /**
@@ -67,14 +67,15 @@ private:
     QGraphicsTextItem* openLabel;
     /// Layout
     QVBoxLayout* boxLayout;
-public:
-    NodeStatInspector(QWidget* parent);
+
+    const NodeTree& nt;
     /// Update display to reflect information about \a n
-    void node(const NodeAllocator&, VisualNode* n,
-              const Statistics& stat, bool finished);
+    void node(VisualNode* n);
+public:
+    NodeStatInspector(QWidget* parent, const NodeTree& na);
 public Q_SLOTS:
     /// Show this window and bring it to the front
-    void showStats(void);
+    void showStats(VisualNode* n);
 };
 
 #endif // NODESTATS_HH

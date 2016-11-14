@@ -39,7 +39,7 @@ IcicleTreeDialog::IcicleTreeDialog(TreeCanvas* tc) : QDialog(tc) {
 
   this->resize(INIT_WIDTH, INIT_HEIGHT);
   this->setWindowTitle(
-      QString::fromStdString(tc->getExecution()->getData()->getTitle()));
+      QString::fromStdString(tc->getExecution()->getData().getTitle()));
 
   scrollArea_ = new QAbstractScrollArea();
 
@@ -267,9 +267,9 @@ QRgb IcicleTreeCanvas::getColorByType(const VisualNode& node) {
 
   QRgb color;
   auto& na = node_tree.getNA();
-  auto data = tc_.getExecution()->getData();
+  auto& data = tc_.getExecution()->getData();
   auto gid = node.getIndex(na);
-  auto* entry = data->getEntry(gid);
+  auto* entry = data.getEntry(gid);
   auto domain_red = entry == nullptr ? 0 : entry->domain;
   domain_red_sum += domain_red;
   switch (IcicleTreeCanvas::color_mapping_type) {

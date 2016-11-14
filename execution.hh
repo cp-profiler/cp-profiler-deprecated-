@@ -63,7 +63,7 @@ public:
     }
     unsigned long long getTotalTime();
 
-    Data* getData() const;
+    Data& getData() const;
 
     void start(std::string label, bool isRestarts);
 

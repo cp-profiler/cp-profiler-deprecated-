@@ -640,6 +640,7 @@ static int extractProperty(const SubtreeInfo& info, ShapeProperty prop) {
 
 void drawAnalysisHistogram(QGraphicsScene* scene, SimilarShapesWindow* ssw,
                            ShapeProperty prop, std::vector<SubtreeInfo>& vec) {
+  if (vec.size() == 0) return;
   int curr_y = 40;
   int max_value = maxShapeValue(vec, prop);
 

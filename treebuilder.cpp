@@ -40,27 +40,13 @@ double get_wall_time() {
 TreeBuilder::TreeBuilder(Execution* exec, QObject* parent)
     : QThread(parent),
       execution(*exec),
-      _data{*execution.getData()},
+      _data{execution.getData()},
       _na(execution.nodeTree().getNA()) {
 
   read_queue.reset(new ReadingQueue(_data.getEntries()));
-
-  qDebug() << "starting TreeBuilder on execution" << &execution;
     
   connect(this, &TreeBuilder::doneBuilding,
           &execution, &Execution::doneBuilding);
-}
-
-void TreeBuilder::initRoot(int kids, NodeStatus status) {
-  auto root = _na[0];
-  root->setNumberOfChildren(kids, _na);
-  root->setStatus(status);
-  root->setHasSolvedChildren(false);
-  root->setHasOpenChildren(true);
-
-  root->dirtyUp(_na);
-
-  emit addedNode();
 }
 
 TreeBuilder::~TreeBuilder() {}
@@ -68,9 +54,6 @@ TreeBuilder::~TreeBuilder() {}
 bool TreeBuilder::processRoot(DbEntry& dbEntry) {
   QMutexLocker locker(&execution.getMutex());
   QMutexLocker layoutLocker(&execution.getLayoutMutex());
-
-  // std::cerr << "process root: " << dbEntry << "\n";
-
 
   Statistics& stats = execution.getStatistics();
 
@@ -94,10 +77,11 @@ bool TreeBuilder::processRoot(DbEntry& dbEntry) {
     // haven't been laid out yet.
     (_na)[0]->setChildrenLayoutDone(false);
     (_na)[0]->setHasOpenChildren(true);
-    // (_na)[0]->setDirty(true);
 
     // The "super root" is effectively a branch node.
     (_na)[0]->setStatus(BRANCH);
+
+    stats.undetermined += kids;
     
     dbEntry.gid = restart_root;
     dbEntry.depth = 2;
@@ -106,6 +90,7 @@ bool TreeBuilder::processRoot(DbEntry& dbEntry) {
     root->_tid = 0;
     dbEntry.gid = 0;
     dbEntry.depth = 1;
+    stats.undetermined += kids;
   }
 
   auto& gid2entry = _data.gid2entry;
@@ -116,8 +101,6 @@ bool TreeBuilder::processRoot(DbEntry& dbEntry) {
   root->setStatus(BRANCH);
   root->setHasSolvedChildren(false);
   root->setHasOpenChildren(true);
-
-  stats.undetermined += kids - 1;
 
   root->dirtyUp(_na);
 
@@ -155,12 +138,12 @@ bool TreeBuilder::processNode(DbEntry& dbEntry, bool is_delayed) {
 
   /// put delayed also if parent node hasn't been processed yet:
   if (parent_gid == -1) {
-    // qDebug() << "parent arrived, but has not been processed yet";
 
     if (!is_delayed)
       read_queue->readLater(&dbEntry);
-    else
+    else {
       qDebug() << "node already in the queue";
+    }
 
     return false;
   }
@@ -169,7 +152,6 @@ bool TreeBuilder::processNode(DbEntry& dbEntry, bool is_delayed) {
 
   assert(parent_gid >= 0);
   if (parent_gid < 0) {
-    // qDebug() << "Ignoring a node: " << ignored_entries.size();
     ignored_entries.push_back(&dbEntry);
     return false;
   }
@@ -277,7 +259,6 @@ bool TreeBuilder::processNode(DbEntry& dbEntry, bool is_delayed) {
       emit addedNode();
       // std::cerr << "TreeBuilder::processNode, not-normal case\n";
     } else {
-      // qDebug() << "Ignoring a node: " << ignored_entries.size();
       // assert(status == SKIPPED);
       ignored_entries.push_back(&dbEntry);
       /// sometimes branch wants to override branch
@@ -296,12 +277,11 @@ void TreeBuilder::run() {
 
   beginClock = clock();
   beginTime = get_wall_time();
-  // qDebug() << "### in run method of tc:" << m_tc._id;
 
   QMutex& dataMutex = _data.dataMutex;
 
   Statistics& stats = execution.getStatistics();
-  stats.undetermined = 1;
+  // stats.undetermined = 1;
 
   bool is_delayed;
 

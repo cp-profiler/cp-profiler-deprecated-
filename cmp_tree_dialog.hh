@@ -89,8 +89,6 @@ public:
   void selectPentagon(int row);
 
 private Q_SLOTS:
-  /// The status has changed (e.g., new solutions have been found)
-  void statusChanged(VisualNode*, const Statistics& stats, bool finished);
 
   /// Pentagon navigation
   void navFirstPentagon();

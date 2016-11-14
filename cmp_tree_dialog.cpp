@@ -184,32 +184,6 @@ CmpTreeDialog::addActions(QMenu* nodeMenu, QMenu* analysisMenu) {
 }
 
 void
-CmpTreeDialog::statusChanged(VisualNode*, const Statistics&, bool finished) {
-
-  if (finished) {
-    /// add total time to 'Done' label
-    QString t;
-    unsigned long long totalTime = m_Canvas->getTotalTime();
-
-    const int MILLION = 1000000;
-    float seconds = (float)totalTime / MILLION; /// microseconds to seconds
-
-    t.setNum(seconds);
-    statusBar->showMessage("Done in " + t + "s");
-
-    qDebug() << "Done in " + t + "s";
-
-    /// no need to change stats after done
-    disconnect(m_Canvas.get(), SIGNAL(statusChanged(VisualNode*, const Statistics&, bool)),
-          this, SLOT(statusChanged(VisualNode*, const Statistics&, bool)));
-
-  } else {
-    statusBar->showMessage("Searching");
-  }
-
-}
-
-void
 CmpTreeDialog::navFirstPentagon() {
   const auto pentagon_items = m_Cmp_result->pentagon_items();
 
@@ -532,7 +506,7 @@ CmpTreeDialog::showResponsibleNogoods() {
   ng_table->resizeColumnsToContents();
 
   auto total_reduced = m_Cmp_result->get_total_reduced();
-  auto total_nodes = m_Cmp_result->right_execution().getData()->size();
+  auto total_nodes = m_Cmp_result->right_execution().getData().size();
 
   auto reduction_label = QString{"Nodes reduced: "} +
                          QString::number(total_reduced) +

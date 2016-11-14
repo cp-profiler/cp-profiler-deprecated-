@@ -56,7 +56,7 @@ private:
   /// Whether search is currently running
   bool isSearching = false;
 
-  NodeStatsBar* m_NodeStatsBar;
+  std::unique_ptr<NodeStatsBar> m_NodeStatsBar;
 
   /// Menu for bookmarks
   QMenu* bookmarksMenu;
@@ -153,11 +153,6 @@ private:
   QAction* hideSize;
   /// Follow path
   QAction* followPath;
-
-  /// Search next solution in current subtree
-  QAction* searchNext;
-  /// Search all solutions in current subtree
-  QAction* searchAll;
   
   /// Show on a pixel tree
   QAction* showNodeOnPixelTree;
@@ -190,17 +185,15 @@ Q_SIGNALS:
   /// stops the receiver thread
   void stopReceiver(void);
 
-  void doneReceiving(void);
-
   /// Notify MainWindow about fzn file name
   void changeMainTitle(QString file_name);
 
 private Q_SLOTS:
 
-  /// TODO: this should only react on selecting node?
-  void updateActions(VisualNode*, bool);
-    /// Reacts on status changes
-  void statusChanged(VisualNode*, const Statistics&, bool);
+  /// update node count display (status bar)
+  void updateStatsBar();
+  /// update "searching" to "done"
+  void finishStatsBar();
     /// Displays the context menu for a node
   void onContextMenu(QContextMenuEvent*);
   /// Reacts on bookmark selection
@@ -211,18 +204,15 @@ private Q_SLOTS:
   void removeBookmark(int idx);
   /// Populate the bookmarks menu
   void populateBookmarksMenu(void);
-  /// Shows node status information
-  void showStats(void);
 
 protected Q_SLOTS:
-  /// The status has changed (e.g., new solutions have been found)
-  void statusChanged(const Statistics& stats, bool finished);
   /// Open the preferences dialog
   void preferences(bool setup=false);
   /// Populate the bookmarks menus from the actions found in Gist
   void populateBookmarks(void);
   /// Change MainWindow's title to fzn file name
 public Q_SLOTS:
+  void updateActions(VisualNode* n);
   void changeTitle(QString file_name);
   void gatherStatistics(void);
 

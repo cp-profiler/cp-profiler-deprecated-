@@ -211,10 +211,10 @@ void ProfilerConductor::gistButtonClicked() {
     }
     gistMW->show();
     gistMW->activateWindow();
-    connect(&item->execution_, SIGNAL(doneReceiving()), gistMW,
-            SIGNAL(doneReceiving()));
     connect(gistMW->getCanvas(), &TreeCanvas::announceSelectNode,
-            this, [this, &execution](int gid){this->tellVisualisationsSelectNode(&execution, gid);});
+            this, [this, &execution](int gid){
+              this->tellVisualisationsSelectNode(&execution, gid);
+            });
   }
 }
 
@@ -357,12 +357,12 @@ void ProfilerConductor::saveExecutionClicked() {
   std::ofstream outputFile(filename.toStdString(),
                            std::ios::out | std::ios::binary);
   OstreamOutputStream raw_output(&outputFile);
-  auto data = item->execution_.getData();
+  auto& data = item->execution_.getData();
 
   std::vector<unsigned int> keys;
-  keys.reserve(data->gid2entry.size());
+  keys.reserve(data.gid2entry.size());
 
-  for (const auto& pair : data->gid2entry) {
+  for (const auto& pair : data.gid2entry) {
     keys.push_back(pair.first);
   }
   sort(keys.begin(), keys.end());
@@ -380,7 +380,7 @@ void ProfilerConductor::saveExecutionClicked() {
   writeDelimitedTo(start_node, &raw_output);
 
   for (auto& key : keys) {
-    DbEntry* entry = data->gid2entry[key];
+    DbEntry* entry = data.gid2entry[key];
     message::Node node;
     node.set_type(message::Node::NODE);
     node.set_sid(entry->s_node_id);
@@ -394,10 +394,10 @@ void ProfilerConductor::saveExecutionClicked() {
     node.set_label(entry->label);
     node.set_domain_size(entry->domain);
     //            node.set_solution(entry->);
-    auto ngit = data->getNogoods().find(entry->s_node_id);
-    if (ngit != data->getNogoods().end()) node.set_nogood(ngit->second);
-    auto infoit = data->sid2info.find(entry->s_node_id);
-    if (infoit != data->sid2info.end()) node.set_info(*infoit->second);
+    auto ngit = data.getNogoods().find(entry->s_node_id);
+    if (ngit != data.getNogoods().end()) node.set_nogood(ngit->second);
+    auto infoit = data.sid2info.find(entry->s_node_id);
+    if (infoit != data.sid2info.end()) node.set_info(*infoit->second);
     writeDelimitedTo(node, &raw_output);
   }
 }
@@ -480,6 +480,4 @@ void ProfilerConductor::createExecution(unique_ptr<NodeTree> nt,
   addExecution(*e);
 
   auto gist = createGist(*e, e->getTitle().c_str());
-
-  gist->getCanvas()->statusFinished();
 }

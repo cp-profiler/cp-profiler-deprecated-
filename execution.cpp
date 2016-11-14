@@ -14,8 +14,8 @@ Execution::Execution(std::unique_ptr<NodeTree> nt, std::unique_ptr<Data> data)
 
 Execution::~Execution() = default;
 
-Data* Execution::getData() const {
-    return m_Data.get();
+Data& Execution::getData() const {
+    return *m_Data.get();
 }
 
 void Execution::start(std::string label, bool isRestarts) {

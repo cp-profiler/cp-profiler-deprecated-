@@ -77,7 +77,7 @@ public:
     hbl->addWidget(openLabel);
   }
 
-  void update(const Statistics& stats) {
+  void display(const Statistics& stats) {
     depthLabel->setNum(stats.maxDepth);
     solvedLabel->setNum(stats.solutions);
     failedLabel->setNum(stats.failures);
@@ -86,11 +86,13 @@ public:
   }
 };
 
-GistMainWindow::GistMainWindow(Execution& execution,
+GistMainWindow::GistMainWindow(Execution& e,
                                ProfilerConductor* conductor)
     : QMainWindow(dynamic_cast<QMainWindow*>(conductor)),
       conductor(*conductor),
-      execution(execution) {
+      execution(e),
+      m_NodeStatsBar{new NodeStatsBar{}}
+{
 
   layout = new QGridLayout();
 
@@ -121,13 +123,18 @@ GistMainWindow::GistMainWindow(Execution& execution,
   connect(scrollArea->verticalScrollBar(), SIGNAL(valueChanged(int)), m_Canvas.get(),
           SLOT(scroll(void)));
 
-  connect(this, SIGNAL(doneReceiving()), m_Canvas.get(), SLOT(statusFinished()));
+  connect(m_Canvas.get(), &TreeCanvas::nodeSelected, this, &GistMainWindow::updateActions);
+  
+  connect(&execution, &Execution::doneReceiving, this, &GistMainWindow::finishStatsBar);
 
-  if (execution.getData()->isDone()) {
-    m_Canvas->statusFinished();
+  connect(m_Canvas.get(), &TreeCanvas::moreNodesDrawn, this, &GistMainWindow::updateStatsBar);
+
+  /// in case the above was too late
+  if (execution.getData().isDone()) {
+    updateStatsBar();
+    finishStatsBar();
   }
 
-  // m_Canvas->show();
 
   resize(500, 400);
 
@@ -169,7 +176,7 @@ GistMainWindow::GistMainWindow(Execution& execution,
   connect(quitAction, SIGNAL(triggered()), this, SLOT(close()));
 
   auto printPaths = new QAction{"Print Paths to Highlighted Subtrees", this};
-  // addAction(deleteWhiteNodes);
+
   connect(printPaths, &QAction::triggered, [this]() {
     m_Canvas->printHightlightedPaths();
   });
@@ -228,8 +235,7 @@ GistMainWindow::GistMainWindow(Execution& execution,
   setMenuBar(menuBar);
 #endif
 
-  m_NodeStatsBar = new NodeStatsBar();
-  statusBar()->addPermanentWidget(m_NodeStatsBar);
+  statusBar()->addPermanentWidget(m_NodeStatsBar.get());
 
 
   isSearching = false;
@@ -237,13 +243,6 @@ GistMainWindow::GistMainWindow(Execution& execution,
 
   connect(this, SIGNAL(changeMainTitle(QString)),
           this, SLOT(changeTitle(QString)));
-
-  connect(m_Canvas.get(), SIGNAL(needActionsUpdate(VisualNode*, bool)),
-          this, SLOT(updateActions(VisualNode*, bool)));
-
-  connect(m_Canvas.get(), SIGNAL(statusChanged(VisualNode*, const Statistics&, bool)),
-          this, SLOT(statusChanged(VisualNode*, const Statistics&, bool)));
-
 
   connect(m_Canvas.get(), SIGNAL(contextMenu(QContextMenuEvent*)),
           this, SLOT(onContextMenu(QContextMenuEvent*)));
@@ -262,7 +261,7 @@ GistMainWindow::GistMainWindow(Execution& execution,
   connect(bookmarksGroup, SIGNAL(triggered(QAction*)),
           this, SLOT(selectBookmark(QAction*)));
 
-  nodeStatInspector = new NodeStatInspector(this);
+  nodeStatInspector = new NodeStatInspector(this, execution.nodeTree());
 
   preferences(true);
   show();
@@ -270,22 +269,25 @@ GistMainWindow::GistMainWindow(Execution& execution,
 }
 
 void
-GistMainWindow::statusChanged(const Statistics& stats, bool finished) {
+GistMainWindow::updateStatsBar() {
+  auto& stats = execution.nodeTree().getStatistics();
+  m_NodeStatsBar->display(stats);
+}
+
+void
+GistMainWindow::finishStatsBar() {
 
   /// a quick hack for now
-  if (execution.getData()->isDone()) {
+  if (execution.getData().isDone()) {
 
-    QString t;
-    unsigned long long totalTime = execution.getData()->getTotalTime();
+    unsigned long long totalTime = execution.getData().getTotalTime();
     float seconds = totalTime / 1000000.0;
-    t.setNum(seconds);
-    statusBar()->showMessage("Done in " + t + "s");
+
+    statusBar()->showMessage("Done in " + QString::number(seconds) + "s");
   } else {
     statusBar()->showMessage("Searching");
   }
 
-
-  m_NodeStatsBar->update(stats);
 }
 
 void
@@ -447,14 +449,6 @@ void GistMainWindow::addActions() {
   navPrevLeaf->setShortcut(QKeySequence("Ctrl+Left"));
   connect(navPrevLeaf, SIGNAL(triggered()), canvas, SLOT(navPrevLeaf()));
 
-  searchNext = new QAction("Next solution", this);
-  addAction(searchNext);
-  searchNext->setShortcut(QKeySequence("N"));
-
-  searchAll = new QAction("All solutions", this);
-  addAction(searchAll);
-  searchAll->setShortcut(QKeySequence("A"));
-
   toggleHidden = new QAction("Hide/unhide", this);
   addAction(toggleHidden);
   toggleHidden->setShortcut(QKeySequence("H"));
@@ -578,19 +572,15 @@ void GistMainWindow::addActions() {
   showNodeStats = new QAction("Node statistics", this);
   addAction(showNodeStats);
   showNodeStats->setShortcut(QKeySequence("S"));
-  connect(showNodeStats, SIGNAL(triggered()),
-          this, SLOT(showStats()));
+  connect(showNodeStats, &QAction::triggered, [this]() {
+    nodeStatInspector->showStats(m_Canvas->getCurrentNode());
+  });
 
   contextMenu = new QMenu(this);
   
   contextMenu->addAction(collectMLStats_action);
   contextMenu->addAction(showNodeStats);
   contextMenu->addAction(center);
-
-  contextMenu->addSeparator();
-
-  contextMenu->addAction(searchNext);
-  contextMenu->addAction(searchAll);
 
   contextMenu->addSeparator();
 
@@ -611,6 +601,7 @@ void GistMainWindow::addActions() {
   contextMenu->addSeparator();
 
   contextMenu->addAction(extractSubtree);
+  contextMenu->addAction(findSelectedShape);
 
 #ifdef MAXIM_DEBUG
   contextMenu->addAction(deleteNode);
@@ -619,132 +610,29 @@ void GistMainWindow::addActions() {
 
 }
 
-void
-GistMainWindow::updateActions(VisualNode* n, bool finished) {
-    // qDebug() << "!! updateActions triggered";
+/// reacts on `TreeCanvas::currentNodeChanged`
+void GistMainWindow::updateActions(VisualNode* n) {
 
-    if (!finished) {
-        navUp->setEnabled(false);
-        navDown->setEnabled(false);
-        navLeft->setEnabled(false);
-        navRight->setEnabled(false);
-        navRoot->setEnabled(false);
-        unhideAll->setEnabled(false);
-    } else {
+  if (execution.getData().isDone()) {
 
-        navRoot->setEnabled(true);
+    auto& na = execution.nodeTree().getNA();
 
-        if (n->getNumberOfChildren() > 0) {
-            navDown->setEnabled(true);
+    auto root = execution.nodeTree().getRoot();
 
-        } else {
-            navDown->setEnabled(false);
-        }
+    NextSolCursor nsc(n, false, na);
 
-        VisualNode* p = n->getParent(execution.nodeTree().getNA());
+    PreorderNodeVisitor<NextSolCursor> nsv(nsc);
+    nsv.run();
+    navNextSol->setEnabled(nsv.getCursor().node() != root);
 
-        if (p == nullptr) {
-            navUp->setEnabled(false);
-            navRight->setEnabled(false);
-            navLeft->setEnabled(false);
-        } else {
-            navUp->setEnabled(true);
+    NextSolCursor psc(n, true, na);
 
-            unsigned int alt = n->getAlternative(execution.nodeTree().getNA());
+    PreorderNodeVisitor<NextSolCursor> psv(psc);
+    psv.run();
+    navPrevSol->setEnabled(psv.getCursor().node() != root);
 
-            navRight->setEnabled(alt + 1 < p->getNumberOfChildren());
-            navLeft->setEnabled(alt > 0);
-        }
-
-        if (n->getNumberOfChildren() > 0) {
-            unhideAll->setEnabled(true);
-        } else {
-            unhideAll->setEnabled(false);
-        }
-
-    }
+  }
 }
-
-void
-GistMainWindow::statusChanged(VisualNode* n, const Statistics& stats,
-                              bool finished) {
-
-    nodeStatInspector->node(execution.nodeTree().getNA(), n, stats, finished); /// for single node stats
-
-    if (!finished) {
-        showNodeStats->setEnabled(false);
-
-
-        navNextSol->setEnabled(false);
-        navPrevSol->setEnabled(false);
-
-
-        toggleHidden->setEnabled(false);
-        hideFailed->setEnabled(false);
-
-
-        center->setEnabled(false); /// ??
-        exportPDF->setEnabled(false);
-        exportWholeTreePDF->setEnabled(false);
-        print->setEnabled(false);
-        // printSearchLog->setEnabled(false);
-
-        bookmarkNode->setEnabled(false);
-        bookmarksGroup->setEnabled(false);
-    } else {
-        // stop->setEnabled(false);
-        // reset->setEnabled(true);
-
-        if ( (n->isOpen() || n->hasOpenChildren()) && (!n->isHidden()) ) {
-            // searchNext->setEnabled(true);
-            // searchAll->setEnabled(true);
-        } else {
-            // searchNext->setEnabled(false);
-            // searchAll->setEnabled(false);
-        }
-        if (n->getNumberOfChildren() > 0) {
-
-            toggleHidden->setEnabled(true);
-            hideFailed->setEnabled(true);
-            // hideSize->setEnabled(true);
-        } else {
-            toggleHidden->setEnabled(false);
-            hideFailed->setEnabled(false);
-            // hideSize->setEnabled(false);
-            // unhideAll->setEnabled(false);
-        }
-
-        showNodeStats->setEnabled(true);
-        labelPath->setEnabled(true);
-
-        VisualNode* root = n;
-        while (!root->isRoot()) {
-            root = root->getParent(execution.nodeTree().getNA());
-        }
-        NextSolCursor nsc(n, false, execution.nodeTree().getNA());
-
-        PreorderNodeVisitor<NextSolCursor> nsv(nsc);
-        nsv.run();
-        navNextSol->setEnabled(nsv.getCursor().node() != root);
-
-        NextSolCursor psc(n, true, execution.nodeTree().getNA());
-
-        PreorderNodeVisitor<NextSolCursor> psv(psc);
-        psv.run();
-        navPrevSol->setEnabled(psv.getCursor().node() != root);
-
-        center->setEnabled(true);
-        exportPDF->setEnabled(true);
-        exportWholeTreePDF->setEnabled(true);
-        print->setEnabled(true);
-        printSearchLog->setEnabled(true);
-
-        bookmarkNode->setEnabled(true);
-        bookmarksGroup->setEnabled(true);
-    }
-    emit statusChanged(stats,finished);
-}
-
 void
 GistMainWindow::selectBookmark(QAction* a) {
     int idx = bookmarksGroup->actions().indexOf(a);
@@ -778,12 +666,6 @@ GistMainWindow::populateBookmarksMenu(void) {
     bookmarksMenu->addAction(bookmarkNode);
     bookmarksMenu->addSeparator();
     bookmarksMenu->addActions(bookmarksGroup->actions());
-}
-
-void
-GistMainWindow::showStats(void) {
-    nodeStatInspector->showStats();
-    m_Canvas->emitStatusChanged();
 }
 
 void

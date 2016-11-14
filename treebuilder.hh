@@ -55,8 +55,6 @@ class TreeBuilder : public QThread {
 
   void run() override;
 
-  void initRoot(int kids, NodeStatus status);
-
  public:
   TreeBuilder(Execution* execution, QObject* parent = nullptr);
   ~TreeBuilder();

@@ -72,7 +72,7 @@ void NogoodDialog::populateTable(const std::vector<int>& selected_nodes) {
   for (auto it = selected_nodes.begin(); it != selected_nodes.end(); it++) {
     int gid = *it;
 
-    int64_t sid = _tc.getExecution()->getData()->gid2sid(gid);
+    int64_t sid = _tc.getExecution()->getData().gid2sid(gid);
 
     /// TODO(maxim): check if a node is a failure node
 

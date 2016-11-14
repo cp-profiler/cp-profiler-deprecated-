@@ -199,10 +199,7 @@ Q_SIGNALS:
   void autoZoomChanged(bool);
   /// Context menu triggered
   void contextMenu(QContextMenuEvent*);
-  /// Status bar update
-  void statusChanged(VisualNode*, const Statistics&, bool);
 
-  void needActionsUpdate(VisualNode*, bool);
   /// Signals that %Gist is finished
   void searchFinished();
   /// Signals that a bookmark has been added
@@ -213,6 +210,10 @@ Q_SIGNALS:
   void showNodeOnPixelTree(int gid);
 
   void announceSelectNode(int gid);
+
+  void nodeSelected(VisualNode*);
+
+  void moreNodesDrawn();
 
 public Q_SLOTS:
   void reset();
@@ -229,9 +230,9 @@ public Q_SLOTS:
   void setCurrentNode(VisualNode* n, bool finished=true, bool update=true);
 
   const VisualNode* getCurrentNode() const { return currentNode; }
+  VisualNode* getCurrentNode() { return currentNode; }
   /// Set the selected not to a node by solver id (from no-good table)
   void navigateToNodeById(int gid);
-  void statusFinished();
 
   void deleteNode(Node* n);
 
@@ -348,9 +349,6 @@ public Q_SLOTS:
   void navPrevLeaf();
   /// Bookmark current node
   void bookmarkNode();
-  /// Re-emit status change information for current node
-  void emitStatusChanged();
-
   /// Set preference whether to automatically hide failed subtrees
   void setAutoHideFailed(bool b);
   /// Set preference whether to automatically zoom to fit
@@ -381,10 +379,6 @@ public Q_SLOTS:
   void dirtyUpNode();
 #endif
 private Q_SLOTS:
-  /// Set isUsed to true and update
-  void finalizeCanvas();
-  /// Search has finished
-  void statusChanged(bool);
   /// Export PDF of the subtree of \a n
   void exportNodePDF(VisualNode* n);
   /// Scroll to \a i percent of the target

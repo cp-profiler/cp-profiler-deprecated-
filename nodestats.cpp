@@ -41,8 +41,8 @@
 #include "drawingcursor.hh"
 
 
-NodeStatInspector::NodeStatInspector(QWidget* parent)
-    : QWidget(parent) {
+NodeStatInspector::NodeStatInspector(QWidget* parent, const NodeTree& nt)
+    : QWidget(parent), nt(nt) {
     setWindowFlags(Qt::Tool);
     QGraphicsScene* scene = new QGraphicsScene(parent);
 
@@ -102,13 +102,14 @@ NodeStatInspector::NodeStatInspector(QWidget* parent)
 }
 
 void
-NodeStatInspector::node(const NodeAllocator& na,
-                        VisualNode* n, const Statistics&, bool) {
-    if (isVisible()) {
-        int nd = -1;
-        for (VisualNode* p = n; p != nullptr; p = p->getParent(na))
-            nd++;
-        nodeDepthLabel->setPlainText(QString("%1").arg(nd));;
+NodeStatInspector::node(VisualNode* n) {
+
+    auto& na = nt.getNA();
+
+    // if (isVisible()) {
+
+        auto depth = nt.calculateDepth(*n);
+        nodeDepthLabel->setPlainText(QString("%1").arg(depth));;
         StatCursor sc(n,na);
         PreorderNodeVisitor<StatCursor> pnv(sc);
         pnv.run();
@@ -122,11 +123,12 @@ NodeStatInspector::node(const NodeAllocator& na,
         choicesLabel->setPlainText(QString("%1").arg(pnv.getCursor().choice));
         choicesLabel->setPos(66-choicesLabel->document()->size().width(),57);
         openLabel->setPlainText(QString("%1").arg(pnv.getCursor().open));
-    }
+    // }
 }
 
 void
-NodeStatInspector::showStats(void) {
+NodeStatInspector::showStats(VisualNode* n) {
+    node(n);
     show();
     activateWindow();
 }
