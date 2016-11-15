@@ -290,6 +290,8 @@ public:
 
 };
 
+bool compareNodes(const VisualNode& n1, const VisualNode& n2);
+
 #include "node.hpp"
 #include "spacenode.hpp"
 #include "visualnode.hpp"

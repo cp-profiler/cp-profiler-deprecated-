@@ -381,7 +381,7 @@ void IcicleTreeCanvas::mouseMoveEvent(QMouseEvent* event) {
     unselectNodes(nodes_selected);
     nodes_selected.push_back(node);
     node->setHovered(true);
-    tc_.update();
+    tc_.updateCanvas();
   });
 }
 

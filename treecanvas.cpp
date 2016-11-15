@@ -95,7 +95,9 @@ TreeCanvas::TreeCanvas(Execution* e, QGridLayout* layout, QWidget* parent)
           SLOT(setChecked(bool)));
 
   connect(&execution, &Execution::newNode, this, &TreeCanvas::maybeUpdateCanvas);
-  connect(&execution, &Execution::newRoot, this, &TreeCanvas::updateCanvas);
+  connect(&execution, &Execution::newRoot, [this]() {
+    updateCanvas(true);
+  });
 
   connect(&scrollTimeLine, SIGNAL(frameChanged(int)), this, SLOT(scroll(int)));
 
@@ -118,8 +120,6 @@ TreeCanvas::TreeCanvas(Execution* e, QGridLayout* layout, QWidget* parent)
   zoomTimeLine.setCurveShape(QTimeLine::EaseInOutCurve);
 
   qRegisterMetaType<Statistics>("Statistics");
-
-  update();
 
   updateTimer = new QTimer(this);
   updateTimer->setSingleShot(true);
@@ -177,50 +177,7 @@ void TreeCanvas::scaleTree(int scale0, int zoomx, int zoomy) {
   QWidget::update();
 }
 
-void TreeCanvas::update(void) {
-  QMutexLocker locker(&mutex);
-  layoutMutex.lock();
-
-  if (root != nullptr) {
-
-    root->layout(execution.nodeTree().getNA());
-    BoundingBox bb = root->getBoundingBox();
-
-    int w = static_cast<int>((bb.right - bb.left + Layout::extent) * m_options.scale);
-    int h =
-        static_cast<int>(2 * Layout::extent +
-                         root->getShape()->depth() * Layout::dist_y * m_options.scale);
-    m_view.xtrans = -bb.left + (Layout::extent / 2);
-
-    QSize viewport_size = size();
-    QAbstractScrollArea* sa =
-        static_cast<QAbstractScrollArea*>(parentWidget()->parentWidget());
-    sa->horizontalScrollBar()->setRange(0, w - viewport_size.width());
-    sa->verticalScrollBar()->setRange(0, h - viewport_size.height());
-    sa->horizontalScrollBar()->setPageStep(viewport_size.width());
-    sa->verticalScrollBar()->setPageStep(viewport_size.height());
-    sa->horizontalScrollBar()->setSingleStep(Layout::extent);
-    sa->verticalScrollBar()->setSingleStep(Layout::extent);
-  }
-  if (m_options.autoZoom) zoomToFit();
-  layoutMutex.unlock();
-  QWidget::update();
-}
-
 void TreeCanvas::scroll(void) { QWidget::update(); }
-
-void TreeCanvas::layoutDone(int w, int h, int scale0) {
-
-  m_view.targetScale = scale0;
-
-  QSize viewport_size = size();
-  QAbstractScrollArea* sa =
-      static_cast<QAbstractScrollArea*>(parentWidget()->parentWidget());
-  sa->horizontalScrollBar()->setRange(0, w - viewport_size.width());
-  sa->verticalScrollBar()->setRange(0, h - viewport_size.height());
-
-  if (layoutDoneTimerId == 0) layoutDoneTimerId = startTimer(15);
-}
 
 void TreeCanvas::showPixelTree(void) {
   using cpprofiler::pixeltree::PixelTreeDialog;
@@ -260,7 +217,7 @@ void TreeCanvas::deleteWhiteNodes() {
       deleteNode(node);
     }
   }
-  update();
+  updateCanvas();
   qDebug() << "size after: " << na.size();
 }
 
@@ -273,7 +230,7 @@ void TreeCanvas::deleteSkippedNodes() {
       deleteNode(node);
     }
   }
-  update();
+  updateCanvas();
 }
 
 void TreeCanvas::followPath(void) {
@@ -373,6 +330,7 @@ void TreeCanvas::showNodeInfo(void) {
 
 #ifdef MAXIM_DEBUG
   extra_info += "--------------------------------------------\n";
+  extra_info += "dirty: " + boolToString(currentNode->isDirty()) + "\n";
   extra_info += "status: " + statusToString(currentNode->getStatus()) + "\n";
   extra_info += "has open children: " + boolToString(currentNode->isOpen()) + 
                 " (" + std::to_string(currentNode->getNoOfOpenChildren(na)) + ")" + "\n";
@@ -429,7 +387,7 @@ void TreeCanvas::highlightSubtrees(const std::vector<VisualNode*>& nodes) {
   HideNotHighlightedCursor hnhc(root, na);
   PostorderNodeVisitor<HideNotHighlightedCursor>(hnhc).run();
 
-  update();
+  updateCanvas();
 }
 
 void TreeCanvas::printPath(std::stringstream& str, const VisualNode* node) {
@@ -499,14 +457,14 @@ void TreeCanvas::toggleHidden(void) {
   QMutexLocker locker(&mutex);
   if (currentNode->getNumberOfChildren() == 0) return;
   currentNode->toggleHidden(execution.nodeTree().getNA());
-  update();
+  updateCanvas();
   centerCurrentNode();
 }
 
 void TreeCanvas::hideFailed(void) {
   QMutexLocker locker(&mutex);
   currentNode->hideFailed(execution.nodeTree().getNA());
-  update();
+  updateCanvas();
   centerCurrentNode();
 }
 
@@ -515,7 +473,7 @@ void TreeCanvas::hideSize() {
   QString boxContents = smallBox->text();
   int threshold = boxContents.toInt();
   currentNode->hideSize(threshold, execution.nodeTree().getNA());
-  update();
+  updateCanvas();
   centerCurrentNode();
 }
 
@@ -526,7 +484,7 @@ void TreeCanvas::hideAll(void) {
   HideAllCursor hac(root, execution.nodeTree().getNA());
   PostorderNodeVisitor<HideAllCursor>(hac).run();
 
-  update();
+  updateCanvas();
   centerCurrentNode();
 }
 
@@ -534,7 +492,7 @@ void TreeCanvas::unhideAll(void) {
   QMutexLocker locker(&mutex);
   QMutexLocker layoutLocker(&layoutMutex);
   currentNode->unhideAll(execution.nodeTree().getNA());
-  update();
+  updateCanvas();
   centerCurrentNode();
 }
 
@@ -542,7 +500,7 @@ void TreeCanvas::unselectAll(void) {
   QMutexLocker locker(&mutex);
   QMutexLocker layoutLocker(&layoutMutex);
   root->unselectAll(execution.nodeTree().getNA());
-  update();
+  updateCanvas();
   centerCurrentNode();
 }
 
@@ -671,19 +629,19 @@ void TreeCanvas::expandCurrentNode() {
   }
 
   currentNode->dirtyUp(execution.nodeTree().getNA());
-  update();
+  updateCanvas();
 }
 
 void TreeCanvas::labelBranches(void) {
   QMutexLocker locker(&mutex);
   currentNode->labelBranches(execution.nodeTree().getNA(), *this);
-  update();
+  updateCanvas();
   centerCurrentNode();
 }
 void TreeCanvas::labelPath(void) {
   QMutexLocker locker(&mutex);
   currentNode->labelPath(execution.nodeTree().getNA(), *this);
-  update();
+  updateCanvas();
   centerCurrentNode();
 }
 
@@ -701,7 +659,7 @@ void TreeCanvas::reset() {
   // _builder->reset(execution, &execution->getNA());
   // _builder->start();
 
-  updateCanvas();
+  updateCanvas(true);
 }
 
 void TreeCanvas::bookmarkNode(void) {
@@ -724,7 +682,7 @@ void TreeCanvas::bookmarkNode(void) {
     emit removedBookmark(idx);
   }
   currentNode->dirtyUp(execution.nodeTree().getNA());
-  update();
+  updateCanvas();
 }
 
 void TreeCanvas::navUp(void) {
@@ -1098,7 +1056,7 @@ void TreeCanvas::navigateToNodeById(int gid) {
   unhideAncestors.run();
 
   centerCurrentNode();
-  update();
+  updateCanvas();
 }
 
 void TreeCanvas::mousePressEvent(QMouseEvent* event) {
@@ -1154,7 +1112,7 @@ void TreeCanvas::maybeUpdateCanvas(void) {
   nodeCount++;
   if (nodeCount >= m_options.refreshRate) {
     nodeCount = 0;
-    updateCanvas();
+    updateCanvas(true);
     emit moreNodesDrawn();
   } else {
     // Didn't update this time: set/update timer to update in
@@ -1169,19 +1127,22 @@ void TreeCanvas::updateViaTimer(void) {
   updateCanvas();
 }
 
-void TreeCanvas::updateCanvas(void) {
+void TreeCanvas::updateCanvas(bool hide_failed) {
 
   QMutexLocker locker1(&mutex);
   QMutexLocker locker2(&layoutMutex);
+
 
   if (root == nullptr) return;
 
   const auto& na = execution.nodeTree().getNA();
 
-  if (m_options.autoHideFailed) {
+  if (m_options.autoHideFailed && hide_failed) {
     root->hideFailed(na, true);
   }
 
+  /// what does this do?
+  /// find first unhidden node and mark it
   for (VisualNode* n = currentNode; n != nullptr; n = n->getParent(na)) {
     if (n->isHidden()) {
       currentNode->setMarked(false);
@@ -1191,7 +1152,9 @@ void TreeCanvas::updateCanvas(void) {
     }
   }
 
+
   root->layout(na);
+
   BoundingBox bb = root->getBoundingBox();
 
   int w = static_cast<int>((bb.right - bb.left + Layout::extent) * m_options.scale);
@@ -1221,10 +1184,27 @@ void TreeCanvas::updateCanvas(void) {
     }
   }
 
-  update();
 
   centerCurrentNode(); /// TODO(maxim): is this one needed?
-  layoutDone(w, h, scale0);
+
+  /// layout done
+  {
+    m_view.targetScale = scale0;
+
+    QSize viewport_size = size();
+    auto* sa = static_cast<QAbstractScrollArea*>(parentWidget()->parentWidget());
+    sa->horizontalScrollBar()->setRange(0, w - viewport_size.width());
+    sa->verticalScrollBar()->setRange(0, h - viewport_size.height());
+    sa->horizontalScrollBar()->setPageStep(viewport_size.width());
+    sa->verticalScrollBar()->setPageStep(viewport_size.height());
+    sa->horizontalScrollBar()->setSingleStep(Layout::extent);
+    sa->verticalScrollBar()->setSingleStep(Layout::extent);
+
+    if (layoutDoneTimerId == 0) layoutDoneTimerId = startTimer(15);
+  }
+
+  if (m_options.autoZoom) zoomToFit();
+  QWidget::update();
 
 }
 
@@ -1237,6 +1217,10 @@ void TreeCanvas::applyToEachNodeIf(std::function<void(VisualNode*)> action,
       action(node);
     }
   }
+}
+
+void TreeCanvas::applyToEachNode(std::function<void(VisualNode*)> action) {
+  applyToEachNodeIf(action, [](VisualNode*) { return true; });
 }
 
 /// Post-Order traversal
@@ -1279,7 +1263,7 @@ void unhighlightAllNodes(NodeAllocator& na) {
 void TreeCanvas::resetNodesHighlighting() {
   unhighlightAllNodes(execution.nodeTree().getNA());
 
-  update();
+  updateCanvas();
 }
 
 void TreeCanvas::highlightNodesWithInfo() {
@@ -1302,7 +1286,7 @@ void TreeCanvas::highlightNodesWithInfo() {
 
   applyToEachNodeIf(action, predicate);
 
-  update();
+  updateCanvas();
 }
 
 void TreeCanvas::highlightFailedByNogoods() {
@@ -1328,7 +1312,7 @@ void TreeCanvas::highlightFailedByNogoods() {
 
   applyToEachNodeIf(action, predicate);
 
-  update();
+  updateCanvas();
 }
 
 void TreeCanvas::deleteNode(Node* n) {
@@ -1429,8 +1413,20 @@ TreeCanvas::extractSubtree() {
   return make_pair(std::move(nt), std::move(data));
 }
 
+/// NOTE(maxim): finds exact subtrees, not just of the same shape
 void TreeCanvas::findSelectedShape() {
-  qDebug() << "find selected shape";
+  perfHelper.begin("find selected shape");
+
+  std::vector<VisualNode*> nodes;
+
+  applyToEachNode([&](VisualNode* n) {
+    if (compareSubtrees(execution.nodeTree(), *currentNode, *n)) {
+      nodes.push_back(n);
+    }
+  });
+  perfHelper.end();
+
+  highlightSubtrees(nodes);
 }
 
 #ifdef MAXIM_DEBUG

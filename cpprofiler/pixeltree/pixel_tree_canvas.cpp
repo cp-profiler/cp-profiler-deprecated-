@@ -1175,7 +1175,7 @@ void PixelTreeCanvas::selectNodesfromPT(int vline_begin, int vline_end) {
     pixels_selected.push_back(&pixelItem);
   }
 
-  _tc.update();
+  _tc.updateCanvas();
 }
 
 void PixelTreeCanvas::highlightOnOriginalTree(int vline) {
@@ -1196,7 +1196,7 @@ void PixelTreeCanvas::highlightOnOriginalTree(int vline) {
     pixels_mouse_over.push_back(&pixelItem);
   }
 
-  _tc.update();
+  _tc.updateCanvas();
 }
 
 PixelItem& PixelTreeCanvas::gid2PixelItem(int gid) {

@@ -379,7 +379,8 @@ void GistMainWindow::addActions() {
 
   showWebscript = new QAction("Webscript View", this);
   addAction(showWebscript);
-  connect(showWebscript, SIGNAL(triggered()), canvas, SLOT(showWebscript()));
+  /// NOTE(maxim): what is this (no slot)?
+  // connect(showWebscript, SIGNAL(triggered()), canvas, SLOT(showWebscript()));
 
   followPath = new QAction("Follow Path", this);
   addAction(followPath);
@@ -474,7 +475,7 @@ void GistMainWindow::addActions() {
   updateCanvas->setShortcut(QKeySequence("Shift+U"));
   connect(updateCanvas, &QAction::triggered, [this, canvas]() {
       qDebug() << "action: update canvas";
-      canvas->update();
+      canvas->updateCanvas();
   });
   addAction(updateCanvas);
 

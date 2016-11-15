@@ -149,38 +149,22 @@ static std::vector<ShapeInfo> toShapeVector(std::multiset<ShapeI, CompareShapes>
 
 namespace detail {
 
-  static void eliminateSubsumedStep(NodeTree& nt,
-                                    std::vector<VisualNode*>& subsumed,
-                                    const std::vector<const ShapeInfo*>& small,
-                                    const std::vector<const ShapeInfo*>& bigger) {
+static void eliminateSubsumedStep(
+    NodeTree& nt, std::vector<VisualNode*>& subsumed,
+    const std::vector<const ShapeInfo*>& shapes_of_h,
+    const std::unordered_map<VisualNode*, ShapeInfo*>& node2shape) {
+  for (auto& si : shapes_of_h) {
+    for (auto& node : si->nodes) {
+      for (auto k = 0u; k < node->getNumberOfChildren(); ++k) {
+        auto&& kid = node->getChild(nt.getNA(), k);
 
-    for (auto si : bigger) {
-      for (auto node : si->nodes) {
-
-        for (auto k = 0u; k < node->getNumberOfChildren(); ++k) {
-          auto kid = node->getChild(nt.getNA(), k);
-
-          for (auto si2 : small) {
-            /// binary search for kid in si2.nodes
-            auto it = lower_bound(begin(si2->nodes), end(si2->nodes), kid);
-            if ((it != end(si2->nodes)) && (*it == kid)) {
-              subsumed.push_back(kid);
-              break;
-            }
-
-          }
+        if (node2shape.find(kid) != end(node2shape)) {
+          subsumed.push_back(kid);
         }
-
       }
     }
-
-    /// NOTE(maxim): can't remove subsumed nodes just yet: need them
-    ///              to find which subtrees they subsume
-    /// Unless I remove recursively all shapes that have this node as an ancestor
-    /// create VisualNode* to ShapeInfo map?
   }
-
-
+}
 }
 
 /// Filter out unique shapres (with occurrence = 1)
@@ -216,12 +200,20 @@ static void eliminateSubsumed(NodeTree& nt, std::vector<ShapeInfo>& shapes) {
   }
 
   std::vector<VisualNode*> subsumed;
-  
-  /// find subsumed from top to bottom
 
-  for (int h = 3; h < soh.size(); ++h) {
-    // if (soh[h].size() == 0) break; /// TODO(maxim): don't assume that there aren't holes
-    detail::eliminateSubsumedStep(nt, subsumed, soh[h - 1], soh[h]);
+  {
+      /// NOTE: assuming here that the shapes vector won't change
+      /// node2shape should (and will) be destroyed after `eliminateSubsumedStep`
+    std::unordered_map<VisualNode*, ShapeInfo*> node2shape;
+    for (auto& si : shapes) {
+      for (auto& n : si.nodes) {
+        node2shape[n] = &si;
+      }
+    }
+
+    for (int h = 2; h < soh.size(); ++h) {
+      detail::eliminateSubsumedStep(nt, subsumed, soh[h], node2shape);
+    }
   }
 
   qDebug() << "subsumed nodes: " << subsumed.size();
@@ -442,40 +434,6 @@ void SimilarShapesWindow::initInterface() {
 /// TODO(maxim): see if any of these could be reused in tree comparison
 ///              (or vice versa)
 namespace detail {
-
-/// Compare nodes based on node type and number of children
-static bool compareNodes(const VisualNode& n1, const VisualNode& n2) {
-  if (n1.getStatus() != n2.getStatus()) {
-    return false;
-  }
-  if (n1.getNumberOfChildren() != n2.getNumberOfChildren()) {
-    return false;
-  }
-
-  return true;
-}
-
-/// Compare subtrees represented by root1 and root2
-static bool compareSubtrees(const NodeTree& nt,
-                            const VisualNode& root1,
-                            const VisualNode& root2) {
-  // compare roots
-  bool equal = compareNodes(root1, root2);
-  if (!equal) return false;
-
-  // if nodes have children, compare them recursively:
-  for (auto i = 0u; i < root1.getNumberOfChildren(); ++i) {
-
-    auto new_root_1 = nt.getChild(root1, i);
-    auto new_root_2 = nt.getChild(root2, i);
-
-    bool equal = compareSubtrees(nt, *new_root_1, *new_root_2);
-    if (!equal) return false;
-  }
-
-  return true;
-}
-
 
 static bool areShapesIdentical(const NodeTree& nt,
                                const std::vector<VisualNode*>& nodes) {

@@ -557,3 +557,16 @@ VisualNode::isNodeVisible(const NodeAllocator& na) const {
 
   return true;
 }
+
+
+/// Compare nodes based on node type and number of children
+bool compareNodes(const VisualNode& n1, const VisualNode& n2) {
+  if (n1.getStatus() != n2.getStatus()) {
+    return false;
+  }
+  if (n1.getNumberOfChildren() != n2.getNumberOfChildren()) {
+    return false;
+  }
+
+  return true;
+}

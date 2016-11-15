@@ -182,6 +182,9 @@ public:
   void applyToEachNodeIf(std::function<void (VisualNode*)> action,
                          std::function<bool (VisualNode*)> predicate);
 
+  /// Apply `action` to every node that satisfies the predicate
+  void applyToEachNode(std::function<void (VisualNode*)> action);
+
   /// Aplly `action` to every node with post-order traversal
   void applyToEachNodePO(std::function<void (VisualNode*)> action);
 
@@ -219,13 +222,9 @@ public Q_SLOTS:
   void reset();
 
   void maybeUpdateCanvas();
-  void updateCanvas();
-  /// Update display
-  void update();
+  void updateCanvas(bool hide_failed = false);
   /// React to scroll events
   void scroll();
-  /// Layout done
-  void layoutDone(int w, int h, int scale0);
   /// Set the selected node to \a n
   void setCurrentNode(VisualNode* n, bool finished=true, bool update=true);
 

@@ -61,4 +61,8 @@ public:
     QMutex& getLayoutMutex();
 };
 
+
+bool compareSubtrees(const NodeTree& nt, const VisualNode& root1,
+                     const VisualNode& root2);
+
 #endif

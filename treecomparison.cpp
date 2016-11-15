@@ -380,7 +380,7 @@ std::unique_ptr<ComparisonResult> compare(TreeCanvas* new_tc,
     // qDebug() << "comparison na: " << (void*)(&na);
 
     next->dirtyUp(na);
-    new_tc->update();
+    new_tc->updateCanvas();
   }
 
   return result;
