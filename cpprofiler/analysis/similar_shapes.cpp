@@ -253,6 +253,10 @@ static void eliminateSubsumed(NodeTree& nt, std::vector<ShapeInfo>& shapes) {
   
 }
 
+static void eliminateFilteredSubsumed(NodeTree& nt, std::vector<ShapeInfo>& shapes) {
+
+}
+
 SimilarShapesWindow::SimilarShapesWindow(TreeCanvas* tc, NodeTree& nt)
     : QDialog{tc}, m_tc{*tc}, node_tree{nt} {
 
@@ -656,6 +660,8 @@ void SimilarShapesWindow::drawAlternativeHistogram() {
   root->unhideAll(na);
   root->layout(na);
 
+  qDebug() << "identical groups: " << m_identicalGroups.size();
+
   for (const auto& group : m_identicalGroups) {
     const int count = group.size();
     if (count == 0) continue;
@@ -665,7 +671,7 @@ void SimilarShapesWindow::drawAlternativeHistogram() {
 
     const int size = shapeSize(*node->getShape());
 
-    if (!filters.apply({height, count})) {
+    if (!filters.check(height, count)) {
       continue;
     }
 
@@ -699,7 +705,7 @@ void SimilarShapesWindow::updateHistogram() {
           m_identicalGroups = findIdenticalShapes(m_tc, node_tree);
 
         #ifdef MAXIM_DEBUG
-          auto str = "IdenticalGroups: " + std::to_string(sizeof(m_identicalGroups));
+          auto str = "IdenticalGroups: " + std::to_string(m_identicalGroups.size());
           debug_label.setText(str.c_str());
         #endif
 
@@ -720,7 +726,7 @@ void SimilarShapesWindow::drawHistogram() {
   shapesShown.reserve(shapes.size());
 
   for (auto& shape : shapes) {
-    if (!filters.apply(shape)) {
+    if (!filters.check(shape.height, shape.nodes.size())) {
       continue;
     }
     shapesShown.push_back(shape);
@@ -751,9 +757,9 @@ namespace detail {
 
   Filters::Filters() {}
 
-  bool Filters::apply(const ShapeInfo& si) {
-    if (si.height < m_minDepth) return false;
-    if (si.nodes.size() < m_minCount) return false;
+  bool Filters::check(int depth, int count) {
+    if (depth < m_minDepth) return false;
+    if (count < m_minCount) return false;
     return true;
   }
 

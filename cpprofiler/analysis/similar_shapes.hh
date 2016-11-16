@@ -54,10 +54,6 @@ struct SubtreeInfo {
 
 namespace detail {
 
-  struct FiltersInfo {
-    int height;
-    int count;
-  };
 
   class Filters {
     int m_minDepth = 2;
@@ -67,7 +63,7 @@ namespace detail {
     Filters();
     void setMinDepth(int);
     void setMinCount(int);
-    bool apply(const ShapeInfo& s);
+    bool check(int depth, int count);
     
   };
 }
