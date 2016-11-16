@@ -331,6 +331,7 @@ void TreeCanvas::showNodeInfo(void) {
 #ifdef MAXIM_DEBUG
   extra_info += "--------------------------------------------\n";
   extra_info += "dirty: " + boolToString(currentNode->isDirty()) + "\n";
+  extra_info += "thread_id: " + std::to_string(currentNode->_tid) + "\n";
   extra_info += "status: " + statusToString(currentNode->getStatus()) + "\n";
   extra_info += "has open children: " + boolToString(currentNode->isOpen()) + 
                 " (" + std::to_string(currentNode->getNoOfOpenChildren(na)) + ")" + "\n";

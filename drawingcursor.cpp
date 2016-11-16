@@ -127,7 +127,6 @@ DrawingCursor::processCurrentNode(void) {
                 painter.setBrush(QColor(150, 255, 150, 255));
             break;
             default:
-                // painter.setBrush(QColor(200, 200, 200, 255));
                 painter.setBrush(QColor(255, 255, 255, 255));
         }
         drawShape(painter, myx, myy, n);

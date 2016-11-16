@@ -68,7 +68,6 @@ bool TreeBuilder::processRoot(DbEntry& dbEntry) {
     // create a node for a new root
     int restart_root = (_na)[0]->addChild(_na);
     root = (_na)[restart_root];
-    // root->_tid = dbEntry.thread_id;
 
     /// TODO(maxim): figure out where this is set (to 3?)
     (_na)[0]->_tid = 0;
@@ -182,6 +181,10 @@ bool TreeBuilder::processNode(DbEntry& dbEntry, bool is_delayed) {
     _data.gid2entry[gid] = &dbEntry;
 
     stats.maxDepth = std::max(stats.maxDepth, static_cast<int>(dbEntry.depth));
+
+    /// NOTE: don't distinguish between -1 and 0
+    /// -1 is the default for Chuffed and 0 -- for Gecode
+    if (dbEntry.thread_id == -1) { dbEntry.thread_id = 0; }
 
     node._tid = dbEntry.thread_id;  /// TODO: tid should be in node's flags
 
