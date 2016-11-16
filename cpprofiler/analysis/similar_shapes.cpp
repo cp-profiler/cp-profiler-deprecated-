@@ -260,13 +260,7 @@ static void eliminateFilteredSubsumed(NodeTree& nt, std::vector<ShapeInfo>& shap
 SimilarShapesWindow::SimilarShapesWindow(TreeCanvas* tc, NodeTree& nt)
     : QDialog{tc}, m_tc{*tc}, node_tree{nt} {
 
-  perfHelper.begin("shapes: analyse");
-  shapes = toShapeVector(collectSimilarShapes());
-  perfHelper.end();
-
-  perfHelper.begin("subsumed shapes elimination");
-  eliminateSubsumed(nt, shapes);
-  perfHelper.end();
+  
 
   initInterface();
 
@@ -275,6 +269,17 @@ SimilarShapesWindow::SimilarShapesWindow(TreeCanvas* tc, NodeTree& nt)
   m_ShapeCanvas->show();
 
   updateHistogram();
+}
+
+void SimilarShapesWindow::updateShapesData() {
+
+  perfHelper.begin("shapes: analyse");
+  shapes = toShapeVector(collectSimilarShapes());
+  perfHelper.end();
+
+  perfHelper.begin("subsumed shapes elimination");
+  eliminateSubsumed(node_tree, shapes);
+  perfHelper.end();
 }
 
 int getNoOfSolvedLeaves(const NodeTree& node_tree, VisualNode* n) {
@@ -356,6 +361,15 @@ void SimilarShapesWindow::initInterface() {
   typeChoice->addItem("shape");
   typeChoice->addItem("subtree");
   settingsLayout->addWidget(typeChoice);
+
+  auto labels_flag = new QCheckBox{"Compare labels"};
+  settingsLayout->addWidget(labels_flag);
+
+  connect(labels_flag, &QCheckBox::stateChanged, [this](int state) {
+      labelSensitive = (state == Qt::Checked);
+      updateHistogram();
+  });
+
   connect(typeChoice, &QComboBox::currentTextChanged, [this](const QString& str) {
     if (str == "shape") {
         simType = SimilarityType::SHAPE;
@@ -695,14 +709,22 @@ void SimilarShapesWindow::updateHistogram() {
 
   switch (simType) {
     case SimilarityType::SHAPE:
+
+      if (!shapes_cached) {
+        updateShapesData();
+        shapes_cached = true;
+      }
+
       drawHistogram();
       break;
     case SimilarityType::SUBTREE: {
 
-      if (m_identicalGroups.size() == 0) {
+      if (!subtrees_cached) {
 
           /// TODO(maxim): get rid of the unnecessary copy here:
           m_identicalGroups = findIdenticalShapes(m_tc, node_tree);
+
+          subtrees_cached = true;
 
         #ifdef MAXIM_DEBUG
           auto str = "IdenticalGroups: " + std::to_string(m_identicalGroups.size());

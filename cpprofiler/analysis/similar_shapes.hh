@@ -94,9 +94,13 @@ class SimilarShapesWindow : public QDialog {
   TreeCanvas& m_tc; /// for highlighting subtrees
   NodeTree& node_tree;
 
-  SimilarityType  simType     = SimilarityType::SHAPE;
+  SimilarityType  simType     = SimilarityType::SUBTREE;
   ShapeProperty   m_histType  = ShapeProperty::SIZE;
   ShapeProperty   m_sortType  = ShapeProperty::SIZE;
+  bool labelSensitive         = false;
+
+  bool shapes_cached    = false;
+  bool subtrees_cached  = false;
 
   std::unique_ptr<ShapeCanvas> m_ShapeCanvas;
   std::unique_ptr<QGraphicsScene> m_scene;
@@ -126,6 +130,10 @@ class SimilarShapesWindow : public QDialog {
   void updateHistogram();
   void drawHistogram();
   void drawAlternativeHistogram();
+
+  /// runs similar shapes analysis and writes the result to `shapes`
+  void updateShapesData();
+
 
  public:
   SimilarShapesWindow(TreeCanvas* tc, NodeTree& nt);
