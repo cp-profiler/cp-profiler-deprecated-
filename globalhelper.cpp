@@ -22,6 +22,8 @@
 #include "globalhelper.hh"
 #include <iostream>
 #include <QFileDialog>
+#include <QJsonDocument>
+#include <QJsonObject>
 
 GlobalParser* GlobalParser::_self = nullptr;
 
@@ -95,4 +97,30 @@ void Utils::writeToFile(const QString& str) {
   } else {
     qDebug() << "could not open the file: " << file_name;
   }
+}
+
+static QJsonObject readJson(QString path) {
+  QFile file(path);
+  file.open(QIODevice::ReadOnly | QIODevice::Text);
+  QString json_str = file.readAll();
+  
+  QJsonDocument json_doc = QJsonDocument::fromJson(json_str.toUtf8());
+  QJsonObject json_obj = json_doc.object();
+
+  return json_obj;
+}
+
+void Settings::init() {
+  // ofstream json_file("settings.json");
+  // QJsonObject json
+
+  json_setttings = readJson("settings.json");
+
+
+}
+
+QJsonObject Settings::json_setttings = {};
+
+int Settings::get_int(QString name) {
+  return json_setttings.value(name).toInt();
 }

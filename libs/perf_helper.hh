@@ -31,9 +31,11 @@ public:
   }
 
   void end(const char* msg) {
+    auto now = m_hrClock.now();
     auto duration_ns =
-        duration_cast<nanoseconds>(m_hrClock.now() - maps[msg].begin).count();
+        duration_cast<nanoseconds>(now - maps[msg].begin).count();
     maps[msg].current += duration_ns;
+    maps[msg].begin = now;
   }
 
   void total(const char* msg) {

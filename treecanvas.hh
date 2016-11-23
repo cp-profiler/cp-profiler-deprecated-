@@ -372,8 +372,12 @@ public Q_SLOTS:
   void resizeToOuter();
 
 #ifdef MAXIM_DEBUG
+private:
+  void _addChildren(VisualNode* n);
+public:
   void printDebugInfo();
   void addChildren();
+  void createRandomTree(); // in place
   void deleteSelectedNode();
   void dirtyUpNode();
 #endif

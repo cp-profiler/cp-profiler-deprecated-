@@ -171,6 +171,9 @@ private:
   QAction* deleteNode;
 
   QAction* dirtyUpNode;
+
+  /// For debugging and other fun
+  QAction* createRandomTree;
 #endif
 
     /// Information about individual nodes

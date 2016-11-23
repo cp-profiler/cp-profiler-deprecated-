@@ -10,6 +10,7 @@
 #include <chrono>
 #include "libs/perf_helper.hh"
 #include "nodetree.hh"
+#include "globalhelper.hh"
 
 #include "identical_shapes.hpp"
 
@@ -76,8 +77,6 @@ static ShapeProperty interpretShapeProperty(const QString& str) {
   return {};
 }
 
-int Group::counter = 0;
-
 std::ostream& operator<<(std::ostream& os, const VisualNode* n) {
   #ifdef MAXIM_DEBUG
       os << n->debug_id;
@@ -86,32 +85,6 @@ std::ostream& operator<<(std::ostream& os, const VisualNode* n) {
   #endif
   return os;
 }
-
-QDebug& operator<<(QDebug& os, const Group& g) {
-  std::ostringstream oss;
-  oss << "[ ";
-  for (int i = 0; i < (int)g.items.size(); ++i) {
-    if (i == g.splitter) {
-      oss << "||";
-    }
-    auto& info = g.items[i];
-    oss << "<" << info.alt << ", " << info.node << "> ";
-  }
-  if ((int)g.items.size() == g.splitter) {
-      oss << "||";
-  }
-  oss << "]";
-  os << oss.str().c_str();
-  return os;
-}
-
-QDebug& operator<<(QDebug& os, const std::vector<Group>& groups) {
-  for (auto i = 1u; i < groups.size(); ++i) {
-    os << groups[i] << "\n";
-  }
-  return os;
-}
-
 
 int countShapes(std::multiset<ShapeI, CompareShapes>& mset) {
   int count = 0;
@@ -367,6 +340,7 @@ void SimilarShapesWindow::initInterface() {
 
   connect(labels_flag, &QCheckBox::stateChanged, [this](int state) {
       labelSensitive = (state == Qt::Checked);
+      subtrees_cached = false;
       updateHistogram();
   });
 
@@ -698,6 +672,40 @@ void SimilarShapesWindow::drawAlternativeHistogram() {
 
 }
 
+/// copy is intentional
+static void save_partition(vector<vector<VisualNode*>> vecs) {
+
+  for (auto& v : vecs) {
+    std::sort(begin(v), end(v),
+      [](const VisualNode* lhs, const VisualNode* rhs) {
+        return lhs->debug_id < rhs->debug_id;
+    });
+  }
+
+  std::sort(begin(vecs), end(vecs),
+    [](const vector<VisualNode*>& lhs, const vector<VisualNode*>& rhs) {
+
+      if (lhs.size() == rhs.size()) {
+        for (auto i = 0u; i < lhs.size(); ++i) {
+          if (lhs[i]->debug_id == rhs[i]->debug_id) continue;
+          return lhs[i]->debug_id < rhs[i]->debug_id;
+        }
+      } else {
+        return lhs.size() < rhs.size();
+      }
+  });
+
+  QString tmp_str;
+  for (auto& v : vecs) {
+    for (auto* n : v) {
+      tmp_str += QString::number(n->debug_id) + " ";
+    }
+
+    tmp_str += "\n";
+  }
+  Utils::writeToFile(tmp_str);
+}
+
 void SimilarShapesWindow::updateHistogram() {
 
   m_scene.reset(new QGraphicsScene{});
@@ -721,14 +729,24 @@ void SimilarShapesWindow::updateHistogram() {
 
       if (!subtrees_cached) {
 
+          /// NOTE(maxim):
+          /// identical_subtrees_old and flat produce the same results
+          /// identical_subtrees_new produces less groups
+
+
           /// TODO(maxim): get rid of the unnecessary copy here:
-          m_identicalGroups = findIdenticalShapes(m_tc, node_tree);
+          // m_identicalGroups = identical_subtrees_old::findIdenticalShapes(m_tc, node_tree);
+          // m_identicalGroups = identical_subtrees_flat::findIdenticalShapes(m_tc, node_tree);
+          m_identicalGroups = identical_subtrees_new::findIdenticalShapes(m_tc, node_tree);
 
           subtrees_cached = true;
 
         #ifdef MAXIM_DEBUG
           auto str = "IdenticalGroups: " + std::to_string(m_identicalGroups.size());
           debug_label.setText(str.c_str());
+
+          // save_partition(m_identicalGroups);
+
         #endif
 
       }

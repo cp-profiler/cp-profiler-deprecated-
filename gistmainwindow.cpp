@@ -228,6 +228,9 @@ GistMainWindow::GistMainWindow(Execution& e,
   treeVisMenu->addAction(deleteWhiteNodes);
   treeVisMenu->addAction(deleteSkippedNodes);
 
+#ifdef MAXIM_DEBUG
+  treeVisMenu->addAction(createRandomTree);
+#endif
 
 
   // Don't add the menu bar on Mac OS X
@@ -488,6 +491,10 @@ void GistMainWindow::addActions() {
   deleteNode->setShortcut(QKeySequence("del"));
   connect(deleteNode, &QAction::triggered, canvas, &TreeCanvas::deleteSelectedNode);
   addAction(deleteNode);
+
+  createRandomTree = new QAction{"Create Random Tree", this};
+  connect(createRandomTree, &QAction::triggered, canvas, &TreeCanvas::createRandomTree);
+  addAction(createRandomTree);
 
   dirtyUpNode = new QAction{"Dirty Up Node", this};
   dirtyUpNode->setShortcut(QKeySequence("D"));

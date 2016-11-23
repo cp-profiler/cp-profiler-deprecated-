@@ -36,6 +36,8 @@ int main(int argc, char *argv[]) {
 
   clParser.process(a);
 
+  Settings::init();
+
   if (GlobalParser::isSet(GlobalParser::version_option) ||
       GlobalParser::isSet(GlobalParser::help_option)) {
     return 0;

@@ -68,4 +68,11 @@ public:
 
 };
 
+class Settings {
+  static QJsonObject json_setttings;
+public:
+  static void init();
+  static int get_int(QString name);
+};
+
 #endif

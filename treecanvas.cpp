@@ -385,8 +385,8 @@ void TreeCanvas::highlightSubtrees(const std::vector<VisualNode*>& nodes) {
     node->setHighlighted(true);
   }
 
-  HideNotHighlightedCursor hnhc(root, na);
-  PostorderNodeVisitor<HideNotHighlightedCursor>(hnhc).run();
+  // HideNotHighlightedCursor hnhc(root, na);
+  // PostorderNodeVisitor<HideNotHighlightedCursor>(hnhc).run();
 
   updateCanvas();
 }
@@ -1436,25 +1436,74 @@ void TreeCanvas::printDebugInfo() {
   qDebug() << "debug info recorded into debug.txt";
 }
 
+void TreeCanvas::_addChildren(VisualNode* node) {
+  node->setNumberOfChildren(2, na);
+  node->dirtyUp(na);
+
+  auto& stats = execution.getStatistics();
+  stats.undetermined += 2;
+
+  int depth = execution.nodeTree().calculateDepth(*node) + 1;
+  int new_depth = depth + 1;
+
+  stats.maxDepth = std::max(stats.maxDepth, new_depth);
+}
+
 void TreeCanvas::addChildren() {
   if (currentNode->getNumberOfChildren() == 0) {
-    currentNode->setNumberOfChildren(2, na);
-    currentNode->dirtyUp(na);
-
-    // emit addedNode();
-
-    auto& stats = execution.getStatistics();
-    stats.undetermined += 2;
-
-    /// update data entry for this node
-    auto& data = execution.getData();
-
-    int depth = execution.nodeTree().calculateDepth(*currentNode) + 1;
-    int new_depth = depth + 1;
-
-    stats.maxDepth = std::max(stats.maxDepth, new_depth);
+    _addChildren(currentNode);
   }
   
+  updateCanvas();
+}
+
+static int randInt(int low, int high) {
+  static std::random_device rdev;
+  static std::default_random_engine re(rdev());
+  std::uniform_int_distribution<int> uniform_dist{low, high};
+  int value = uniform_dist(re);
+  return value;
+}
+
+static bool randBool() {
+  int value = randInt(0, 1);
+  return static_cast<bool>(value);
+}
+
+void TreeCanvas::createRandomTree() {
+
+  auto no_kids = currentNode->getNumberOfChildren();
+  if (no_kids != 0) return;
+
+  auto& stats = execution.getStatistics();
+
+  std::vector<VisualNode*> kids_stack;
+  kids_stack.push_back(currentNode);
+
+  auto node_limit = Settings::get_int("random_tree_limit");
+
+  while(!kids_stack.empty()) {
+
+    /// pick a node at random
+    auto idx = randInt(0, kids_stack.size() - 1);
+    auto node = kids_stack[idx];
+
+    auto it_remove = begin(kids_stack); std::advance(it_remove, idx);
+    kids_stack.erase(it_remove);
+
+    _addChildren(node);
+
+    if (stats.allNodes() >= node_limit) break;
+
+      if (randBool()) {
+        if (randBool() || true) { kids_stack.push_back(node->getChild(na, 0)); } 
+        if (randBool() || true) { kids_stack.push_back(node->getChild(na, 1)); }
+      } else {
+        if (randBool() || true) { kids_stack.push_back(node->getChild(na, 1)); }
+        if (randBool() || true) { kids_stack.push_back(node->getChild(na, 0)); }
+      }
+  }
+
   updateCanvas();
 }
 
