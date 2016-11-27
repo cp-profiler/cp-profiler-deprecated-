@@ -42,7 +42,8 @@ void splitGroups(
     const std::vector<int>& g_to_split,
     std::unordered_map<const VisualNode*, PosInGroups>& node2groupID) {
 
-  for (auto g_idx = 0u; g_idx < groups.size(); ++g_idx) {
+  for (auto g_idx : g_to_split) {
+
     auto& g = groups[g_idx];
     if (g.splitter == 0 || g.splitter == (int)g.items.size()) {
       g.splitter = 0;
@@ -50,7 +51,6 @@ void splitGroups(
       continue;
     }
     /// ----- need to split the group -----
-    perfHelper.accumulate("actual splitting");
     auto it_splitter = begin(g.items);
     std::advance(it_splitter, g.splitter);
 
@@ -59,27 +59,23 @@ void splitGroups(
     g.items.erase(it_splitter, end(g.items));
     g.splitter = 0;
 
+    groups.push_back(new_group2);
     /// ----- change group_id for nodes in the second group -----
     for (auto j = 0u; j < new_group2.items.size(); ++j) {
       auto* node = new_group2.items[j].node;
-      node2groupID[node].g_id = g_idx + 1;
+      node2groupID[node].g_id = groups.size() - 1;
       node2groupID[node].inner_idx = j;
     }
 
 
-    // printGroup(g);
-    // printGroup(new_group2);
-    auto it = begin(groups); std::advance(it, g_idx + 1);
-    groups.insert(it, std::move(new_group2));
 
-    for (auto idx = g_idx + 2; idx < groups.size(); ++idx) {
-      for (auto& ci : groups[idx].items) {
-        auto* n = ci.node;
-        node2groupID[n].g_id = idx;
-      }
-    }
+    // for (auto idx = g_idx + 2; idx < groups.size(); ++idx) {
+    //   for (auto& ci : groups[idx].items) {
+    //     auto* n = ci.node;
+    //     node2groupID[n].g_id = idx;
+    //   }
+    // }
     // groups.push_back(std::move(new_group2));
-    perfHelper.end("actual splitting");
 
     // ++i;
     // qDebug() << "after split groups: " << groups;
@@ -118,6 +114,9 @@ std::pair<int, int> findNodeInGroups(
 //--------------------------------------------
 //-------- FINDING IDENTICAL SUBTREES --------
 //--------------------------------------------
+// TODO/NOTE(maxim): This algorithm isn't supposed to work
+// (new groups pushed to the end), but I've failed
+// to find any cases where it produces a wrong result
 GroupsOfNodes_t findIdenticalShapes(TreeCanvas& tc, NodeTree& nt) {
   /// ------ 0) group by height ------
   std::vector<Group> groups = groupByHeight(tc, nt);
@@ -138,7 +137,7 @@ GroupsOfNodes_t findIdenticalShapes(TreeCanvas& tc, NodeTree& nt) {
   // qDebug() << " ";
 
   /// ------ 2) select the first block (with height 1)
-  perfHelper.begin("shapes: minimisation algorithm");
+
   for (auto group_id = 0u; group_id < groups.size(); ++group_id) {
 
     for (auto alt = 0; alt < 2; ++alt) {
@@ -156,9 +155,9 @@ GroupsOfNodes_t findIdenticalShapes(TreeCanvas& tc, NodeTree& nt) {
           // std::cerr << parent->debug_id << " ";
 
           /// 3.2 )find it in groups
-          perfHelper.accumulate("shapes: find node in groups");
+
           auto location = detail::findNodeInGroups(groups, node2groupID, parent);
-          perfHelper.end("shapes: find node in groups");
+
           // std::cerr << parent->debug_id << " in group: " << location.first << "\n";
 
           /// group g_idx will potentially need splitting
@@ -174,9 +173,7 @@ GroupsOfNodes_t findIdenticalShapes(TreeCanvas& tc, NodeTree& nt) {
 
       // qDebug() << "groups before:";
       // printGroups(groups);
-      perfHelper.accumulate("shapes: split groups");
       detail::splitGroups(groups, groups_to_split, node2groupID);
-      perfHelper.end("shapes: split groups");
       // qDebug() << "groups after:";
       // printGroups(groups);
       // qDebug() << " ";
@@ -200,15 +197,9 @@ GroupsOfNodes_t findIdenticalShapes(TreeCanvas& tc, NodeTree& nt) {
   });
 #endif
 
-  perfHelper.end();
-  // qDebug() << "final groups: " << groups;
-  perfHelper.total("shapes: find node in groups");
-  perfHelper.total("shapes: split groups");
-  perfHelper.total("actual splitting");
 
   /// convert groups to a vector of vectors of Nodes
 
-  perfHelper.begin("shapes: post-process the results");
   std::vector<std::vector<VisualNode*>> result(groups.size());
   for (auto i = 0u; i < groups.size(); ++i) {
     auto& items = groups[i].items;
@@ -220,7 +211,6 @@ GroupsOfNodes_t findIdenticalShapes(TreeCanvas& tc, NodeTree& nt) {
       result[i].push_back(items[j].node);
     }
   }
-  perfHelper.end();
 
   return result;
 }

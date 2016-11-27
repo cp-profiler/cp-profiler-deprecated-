@@ -183,17 +183,16 @@ GroupsOfNodes_t findIdenticalShapes(TreeCanvas& tc, NodeTree& nt) {
 
 
       // print_groups(sgroups);
-      perfHelper.accumulate("splitGroups2");
+      // perfHelper.accumulate("splitGroups2");
       detail::splitGroups2(sgroups, groups_to_split, node2pos);
-      perfHelper.end("splitGroups2");
+      // perfHelper.end("splitGroups2");
+      // print(sgroups);
       // print_groups(sgroups);
     }
 
 
 
   }
-
-  perfHelper.total("splitGroups2");
 
   // print_groups(sgroups);
 

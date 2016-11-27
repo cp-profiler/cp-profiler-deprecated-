@@ -648,7 +648,7 @@ void SimilarShapesWindow::drawAlternativeHistogram() {
   root->unhideAll(na);
   root->layout(na);
 
-  qDebug() << "identical groups: " << m_identicalGroups.size();
+  // qDebug() << "identical groups: " << m_identicalGroups.size();
 
   for (const auto& group : m_identicalGroups) {
     const int count = group.size();
@@ -672,6 +672,7 @@ void SimilarShapesWindow::drawAlternativeHistogram() {
 
 }
 
+#ifdef MAXIM_DEBUG
 /// copy is intentional
 static void save_partition(vector<vector<VisualNode*>> vecs) {
 
@@ -706,6 +707,8 @@ static void save_partition(vector<vector<VisualNode*>> vecs) {
   Utils::writeToFile(tmp_str);
 }
 
+#endif
+
 void SimilarShapesWindow::updateHistogram() {
 
   m_scene.reset(new QGraphicsScene{});
@@ -735,10 +738,14 @@ void SimilarShapesWindow::updateHistogram() {
 
 
           /// TODO(maxim): get rid of the unnecessary copy here:
-          // m_identicalGroups = identical_subtrees_old::findIdenticalShapes(m_tc, node_tree);
-          // m_identicalGroups = identical_subtrees_flat::findIdenticalShapes(m_tc, node_tree);
-          m_identicalGroups = identical_subtrees_new::findIdenticalShapes(m_tc, node_tree);
-
+        perfHelper.begin("identical_shapes");
+          m_identicalGroups = identical_subtrees_old::findIdenticalShapes(m_tc, node_tree);
+          qDebug() << "identical groups 1: " << m_identicalGroups.size();
+          auto temp1 = identical_subtrees_flat::findIdenticalShapes(m_tc, node_tree);
+          qDebug() << "identical groups 2: " << temp1.size();
+          auto temp2 = identical_subtrees_new::findIdenticalShapes(m_tc, node_tree);
+          qDebug() << "identical groups 3: " << temp2.size();
+        perfHelper.end();
           subtrees_cached = true;
 
         #ifdef MAXIM_DEBUG

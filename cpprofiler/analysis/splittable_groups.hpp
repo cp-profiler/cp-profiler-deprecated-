@@ -17,10 +17,22 @@ public:
     Group(SplittableGroups* sg, int start, int end)
     : container{sg}, m_start{start}, m_end{end}, splitter{0} {}
 
+    // friend std::ostream& operator<<(std::ostream& o, const Group* g) {
+    //     o << "[" << g->m_start << ", " << g->m_end << "): " << g->splitter;
+    //     return o;
+    // }
+
+#ifdef MAXIM_DEBUG
     friend std::ostream& operator<<(std::ostream& o, const Group* g) {
-        o << "[" << g->m_start << ", " << g->m_end << "): " << g->splitter;
+
+        o << "[";
+        for (auto i = g->m_start; i < g->m_end; ++i) {
+            o << g->at(i - g->m_start).node->debug_id << " ";
+        }
+        o << "]";
         return o;
     }
+#endif
 
     int size() {
         return m_end - m_start;
@@ -32,6 +44,7 @@ public:
     }
 
     T& at(int idx);
+    const T& at(int idx) const;
     ChildInfo* begin();
     ChildInfo* end();
 };
@@ -53,7 +66,7 @@ public:
 
     SplittableGroups(const std::vector<std::vector<T>>& vecs) {
 
-        // groups.reserve(1000000);
+        groups.reserve(1000000);
         /// get total size
         auto counter = 0;
         for (auto& v : vecs) {
@@ -91,7 +104,7 @@ public:
 
         auto tmp_g_idx = g_idx + 1;
         for (auto it = it_insert; it < std::end(groups); ++it) {
-            group2idx[*it] = g_idx;
+            group2idx[*it] = tmp_g_idx;
             ++tmp_g_idx;
         }
 
@@ -149,6 +162,11 @@ public:
 };
 
 ChildInfo& Group::at(int idx) {
+    assert(idx < m_end - m_start);
+    return container->data[m_start + idx];
+}
+
+const ChildInfo& Group::at(int idx) const {
     assert(idx < m_end - m_start);
     return container->data[m_start + idx];
 }
