@@ -502,6 +502,11 @@ BranchLabelCursor::processCurrentNode(void) {
     VisualNode* n = node();
     if (!_clear) {
         if (!na.hasLabel(n)) {
+#ifdef MAXIM_DEBUG
+            _na.setLabel(n, " " + QString::number(n->debug_id) + " ");
+            n->dirtyUp(na);
+            return;
+#endif
             VisualNode* p = n->getParent(_na);
             if (p) {
                 int gid = n->getIndex(_na);

@@ -66,7 +66,8 @@ public:
 
     SplittableGroups(const std::vector<std::vector<T>>& vecs) {
 
-        groups.reserve(1000000);
+        /// TODO(maxim): make this unnecessary
+        groups.reserve(10000000);
         /// get total size
         auto counter = 0;
         for (auto& v : vecs) {

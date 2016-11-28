@@ -739,20 +739,21 @@ void SimilarShapesWindow::updateHistogram() {
 
           /// TODO(maxim): get rid of the unnecessary copy here:
         perfHelper.begin("identical_shapes");
-          m_identicalGroups = identical_subtrees_old::findIdenticalShapes(m_tc, node_tree);
-          qDebug() << "identical groups 1: " << m_identicalGroups.size();
-          auto temp1 = identical_subtrees_flat::findIdenticalShapes(m_tc, node_tree);
-          qDebug() << "identical groups 2: " << temp1.size();
-          auto temp2 = identical_subtrees_new::findIdenticalShapes(m_tc, node_tree);
-          qDebug() << "identical groups 3: " << temp2.size();
+          // m_identicalGroups = identical_subtrees_old::findIdenticalShapes(m_tc, node_tree);
+          // qDebug() << "identical groups 1: " << m_identicalGroups.size();
+          // auto temp1 = identical_subtrees_flat::findIdenticalShapes(m_tc, node_tree);
+          // qDebug() << "identical groups 2: " << temp1.size();
+          m_identicalGroups = identical_subtrees_new::findIdenticalShapes(m_tc, node_tree);
+          // qDebug() << "identical groups 3: " << temp2.size();
         perfHelper.end();
           subtrees_cached = true;
+          qDebug() << "identical groups:" << m_identicalGroups.size();
 
         #ifdef MAXIM_DEBUG
           auto str = "IdenticalGroups: " + std::to_string(m_identicalGroups.size());
           debug_label.setText(str.c_str());
 
-          // save_partition(m_identicalGroups);
+          save_partition(m_identicalGroups);
 
         #endif
 

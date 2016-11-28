@@ -1,8 +1,6 @@
 
 namespace cpprofiler { namespace analysis {
 
-
-/// Does not work correctly!!!
 namespace identical_subtrees_new {
 
 class Group;
@@ -12,7 +10,7 @@ struct ChildInfo {
   VisualNode* node;
 };
 
-struct PosInGroups2 {
+struct PosInGroups {
   int inner_idx;
   Group* group;
 };
@@ -50,10 +48,9 @@ namespace detail {
   }
 
 
-  static ChildrenInfoGroups groupByHeight2(const TreeCanvas& tc, NodeTree& nt) {
+  static ChildrenInfoGroups groupByHeight(const TreeCanvas& tc, NodeTree& nt) {
     int max_depth = tc.get_stats().maxDepth;
 
-    /// start from 1 for convenience
     ChildrenInfoGroups groups(max_depth);
 
     auto& na = nt.getNA();
@@ -68,18 +65,8 @@ namespace detail {
     return groups;
   }
 
-  std::pair<int, int> findNodeInGroups2(
-      std::unordered_map<const VisualNode*, PosInGroups>& node2groupID,
-      const VisualNode* n) {
-
-    const auto g_idx = node2groupID[n].g_id;
-    const auto idx = node2groupID[n].inner_idx;
-
-    return std::make_pair(g_idx, idx);
-  }
-
   void separateNode(Group* g,
-                    std::unordered_map<const VisualNode*, PosInGroups2>& node2pos,
+                    std::unordered_map<const VisualNode*, PosInGroups>& node2pos,
                     int idx) {
     /// swap the target element with the element pointed at by the splitter
     auto& el_1 = g->at(g->splitter);
@@ -93,10 +80,10 @@ namespace detail {
     g->increment_splitter();
   }
 
-  void splitGroups2(
+  void splitGroups(
       SplittableGroups& sgroups,
       const std::vector<Group*>& g_to_split,
-      std::unordered_map<const VisualNode*, PosInGroups2>& node2pos) {
+      std::unordered_map<const VisualNode*, PosInGroups>& node2pos) {
 
     for (auto i = 0u; i < g_to_split.size(); ++i) {
       auto* g = g_to_split[i];
@@ -128,21 +115,65 @@ namespace detail {
   }
 }
 
+static int countNodes(VisualNode* node,
+                      const NodeAllocator& na,
+                      std::unordered_map<int, vector<ChildInfo>>& map) {
+    if (node->getNumberOfChildren() == 0) return 1;
+
+    int result = 0;
+    for (auto i = 0u; i < node->getNumberOfChildren(); ++i) {
+        auto* child = node->getChild(na, i);
+        auto count = countNodes(child, na, map);
+        result += count;
+        map[count].push_back({(int)i, child});
+    }
+
+    return result;
+}
+
+
+static ChildrenInfoGroups groupByNoNodes(TreeCanvas& tc, NodeTree& nt) {
+
+    std::unordered_map<int, vector<ChildInfo>> group_map;
+
+    auto& na = nt.getNA();
+    auto* root = nt.getRoot();
+
+    auto count = countNodes(root, na, group_map);
+    group_map[count].push_back({-1, root});
+
+    /// convert map into a vector
+
+    ChildrenInfoGroups result;
+
+    for (auto& pair : group_map) {
+        // std::cout << "size: " << pair.first << " ";
+        for (auto& ci : pair.second) {
+            // std::cout << ci.node->debug_id << " ";
+        }
+        result.push_back(std::move(pair.second));
+        // std::cout << "\n";
+    }
+
+    return result;
+}
+
 
 
 
 GroupsOfNodes_t findIdenticalShapes(TreeCanvas& tc, NodeTree& nt) {
-  /// ------ 0) group by height ------
-  ChildrenInfoGroups groups = detail::groupByHeight2(tc, nt);
+  /// 0) Start with some initial partition:
+  ChildrenInfoGroups groups = groupByNoNodes(tc, nt);
+  // ChildrenInfoGroups groups = detail::groupByHeight(tc, nt);
 
-  std::unordered_map<const VisualNode*, PosInGroups2> node2pos;
+  std::unordered_map<const VisualNode*, PosInGroups> node2pos;
   SplittableGroups sgroups{groups};
 
   for (auto& group : sgroups) {
     for (auto i = 0u; i < group->size(); ++i) {
       auto& ci = group->at(i);
 
-      node2pos[ci.node] = PosInGroups2{(int)i, group};
+      node2pos[ci.node] = PosInGroups{(int)i, group};
     }
   }
 
@@ -183,9 +214,9 @@ GroupsOfNodes_t findIdenticalShapes(TreeCanvas& tc, NodeTree& nt) {
 
 
       // print_groups(sgroups);
-      // perfHelper.accumulate("splitGroups2");
-      detail::splitGroups2(sgroups, groups_to_split, node2pos);
-      // perfHelper.end("splitGroups2");
+      // perfHelper.accumulate("splitGroups");
+      detail::splitGroups(sgroups, groups_to_split, node2pos);
+      // perfHelper.end("splitGroups");
       // print(sgroups);
       // print_groups(sgroups);
     }
@@ -200,6 +231,8 @@ GroupsOfNodes_t findIdenticalShapes(TreeCanvas& tc, NodeTree& nt) {
 
   for (auto& group : sgroups) {
 
+    // qDebug() << "size: " << group->size();
+
     std::vector<VisualNode*> tmp;
     for (auto& ci : *group) {
       tmp.push_back(ci.node);
@@ -207,6 +240,16 @@ GroupsOfNodes_t findIdenticalShapes(TreeCanvas& tc, NodeTree& nt) {
 
     result.push_back(std::move(tmp));
   }
+
+  // for (auto& group : res) {
+  //   std::vector<VisualNode*> tmp;
+  //   // qDebug() << "size: " << group.size();
+  //   for (auto& ci : group) {
+  //       tmp.push_back(ci.node);
+  //       // qDebug() << ci.node->debug_id;
+  //   }
+  //   result.push_back(std::move(tmp));
+  // }
 
 
   return result;

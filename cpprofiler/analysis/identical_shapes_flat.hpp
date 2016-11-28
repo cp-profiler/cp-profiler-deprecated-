@@ -79,7 +79,7 @@ static void print_partition(const std::vector<ChildInfo>& subtrees,
 #endif
 
 
-static void printMap2(const std::unordered_map<const VisualNode*, PosInGroups>& map,
+static void printMap(const std::unordered_map<const VisualNode*, PosInGroups>& map,
                       const std::unordered_map<int, int>& id2idx) {
   std::stringstream ss;
 
