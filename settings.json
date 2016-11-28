@@ -1,4 +1,4 @@
 {
-
-    "random_tree_limit": 200000
+    "random_tree_limit": 200000,
+    "save_shapes_to_file": false
 }

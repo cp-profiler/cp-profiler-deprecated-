@@ -124,3 +124,7 @@ QJsonObject Settings::json_setttings = {};
 int Settings::get_int(QString name) {
   return json_setttings.value(name).toInt();
 }
+
+bool Settings::get_bool(QString name) {
+  return json_setttings.value(name).toBool();
+}

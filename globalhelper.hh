@@ -73,6 +73,7 @@ class Settings {
 public:
   static void init();
   static int get_int(QString name);
+  static bool get_bool(QString name);
 };
 
 #endif

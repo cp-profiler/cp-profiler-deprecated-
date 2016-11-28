@@ -736,7 +736,6 @@ void SimilarShapesWindow::updateHistogram() {
           /// identical_subtrees_old and flat produce the same results
           /// identical_subtrees_new produces less groups
 
-
           /// TODO(maxim): get rid of the unnecessary copy here:
         perfHelper.begin("identical_shapes");
           // m_identicalGroups = identical_subtrees_old::findIdenticalShapes(m_tc, node_tree);
@@ -753,7 +752,9 @@ void SimilarShapesWindow::updateHistogram() {
           auto str = "IdenticalGroups: " + std::to_string(m_identicalGroups.size());
           debug_label.setText(str.c_str());
 
-          save_partition(m_identicalGroups);
+          if (Settings::get_bool("save_shapes_to_file")) {
+            save_partition(m_identicalGroups);
+          }
 
         #endif
 
