@@ -18,6 +18,8 @@
 #include "ml-stats.hh"
 #include "webscript.hh"
 
+#include "tree_utils.hh"
+
 #include <fstream>
 
 #include <QPushButton>
@@ -27,6 +29,8 @@
 #include <chrono>
 
 #include <QDebug>
+
+#include "subtree_comparison.hpp";
 
 bool readDelimitedFrom(google::protobuf::io::ZeroCopyInputStream* rawInput,
                        google::protobuf::MessageLite* message) {
@@ -97,6 +101,10 @@ ProfilerConductor::ProfilerConductor() : QMainWindow() {
   connect(compareButton, SIGNAL(clicked()), this,
           SLOT(compareButtonClicked()));
 
+  auto compareSubtrees = new QPushButton("compare subtrees");
+  connect(compareSubtrees, &QPushButton::clicked,
+          this, &ProfilerConductor::compareSubtrees);
+
   auto gatherStatisticsButton = new QPushButton("gather statistics");
   connect(gatherStatisticsButton, SIGNAL(clicked()), this,
           SLOT(gatherStatisticsClicked()));
@@ -129,14 +137,15 @@ ProfilerConductor::ProfilerConductor() : QMainWindow() {
   layout->addWidget(compareButton,          2, 0, 1, 1);
   layout->addWidget(&compareWithLabelsCB,   2, 1, 1, 1);
 
-  layout->addWidget(gatherStatisticsButton, 3, 0, 1, 2);
-  layout->addWidget(webscriptButton,        4, 0, 1, 2);
-  layout->addWidget(saveExecutionButton,    5, 0, 1, 2);
-  layout->addWidget(loadExecutionButton,    6, 0, 1, 2);
-  layout->addWidget(deleteExecutionButton,  7, 0, 1, 2);
+  layout->addWidget(compareSubtrees,        3, 0, 1, 2);
+  layout->addWidget(gatherStatisticsButton, 4, 0, 1, 2);
+  layout->addWidget(webscriptButton,        5, 0, 1, 2);
+  layout->addWidget(saveExecutionButton,    6, 0, 1, 2);
+  layout->addWidget(loadExecutionButton,    7, 0, 1, 2);
+  layout->addWidget(deleteExecutionButton,  8, 0, 1, 2);
 
 #ifdef MAXIM_DEBUG
-  layout->addWidget(debugExecutionButton,   8, 0, 1, 2);
+  layout->addWidget(debugExecutionButton,   9, 0, 1, 2);
 #endif
 
   centralWidget->setLayout(layout);
@@ -186,6 +195,19 @@ void ProfilerConductor::addExecution(Execution& e) {
   show();
 }
 
+void ProfilerConductor::displayExecution(Execution& ex, QString&& title) {
+  auto gistMW = executionInfoHash[&ex]->gistWindow;
+  if (gistMW == nullptr) {
+    gistMW = createGist(ex, title);
+  }
+  gistMW->show();
+  gistMW->activateWindow();
+  connect(gistMW->getCanvas(), &TreeCanvas::announceSelectNode,
+          this, [this, &ex](int gid){
+            this->tellVisualisationsSelectNode(&ex, gid);
+          });
+}
+
 void ProfilerConductor::updateTitles(void) {
   for (int i = 0; i < executions.size(); i++) {
     executionList.item(i)
@@ -201,20 +223,11 @@ GistMainWindow* ProfilerConductor::createGist(Execution& e, QString title) {
 }
 
 void ProfilerConductor::gistButtonClicked() {
-  QList<QListWidgetItem*> selected = executionList.selectedItems();
-  for (int i = 0; i < selected.size(); i++) {
-    ExecutionListItem* item = static_cast<ExecutionListItem*>(selected[i]);
-    Execution& execution = item->execution_;
-    GistMainWindow* gistMW = executionInfoHash[&execution]->gistWindow;
-    if (gistMW == nullptr) {
-      gistMW = createGist(execution, item->text());
-    }
-    gistMW->show();
-    gistMW->activateWindow();
-    connect(gistMW->getCanvas(), &TreeCanvas::announceSelectNode,
-            this, [this, &execution](int gid){
-              this->tellVisualisationsSelectNode(&execution, gid);
-            });
+  for (auto* l_item : executionList.selectedItems()) {
+    auto item = static_cast<ExecutionListItem*>(l_item);
+    Execution& ex = item->execution_;
+    
+    displayExecution(ex, item->text());
   }
 }
 
@@ -233,6 +246,28 @@ void ProfilerConductor::compareButtonClicked() {
 
   /// NOTE(maxim): the new window will delete itself when closed
   new CmpTreeDialog(this, new Execution{}, withLabels, *ex1, *ex2);
+}
+
+
+void ProfilerConductor::compareSubtrees() {
+
+  QList<QListWidgetItem*> selected = executionList.selectedItems();
+  if (selected.size() != 2) return;
+
+  const auto* ex1 = &static_cast<ExecutionListItem*>(selected[0])->execution_;
+  const auto* ex2 = &static_cast<ExecutionListItem*>(selected[1])->execution_;
+
+  auto gmw1 = executionInfoHash[ex1]->gistWindow;
+  auto gmw2 = executionInfoHash[ex2]->gistWindow;
+
+  if (gmw1 == nullptr || gmw2 == nullptr) return;
+
+  auto* e = new Execution{};
+  addExecution(*e);
+
+  subtree_comparison::compareExecutions(*e, *ex1, *ex2);
+
+  displayExecution(*e, "combined tree");
 }
 
 class StatsHelper {

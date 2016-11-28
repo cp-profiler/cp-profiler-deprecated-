@@ -1,5 +1,6 @@
 .qmake.stash
 *.o
+*.log
 .DS_Store
 moc_*.cpp
 StandAloneGist.pro.user

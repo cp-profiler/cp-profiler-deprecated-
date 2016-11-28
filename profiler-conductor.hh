@@ -27,7 +27,7 @@ class ProfilerConductor : public QMainWindow {
   Q_OBJECT
  private:
   QList<Execution*> executions;
-  QHash<Execution*, ExecutionInfo*> executionInfoHash;
+  QHash<const Execution*, ExecutionInfo*> executionInfoHash;
 
   QListWidget executionList;
   QCheckBox   compareWithLabelsCB;
@@ -35,6 +35,7 @@ class ProfilerConductor : public QMainWindow {
   std::unique_ptr<ProfilerTcpServer> listener;
 
   void addExecution(Execution& execution);
+  void displayExecution(Execution& execution, QString&& title);
   GistMainWindow* createGist(Execution&, QString title);
   WebscriptView* getWebscriptView(Execution* execution, std::string id);
   void registerWebscriptView(Execution* execution, std::string id, WebscriptView* webView);
@@ -44,6 +45,7 @@ class ProfilerConductor : public QMainWindow {
  private slots:
   void gistButtonClicked();
   void compareButtonClicked();
+  void compareSubtrees();
   void gatherStatisticsClicked();
   void webscriptClicked();
   void saveExecutionClicked();

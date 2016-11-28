@@ -24,9 +24,11 @@
 #define NODETREE_HH
 
 #include <QMutex>
+#include <QObject>
 #include "visualnode.hh"
 
-class NodeTree {
+class NodeTree : public QObject {
+Q_OBJECT
 private:
     /// Mutex for synchronizing acccess to the tree
     QMutex mutex;
@@ -39,8 +41,6 @@ public:
     NodeTree();
     ~NodeTree();
 
-    /// The distance between current node to the root
-    int calculateDepth(const VisualNode& node) const;
     VisualNode* getChild(const VisualNode& node, int alt);
     const VisualNode* getChild(const VisualNode& node, int alt) const;
 
@@ -59,10 +59,10 @@ public:
 
     QMutex& getMutex();
     QMutex& getLayoutMutex();
+
+private:
+signals:
+    void treeModified();
 };
-
-
-bool compareSubtrees(const NodeTree& nt, const VisualNode& root1,
-                     const VisualNode& root2);
 
 #endif

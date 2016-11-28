@@ -91,7 +91,6 @@ class SimilarShapesWindow : public QDialog {
   friend class detail::Filters;
   friend class ::TreeCanvas;
 
-  TreeCanvas& m_tc; /// for highlighting subtrees
   NodeTree& node_tree;
 
   SimilarityType  simType     = SimilarityType::SUBTREE;
@@ -136,7 +135,7 @@ class SimilarShapesWindow : public QDialog {
 
 
  public:
-  SimilarShapesWindow(TreeCanvas* tc, NodeTree& nt);
+  SimilarShapesWindow(NodeTree& nt);
   
   /// Called from a rectangle representing a shape
   void highlightSubtrees(VisualNode* n);

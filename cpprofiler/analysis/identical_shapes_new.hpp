@@ -48,8 +48,8 @@ namespace detail {
   }
 
 
-  static ChildrenInfoGroups groupByHeight(const TreeCanvas& tc, NodeTree& nt) {
-    int max_depth = tc.get_stats().maxDepth;
+  static ChildrenInfoGroups groupByHeight(NodeTree& nt) {
+    int max_depth = nt.getStatistics().maxDepth;
 
     ChildrenInfoGroups groups(max_depth);
 
@@ -132,7 +132,7 @@ static int countNodes(VisualNode* node,
 }
 
 
-static ChildrenInfoGroups groupByNoNodes(TreeCanvas& tc, NodeTree& nt) {
+static ChildrenInfoGroups groupByNoNodes(NodeTree& nt) {
 
     std::unordered_map<int, vector<ChildInfo>> group_map;
 
@@ -161,10 +161,10 @@ static ChildrenInfoGroups groupByNoNodes(TreeCanvas& tc, NodeTree& nt) {
 
 
 
-GroupsOfNodes_t findIdenticalShapes(TreeCanvas& tc, NodeTree& nt) {
+GroupsOfNodes_t findIdenticalShapes(NodeTree& nt) {
   /// 0) Start with some initial partition:
-  ChildrenInfoGroups groups = groupByNoNodes(tc, nt);
-  // ChildrenInfoGroups groups = detail::groupByHeight(tc, nt);
+  ChildrenInfoGroups groups = groupByNoNodes(nt);
+  // ChildrenInfoGroups groups = detail::groupByHeight(nt);
 
   std::unordered_map<const VisualNode*, PosInGroups> node2pos;
   SplittableGroups sgroups{groups};

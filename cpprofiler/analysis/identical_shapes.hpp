@@ -72,8 +72,8 @@ static int getSubtreeHeight(const VisualNode* n, const NodeAllocator& na,
 
 /// Groups nodes by height of their underlying subtree
 /// TODO(maxim): NodeTree should be able to tell its depth
-static std::vector<Group> groupByHeight(const TreeCanvas& tc, NodeTree& nt) {
-  int max_depth = tc.get_stats().maxDepth;
+static std::vector<Group> groupByHeight(NodeTree& nt) {
+  int max_depth = tree_utils::calculateMaxDepth(nt);
 
   /// start from 1 for convenience
   std::vector<Group> groups(max_depth);

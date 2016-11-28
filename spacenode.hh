@@ -121,6 +121,7 @@ protected:
    *
    */
 
+
   /// Set status flag
   void setFlag(int flag, bool value);
 

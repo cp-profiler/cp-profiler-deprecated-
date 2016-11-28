@@ -55,34 +55,5 @@ Statistics& NodeTree::getStatistics() {
     return stats;
 }
 
-int NodeTree::calculateDepth(const VisualNode& node) const {
-    int count = 0;
-
-    auto it = &node;
-
-    while ( (it = it->getParent(na)) ) { count++; }
-
-    return count;
-}
-
 QMutex& NodeTree::getMutex() { return mutex; }
 QMutex& NodeTree::getLayoutMutex() { return layoutMutex; }
-
-/// Compare subtrees represented by root1 and root2
-bool compareSubtrees(const NodeTree& nt, const VisualNode& root1,
-                     const VisualNode& root2) {
-  // compare roots
-  bool equal = compareNodes(root1, root2);
-  if (!equal) return false;
-
-  // if nodes have children, compare them recursively:
-  for (auto i = 0u; i < root1.getNumberOfChildren(); ++i) {
-    auto new_root_1 = nt.getChild(root1, i);
-    auto new_root_2 = nt.getChild(root2, i);
-
-    bool equal = compareSubtrees(nt, *new_root_1, *new_root_2);
-    if (!equal) return false;
-  }
-
-  return true;
-}

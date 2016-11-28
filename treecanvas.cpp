@@ -48,6 +48,7 @@
 
 #include "ml-stats.hh"
 #include "globalhelper.hh"
+#include "tree_utils.hh"
 #include "execution.hh"
 
 #include <fstream>
@@ -74,7 +75,9 @@ TreeCanvas::TreeCanvas(Execution* e, QGridLayout* layout, QWidget* parent)
 
   root = execution.nodeTree().getRoot();
 
-  m_options.scale = LayoutConfig::defScale / 100.0;
+  auto init_scale = Settings::get_int("default_scale");
+
+  m_options.scale = init_scale / 100;
 
   setAutoFillBackground(true);
 
@@ -107,9 +110,9 @@ TreeCanvas::TreeCanvas(Execution* e, QGridLayout* layout, QWidget* parent)
   m_scaleBar->setObjectName("scaleBar");
   m_scaleBar->setMinimum(LayoutConfig::minScale);
   m_scaleBar->setMaximum(LayoutConfig::maxScale);
-  m_scaleBar->setValue(LayoutConfig::defScale);
-  connect(m_scaleBar, SIGNAL(valueChanged(int)), this, SLOT(scaleTree(int)));
+  m_scaleBar->setValue(init_scale);
   connect(this, SIGNAL(scaleChanged(int)), m_scaleBar, SLOT(setValue(int)));
+  connect(m_scaleBar, SIGNAL(valueChanged(int)), this, SLOT(scaleTree(int)));
 
   smallBox = new QLineEdit("100");
   smallBox->setMaximumWidth(50);
@@ -141,8 +144,7 @@ void TreeCanvas::scaleTree(int scale0, int zoomx, int zoomy) {
   layoutMutex.lock();
 
   QSize viewport_size = size();
-  QAbstractScrollArea* sa =
-      static_cast<QAbstractScrollArea*>(parentWidget()->parentWidget());
+  auto* sa = static_cast<QAbstractScrollArea*>(parentWidget()->parentWidget());
 
   if (zoomx == -1) zoomx = viewport_size.width() / 2;
   if (zoomy == -1) zoomy = viewport_size.height() / 2;
@@ -268,7 +270,7 @@ void TreeCanvas::analyzeSimilarSubtrees(void) {
   QMutexLocker locker_1(&mutex);
   QMutexLocker locker_2(&layoutMutex);
 
-  shapesWindow.reset(new SimilarShapesWindow{this, execution.nodeTree()});
+  shapesWindow.reset(new SimilarShapesWindow{execution.nodeTree()});
   shapesWindow->show();
 }
 
@@ -322,7 +324,7 @@ void TreeCanvas::showNodeInfo(void) {
   extra_info += "\n";
 
   auto id = currentNode->getIndex(na);
-  auto depth = execution.nodeTree().calculateDepth(*currentNode);
+  auto depth = tree_utils::calculateDepth(execution.nodeTree(), *currentNode);
 
   extra_info += "--------------------------------------------\n";
   extra_info += " id: " + std::to_string(id) + "\tdepth: " + std::to_string(depth) + "\n";
@@ -367,28 +369,6 @@ void TreeCanvas::collectMLStats(VisualNode* node) {
 
 void TreeCanvas::collectMLStatsRoot(std::ostream& out) {
   ::collectMLStats(root, execution.nodeTree().getNA(), &execution, out);
-}
-
-void TreeCanvas::highlightSubtrees(const std::vector<VisualNode*>& nodes) {
-  QMutexLocker locker_1(&mutex);
-  QMutexLocker locker_2(&layoutMutex);
-
-  auto& na = execution.nodeTree().getNA();
-
-  root->unhideAll(na);
-  root->layout(na);
-
-  UnhighlightCursor uhc(root, na);
-  PreorderNodeVisitor<UnhighlightCursor>(uhc).run();
-
-  for (auto node : nodes) {
-    node->setHighlighted(true);
-  }
-
-  // HideNotHighlightedCursor hnhc(root, na);
-  // PostorderNodeVisitor<HideNotHighlightedCursor>(hnhc).run();
-
-  updateCanvas();
 }
 
 void TreeCanvas::printPath(std::stringstream& str, const VisualNode* node) {
@@ -653,7 +633,7 @@ void TreeCanvas::reset() {
 
   VisualNode* root = execution.nodeTree().getRoot();
   currentNode = root;
-  m_options.scale = 1.0;
+  m_options.scale = (double)Settings::get_int("default_scale") / 100;
   for (int i = bookmarks.size(); i--;) emit removedBookmark(i);
   bookmarks.clear();
 
@@ -954,18 +934,9 @@ void TreeCanvas::paintEvent(QPaintEvent* event) {
              static_cast<int>(origClip.width() / m_options.scale),
              static_cast<int>(origClip.height() / m_options.scale));
 
-  // perfHelper.begin("TreeCanvas: paint");
+
   DrawingCursor dc(root, execution.nodeTree().getNA(), painter, clip);
   PreorderNodeVisitor<DrawingCursor>(dc).run();
-  // perfHelper.end();
-  // int nodesLayouted = 1;
-  // clock_t t0 = clock();
-  // while (v.next()) { nodesLayouted++; }
-  // double t = (static_cast<double>(clock()-t0) / CLOCKS_PER_SEC) * 1000.0;
-  // double nps = static_cast<double>(nodesLayouted) /
-  //   (static_cast<double>(clock()-t0) / CLOCKS_PER_SEC);
-  // std::cout << "Drawing done. " << nodesLayouted << " nodes in "
-  //   << t << " ms. " << nps << " nodes/s." << std::endl;
 }
 
 void TreeCanvas::mouseDoubleClickEvent(QMouseEvent* event) {
@@ -1353,10 +1324,11 @@ static void updateStats(Statistics& stats, const VisualNode* n) {
 static void copyTree(VisualNode* target, NodeTree& tree_target,
                      Data& data_target, const VisualNode* source,
                      const NodeTree& tree_source, const Data& data_source) {
-  /// assumes that target is not assigned a number of children
+
+  assert(target->getNumberOfChildren() == 0);
 
   auto& stats = tree_target.getStatistics();
-  stats.undetermined = 0; /// default is 1
+  stats.undetermined = 0;
 
   std::stack<VisualNode*> target_stack;
   std::stack<const VisualNode*> source_stack;
@@ -1421,13 +1393,13 @@ void TreeCanvas::findSelectedShape() {
   std::vector<VisualNode*> nodes;
 
   applyToEachNode([&](VisualNode* n) {
-    if (compareSubtrees(execution.nodeTree(), *currentNode, *n)) {
+    if (tree_utils::compareSubtrees(execution.nodeTree(), *currentNode, *n)) {
       nodes.push_back(n);
     }
   });
   perfHelper.end();
 
-  highlightSubtrees(nodes);
+  tree_utils::highlightSubtrees(execution.nodeTree(), nodes);
 }
 
 #ifdef MAXIM_DEBUG
@@ -1443,7 +1415,7 @@ void TreeCanvas::_addChildren(VisualNode* node) {
   auto& stats = execution.getStatistics();
   stats.undetermined += 2;
 
-  int depth = execution.nodeTree().calculateDepth(*node) + 1;
+  int depth = tree_utils::calculateDepth(execution.nodeTree(), *node) + 1;
   int new_depth = depth + 1;
 
   stats.maxDepth = std::max(stats.maxDepth, new_depth);

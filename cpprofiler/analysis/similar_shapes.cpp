@@ -3,14 +3,16 @@
 #include <QLabel>
 #include <QScrollBar>
 #include <QPaintEvent>
+#include <algorithm>
+#include <chrono>
+
 #include "drawingcursor.hh"
 #include "nodevisitor.hh"
 #include "visualnode.hh"
-#include <algorithm>
-#include <chrono>
 #include "libs/perf_helper.hh"
 #include "nodetree.hh"
 #include "globalhelper.hh"
+#include "tree_utils.hh"
 
 #include "identical_shapes.hpp"
 
@@ -230,8 +232,8 @@ static void eliminateFilteredSubsumed(NodeTree& nt, std::vector<ShapeInfo>& shap
 
 }
 
-SimilarShapesWindow::SimilarShapesWindow(TreeCanvas* tc, NodeTree& nt)
-    : QDialog{tc}, m_tc{*tc}, node_tree{nt} {
+SimilarShapesWindow::SimilarShapesWindow(NodeTree& nt)
+    : node_tree{nt} {
 
   
 
@@ -284,7 +286,7 @@ void SimilarShapesWindow::highlightSubtrees(VisualNode* node) {
     // perfHelper.begin("actually highlighting");
     /// TODO(maxim): slow, run this in a parallel thread?
     if (shape_it != end(shapes)) {
-      m_tc.highlightSubtrees(shape_it->nodes);
+      tree_utils::highlightSubtrees(node_tree, shape_it->nodes);
 
     }
     // perfHelper.end();
@@ -309,7 +311,7 @@ void SimilarShapesWindow::highlightSubtrees(VisualNode* node) {
         vec.push_back(n);
       }
 
-      m_tc.highlightSubtrees(vec);
+      tree_utils::highlightSubtrees(node_tree, vec);
       break;
     }
 
@@ -434,7 +436,7 @@ static bool areShapesIdentical(const NodeTree& nt,
   if (nodes.size() == 1) return true;
 
   for (auto it = ++begin(nodes); it < end(nodes); ++it) {
-    auto equal = compareSubtrees(nt, *first_node, **it);
+    auto equal = tree_utils::compareSubtrees(nt, *first_node, **it);
     if (!equal) return false;
   }
   return true;
@@ -492,7 +494,7 @@ SimilarShapesWindow::collectSimilarShapes() {
   root->unhideAll(na);
   root->layout(na);
 
-  m_tc.applyToEachNodePO(action);
+  tree_utils::applyToEachNodePO(node_tree, action);
 
   return res;
 }
@@ -738,11 +740,11 @@ void SimilarShapesWindow::updateHistogram() {
 
           /// TODO(maxim): get rid of the unnecessary copy here:
         perfHelper.begin("identical_shapes");
-          // m_identicalGroups = identical_subtrees_old::findIdenticalShapes(m_tc, node_tree);
+          m_identicalGroups = identical_subtrees_old::findIdenticalShapes(node_tree);
           // qDebug() << "identical groups 1: " << m_identicalGroups.size();
-          // auto temp1 = identical_subtrees_flat::findIdenticalShapes(m_tc, node_tree);
+          // m_identicalGroups = identical_subtrees_flat::findIdenticalShapes(node_tree);
           // qDebug() << "identical groups 2: " << temp1.size();
-          m_identicalGroups = identical_subtrees_new::findIdenticalShapes(m_tc, node_tree);
+          // m_identicalGroups = identical_subtrees_new::findIdenticalShapes(node_tree);
           // qDebug() << "identical groups 3: " << temp2.size();
         perfHelper.end();
           subtrees_cached = true;

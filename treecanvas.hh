@@ -36,11 +36,9 @@ namespace LayoutConfig {
   /// Minimum scale factor
   constexpr int minScale = 1;
   /// Maximum scale factor
-  constexpr int maxScale = 400;
-  /// Default scale factor
-  constexpr int defScale = 100;
+  constexpr int maxScale = 200;
   /// Maximum scale factor for automatic zoom
-  constexpr int maxAutoZoomScale = defScale;
+  constexpr int maxAutoZoomScale = 100;
 }
 
 class TreeCanvas;
@@ -306,8 +304,6 @@ public Q_SLOTS:
   void collectMLStats(VisualNode* node);
   /// Collect ML stats from the root
   void collectMLStatsRoot(std::ostream& out);
-  /// Hide all subtrees except for those represented by `nodes`
-  void highlightSubtrees(const std::vector<VisualNode*>& nodes);
 
   /// Write path to `node` into `str`
   void printPath(std::stringstream& str, const VisualNode* node);

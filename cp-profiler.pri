@@ -28,6 +28,7 @@ SOURCES += \
     $$PWD/profiler-tcp-server.cpp \
     $$PWD/ml-stats.cpp \
     $$PWD/execution.cpp \
+    $$PWD/tree_utils.cpp \
     $$PWD/cpprofiler\analysis\backjumps.cpp \
     $$PWD/cpprofiler\pixeltree\pixel_tree_dialog.cpp \
     $$PWD/cpprofiler\pixeltree\icicle_tree_dialog.cpp \
@@ -60,6 +61,7 @@ HEADERS  += \
     $$PWD/nodevisitor.hpp \
     $$PWD/zoomToFitIcon.hpp \
     $$PWD/data.hh \
+    $$PWD/nodetree.hh \
     $$PWD/highlight_nodes_dialog.hpp \
     $$PWD/cmp_tree_dialog.hh \
     $$PWD/receiverthread.hh \
@@ -72,6 +74,7 @@ HEADERS  += \
     $$PWD/profiler-conductor.hh \
     $$PWD/profiler-tcp-server.hh \
     $$PWD/execution.hh \
+    $$PWD/tree_utils.hh \
     $$PWD/cpprofiler\pixeltree\pixelImage.hh \
     $$PWD/maybeCaller.hh \
     $$PWD/ml-stats.hh \

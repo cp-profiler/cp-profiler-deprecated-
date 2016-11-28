@@ -118,6 +118,10 @@ GistMainWindow::GistMainWindow(Execution& e,
   layout->addWidget(m_Canvas->scaleBar(), 2, 1, Qt::AlignHCenter);
   layout->addWidget(m_Canvas->smallBox, 3, 1, Qt::AlignBottom);
 
+  connect(&e.nodeTree(), &NodeTree::treeModified, [this]() {
+    m_Canvas->updateCanvas(false);
+  });
+
   connect(scrollArea->horizontalScrollBar(), SIGNAL(valueChanged(int)),
           m_Canvas.get(), SLOT(scroll(void)));
   connect(scrollArea->verticalScrollBar(), SIGNAL(valueChanged(int)), m_Canvas.get(),
