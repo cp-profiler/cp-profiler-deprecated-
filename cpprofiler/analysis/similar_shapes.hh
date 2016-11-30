@@ -123,7 +123,7 @@ class SimilarShapesWindow : public QDialog {
   /// Called on construction
   std::multiset<ShapeI, CompareShapes> collectSimilarShapes();
 
-  void initInterface();
+  void initInterface(QAbstractScrollArea* sa);
 
   /// Reset the scene and call drawHistorgram/drawAlternativeHistogram
   void updateHistogram();
@@ -145,14 +145,16 @@ class SimilarShapesWindow : public QDialog {
 /// "Connects" to a tree and shows a part of it
 class ShapeCanvas : public QWidget {
 Q_OBJECT
-  const QAbstractScrollArea* m_ScrollArea;
+  std::unique_ptr<QAbstractScrollArea> m_ScrollArea;
   const NodeTree& m_NodeTree;
   VisualNode* m_targetNode = nullptr;
 
   void paintEvent(QPaintEvent* event) override;
 public:
-  ShapeCanvas(QAbstractScrollArea* parent, const NodeTree& nt);
+  ShapeCanvas(std::unique_ptr<QAbstractScrollArea>&& sa, const NodeTree& nt);
   void showShape(VisualNode* node);
+
+  ~ShapeCanvas();
 };
 
 

@@ -143,31 +143,25 @@ int calculateDepth(const NodeTree& nt, const VisualNode& node) {
   return count;
 }
 
-int calculateMaxDepth(const NodeTree& nt) {
+static int calcDepth(const NodeAllocator& na, const VisualNode* n) {
+  auto kids = n->getNumberOfChildren();
+  if (kids == 0) { return 1; }
 
-  auto& na = nt.getNA();
-  auto* root = nt.getRoot();
-
-  std::stack<const VisualNode*> stk;
-
-  stk.push(root);
-
-  int max_depth = 0;
-
-  while(stk.size() > 0) {
-
-    if (max_depth < stk.size()) { max_depth = stk.size(); }
-
-    auto* curr_node = stk.top(); stk.pop();
-
-    for (auto i = 0u; i < curr_node->getNumberOfChildren(); ++i) {
-      auto child = curr_node->getChild(na, i);
-      stk.push(child);
-    }
+  int max = 0;
+  for (auto i = 0u; i < kids; ++i) {
+    int cur_depth = calcDepth(na, n->getChild(na, i)) + 1;
+    if (cur_depth > max) { max = cur_depth; }
   }
 
-  /// account for the root node
-  return max_depth + 1;
+  return max;
+}
+
+int calculateMaxDepth(const NodeTree& nt) {
+
+  const auto& na = nt.getNA();
+  const auto* root = nt.getRoot();
+
+  return calcDepth(na, root);
 }
 
 void highlightSubtrees(NodeTree& nt, const std::vector<VisualNode*>& nodes) {

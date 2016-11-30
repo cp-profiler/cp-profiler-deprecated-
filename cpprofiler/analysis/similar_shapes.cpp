@@ -235,12 +235,10 @@ static void eliminateFilteredSubsumed(NodeTree& nt, std::vector<ShapeInfo>& shap
 SimilarShapesWindow::SimilarShapesWindow(NodeTree& nt)
     : node_tree{nt} {
 
-  
+  std::unique_ptr<QAbstractScrollArea> sa{new QAbstractScrollArea()};
+  initInterface(sa.get());
+  m_ShapeCanvas.reset(new ShapeCanvas(std::move(sa), node_tree));
 
-  initInterface();
-
-  /// TODO(maxim): scroll area should be a part of the canvas
-  m_ShapeCanvas.reset(new ShapeCanvas(m_scrollArea, node_tree));
   m_ShapeCanvas->show();
 
   updateHistogram();
@@ -319,15 +317,14 @@ void SimilarShapesWindow::highlightSubtrees(VisualNode* node) {
 
 }
 
-void SimilarShapesWindow::initInterface() {
+void SimilarShapesWindow::initInterface(QAbstractScrollArea* sa) {
   m_scene.reset(new QGraphicsScene{});
 
   hist_view = new QGraphicsView{this};
   hist_view->setScene(m_scene.get());
   hist_view->setAlignment(Qt::AlignLeft | Qt::AlignTop);
 
-  m_scrollArea = new QAbstractScrollArea{this};
-  m_scrollArea->setAutoFillBackground(true);
+  // sa->setAutoFillBackground(true);
 
   auto settingsLayout = new QHBoxLayout{};
   settingsLayout->addWidget(new QLabel{"Type:"});
@@ -358,7 +355,7 @@ void SimilarShapesWindow::initInterface() {
   auto splitter = new QSplitter{this};
 
   splitter->addWidget(hist_view);
-  splitter->addWidget(m_scrollArea);
+  splitter->addWidget(sa);
   splitter->setSizes(QList<int>{1, 1});  // for splitter to be centered
 
   auto depthFilterSB = new QSpinBox{this};
@@ -590,7 +587,7 @@ static int extractProperty(const SubtreeInfo& info, ShapeProperty prop) {
   return value;
 }
 
-void drawAnalysisHistogram(QGraphicsScene* scene, SimilarShapesWindow* ssw,
+static void drawAnalysisHistogram(QGraphicsScene* scene, SimilarShapesWindow* ssw,
                            ShapeProperty prop, std::vector<SubtreeInfo>& vec) {
   if (vec.size() == 0) return;
   int curr_y = 40;
@@ -824,10 +821,10 @@ namespace detail {
 /// ************* SHAPE CANVAS ***************
 /// ******************************************
 
-ShapeCanvas::ShapeCanvas(QAbstractScrollArea* sa, const NodeTree& nt)
-    : QWidget{sa},
-      m_ScrollArea{sa},
-      m_NodeTree{nt} {}
+ShapeCanvas::ShapeCanvas(std::unique_ptr<QAbstractScrollArea>&& sa, const NodeTree& nt)
+    : QWidget{sa.get()}, m_ScrollArea{std::move(sa)}, m_NodeTree{nt} {}
+
+ShapeCanvas::~ShapeCanvas() = default;
 
 void ShapeCanvas::paintEvent(QPaintEvent* event) {
   /// TODO(maxim): make a copy of a subtree to display here
