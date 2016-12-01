@@ -10,8 +10,6 @@
 #include <QGraphicsScene>
 #include <QGraphicsRectItem>
 
-
-class TreeCanvas;
 class VisualNode;
 class Shape;
 
@@ -22,19 +20,6 @@ namespace cpprofiler {
 namespace analysis {
 class ShapeCanvas;
 class SimilarShapesWindow;
-
-/// for temporary stuff
-struct ShapeI {
-  int sol;
-  int shape_size;
-  int shape_height;
-  VisualNode* node;
-  Shape* s;
-  ShapeI(int sol0, VisualNode* node0);
-  ~ShapeI();
-  ShapeI(const ShapeI& sh);
-  ShapeI& operator=(const ShapeI& other);
-};
 
 struct ShapeInfo {
   int sol;
@@ -68,14 +53,6 @@ namespace detail {
   };
 }
 
-
-
-/// less operator needed for the map
-struct CompareShapes {
- public:
-  bool operator()(const ShapeI& s1, const ShapeI& s2) const;
-};
-
 enum class ShapeProperty { SIZE, COUNT, HEIGHT };
 
 using GroupsOfNodes_t = std::vector<std::vector<VisualNode*>>;
@@ -89,7 +66,6 @@ class SimilarShapesWindow : public QDialog {
   Q_OBJECT
 
   friend class detail::Filters;
-  friend class ::TreeCanvas;
 
   NodeTree& node_tree;
 
@@ -118,10 +94,6 @@ class SimilarShapesWindow : public QDialog {
 #ifdef MAXIM_DEBUG
   QLabel debug_label{"debug info"};
 #endif
-
-  /// Loop through all nodes and add them to the multimap
-  /// Called on construction
-  std::multiset<ShapeI, CompareShapes> collectSimilarShapes();
 
   void initInterface(QAbstractScrollArea* sa);
 

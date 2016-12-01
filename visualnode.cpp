@@ -54,6 +54,21 @@ Shape* Shape::copy(const Shape* s) {
   return ret;
 }
 
+int shapeSize(const Shape& s) {
+  int total_size = 0;
+
+  int prev_l = 0;
+  int prev_r = 0;
+
+  for (auto i = 0u; i < s.depth(); ++i) {
+    total_size += std::abs((s[i].r + prev_r) - (s[i].l + prev_l));
+    prev_l += s[i].l;
+    prev_r += s[i].r;
+  }
+
+  return total_size;
+}
+
 /// Allocate shapes statically
 class ShapeAllocator {
 public:

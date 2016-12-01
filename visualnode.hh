@@ -128,6 +128,9 @@ public:
   const BoundingBox& getBoundingBox(void) const;
 };
 
+int shapeSize(const Shape& s);
+
+
 /// \brief %Node class that supports visual layout
 class VisualNode : public SpaceNode {
 

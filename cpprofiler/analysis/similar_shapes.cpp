@@ -14,7 +14,9 @@
 #include "globalhelper.hh"
 #include "tree_utils.hh"
 
+#include "similar_shapes_algorithm.hpp"
 #include "identical_shapes.hpp"
+#include "subsumed_subtrees.hpp"
 
 namespace cpprofiler {
 namespace analysis {
@@ -88,150 +90,6 @@ std::ostream& operator<<(std::ostream& os, const VisualNode* n) {
   return os;
 }
 
-int countShapes(std::multiset<ShapeI, CompareShapes>& mset) {
-  int count = 0;
-
-  for (auto it = mset.begin(), end = mset.end(); it != end; it = mset.upper_bound(*it)) {
-    ++count;
-  }
-
-  return count;
-}
-
-
-
-/// conver to a vector of shape information
-static std::vector<ShapeInfo> toShapeVector(std::multiset<ShapeI, CompareShapes>&& mset) {
-
-  std::vector<ShapeInfo> shapes;
-  shapes.reserve(mset.size() / 5); /// arbitrary
-
-  auto it = mset.begin(); auto end = mset.end();
-
-  while (it != end) {
-
-    auto upper = mset.upper_bound(*it);
-
-    shapes.push_back({it->sol, it->shape_size, it->shape_height, {it->node}, it->s});
-    for (++it; it != upper; ++it) {
-      shapes[shapes.size() - 1].nodes.push_back(it->node);
-    }
-  }
-
-  return shapes;
-}
-
-
-namespace detail {
-
-static void eliminateSubsumedStep(
-    NodeTree& nt, std::vector<VisualNode*>& subsumed,
-    const std::vector<const ShapeInfo*>& shapes_of_h,
-    const std::unordered_map<VisualNode*, ShapeInfo*>& node2shape) {
-  for (auto& si : shapes_of_h) {
-    for (auto& node : si->nodes) {
-      for (auto k = 0u; k < node->getNumberOfChildren(); ++k) {
-        auto&& kid = node->getChild(nt.getNA(), k);
-
-        if (node2shape.find(kid) != end(node2shape)) {
-          subsumed.push_back(kid);
-        }
-      }
-    }
-  }
-}
-}
-
-/// Filter out unique shapres (with occurrence = 1)
-static std::vector<ShapeInfo> filterOutUnique(const std::vector<ShapeInfo>& shapes) {
-  std::vector<ShapeInfo> filtered_shapes;
-  for (auto& si : shapes) {
-    if (si.nodes.size() != 1) {
-      filtered_shapes.push_back(si);
-    }
-  }
-
-  return filtered_shapes;
-}
-
-static void eliminateSubsumed(NodeTree& nt, std::vector<ShapeInfo>& shapes) {
-  
-  shapes = filterOutUnique(shapes);
-  
-  /// sort nodes within each shape:
-  for (auto& si : shapes) {
-    auto& nodes = si.nodes;
-    std::sort(begin(nodes), end(nodes));
-  }
-
-  /// shapes of height X
-  auto maxDepth = nt.getStatistics().maxDepth;
-
-  std::vector<std::vector<const ShapeInfo*>> soh(maxDepth);
-
-  for (auto& shape : shapes) {
-    auto h = shape.height;
-    soh[h].push_back(&shape);
-  }
-
-  std::vector<VisualNode*> subsumed;
-
-  {
-      /// NOTE: assuming here that the shapes vector won't change
-      /// node2shape should (and will) be destroyed after `eliminateSubsumedStep`
-    std::unordered_map<VisualNode*, ShapeInfo*> node2shape;
-    for (auto& si : shapes) {
-      for (auto& n : si.nodes) {
-        node2shape[n] = &si;
-      }
-    }
-
-    for (int h = 2; h < soh.size(); ++h) {
-      detail::eliminateSubsumedStep(nt, subsumed, soh[h], node2shape);
-    }
-  }
-
-  qDebug() << "subsumed nodes: " << subsumed.size();
-
-  /// remove subsumed from shapes
-
-  std::sort(begin(subsumed), end(subsumed));
-
-  VisualNode dummy_node; /// delete all pointers pointing to this node
-
-  for (auto& si : shapes) {
-    std::vector<VisualNode*> new_vec;
-    for (auto& n : si.nodes) {
-
-      auto it = std::lower_bound(begin(subsumed), end(subsumed), n);
-
-      if ((it != end(subsumed)) && (*it == n)) {
-        n = &dummy_node;
-      }
-    }
-
-    for (auto n : si.nodes) {
-      if (n != &dummy_node) {
-        new_vec.push_back(n);
-      }
-    }
-
-    if (si.nodes.size() != new_vec.size()) {
-      si.nodes = std::move(new_vec);
-    }
-  }
-
-  /// ****************************
-
-  /// some shapes may have become unique
-  shapes = filterOutUnique(shapes);
-  
-}
-
-static void eliminateFilteredSubsumed(NodeTree& nt, std::vector<ShapeInfo>& shapes) {
-
-}
-
 SimilarShapesWindow::SimilarShapesWindow(NodeTree& nt)
     : node_tree{nt} {
 
@@ -247,21 +105,12 @@ SimilarShapesWindow::SimilarShapesWindow(NodeTree& nt)
 void SimilarShapesWindow::updateShapesData() {
 
   perfHelper.begin("shapes: analyse");
-  shapes = toShapeVector(collectSimilarShapes());
+  shapes = runSimilarShapes(node_tree);
   perfHelper.end();
 
   perfHelper.begin("subsumed shapes elimination");
   eliminateSubsumed(node_tree, shapes);
   perfHelper.end();
-}
-
-int getNoOfSolvedLeaves(const NodeTree& node_tree, VisualNode* n) {
-  int count = 0;
-
-  CountSolvedCursor csc(n, node_tree.getNA(), count);
-  PreorderNodeVisitor<CountSolvedCursor>(csc).run();
-
-  return count;
 }
 
 void SimilarShapesWindow::highlightSubtrees(VisualNode* node) {
@@ -441,60 +290,7 @@ static bool areShapesIdentical(const NodeTree& nt,
 
 }
 
-std::multiset<ShapeI, CompareShapes>
-SimilarShapesWindow::collectSimilarShapes() {
 
-  auto& na = node_tree.getNA();
-  QHash<VisualNode*, int> nSols;
-
-  auto getNoOfSolutions = [&na, &nSols] (VisualNode* n) -> int {
-    int nSol = 0;
-    switch (n->getStatus()) {
-        case SOLVED:
-          nSol = 1;
-        break;
-        case FAILED:
-          nSol = 0;
-        break;
-        case SKIPPED:
-          nSol = 0;
-        case UNDETERMINED:
-          nSol = 0;
-        break;
-        case BRANCH:
-          nSol = 0;
-          for (int i=n->getNumberOfChildren(); i--;) {
-            nSol += nSols.value(n->getChild(na,i));
-          }
-        break;
-        case MERGING:
-        break;    /// To avoid compiler warnings
-    }
-
-    return nSol;
-  };
-
-  std::multiset<ShapeI, CompareShapes> res;
-
-  auto action = [&res, &nSols, getNoOfSolutions](VisualNode* n) {
-
-    auto nSol = getNoOfSolutions(n);
-
-    nSols[n] = nSol;
-    if (n->getNumberOfChildren() > 0) {
-      res.insert(cpprofiler::analysis::ShapeI(nSol,n));
-    }
-  };
-
-  auto root = node_tree.getRoot();
-
-  root->unhideAll(na);
-  root->layout(na);
-
-  tree_utils::applyToEachNodePO(node_tree, action);
-
-  return res;
-}
 
 /// Find a subtree from `vec` with the maximal `ShapeProperty` value and return that value
 static int maxShapeValue(const std::vector<SubtreeInfo>& vec, ShapeProperty prop) {
@@ -617,23 +413,6 @@ static void drawAnalysisHistogram(QGraphicsScene* scene, SimilarShapesWindow* ss
 
     curr_y += ShapeRect::HEIGHT + 1;
   }
-}
-
-
-/// TODO(maxim): make this more accurate
-int shapeSize(const Shape& s) {
-  int total_size = 0;
-
-  int prev_l = 0;
-  int prev_r = 0;
-
-  for (auto i = 0u; i < s.depth(); ++i) {
-    total_size += std::abs((s[i].r + prev_r) - (s[i].l + prev_l));
-    prev_l += s[i].l;
-    prev_r += s[i].r;
-  }
-
-  return total_size;
 }
 
 void SimilarShapesWindow::drawAlternativeHistogram() {
@@ -878,52 +657,7 @@ void ShapeCanvas::showShape(VisualNode* node) {
   QWidget::update();
 }
 
-/// ******************************************
 
-ShapeI::ShapeI(int sol0, VisualNode* node0)
-    : sol(sol0), node(node0), s(Shape::copy(node->getShape())) {
-  shape_size = shapeSize(*s);
-  shape_height = s->depth();
-}
 
-ShapeI::~ShapeI() { Shape::deallocate(s); }
-
-ShapeI::ShapeI(const ShapeI& sh)
-    : sol(sh.sol),
-      shape_size(sh.shape_size),
-      shape_height(sh.shape_height),
-      node(sh.node),
-      s(Shape::copy(sh.s)) {}
-
-ShapeI& ShapeI::operator=(const ShapeI& sh) {
-  if (this != &sh) {
-    Shape::deallocate(s);
-    s = Shape::copy(sh.s);
-    sol = sh.sol;
-    shape_size = sh.shape_size;
-    shape_height = sh.shape_height;
-    node = sh.node;
-  }
-  return *this;
-}
-
-bool CompareShapes::operator()(const ShapeI& n1, const ShapeI& n2) const {
-  if (n1.sol > n2.sol) return false;
-  if (n1.sol < n2.sol) return true;
-
-  const Shape& s1 = *n1.s;
-  const Shape& s2 = *n2.s;
-
-  if (n1.shape_height < n2.shape_height) return true;
-  if (n1.shape_height > n2.shape_height) return false;
-
-  for (int i = 0; i < n1.shape_height; ++i) {
-    if (s1[i].l < s2[i].l) return false;
-    if (s1[i].l > s2[i].l) return true;
-    if (s1[i].r < s2[i].r) return true;
-    if (s1[i].r > s2[i].r) return false;
-  }
-  return false;
-}
 }
 }
