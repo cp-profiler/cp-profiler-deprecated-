@@ -585,3 +585,12 @@ bool compareNodes(const VisualNode& n1, const VisualNode& n2) {
 
   return true;
 }
+
+std::ostream& operator<<(std::ostream& os, const VisualNode* n) {
+  #ifdef MAXIM_DEBUG
+      os << n->debug_id;
+  #else
+      os << (void*)n;
+  #endif
+  return os;
+}

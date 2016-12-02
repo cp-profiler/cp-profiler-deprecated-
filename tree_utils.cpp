@@ -4,6 +4,9 @@
 #include "execution.hh"
 #include "tree_utils.hh"
 
+#include "nodecursor.hh"
+#include "nodevisitor.hh"
+
 namespace tree_utils {
 
 using std::stack;

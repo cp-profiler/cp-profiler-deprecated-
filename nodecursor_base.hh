@@ -3,12 +3,13 @@
 
 
 class NodeAllocator;
+class VisualNode;
 
 /// TODO(maxim): add a const cursor?
 
 /// \brief A cursor that can be run over a tree
-template<class Node>
 class NodeCursor {
+    using Node = VisualNode;
 private:
     /// The node where the iteration starts
     Node* _startNode;

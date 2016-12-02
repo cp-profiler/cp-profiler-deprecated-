@@ -1,6 +1,26 @@
 
+#include <sstream>
+
+class VisualNode;
+
+
 namespace cpprofiler {
 namespace analysis {
+namespace subtrees {
+
+namespace identical_subtrees_new {
+  GroupsOfNodes_t findIdentical(NodeTree& nt);
+}
+
+namespace identical_subtrees_old {
+  GroupsOfNodes_t findIdentical(NodeTree& nt);
+}
+
+namespace identical_subtrees_flat {
+  GroupsOfNodes_t findIdentical(NodeTree& nt);
+}
+
+
 
 using std::vector;
 struct ChildInfo {
@@ -43,6 +63,20 @@ QDebug& operator<<(QDebug& os, const std::vector<Group>& groups) {
     os << groups[i] << "\n";
   }
   return os;
+}
+
+template<typename T>
+static vector<T> flatten(vector<vector<T>>& vecs) {
+
+  vector<T> result;
+
+  for (auto& v : vecs) {
+    for (auto& e : v) {
+      result.push_back(e);
+    }
+  }
+
+  return result;
 }
 
 
@@ -97,7 +131,15 @@ struct PosInGroups {
 };
 
 
+GroupsOfNodes_t findIdentical(NodeTree& nt) {
+  // return identical_subtrees_new::findIdenticalShapes(nt);
+  return identical_subtrees_flat::findIdentical(nt);
+  // return identical_subtrees_old::findIdentical(nt);
+}
 
+
+
+}
 }
 }
 

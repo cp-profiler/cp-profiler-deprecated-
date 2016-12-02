@@ -1,5 +1,7 @@
 
-namespace cpprofiler { namespace analysis {
+namespace cpprofiler {
+namespace analysis {
+namespace subtrees {
 
 namespace identical_subtrees_new {
 
@@ -16,8 +18,6 @@ struct PosInGroups {
 };
 
 #include "splittable_groups.hpp"
-
-
 
 using ChildrenInfoGroups = vector<vector<ChildInfo>>;
 
@@ -142,28 +142,65 @@ static ChildrenInfoGroups groupByNoNodes(NodeTree& nt) {
     auto count = countNodes(root, na, group_map);
     group_map[count].push_back({-1, root});
 
-    /// convert map into a vector
+    /// convert a map into a vector
 
     ChildrenInfoGroups result;
+    result.reserve(group_map.size());
 
     for (auto& pair : group_map) {
-        // std::cout << "size: " << pair.first << " ";
-        for (auto& ci : pair.second) {
-            // std::cout << ci.node->debug_id << " ";
-        }
         result.push_back(std::move(pair.second));
-        // std::cout << "\n";
     }
 
     return result;
 }
 
+static ChildrenInfoGroups shapesToGroups(const std::vector<ShapeInfo>& shapes,
+                                         const NodeTree& nt) {
+  const auto& na = nt.getNA();
+
+  ChildrenInfoGroups result;
+  result.reserve(shapes.size());
+
+  for (const auto& s : shapes) {
+
+    vector<ChildInfo> group;
+    for (auto* n : s.nodes) {
+
+      /// figure out `alt`: have to check all parent's children
+      int alt;
+      auto* p = n->getParent(na);
+
+      if (p != nullptr) {
+
+        for (auto i = 0u; i < p->getNumberOfChildren(); ++i) {
+          if (n == p->getChild(na, i)) {
+            alt = i;
+            break;
+          }
+        }
+
+      } else {
+        alt = -1;
+      }
+
+      group.push_back({(int)alt, n});
+    }
+
+    result.push_back(std::move(group));
+  }
+
+  return result;
+}
+
+GroupsOfNodes_t findIdentical(NodeTree& nt) {
+
+  // std::vector<ShapeInfo> shapes = runSimilarShapes(nt);
+
+  // ChildrenInfoGroups groups = shapesToGroups(shapes, nt);
+  // / 0) Start with some initial partition:
+  ChildrenInfoGroups groups = groupByNoNodes(nt); /// slightly faster
 
 
-
-GroupsOfNodes_t findIdenticalShapes(NodeTree& nt) {
-  /// 0) Start with some initial partition:
-  ChildrenInfoGroups groups = groupByNoNodes(nt);
   // ChildrenInfoGroups groups = detail::groupByHeight(nt);
 
   std::unordered_map<const VisualNode*, PosInGroups> node2pos;
@@ -241,7 +278,7 @@ GroupsOfNodes_t findIdenticalShapes(NodeTree& nt) {
     result.push_back(std::move(tmp));
   }
 
-  // for (auto& group : res) {
+  // for (auto& group : groups) {
   //   std::vector<VisualNode*> tmp;
   //   // qDebug() << "size: " << group.size();
   //   for (auto& ci : group) {
@@ -255,6 +292,7 @@ GroupsOfNodes_t findIdenticalShapes(NodeTree& nt) {
   return result;
 }
 
+}
 }
 }
 }

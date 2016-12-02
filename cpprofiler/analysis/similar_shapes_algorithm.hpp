@@ -1,3 +1,5 @@
+#include <set>
+
 namespace cpprofiler {
 namespace analysis {
 
@@ -42,8 +44,8 @@ struct ShapeI {
 struct CompareShapes {
  public:
   bool operator()(const ShapeI& n1, const ShapeI& n2) const {
-    if (n1.sol > n2.sol) return false;
-    if (n1.sol < n2.sol) return true;
+    // if (n1.sol > n2.sol) return false;
+    // if (n1.sol < n2.sol) return true;
 
     const Shape& s1 = *n1.s;
     const Shape& s2 = *n2.s;
@@ -124,9 +126,7 @@ collectShapes(NodeTree& nt) {
     auto nSol = getNoOfSolutions(n);
 
     nSols[n] = nSol;
-    if (n->getNumberOfChildren() > 0) {
-      res.insert(detail::ShapeI(nSol,n));
-    }
+    res.insert(detail::ShapeI(nSol,n));
   };
 
   auto root = nt.getRoot();

@@ -100,6 +100,7 @@ CmpTreeDialog::CmpTreeDialog(QWidget* parent, Execution* execution, bool with_la
 
   resize(500, 400);
   show();
+  m_Canvas->reset();
 }
 
 CmpTreeDialog::~CmpTreeDialog() = default;

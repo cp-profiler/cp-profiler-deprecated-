@@ -27,7 +27,7 @@
 #include <QtGui>
 
 /// \brief A cursor that draws a tree on a QWidget
-class DrawingCursor : public NodeCursor<VisualNode> {
+class DrawingCursor : public NodeCursor {
 private:
     /// The painter where the tree is drawn
     QPainter& painter;

@@ -37,14 +37,14 @@
 
 inline bool
 LayoutCursor::mayMoveDownwards(void) {
-    return NodeCursor<VisualNode>::mayMoveDownwards() &&
+    return NodeCursor::mayMoveDownwards() &&
             node()->isDirty();
 }
 
 inline
 LayoutCursor::LayoutCursor(VisualNode* theNode,
                            const NodeAllocator& na)
-    : NodeCursor<VisualNode>(theNode,na) {}
+    : NodeCursor(theNode,na) {}
 
 inline void
 LayoutCursor::processCurrentNode(void) {

@@ -47,16 +47,16 @@ const BackjumpData Backjumps::findBackjumps(VisualNode* root,
 
 BackjumpsCursor::BackjumpsCursor(VisualNode* root, const NodeAllocator& na,
                                  BackjumpData& bj_data)
-    : NodeCursor<VisualNode>(root, na), bj_data(bj_data) {}
+    : NodeCursor(root, na), bj_data(bj_data) {}
 
 void BackjumpsCursor::moveDownwards() {
   ++cur_level;
-  NodeCursor<VisualNode>::moveDownwards();
+  NodeCursor::moveDownwards();
 }
 
 void BackjumpsCursor::moveUpwards() {
   --cur_level;
-  NodeCursor<VisualNode>::moveUpwards();
+  NodeCursor::moveUpwards();
 }
 
 void BackjumpsCursor::processCurrentNode() {

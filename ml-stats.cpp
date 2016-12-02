@@ -115,7 +115,7 @@ void printStatsEntry(const StatsEntry& se, std::ostream& out = std::cout) {
 // StatsCursor
 // **************************************************
 
-class StatsCursor : public NodeCursor<VisualNode> {
+class StatsCursor : public NodeCursor {
 private:
     Execution* execution;
     int depth;
@@ -253,7 +253,7 @@ public:
 
 
     void moveDownwards() {
-        NodeCursor<VisualNode>::moveDownwards();
+        NodeCursor::moveDownwards();
         depth++;
 
         enter();
@@ -280,12 +280,12 @@ public:
     }
 
     void moveUpwards() {
-        NodeCursor<VisualNode>::moveUpwards();
+        NodeCursor::moveUpwards();
         depth--;
     }
 
     void moveSidewards() {
-        NodeCursor<VisualNode>::moveSidewards();
+        NodeCursor::moveSidewards();
         enter();
     }
 };

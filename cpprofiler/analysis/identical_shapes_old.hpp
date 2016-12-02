@@ -1,5 +1,6 @@
 namespace cpprofiler {
 namespace analysis {
+namespace subtrees {
 
 
 namespace identical_subtrees_old {
@@ -26,18 +27,13 @@ static void printGroups(const std::vector<Group>& groups) {
   }
 }
 
-#endif
-
-#ifdef MAXIM_DEBUG
 static std::stringstream& operator<<(std::stringstream& ss, const ChildInfo& ci) {
   ss << ci.node->debug_id;
   return ss;
 }
 #endif
 
-namespace detail {
-
-void splitGroups(
+static void splitGroups(
     std::vector<Group>& groups,
     const std::vector<int>& g_to_split,
     std::unordered_map<const VisualNode*, PosInGroups>& node2groupID) {
@@ -82,7 +78,7 @@ void splitGroups(
   }
 }
 
-void separateNode(
+static void separateNode(
     Group& g, std::unordered_map<const VisualNode*, PosInGroups>& node2groupID,
     int i) {
   /// swap the target element with the element pointed at by the splitter
@@ -98,7 +94,7 @@ void separateNode(
 
 // returns a pair <i,j> where i is a group index and j -- node's index within
 // that group
-std::pair<int, int> findNodeInGroups(
+static std::pair<int, int> findNodeInGroups(
     const std::vector<Group>& groups,
     std::unordered_map<const VisualNode*, PosInGroups>& node2groupID,
     const VisualNode* n) {
@@ -108,7 +104,6 @@ std::pair<int, int> findNodeInGroups(
 
   return std::make_pair(g_idx, idx);
 }
-}
 
 
 //--------------------------------------------
@@ -117,13 +112,17 @@ std::pair<int, int> findNodeInGroups(
 // TODO/NOTE(maxim): This algorithm isn't supposed to work
 // (new groups pushed to the end), but I've failed
 // to find any cases where it produces a wrong result
-GroupsOfNodes_t findIdenticalShapes(NodeTree& nt) {
+GroupsOfNodes_t findIdentical(NodeTree& nt) {
   /// ------ 0) group by height ------
   std::vector<Group> groups = groupByHeight(nt);
 
+    /// *** EXPERIMENT (shuffling) ***
+  // std::random_shuffle( groups.begin(), groups.end() );
+  /// ******************************
+
   /// ------ 1) assign a group id to each node -------
   std::unordered_map<const VisualNode*, PosInGroups> node2groupID;
-  for (auto group_idx = 1u; group_idx < groups.size(); ++group_idx) {
+  for (auto group_idx = 0u; group_idx < groups.size(); ++group_idx) {
     auto& group = groups[group_idx];
 
     for (auto i = 0u; i < group.items.size(); ++i) {
@@ -151,12 +150,12 @@ GroupsOfNodes_t findIdenticalShapes(NodeTree& nt) {
         if (e.alt == alt) {
           /// 3.1) get its parent
           auto& na = nt.getNA();
-          auto parent = e.node->getParent(na);
+          auto* parent = e.node->getParent(na);
           // std::cerr << parent->debug_id << " ";
 
           /// 3.2 )find it in groups
 
-          auto location = detail::findNodeInGroups(groups, node2groupID, parent);
+          auto location = findNodeInGroups(groups, node2groupID, parent);
 
           // std::cerr << parent->debug_id << " in group: " << location.first << "\n";
 
@@ -164,7 +163,7 @@ GroupsOfNodes_t findIdenticalShapes(NodeTree& nt) {
           auto g_idx = location.first;
           groups_to_split.push_back(g_idx); /// NOTE(maxim): has duplicate elements (?)
 
-          detail::separateNode(groups[g_idx], node2groupID, location.second);
+          separateNode(groups[g_idx], node2groupID, location.second);
           // qDebug() << "node: " << e.node->debug_id;
           // qDebug() << "separate: " << parent->debug_id;
           /// split only affected groups
@@ -173,7 +172,7 @@ GroupsOfNodes_t findIdenticalShapes(NodeTree& nt) {
 
       // qDebug() << "groups before:";
       // printGroups(groups);
-      detail::splitGroups(groups, groups_to_split, node2groupID);
+      splitGroups(groups, groups_to_split, node2groupID);
       // qDebug() << "groups after:";
       // printGroups(groups);
       // qDebug() << " ";
@@ -216,6 +215,4 @@ GroupsOfNodes_t findIdenticalShapes(NodeTree& nt) {
 }
 
 
-}
-}
-}
+}}}}

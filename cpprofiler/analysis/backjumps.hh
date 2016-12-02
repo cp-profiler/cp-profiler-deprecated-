@@ -49,7 +49,7 @@ class Backjumps {
 };
 
 /// A cursor that prints backjumps
-class BackjumpsCursor : public NodeCursor<VisualNode> {
+class BackjumpsCursor : public NodeCursor {
  private:
   int cur_level = 0;  /// depth
   int last_failure_level =

@@ -35,6 +35,8 @@ SOURCES += \
     $$PWD/cpprofiler\pixeltree\pixel_tree_canvas.cpp \
     $$PWD/cpprofiler\analysis\depth_analysis.cpp \
     $$PWD/cpprofiler\analysis\similar_shapes.cpp \
+    $$PWD/cpprofiler\analysis\subtree_comp_win.cpp \
+    $$PWD/cpprofiler\analysis\subtree_canvas.cpp \
 
 HEADERS  += \
     $$PWD/globalhelper.hh \
@@ -87,6 +89,8 @@ HEADERS  += \
     $$PWD/cpprofiler/pixeltree/pixel_item.hh \
     $$PWD/cpprofiler/analysis/depth_analysis.hh \
     $$PWD/cpprofiler/analysis/similar_shapes.hh \
+    $$PWD/cpprofiler\analysis\subtree_comp_win.hh \
+    $$PWD/cpprofiler\analysis\subtree_canvas.hh \
     $$PWD/webscript.hh \
     
 

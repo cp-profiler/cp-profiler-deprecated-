@@ -23,7 +23,7 @@ inline void
 DrawingCursor::moveUpwards(void) {
     x -= node()->getOffset();
     y -= Layout::dist_y;
-    NodeCursor<VisualNode>::moveUpwards();
+    NodeCursor::moveUpwards();
 }
 
 inline bool
@@ -41,7 +41,7 @@ DrawingCursor::isClipped(void) {
 
 inline bool
 DrawingCursor::mayMoveDownwards(void) {
-    return NodeCursor<VisualNode>::mayMoveDownwards() &&
+    return NodeCursor::mayMoveDownwards() &&
             !node()->isHidden() &&
             node()->childrenLayoutIsDone() &&
             !isClipped();
@@ -49,7 +49,7 @@ DrawingCursor::mayMoveDownwards(void) {
 
 inline void
 DrawingCursor::moveDownwards(void) {
-    NodeCursor<VisualNode>::moveDownwards();
+    NodeCursor::moveDownwards();
     x += node()->getOffset();
     y += Layout::dist_y;
 }
@@ -57,6 +57,6 @@ DrawingCursor::moveDownwards(void) {
 inline void
 DrawingCursor::moveSidewards(void) {
     x -= node()->getOffset();
-    NodeCursor<VisualNode>::moveSidewards();
+    NodeCursor::moveSidewards();
     x += node()->getOffset();
 }

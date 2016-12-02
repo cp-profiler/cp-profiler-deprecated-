@@ -1,5 +1,6 @@
 namespace cpprofiler {
 namespace analysis {
+namespace subtrees {
 
 namespace identical_subtrees_flat {
 
@@ -232,7 +233,7 @@ static PosInGroups findNode(
 }
 
 /// TODO(maxim): can I make it linear time? (not used currently)
-GroupsOfNodes_t findIdenticalShapes(NodeTree& nt) {
+GroupsOfNodes_t findIdentical(NodeTree& nt) {
   /// ------ 0) group by height ------
 
   std::vector<Group> groups = groupByHeight(nt);
@@ -348,7 +349,4 @@ GroupsOfNodes_t findIdenticalShapes(NodeTree& nt) {
   return result;
 }
 
-
-}
-}
-}
+}}}}

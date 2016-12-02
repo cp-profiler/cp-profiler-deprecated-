@@ -43,7 +43,7 @@
 
 
 /// \brief A cursor that computes a tree layout for VisualNodes
-class LayoutCursor : public NodeCursor<VisualNode> {
+class LayoutCursor : public NodeCursor {
 public:
     /// Constructor
     LayoutCursor(VisualNode* theNode,

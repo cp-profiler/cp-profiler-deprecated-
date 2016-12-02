@@ -264,10 +264,10 @@ void ProfilerConductor::compareSubtrees() {
 
   auto* e = new Execution{};
   addExecution(*e);
+  displayExecution(*e, "combined tree");
 
   subtree_comparison::compareExecutions(*e, *ex1, *ex2);
 
-  displayExecution(*e, "combined tree");
 }
 
 class StatsHelper {

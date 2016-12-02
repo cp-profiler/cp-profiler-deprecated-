@@ -1,7 +1,10 @@
 
 #include "cpprofiler/analysis/similar_shapes.hh"
+#include <thread>
+#include <chrono>
 
 using cpprofiler::analysis::SimilarShapesWindow;
+using cpprofiler::analysis::AnalysisType;
 
 namespace subtree_comparison {
 
@@ -10,6 +13,8 @@ static void compareExecutions(Execution& ex, const Execution& ex1,
                             const Execution& ex2) {
 
   /// ** construct a tree out of nodes from ex1 and ex2 **
+
+  // std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 
   /// target
   auto& nt = ex.nodeTree();
@@ -31,18 +36,22 @@ static void compareExecutions(Execution& ex, const Execution& ex1,
   tree_utils::copyTree(r_child, nt, r_root_s, ex2.nodeTree());
 
   /// maps nodes to execution id
-  std::unordered_map<VisualNode*, int> node2ex_id; 
+  std::unique_ptr<std::unordered_map<VisualNode*, int>> node2ex_id;
+
+  node2ex_id.reset(new std::unordered_map<VisualNode*, int>());
 
   tree_utils::applyToEachNode(nt, l_child, [&node2ex_id](VisualNode* n){
-    node2ex_id[n] = 0;
+    (*node2ex_id)[n] = 0;
   });
 
   tree_utils::applyToEachNode(nt, r_child, [&node2ex_id](VisualNode* n){
-    node2ex_id[n] = 1;
+    (*node2ex_id)[n] = 1;
   });
 
+  (*node2ex_id)[root] = 3;
+
   /// run similar subtree analysis
-  auto shapes_window = new SimilarShapesWindow{nt};
+  auto shapes_window = new SimilarShapesWindow{nt, std::move(node2ex_id)};
   shapes_window->show();
 
 

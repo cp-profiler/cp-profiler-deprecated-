@@ -39,16 +39,16 @@
 #define GECODE_GIST_NODECURSOR_HH
 
 #include "nodecursor_base.hh"
-#include "visualnode.hh"
 
 #include <vector>
 #include <QTextStream>
 
 class TreeCanvas;
 class Execution;
+class VisualNode;
 
 /// \brief A cursor that marks failed subtrees as hidden
-class HideFailedCursor : public NodeCursor<VisualNode> {
+class HideFailedCursor : public NodeCursor {
 private:
     bool onlyDirty;
 public:
@@ -66,7 +66,7 @@ public:
 };
 
 /// \brief A cursor that marks all nodes in the tree as not hidden
-class UnhideAllCursor : public NodeCursor<VisualNode> {
+class UnhideAllCursor : public NodeCursor {
 public:
     /// Constructor
     UnhideAllCursor(VisualNode* theNode,
@@ -79,7 +79,7 @@ public:
 };
 
 /// \brief A cursor that marks all nodes in the tree as not selected
-class UnselectAllCursor : public NodeCursor<VisualNode> {
+class UnselectAllCursor : public NodeCursor {
 public:
     /// Constructor
     UnselectAllCursor(VisualNode* theNode,
@@ -92,7 +92,7 @@ public:
 };
 
 /// \brief A cursor that marks ancestor nodes in the tree as not hidden
-class UnhideAncestorsCursor : public NodeCursor<VisualNode> {
+class UnhideAncestorsCursor : public NodeCursor {
 public:
     /// Constructor
     UnhideAncestorsCursor(VisualNode* theNode,
@@ -107,7 +107,7 @@ public:
 };
 
 /// \brief A cursor that marks all nodes in the tree as hidden
-class HideAllCursor : public NodeCursor<VisualNode> {
+class HideAllCursor : public NodeCursor {
 public:
     /// Constructor
     HideAllCursor(VisualNode* theNode,
@@ -120,7 +120,7 @@ public:
 };
 
 /// \brief A cursor that finds the next solution
-class NextSolCursor : public NodeCursor<VisualNode> {
+class NextSolCursor : public NodeCursor {
 private:
     /// Whether to search backwards
     bool back;
@@ -148,7 +148,7 @@ public:
 };
 
 /// \brief A cursor that finds the next leaf
-class NextLeafCursor : public NodeCursor<VisualNode> {
+class NextLeafCursor : public NodeCursor {
 private:
     /// Whether to search backwards
     bool back;
@@ -176,7 +176,7 @@ public:
 };
 
 /// \brief A cursor that finds the next pentagon
-class NextPentagonCursor : public NodeCursor<VisualNode> {
+class NextPentagonCursor : public NodeCursor {
 private:
     /// Whether to search backwards
     bool back;
@@ -204,7 +204,7 @@ public:
 };
 
 /// \brief A cursor that collects statistics
-class StatCursor : public NodeCursor<VisualNode> {
+class StatCursor : public NodeCursor {
 private:
     /// Current depth
     int curDepth;
@@ -236,7 +236,7 @@ public:
 
 };
 
-class HighlightCursor : public NodeCursor<VisualNode> {
+class HighlightCursor : public NodeCursor {
 public:
   // Constructor
   HighlightCursor(VisualNode* startNode, const NodeAllocator& na);
@@ -245,7 +245,7 @@ public:
 
 };
 
-class UnhighlightCursor : public NodeCursor<VisualNode> {
+class UnhighlightCursor : public NodeCursor {
 public:
   // Constructor
   UnhighlightCursor(VisualNode* root, const NodeAllocator& na);
@@ -254,7 +254,7 @@ public:
 
 };
 
-class CountSolvedCursor : public NodeCursor<VisualNode> {
+class CountSolvedCursor : public NodeCursor {
 public:
   CountSolvedCursor(VisualNode* startNode, const NodeAllocator& na, int &count);
   // Count solved leaves and store the nubmer in count variable
@@ -264,7 +264,7 @@ private:
 
 };
 
-class GetIndexesCursor : public NodeCursor<VisualNode> {
+class GetIndexesCursor : public NodeCursor {
 public:
   // Constructor
   GetIndexesCursor(VisualNode* startNode, const NodeAllocator& na,
@@ -278,7 +278,7 @@ private:
 };
 
 /// Hide subtrees that are not highlighted
-class HideNotHighlightedCursor : public NodeCursor<VisualNode> {
+class HideNotHighlightedCursor : public NodeCursor {
 protected:
   QHash<VisualNode*,bool> onHighlightPath;
 public:
@@ -292,7 +292,7 @@ public:
 
 
 /// \brief A cursor that labels branches
-class BranchLabelCursor : public NodeCursor<VisualNode> {
+class BranchLabelCursor : public NodeCursor {
 private:
     /// The node allocator
     NodeAllocator& _na;
@@ -311,7 +311,7 @@ public:
 };
 
 /// \brief A cursor that frees all memory
-class DisposeCursor : public NodeCursor<VisualNode> {
+class DisposeCursor : public NodeCursor {
 public:
     /// Constructor
     DisposeCursor(VisualNode* theNode,
@@ -325,7 +325,7 @@ public:
 
 };
 
-class SubtreeCountCursor : public NodeCursor<VisualNode> {
+class SubtreeCountCursor : public NodeCursor {
 public:
   std::vector<int> stack;
   int threshold;
@@ -338,7 +338,7 @@ public:
   void moveDownwards(void);
 };
 
-class SearchLogCursor : public NodeCursor<VisualNode> {
+class SearchLogCursor : public NodeCursor {
 private:
     std::stringstream& _out;
     /// The node allocator

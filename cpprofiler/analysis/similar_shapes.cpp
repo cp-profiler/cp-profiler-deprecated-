@@ -1,75 +1,36 @@
 #include "similar_shapes.hh"
 
-#include <QLabel>
-#include <QScrollBar>
-#include <QPaintEvent>
 #include <algorithm>
 #include <chrono>
 
-#include "drawingcursor.hh"
-#include "nodevisitor.hh"
+#include <QLabel>
+#include <QScrollBar>
+#include <QPaintEvent>
+#include <QGraphicsRectItem>
+#include <QAbstractScrollArea>
+#include <QGraphicsView>
+#include <QComboBox>
+#include <QCheckBox>
+#include <QHBoxLayout>
+#include <QSplitter>
+#include <QSpinBox>
+
 #include "visualnode.hh"
 #include "libs/perf_helper.hh"
 #include "nodetree.hh"
 #include "globalhelper.hh"
 #include "tree_utils.hh"
 
+#include "subtree_canvas.hh"
+#include "shape_rect.hpp"
 #include "similar_shapes_algorithm.hpp"
 #include "identical_shapes.hpp"
 #include "subsumed_subtrees.hpp"
 
+using std::vector;
+
 namespace cpprofiler {
 namespace analysis {
-
-/// ******************************************
-/// ************ SHAPE RECTANGLE *************
-/// ******************************************
-
-static const QColor transparent_red{255, 0, 0, 50};
-
-class ShapeRect : public QGraphicsRectItem {
-
-  VisualNode& m_node;
-  SimilarShapesWindow* const m_ssWindow;
-
-  void mousePressEvent(QGraphicsSceneMouseEvent*) override;
-
-public:
-  static constexpr int HEIGHT = 16;
-  static constexpr int HALF_HEIGHT = HEIGHT / 2;
-  static constexpr int PIXELS_PER_VALUE = 5;
-  static constexpr int SELECTION_WIDTH = 600;
-
-  ShapeRect(int x, int y, int width, VisualNode& n, SimilarShapesWindow*);
-
-  void addToScene(QGraphicsScene* scene);
-  QGraphicsRectItem visibleArea;
-
-};
-
-ShapeRect::ShapeRect(int x, int y, int width, VisualNode& node, SimilarShapesWindow* ssw)
-    : QGraphicsRectItem(x, y - HALF_HEIGHT, SELECTION_WIDTH, HEIGHT, nullptr),
-      visibleArea(x, y - HALF_HEIGHT + 1, width, HEIGHT - 2),
-      m_node{node},
-      m_ssWindow{ssw} {
-  setBrush(Qt::white);
-  QPen whitepen(Qt::white);
-  setPen(whitepen);
-  setFlag(QGraphicsItem::ItemIsSelectable);
-  visibleArea.setBrush(transparent_red);
-  visibleArea.setPen(whitepen);
-}
-
-void ShapeRect::addToScene(QGraphicsScene* scene) {
-  scene->addItem(this);
-  scene->addItem(&visibleArea);
-}
-
-void ShapeRect::mousePressEvent(QGraphicsSceneMouseEvent*) {
-  m_ssWindow->highlightSubtrees(&m_node);
-}
-
-/// ******************************************
 
 /// TODO(maxim): show all subtrees of a particular shape
 
@@ -81,26 +42,33 @@ static ShapeProperty interpretShapeProperty(const QString& str) {
   return {};
 }
 
-std::ostream& operator<<(std::ostream& os, const VisualNode* n) {
-  #ifdef MAXIM_DEBUG
-      os << n->debug_id;
-  #else
-      os << (void*)n;
-  #endif
-  return os;
-}
-
 SimilarShapesWindow::SimilarShapesWindow(NodeTree& nt)
-    : node_tree{nt} {
+    : node_tree{nt}, m_type{AnalysisType::SINGLE} {
 
   std::unique_ptr<QAbstractScrollArea> sa{new QAbstractScrollArea()};
   initInterface(sa.get());
-  m_ShapeCanvas.reset(new ShapeCanvas(std::move(sa), node_tree));
+  m_SubtreeCanvas.reset(new SubtreeCanvas(std::move(sa), node_tree));
 
-  m_ShapeCanvas->show();
+  m_SubtreeCanvas->show();
 
   updateHistogram();
 }
+
+SimilarShapesWindow::~SimilarShapesWindow() = default;
+
+SimilarShapesWindow::SimilarShapesWindow(
+    NodeTree& nt, std::unique_ptr < std::unordered_map<VisualNode*, int>> map)
+  : node_tree{nt}, m_type{AnalysisType::COMPARISON}, node2ex_id{std::move(map)}  {
+
+    /// TODO(maxim): remove duplication
+    std::unique_ptr<QAbstractScrollArea> sa{new QAbstractScrollArea()};
+    initInterface(sa.get());
+    m_SubtreeCanvas.reset(new SubtreeCanvas(std::move(sa), node_tree));
+
+    m_SubtreeCanvas->show();
+
+    updateHistogram();
+  }
 
 void SimilarShapesWindow::updateShapesData() {
 
@@ -116,7 +84,7 @@ void SimilarShapesWindow::updateShapesData() {
 void SimilarShapesWindow::highlightSubtrees(VisualNode* node) {
 
   /// TODO(maxim): does this do the right thing if SUBTREE?
-  m_ShapeCanvas->showShape(node);
+  m_SubtreeCanvas->showSubtree(node);
 
   const auto& na = node_tree.getNA();
   auto root = node_tree.getRoot();
@@ -293,22 +261,23 @@ static bool areShapesIdentical(const NodeTree& nt,
 
 
 /// Find a subtree from `vec` with the maximal `ShapeProperty` value and return that value
-static int maxShapeValue(const std::vector<SubtreeInfo>& vec, ShapeProperty prop) {
+template<typename SI>
+static int maxShapeValue(const std::vector<SI>& vec, ShapeProperty prop) {
   if (prop == ShapeProperty::SIZE) {
-    const SubtreeInfo& res = *std::max_element(
-        begin(vec), end(vec), [](const SubtreeInfo& s1, const SubtreeInfo& s2) {
+    const SI& res = *std::max_element(
+        begin(vec), end(vec), [](const SI& s1, const SI& s2) {
           return s1.size < s2.size;
         });
     return res.size;
   } else if (prop == ShapeProperty::COUNT) {
-    const SubtreeInfo& res = *std::max_element(
-        begin(vec), end(vec), [](const SubtreeInfo& s1, const SubtreeInfo& s2) {
-          return s1.count < s2.count;
+    const SI& res = *std::max_element(
+        begin(vec), end(vec), [](const SI& s1, const SI& s2) {
+          return s1.get_count() < s2.get_count();
         });
-    return res.count;
+    return res.get_count();
   } else if (prop == ShapeProperty::HEIGHT) {
-    const SubtreeInfo& res = *std::max_element(
-        begin(vec), end(vec), [](const SubtreeInfo& s1, const SubtreeInfo& s2) {
+    const SI& res = *std::max_element(
+        begin(vec), end(vec), [](const SI& s1, const SI& s2) {
           return s1.height < s2.height;
         });
     return res.height;
@@ -365,14 +334,15 @@ inline void addText(int value, int x, int y, QGraphicsScene& scene) {
   detail::addText(int_text_item, x, y, scene);
 }
 
-static int extractProperty(const SubtreeInfo& info, ShapeProperty prop) {
+template<typename SI>
+static int extractProperty(const SI& info, ShapeProperty prop) {
 
   int value;
 
   if (prop == ShapeProperty::SIZE) {
     value = info.size;
   } else if (prop == ShapeProperty::COUNT) {
-    value = info.count;
+    value = info.get_count();
   } else if (prop == ShapeProperty::HEIGHT) {
     value = info.height;
   } else {
@@ -387,11 +357,11 @@ static void drawAnalysisHistogram(QGraphicsScene* scene, SimilarShapesWindow* ss
                            ShapeProperty prop, std::vector<SubtreeInfo>& vec) {
   if (vec.size() == 0) return;
   int curr_y = 40;
-  int max_value = maxShapeValue(vec, prop);
+  int max_value = maxShapeValue<SubtreeInfo>(vec, prop);
 
   for (auto& shape : vec) {
 
-    int value = extractProperty(shape, prop);
+    int value = extractProperty<SubtreeInfo>(shape, prop);
 
     const int rect_max_w = ShapeRect::SELECTION_WIDTH;
     const int rect_width = rect_max_w * value / max_value;
@@ -410,6 +380,35 @@ static void drawAnalysisHistogram(QGraphicsScene* scene, SimilarShapesWindow* ss
     addText(shape.height, 10 + COLUMN_WIDTH * 0, curr_y, *scene);
     addText(shape.count,  10 + COLUMN_WIDTH * 1, curr_y, *scene);
     addText(shape.size,   10 + COLUMN_WIDTH * 2, curr_y, *scene);
+
+    curr_y += ShapeRect::HEIGHT + 1;
+  }
+}
+
+/// for comparison
+static void drawAnalysisHistogram(QGraphicsScene* scene, SimilarShapesWindow* ssw,
+                           ShapeProperty prop, std::vector<SubtreeInfo2>& vec) {
+
+  if (vec.size() == 0) return;
+  int curr_y = 40;
+  int max_value = maxShapeValue<SubtreeInfo2>(vec, prop);
+
+  for (auto& shape : vec) {
+
+    int value = extractProperty<SubtreeInfo2>(shape, prop);
+
+    const int rect_max_w = ShapeRect::SELECTION_WIDTH;
+    const int rect_width = rect_max_w * value / max_value;
+    auto rect = new ShapeRect(0, curr_y, rect_width, *shape.node, ssw);
+    rect->addToScene(scene);
+
+    /// NOTE(maxim): drawing text is really expensive
+    /// TODO(maxim): only draw if visible
+
+    addText(shape.height, 10 + COLUMN_WIDTH * 0, curr_y, *scene);
+    addText(shape.count_ex1,  10 + COLUMN_WIDTH * 1, curr_y, *scene);
+    addText(shape.count_ex2,  10 + COLUMN_WIDTH * 2, curr_y, *scene);
+    addText(shape.size,   10 + COLUMN_WIDTH * 3, curr_y, *scene);
 
     curr_y += ShapeRect::HEIGHT + 1;
   }
@@ -445,6 +444,50 @@ void SimilarShapesWindow::drawAlternativeHistogram() {
   }
 
   sortSubtrees(vec, m_sortType);
+
+  drawAnalysisHistogram(m_scene.get(), this, m_histType, vec);
+
+}
+
+void SimilarShapesWindow::drawComparisonHistogram() {
+
+  auto& na = node_tree.getNA();
+  VisualNode* root = node_tree.getRoot();
+
+  root->unhideAll(na);
+  root->layout(na);
+
+
+  std::vector<SubtreeInfo2> vec;
+  vec.reserve(m_identicalGroups.size());
+
+  for (auto& group : m_identicalGroups) {
+
+    const int total_count = group.size();
+    if (total_count == 0) continue;
+
+    int count_ex1 = 0;
+    int count_ex2 = 0;
+
+    for (auto* n : group) {
+      if (node2ex_id->at(n) == 0) {
+        ++count_ex1;
+      } else {
+        ++count_ex2;
+      }
+    }
+
+    VisualNode* node = group[0];
+    const int height = node->getShape()->depth();
+    const int size = shapeSize(*node->getShape());
+
+    if (!filters.check(height, total_count)) {
+      continue;
+    }
+
+    vec.push_back({node, size, height, count_ex1, count_ex2});
+
+  }
 
   drawAnalysisHistogram(m_scene.get(), this, m_histType, vec);
 
@@ -510,19 +553,11 @@ void SimilarShapesWindow::updateHistogram() {
 
       if (!subtrees_cached) {
 
-          /// NOTE(maxim):
-          /// identical_subtrees_old and flat produce the same results
-          /// identical_subtrees_new produces less groups
-
           /// TODO(maxim): get rid of the unnecessary copy here:
         perfHelper.begin("identical_shapes");
-          m_identicalGroups = identical_subtrees_old::findIdenticalShapes(node_tree);
-          // qDebug() << "identical groups 1: " << m_identicalGroups.size();
-          // m_identicalGroups = identical_subtrees_flat::findIdenticalShapes(node_tree);
-          // qDebug() << "identical groups 2: " << temp1.size();
-          // m_identicalGroups = identical_subtrees_new::findIdenticalShapes(node_tree);
-          // qDebug() << "identical groups 3: " << temp2.size();
+        m_identicalGroups = subtrees::findIdentical(node_tree);
         perfHelper.end();
+
           subtrees_cached = true;
           qDebug() << "identical groups:" << m_identicalGroups.size();
 
@@ -538,7 +573,12 @@ void SimilarShapesWindow::updateHistogram() {
 
       }
 
-      drawAlternativeHistogram();
+      if (m_type == AnalysisType::SINGLE) {
+        drawAlternativeHistogram();
+      } else {
+
+        drawComparisonHistogram();
+      }
       break;
     }
   }
@@ -580,82 +620,19 @@ void SimilarShapesWindow::drawHistogram() {
 
 // ---------------------------------------
 
-namespace detail {
 
-  Filters::Filters() {}
+Filters::Filters() {}
 
-  bool Filters::check(int depth, int count) {
-    if (depth < m_minDepth) return false;
-    if (count < m_minCount) return false;
-    return true;
-  }
-
-  void Filters::setMinDepth(int val) { m_minDepth = val; }
-
-  void Filters::setMinCount(int val) { m_minCount = val; }
+bool Filters::check(int depth, int count) {
+  if (depth < m_minDepth) return false;
+  if (count < m_minCount) return false;
+  return true;
 }
 
+void Filters::setMinDepth(int val) { m_minDepth = val; }
 
-/// ******************************************
-/// ************* SHAPE CANVAS ***************
-/// ******************************************
+void Filters::setMinCount(int val) { m_minCount = val; }
 
-ShapeCanvas::ShapeCanvas(std::unique_ptr<QAbstractScrollArea>&& sa, const NodeTree& nt)
-    : QWidget{sa.get()}, m_ScrollArea{std::move(sa)}, m_NodeTree{nt} {}
-
-ShapeCanvas::~ShapeCanvas() = default;
-
-void ShapeCanvas::paintEvent(QPaintEvent* event) {
-  /// TODO(maxim): make a copy of a subtree to display here
-  /// (so that it is never hidden)
-  QPainter painter(this);
-  painter.setRenderHint(QPainter::Antialiasing);
-
-  if (!m_targetNode) return;
-
-  const int view_w = m_ScrollArea->viewport()->width();
-  const int view_h = m_ScrollArea->viewport()->height();
-
-  int xoff = m_ScrollArea->horizontalScrollBar()->value();
-  int yoff = m_ScrollArea->verticalScrollBar()->value();
-
-  const BoundingBox bb = m_targetNode->getBoundingBox();
-
-  const int w = bb.right - bb.left + Layout::extent;
-  const int h =
-      2 * Layout::extent + m_targetNode->getShape()->depth() * Layout::dist_y;
-
-  // center the shape if small
-  if (w < view_w) {
-    xoff -= (view_w - w) / 2;
-  }
-
-  setFixedSize(view_w, view_h);
-
-  int xtrans = -bb.left + (Layout::extent / 2);
-
-  m_ScrollArea->horizontalScrollBar()->setRange(0, w - view_w);
-  m_ScrollArea->verticalScrollBar()->setRange(0, h - view_h);
-  m_ScrollArea->horizontalScrollBar()->setPageStep(view_w);
-  m_ScrollArea->verticalScrollBar()->setPageStep(view_h);
-
-  QRect origClip = event->rect();
-  painter.translate(0, 30);
-  painter.translate(xtrans - xoff, -yoff);
-  QRect clip{origClip.x() - xtrans + xoff, origClip.y() + yoff,
-             origClip.width(), origClip.height()};
-
-  DrawingCursor dc{m_targetNode, m_NodeTree.getNA(), painter, clip, false};
-  PreorderNodeVisitor<DrawingCursor>(dc).run();
-}
-
-void ShapeCanvas::showShape(VisualNode* node) {
-  m_targetNode = node;
-
-  shapeSize(*node->getShape());
-
-  QWidget::update();
-}
 
 
 

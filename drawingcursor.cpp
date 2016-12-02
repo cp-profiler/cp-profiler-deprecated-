@@ -65,7 +65,7 @@ DrawingCursor::DrawingCursor(VisualNode* root,
                              QPainter& painter0,
                              const QRect& clippingRect0,
                              bool showHidden)
-    : NodeCursor<VisualNode>(root,na), painter(painter0),
+    : NodeCursor(root,na), painter(painter0),
       clippingRect(clippingRect0), x(0.0), y(0.0),
       _showHidden(showHidden)
 {
