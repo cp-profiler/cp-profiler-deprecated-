@@ -7,7 +7,7 @@
 #include <QScrollBar>
 #include <QPaintEvent>
 #include <QGraphicsRectItem>
-#include <QAbstractScrollArea>
+
 #include <QGraphicsView>
 #include <QComboBox>
 #include <QCheckBox>
@@ -20,11 +20,10 @@
 #include "nodetree.hh"
 #include "globalhelper.hh"
 #include "tree_utils.hh"
+#include "identical_shapes.hh"
 
-#include "subtree_canvas.hh"
-#include "shape_rect.hpp"
+#include "shape_rect.hh"
 #include "similar_shapes_algorithm.hpp"
-#include "identical_shapes.hpp"
 #include "subsumed_subtrees.hpp"
 
 using std::vector;
@@ -32,212 +31,108 @@ using std::vector;
 namespace cpprofiler {
 namespace analysis {
 
-/// TODO(maxim): show all subtrees of a particular shape
-
-static ShapeProperty interpretShapeProperty(const QString& str) {
-  if (str == "size") return ShapeProperty::SIZE;
-  if (str == "count") return ShapeProperty::COUNT;
-  if (str == "height") return ShapeProperty::HEIGHT;
-  abort();
-  return {};
-}
 
 SimilarShapesWindow::SimilarShapesWindow(NodeTree& nt)
-    : node_tree{nt}, m_type{AnalysisType::SINGLE} {
+    : HistogramWindow{nt}, node_tree{nt} {
 
-  std::unique_ptr<QAbstractScrollArea> sa{new QAbstractScrollArea()};
-  initInterface(sa.get());
-  m_SubtreeCanvas.reset(new SubtreeCanvas(std::move(sa), node_tree));
-
-  m_SubtreeCanvas->show();
+  initInterface();
 
   updateHistogram();
 }
 
 SimilarShapesWindow::~SimilarShapesWindow() = default;
 
-SimilarShapesWindow::SimilarShapesWindow(
-    NodeTree& nt, std::unique_ptr < std::unordered_map<VisualNode*, int>> map)
-  : node_tree{nt}, m_type{AnalysisType::COMPARISON}, node2ex_id{std::move(map)}  {
+void SimilarShapesWindow::initInterface() {
+    settingsLayout->addWidget(new QLabel{"Type:"});
 
-    /// TODO(maxim): remove duplication
-    std::unique_ptr<QAbstractScrollArea> sa{new QAbstractScrollArea()};
-    initInterface(sa.get());
-    m_SubtreeCanvas.reset(new SubtreeCanvas(std::move(sa), node_tree));
+    auto typeChoice = new QComboBox();
+    typeChoice->addItem("shape");
+    typeChoice->addItem("subtree");
+    settingsLayout->addWidget(typeChoice);
 
-    m_SubtreeCanvas->show();
+    auto labels_flag = new QCheckBox{"Compare labels"};
+    settingsLayout->addWidget(labels_flag);
 
-    updateHistogram();
-  }
+    connect(labels_flag, &QCheckBox::stateChanged, [this](int state) {
+        labelSensitive = (state == Qt::Checked);
+        subtrees_cached = false;
+        updateHistogram();
+    });
+
+    connect(typeChoice, &QComboBox::currentTextChanged, [this](const QString& str) {
+      if (str == "shape") {
+          simType = SimilarityType::SHAPE;
+      } else if (str == "subtree") {
+          simType = SimilarityType::SUBTREE;
+      }
+      updateHistogram();
+    });
+
+
+    auto depthFilterSB = new QSpinBox{this};
+    depthFilterSB->setMinimum(1);
+    depthFilterSB->setValue(2);
+
+    connect(depthFilterSB, static_cast<void(QSpinBox::*)(int)>(&QSpinBox::valueChanged), [this] (int val) {
+      filters.minDepth = val;
+      updateHistogram();
+    });
+
+    auto countFilterSB = new QSpinBox{this};
+    countFilterSB->setMinimum(1);
+    countFilterSB->setValue(2);
+
+    connect(countFilterSB, static_cast<void(QSpinBox::*)(int)>(&QSpinBox::valueChanged), [this](int val) {
+      filters.minCount = val;
+      updateHistogram();
+    });
+
+        auto sortChoiceCB = new QComboBox();
+    sortChoiceCB->addItem("size");
+    sortChoiceCB->addItem("count");
+    sortChoiceCB->addItem("height");
+    connect(sortChoiceCB, &QComboBox::currentTextChanged,
+            [this](const QString& str) {
+              m_sortType = interpretShapeProperty(str);
+              updateHistogram();
+            });
+
+    auto histChoiceCB = new QComboBox();
+    histChoiceCB->addItem("size");
+    histChoiceCB->addItem("count");
+    histChoiceCB->addItem("height");
+    connect(histChoiceCB, &QComboBox::currentTextChanged,
+            [this](const QString& str) {
+              m_histType = interpretShapeProperty(str);
+              updateHistogram();
+            });
+
+    filtersLayout->addWidget(new QLabel("min height"));
+    filtersLayout->addWidget(depthFilterSB);
+
+    filtersLayout->addWidget(new QLabel("min count"));
+    filtersLayout->addWidget(countFilterSB);
+
+    filtersLayout->addStretch();
+
+    filtersLayout->addWidget(new QLabel{"sort by: "});
+    filtersLayout->addWidget(sortChoiceCB);
+
+    filtersLayout->addWidget(new QLabel{"histogram: "});
+    filtersLayout->addWidget(histChoiceCB);
+}
 
 void SimilarShapesWindow::updateShapesData() {
 
-  perfHelper.begin("shapes: analyse");
-  shapes = runSimilarShapes(node_tree);
-  perfHelper.end();
+    perfHelper.begin("shapes: analyse");
+    shapes = runSimilarShapes(node_tree);
+    perfHelper.end();
 
-  perfHelper.begin("subsumed shapes elimination");
-  eliminateSubsumed(node_tree, shapes);
-  perfHelper.end();
+    perfHelper.begin("subsumed shapes elimination");
+    eliminateSubsumed(node_tree, shapes);
+    perfHelper.end();
 }
 
-void SimilarShapesWindow::highlightSubtrees(VisualNode* node) {
-
-  /// TODO(maxim): does this do the right thing if SUBTREE?
-  m_SubtreeCanvas->showSubtree(node);
-
-  const auto& na = node_tree.getNA();
-  auto root = node_tree.getRoot();
-
-  if (simType == SimilarityType::SHAPE) {
-
-    auto shape_it = std::find_if(begin(shapes), end(shapes), [node] (const ShapeInfo& si) {
-
-      auto res = std::find(begin(si.nodes), end(si.nodes), node);
-
-      return res != end(si.nodes);
-    });
-
-    // perfHelper.begin("actually highlighting");
-    /// TODO(maxim): slow, run this in a parallel thread?
-    if (shape_it != end(shapes)) {
-      tree_utils::highlightSubtrees(node_tree, shape_it->nodes);
-
-    }
-    // perfHelper.end();
-  } else if (simType == SimilarityType::SUBTREE) {
-
-    /// find the right group
-    for (auto& group : m_identicalGroups) {
-      bool found = false;
-      for (auto n : group) {
-        if (node == n) {
-          found = true;
-          break;
-        }
-      }
-
-      if (!found) continue;
-
-      std::vector<VisualNode*> vec;
-      vec.reserve(group.size());
-
-      for (auto n : group) {
-        vec.push_back(n);
-      }
-
-      tree_utils::highlightSubtrees(node_tree, vec);
-      break;
-    }
-
-  }
-
-}
-
-void SimilarShapesWindow::initInterface(QAbstractScrollArea* sa) {
-  m_scene.reset(new QGraphicsScene{});
-
-  hist_view = new QGraphicsView{this};
-  hist_view->setScene(m_scene.get());
-  hist_view->setAlignment(Qt::AlignLeft | Qt::AlignTop);
-
-  // sa->setAutoFillBackground(true);
-
-  auto settingsLayout = new QHBoxLayout{};
-  settingsLayout->addWidget(new QLabel{"Type:"});
-
-  auto typeChoice = new QComboBox();
-  typeChoice->addItem("shape");
-  typeChoice->addItem("subtree");
-  settingsLayout->addWidget(typeChoice);
-
-  auto labels_flag = new QCheckBox{"Compare labels"};
-  settingsLayout->addWidget(labels_flag);
-
-  connect(labels_flag, &QCheckBox::stateChanged, [this](int state) {
-      labelSensitive = (state == Qt::Checked);
-      subtrees_cached = false;
-      updateHistogram();
-  });
-
-  connect(typeChoice, &QComboBox::currentTextChanged, [this](const QString& str) {
-    if (str == "shape") {
-        simType = SimilarityType::SHAPE;
-    } else if (str == "subtree") {
-        simType = SimilarityType::SUBTREE;
-    }
-    updateHistogram();
-  });
-
-  auto splitter = new QSplitter{this};
-
-  splitter->addWidget(hist_view);
-  splitter->addWidget(sa);
-  splitter->setSizes(QList<int>{1, 1});  // for splitter to be centered
-
-  auto depthFilterSB = new QSpinBox{this};
-  depthFilterSB->setMinimum(1);
-  depthFilterSB->setValue(2);
-
-  connect(depthFilterSB, static_cast<void(QSpinBox::*)(int)>(&QSpinBox::valueChanged), [this] (int val) {
-    filters.setMinDepth(val);
-    updateHistogram();
-  });
-
-  auto countFilterSB = new QSpinBox{this};
-  countFilterSB->setMinimum(1);
-  countFilterSB->setValue(2);
-
-  connect(countFilterSB, static_cast<void(QSpinBox::*)(int)>(&QSpinBox::valueChanged), [this](int val) {
-    filters.setMinCount(val);
-    updateHistogram();
-  });
-
-  auto histChoiceCB = new QComboBox();
-  histChoiceCB->addItem("size");
-  histChoiceCB->addItem("count");
-  histChoiceCB->addItem("height");
-  connect(histChoiceCB, &QComboBox::currentTextChanged,
-          [this](const QString& str) {
-            m_histType = interpretShapeProperty(str);
-            updateHistogram();
-          });
-
-  auto sortChoiceCB = new QComboBox();
-  sortChoiceCB->addItem("size");
-  sortChoiceCB->addItem("count");
-  sortChoiceCB->addItem("height");
-  connect(sortChoiceCB, &QComboBox::currentTextChanged,
-          [this](const QString& str) {
-            m_sortType = interpretShapeProperty(str);
-            updateHistogram();
-          });
-
-  auto filtersLayout = new QHBoxLayout{};
-
-  filtersLayout->addWidget(new QLabel("min height"));
-  filtersLayout->addWidget(depthFilterSB);
-
-  filtersLayout->addWidget(new QLabel("min count"));
-  filtersLayout->addWidget(countFilterSB);
-
-  filtersLayout->addStretch();
-
-  filtersLayout->addWidget(new QLabel{"sort by: "});
-  filtersLayout->addWidget(sortChoiceCB);
-
-  filtersLayout->addWidget(new QLabel{"histogram: "});
-  filtersLayout->addWidget(histChoiceCB);
-
-  auto globalLayout = new QVBoxLayout{this};
-  globalLayout->addLayout(settingsLayout);
-  globalLayout->addWidget(splitter, 1);
-  globalLayout->addLayout(filtersLayout);
-
-#ifdef MAXIM_DEBUG
-  globalLayout->addWidget(&debug_label);
-#endif
-}
 
 /// TODO(maxim): see if any of these could be reused in tree comparison
 ///              (or vice versa)
@@ -259,104 +154,15 @@ static bool areShapesIdentical(const NodeTree& nt,
 }
 
 
-
-/// Find a subtree from `vec` with the maximal `ShapeProperty` value and return that value
-template<typename SI>
-static int maxShapeValue(const std::vector<SI>& vec, ShapeProperty prop) {
-  if (prop == ShapeProperty::SIZE) {
-    const SI& res = *std::max_element(
-        begin(vec), end(vec), [](const SI& s1, const SI& s2) {
-          return s1.size < s2.size;
-        });
-    return res.size;
-  } else if (prop == ShapeProperty::COUNT) {
-    const SI& res = *std::max_element(
-        begin(vec), end(vec), [](const SI& s1, const SI& s2) {
-          return s1.get_count() < s2.get_count();
-        });
-    return res.get_count();
-  } else if (prop == ShapeProperty::HEIGHT) {
-    const SI& res = *std::max_element(
-        begin(vec), end(vec), [](const SI& s1, const SI& s2) {
-          return s1.height < s2.height;
-        });
-    return res.height;
-  }
-
-  return 1;
-}
-
-/// Sort elements of `vec` in place based on `prop`
-static void sortSubtrees(std::vector<SubtreeInfo>& vec, ShapeProperty prop) {
-  if (prop == ShapeProperty::SIZE) {
-    std::sort(begin(vec), end(vec),
-              [](const SubtreeInfo& s1, const SubtreeInfo& s2) {
-                return s1.size > s2.size;
-              });
-  } else if (prop == ShapeProperty::COUNT) {
-    std::sort(begin(vec), end(vec),
-              [](const SubtreeInfo& s1, const SubtreeInfo& s2) {
-                return s1.count > s2.count;
-              });
-  } else if (prop == ShapeProperty::HEIGHT) {
-    std::sort(begin(vec), end(vec),
-              [](const SubtreeInfo& s1, const SubtreeInfo& s2) {
-                return s1.height > s2.height;
-              });
-  }
-}
-
-namespace detail {
-
-inline void addText(QGraphicsSimpleTextItem* text_item, int x, int y,
-                    QGraphicsScene& scene) {
-  // center the item vertically at y
-  int text_y_offset = text_item->boundingRect().height() / 2;
-  text_item->setPos(x, y - text_y_offset);
-  scene.addItem(text_item);
-}
-};
-
-inline void addText(const char* text, int x, int y, QGraphicsScene& scene) {
-  auto str_text_item = new QGraphicsSimpleTextItem{text};
-  detail::addText(str_text_item, x, y, scene);
-}
-
-// constexpr int
-constexpr int NUMBER_WIDTH = 50;
-constexpr int COLUMN_WIDTH = NUMBER_WIDTH + 10;
-
-inline void addText(int value, int x, int y, QGraphicsScene& scene) {
-  /// this function is very expensive to call
-  auto int_text_item = new QGraphicsSimpleTextItem{QString::number(value)};
-  // alignment to the right
-  x += COLUMN_WIDTH - int_text_item->boundingRect().width();
-  detail::addText(int_text_item, x, y, scene);
-}
-
-template<typename SI>
-static int extractProperty(const SI& info, ShapeProperty prop) {
-
-  int value;
-
-  if (prop == ShapeProperty::SIZE) {
-    value = info.size;
-  } else if (prop == ShapeProperty::COUNT) {
-    value = info.get_count();
-  } else if (prop == ShapeProperty::HEIGHT) {
-    value = info.height;
-  } else {
-    abort();
-    value = -1;
-  }
-
-  return value;
-}
-
 static void drawAnalysisHistogram(QGraphicsScene* scene, SimilarShapesWindow* ssw,
                            ShapeProperty prop, std::vector<SubtreeInfo>& vec) {
+  
+  addText(*scene, 0, 0, "hight");
+  addText(*scene, 1, 0, "count");
+  addText(*scene, 2, 0, "size");
+
   if (vec.size() == 0) return;
-  int curr_y = 40;
+  int row = 1;
   int max_value = maxShapeValue<SubtreeInfo>(vec, prop);
 
   for (auto& shape : vec) {
@@ -365,136 +171,27 @@ static void drawAnalysisHistogram(QGraphicsScene* scene, SimilarShapesWindow* ss
 
     const int rect_max_w = ShapeRect::SELECTION_WIDTH;
     const int rect_width = rect_max_w * value / max_value;
-    auto rect = new ShapeRect(0, curr_y, rect_width, *shape.node, ssw);
+    auto rect = new ShapeRect(0, row * ROW_HEIGHT, rect_width, *shape.node, ssw);
     rect->addToScene(scene);
 
     if (shape.marked) {
-      auto flag = new QGraphicsRectItem(0, curr_y - 5, 10, 10);
+      int y = row * ROW_HEIGHT;
+      auto flag = new QGraphicsRectItem(0, y - 5, 10, 10);
       flag->setBrush(Qt::yellow);
       scene->addItem(flag);
     }
 
-    /// NOTE(maxim): drawing text is really expensive
-    /// TODO(maxim): only draw if visible
+    addText(*scene, 0, row, shape.height);
+    addText(*scene, 1, row, shape.count);
+    addText(*scene, 2, row, shape.size);
 
-    addText(shape.height, 10 + COLUMN_WIDTH * 0, curr_y, *scene);
-    addText(shape.count,  10 + COLUMN_WIDTH * 1, curr_y, *scene);
-    addText(shape.size,   10 + COLUMN_WIDTH * 2, curr_y, *scene);
-
-    curr_y += ShapeRect::HEIGHT + 1;
+    ++row;
   }
 }
 
-/// for comparison
-static void drawAnalysisHistogram(QGraphicsScene* scene, SimilarShapesWindow* ssw,
-                           ShapeProperty prop, std::vector<SubtreeInfo2>& vec) {
-
-  if (vec.size() == 0) return;
-  int curr_y = 40;
-  int max_value = maxShapeValue<SubtreeInfo2>(vec, prop);
-
-  for (auto& shape : vec) {
-
-    int value = extractProperty<SubtreeInfo2>(shape, prop);
-
-    const int rect_max_w = ShapeRect::SELECTION_WIDTH;
-    const int rect_width = rect_max_w * value / max_value;
-    auto rect = new ShapeRect(0, curr_y, rect_width, *shape.node, ssw);
-    rect->addToScene(scene);
-
-    /// NOTE(maxim): drawing text is really expensive
-    /// TODO(maxim): only draw if visible
-
-    addText(shape.height, 10 + COLUMN_WIDTH * 0, curr_y, *scene);
-    addText(shape.count_ex1,  10 + COLUMN_WIDTH * 1, curr_y, *scene);
-    addText(shape.count_ex2,  10 + COLUMN_WIDTH * 2, curr_y, *scene);
-    addText(shape.size,   10 + COLUMN_WIDTH * 3, curr_y, *scene);
-
-    curr_y += ShapeRect::HEIGHT + 1;
-  }
-}
-
-void SimilarShapesWindow::drawAlternativeHistogram() {
-
-  std::vector<SubtreeInfo> vec;
-  vec.reserve(m_identicalGroups.size());
-
-  auto& na = node_tree.getNA();
-  VisualNode* root = node_tree.getRoot();
-
-  root->unhideAll(na);
-  root->layout(na);
-
-  // qDebug() << "identical groups: " << m_identicalGroups.size();
-
-  for (const auto& group : m_identicalGroups) {
-    const int count = group.size();
-    if (count == 0) continue;
-
-    VisualNode* node = group[0];
-    const int height = node->getShape()->depth();
-
-    const int size = shapeSize(*node->getShape());
-
-    if (!filters.check(height, count)) {
-      continue;
-    }
-
-    vec.push_back({node, size, height, count, false});
-  }
-
-  sortSubtrees(vec, m_sortType);
-
-  drawAnalysisHistogram(m_scene.get(), this, m_histType, vec);
-
-}
-
-void SimilarShapesWindow::drawComparisonHistogram() {
-
-  auto& na = node_tree.getNA();
-  VisualNode* root = node_tree.getRoot();
-
-  root->unhideAll(na);
-  root->layout(na);
-
-
-  std::vector<SubtreeInfo2> vec;
-  vec.reserve(m_identicalGroups.size());
-
-  for (auto& group : m_identicalGroups) {
-
-    const int total_count = group.size();
-    if (total_count == 0) continue;
-
-    int count_ex1 = 0;
-    int count_ex2 = 0;
-
-    for (auto* n : group) {
-      if (node2ex_id->at(n) == 0) {
-        ++count_ex1;
-      } else {
-        ++count_ex2;
-      }
-    }
-
-    VisualNode* node = group[0];
-    const int height = node->getShape()->depth();
-    const int size = shapeSize(*node->getShape());
-
-    if (!filters.check(height, total_count)) {
-      continue;
-    }
-
-    vec.push_back({node, size, height, count_ex1, count_ex2});
-
-  }
-
-  drawAnalysisHistogram(m_scene.get(), this, m_histType, vec);
-
-}
 
 #ifdef MAXIM_DEBUG
-/// copy is intentional
+/// copy is intended
 static void save_partition(vector<vector<VisualNode*>> vecs) {
 
   for (auto& v : vecs) {
@@ -535,10 +232,6 @@ void SimilarShapesWindow::updateHistogram() {
   m_scene.reset(new QGraphicsScene{});
   hist_view->setScene(m_scene.get());
 
-  addText("hight", 10, 10, *m_scene);
-  addText("count", 10 + COLUMN_WIDTH, 10, *m_scene);
-  addText("size", 10 + COLUMN_WIDTH * 2, 10, *m_scene);
-
   switch (simType) {
     case SimilarityType::SHAPE:
 
@@ -573,12 +266,8 @@ void SimilarShapesWindow::updateHistogram() {
 
       }
 
-      if (m_type == AnalysisType::SINGLE) {
-        drawAlternativeHistogram();
-      } else {
+      drawAlternativeHistogram();
 
-        drawComparisonHistogram();
-      }
       break;
     }
   }
@@ -618,22 +307,42 @@ void SimilarShapesWindow::drawHistogram() {
   perfHelper.end();
 }
 
-// ---------------------------------------
+void SimilarShapesWindow::drawAlternativeHistogram() {
 
+  std::vector<SubtreeInfo> vec;
+  vec.reserve(m_identicalGroups.size());
 
-Filters::Filters() {}
+  auto& na = node_tree.getNA();
+  VisualNode* root = node_tree.getRoot();
 
-bool Filters::check(int depth, int count) {
-  if (depth < m_minDepth) return false;
-  if (count < m_minCount) return false;
-  return true;
+  root->unhideAll(na);
+  root->layout(na);
+
+  // qDebug() << "identical groups: " << m_identicalGroups.size();
+
+  for (const auto& group : m_identicalGroups) {
+    const int count = group.size();
+    if (count == 0) continue;
+
+    VisualNode* node = group[0];
+    const int height = node->getShape()->depth();
+
+    const int size = shapeSize(*node->getShape());
+
+    if (!filters.check(height, count)) {
+      continue;
+    }
+
+    vec.push_back({node, size, height, count, false});
+  }
+
+  sortSubtrees(vec, m_sortType);
+
+  drawAnalysisHistogram(m_scene.get(), this, m_histType, vec);
+
 }
 
-void Filters::setMinDepth(int val) { m_minDepth = val; }
-
-void Filters::setMinCount(int val) { m_minCount = val; }
-
-
+// ---------------------------------------
 
 
 }

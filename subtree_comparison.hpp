@@ -1,10 +1,9 @@
 
-#include "cpprofiler/analysis/similar_shapes.hh"
+#include "cpprofiler/analysis/subtree_comp_win.hh"
 #include <thread>
 #include <chrono>
 
-using cpprofiler::analysis::SimilarShapesWindow;
-using cpprofiler::analysis::AnalysisType;
+using cpprofiler::analysis::SubtreeCompWindow;
 
 namespace subtree_comparison {
 
@@ -51,7 +50,7 @@ static void compareExecutions(Execution& ex, const Execution& ex1,
   (*node2ex_id)[root] = 3;
 
   /// run similar subtree analysis
-  auto shapes_window = new SimilarShapesWindow{nt, std::move(node2ex_id)};
+  auto shapes_window = new SubtreeCompWindow{nt, std::move(node2ex_id)};
   shapes_window->show();
 
 

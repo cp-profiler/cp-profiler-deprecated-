@@ -1,8 +1,17 @@
 
 #include <sstream>
 
-class VisualNode;
+#include "similar_shapes.hh"
 
+#include <vector>
+#include <unordered_map>
+
+#include "visualnode.hh"
+#include "tree_utils.hh"
+#include "nodetree.hh"
+#include "libs/perf_helper.hh"
+
+class NodeAllocator;
 
 namespace cpprofiler {
 namespace analysis {
@@ -20,13 +29,17 @@ namespace identical_subtrees_flat {
   GroupsOfNodes_t findIdentical(NodeTree& nt);
 }
 
+namespace identical_subtrees_queue {
+  GroupsOfNodes_t findIdentical(NodeTree& nt);
+}
 
-
-using std::vector;
 struct ChildInfo {
   int alt;
   VisualNode* node;
 };
+
+using std::vector;
+using ChildrenInfoGroups = vector<vector<ChildInfo>>;
 
 class Group {
 public:
@@ -39,6 +52,22 @@ public:
   }
   Group(int s, const std::vector<ChildInfo>& i) : splitter(s), items(i) {}
 };
+
+static int countNodes(VisualNode* node,
+                      const NodeAllocator& na,
+                      std::unordered_map<int, vector<ChildInfo>>& map) {
+    if (node->getNumberOfChildren() == 0) return 1;
+
+    int result = 0;
+    for (auto i = 0u; i < node->getNumberOfChildren(); ++i) {
+        auto* child = node->getChild(na, i);
+        auto count = countNodes(child, na, map);
+        result += count;
+        map[count].push_back({(int)i, child});
+    }
+
+    return result;
+}
 
 QDebug& operator<<(QDebug& os, const Group& g) {
   std::ostringstream oss;
@@ -124,6 +153,27 @@ static std::vector<Group> groupByHeight(NodeTree& nt) {
   return groups;
 }
 
+static ChildrenInfoGroups groupByNoNodes(NodeTree& nt) {
+
+    std::unordered_map<int, vector<ChildInfo>> group_map;
+
+    auto& na = nt.getNA();
+    auto* root = nt.getRoot();
+
+    auto count = countNodes(root, na, group_map);
+    group_map[count].push_back({-1, root});
+
+    /// convert a map into a vector
+
+    ChildrenInfoGroups result;
+    result.reserve(group_map.size());
+
+    for (auto& pair : group_map) {
+        result.push_back(std::move(pair.second));
+    }
+
+    return result;
+}
 
 struct PosInGroups {
   int g_id; /// Group identifier
@@ -131,10 +181,12 @@ struct PosInGroups {
 };
 
 
+
 GroupsOfNodes_t findIdentical(NodeTree& nt) {
   // return identical_subtrees_new::findIdenticalShapes(nt);
-  return identical_subtrees_flat::findIdentical(nt);
+  // return identical_subtrees_flat::findIdentical(nt);
   // return identical_subtrees_old::findIdentical(nt);
+  return identical_subtrees_queue::findIdentical(nt);
 }
 
 
@@ -146,3 +198,4 @@ GroupsOfNodes_t findIdentical(NodeTree& nt) {
 #include "identical_shapes_flat.hpp"
 #include "identical_shapes_old.hpp"
 #include "identical_shapes_new.hpp"
+#include "identical_shapes_queue.hpp"

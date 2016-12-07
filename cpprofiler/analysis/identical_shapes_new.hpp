@@ -7,19 +7,12 @@ namespace identical_subtrees_new {
 
 class Group;
 
-struct ChildInfo {
-  int alt;
-  VisualNode* node;
-};
-
 struct PosInGroups {
   int inner_idx;
   Group* group;
 };
 
 #include "splittable_groups.hpp"
-
-using ChildrenInfoGroups = vector<vector<ChildInfo>>;
 
 namespace detail {
 
@@ -113,45 +106,6 @@ namespace detail {
       // qDebug() << "after split groups: " << groups;
     }
   }
-}
-
-static int countNodes(VisualNode* node,
-                      const NodeAllocator& na,
-                      std::unordered_map<int, vector<ChildInfo>>& map) {
-    if (node->getNumberOfChildren() == 0) return 1;
-
-    int result = 0;
-    for (auto i = 0u; i < node->getNumberOfChildren(); ++i) {
-        auto* child = node->getChild(na, i);
-        auto count = countNodes(child, na, map);
-        result += count;
-        map[count].push_back({(int)i, child});
-    }
-
-    return result;
-}
-
-
-static ChildrenInfoGroups groupByNoNodes(NodeTree& nt) {
-
-    std::unordered_map<int, vector<ChildInfo>> group_map;
-
-    auto& na = nt.getNA();
-    auto* root = nt.getRoot();
-
-    auto count = countNodes(root, na, group_map);
-    group_map[count].push_back({-1, root});
-
-    /// convert a map into a vector
-
-    ChildrenInfoGroups result;
-    result.reserve(group_map.size());
-
-    for (auto& pair : group_map) {
-        result.push_back(std::move(pair.second));
-    }
-
-    return result;
 }
 
 static ChildrenInfoGroups shapesToGroups(const std::vector<ShapeInfo>& shapes,

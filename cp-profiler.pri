@@ -36,7 +36,10 @@ SOURCES += \
     $$PWD/cpprofiler\analysis\depth_analysis.cpp \
     $$PWD/cpprofiler\analysis\similar_shapes.cpp \
     $$PWD/cpprofiler\analysis\subtree_comp_win.cpp \
+    $$PWD/cpprofiler\analysis\histogram_win.cpp \
     $$PWD/cpprofiler\analysis\subtree_canvas.cpp \
+    $$PWD/cpprofiler\analysis\identical_shapes.cpp \
+    $$PWD/cpprofiler\analysis\shape_rect.cpp \
 
 HEADERS  += \
     $$PWD/globalhelper.hh \
@@ -90,7 +93,11 @@ HEADERS  += \
     $$PWD/cpprofiler/analysis/depth_analysis.hh \
     $$PWD/cpprofiler/analysis/similar_shapes.hh \
     $$PWD/cpprofiler\analysis\subtree_comp_win.hh \
+    $$PWD/cpprofiler\analysis\histogram_win.hh \
     $$PWD/cpprofiler\analysis\subtree_canvas.hh \
+    $$PWD/cpprofiler\analysis\identical_shapes.hh \
+    $$PWD/cpprofiler\analysis\subtree_analysis.hh \
+    $$PWD/cpprofiler\analysis\shape_rect.hh \
     $$PWD/webscript.hh \
     
 
