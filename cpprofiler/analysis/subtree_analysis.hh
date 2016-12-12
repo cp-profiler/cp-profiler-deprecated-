@@ -29,85 +29,11 @@ using GroupsOfNodes_t = std::vector<std::vector<VisualNode*>>;
 
 enum class ShapeProperty { SIZE, COUNT, HEIGHT };
 
-
-static ShapeProperty interpretShapeProperty(const QString& str) {
-  if (str == "size") return ShapeProperty::SIZE;
-  if (str == "count") return ShapeProperty::COUNT;
-  if (str == "height") return ShapeProperty::HEIGHT;
-  abort();
-  return {};
-}
-
-/// Find a subtree from `vec` with the maximal `ShapeProperty` value and return that value
-template<typename SI>
-static int maxShapeValue(const std::vector<SI>& vec, ShapeProperty prop) {
-  if (prop == ShapeProperty::SIZE) {
-    const SI& res = *std::max_element(
-        begin(vec), end(vec), [](const SI& s1, const SI& s2) {
-          return s1.size < s2.size;
-        });
-    return res.size;
-  } else if (prop == ShapeProperty::COUNT) {
-    const SI& res = *std::max_element(
-        begin(vec), end(vec), [](const SI& s1, const SI& s2) {
-          return s1.get_count() < s2.get_count();
-        });
-    return res.get_count();
-  } else if (prop == ShapeProperty::HEIGHT) {
-    const SI& res = *std::max_element(
-        begin(vec), end(vec), [](const SI& s1, const SI& s2) {
-          return s1.height < s2.height;
-        });
-    return res.height;
-  }
-
-  return 1;
-}
-
-template<typename SI>
-static int extractProperty(const SI& info, ShapeProperty prop) {
-
-  int value;
-
-  if (prop == ShapeProperty::SIZE) {
-    value = info.size;
-  } else if (prop == ShapeProperty::COUNT) {
-    value = info.get_count();
-  } else if (prop == ShapeProperty::HEIGHT) {
-    value = info.height;
-  } else {
-    abort();
-    value = -1;
-  }
-
-  return value;
-}
-
 enum class Align {
   CENTER,
   RIGHT
 };
 
-/// Sort elements of `vec` in place based on `prop`
-template<typename SI>
-static void sortSubtrees(std::vector<SI>& vec, ShapeProperty prop) {
-  if (prop == ShapeProperty::SIZE) {
-    std::sort(begin(vec), end(vec),
-              [](const SI& s1, const SI& s2) {
-                return s1.size > s2.size;
-              });
-  } else if (prop == ShapeProperty::COUNT) {
-    std::sort(begin(vec), end(vec),
-              [](const SI& s1, const SI& s2) {
-                return s1.get_count() > s2.get_count();
-              });
-  } else if (prop == ShapeProperty::HEIGHT) {
-    std::sort(begin(vec), end(vec),
-              [](const SI& s1, const SI& s2) {
-                return s1.height > s2.height;
-              });
-  }
-}
 
 constexpr int NUMBER_WIDTH = 50;
 constexpr int COLUMN_WIDTH = NUMBER_WIDTH + 10;

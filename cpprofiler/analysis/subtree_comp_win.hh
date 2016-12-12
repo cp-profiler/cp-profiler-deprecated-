@@ -23,6 +23,8 @@ using ExecMap_t = std::unordered_map<VisualNode*, int>;
 namespace cpprofiler {
 namespace analysis {
 
+enum class ShapeProperty2 { SIZE, COUNT, CC, HEIGHT };
+
 class SubtreeCanvas;
 
 class Filters {
@@ -46,8 +48,8 @@ class SubtreeCompWindow : public HistogramWindow {
 
   Filters filters;
 
-  ShapeProperty   m_histType  = ShapeProperty::SIZE;
-  ShapeProperty   m_sortType  = ShapeProperty::SIZE;
+  ShapeProperty2   m_histType  = ShapeProperty2::SIZE;
+  ShapeProperty2   m_sortType  = ShapeProperty2::SIZE;
 
   void initInterface();
   void updateHistogram();

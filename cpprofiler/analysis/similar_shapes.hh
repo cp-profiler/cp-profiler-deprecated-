@@ -65,10 +65,6 @@ class SimilarShapesWindow : public HistogramWindow {
   void drawHistogram();
   void drawAlternativeHistogram();
 
-  /// runs similar shapes analysis and writes the result to `shapes`
-  void updateShapesData();
-
-
  public:
   SimilarShapesWindow(NodeTree& nt);
   ~SimilarShapesWindow();

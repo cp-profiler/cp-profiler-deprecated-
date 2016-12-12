@@ -31,6 +31,79 @@ using std::vector;
 namespace cpprofiler {
 namespace analysis {
 
+static ShapeProperty interpretShapeProperty(const QString& str) {
+  if (str == "size") return ShapeProperty::SIZE;
+  if (str == "count") return ShapeProperty::COUNT;
+  if (str == "height") return ShapeProperty::HEIGHT;
+  abort();
+  return {};
+}
+
+/// Find a subtree from `vec` with the maximal `ShapeProperty` value and return that value
+template<typename SI>
+static int maxShapeValue(const std::vector<SI>& vec, ShapeProperty prop) {
+  if (prop == ShapeProperty::SIZE) {
+    const SI& res = *std::max_element(
+        begin(vec), end(vec), [](const SI& s1, const SI& s2) {
+          return s1.size < s2.size;
+        });
+    return res.size;
+  } else if (prop == ShapeProperty::COUNT) {
+    const SI& res = *std::max_element(
+        begin(vec), end(vec), [](const SI& s1, const SI& s2) {
+          return s1.get_count() < s2.get_count();
+        });
+    return res.get_count();
+  } else if (prop == ShapeProperty::HEIGHT) {
+    const SI& res = *std::max_element(
+        begin(vec), end(vec), [](const SI& s1, const SI& s2) {
+          return s1.height < s2.height;
+        });
+    return res.height;
+  }
+
+  return 1;
+}
+
+template<typename SI>
+static int extractProperty(const SI& info, ShapeProperty prop) {
+
+  int value;
+
+  if (prop == ShapeProperty::SIZE) {
+    value = info.size;
+  } else if (prop == ShapeProperty::COUNT) {
+    value = info.get_count();
+  } else if (prop == ShapeProperty::HEIGHT) {
+    value = info.height;
+  } else {
+    abort();
+    value = -1;
+  }
+
+  return value;
+}
+
+/// Sort elements of `vec` in place based on `prop`
+template<typename SI>
+static void sortSubtrees(std::vector<SI>& vec, ShapeProperty prop) {
+  if (prop == ShapeProperty::SIZE) {
+    std::sort(begin(vec), end(vec),
+              [](const SI& s1, const SI& s2) {
+                return s1.size > s2.size;
+              });
+  } else if (prop == ShapeProperty::COUNT) {
+    std::sort(begin(vec), end(vec),
+              [](const SI& s1, const SI& s2) {
+                return s1.get_count() > s2.get_count();
+              });
+  } else if (prop == ShapeProperty::HEIGHT) {
+    std::sort(begin(vec), end(vec),
+              [](const SI& s1, const SI& s2) {
+                return s1.height > s2.height;
+              });
+  }
+}
 
 SimilarShapesWindow::SimilarShapesWindow(NodeTree& nt)
     : HistogramWindow{nt}, node_tree{nt} {
@@ -120,17 +193,6 @@ void SimilarShapesWindow::initInterface() {
 
     filtersLayout->addWidget(new QLabel{"histogram: "});
     filtersLayout->addWidget(histChoiceCB);
-}
-
-void SimilarShapesWindow::updateShapesData() {
-
-    perfHelper.begin("shapes: analyse");
-    shapes = runSimilarShapes(node_tree);
-    perfHelper.end();
-
-    perfHelper.begin("subsumed shapes elimination");
-    eliminateSubsumed(node_tree, shapes);
-    perfHelper.end();
 }
 
 
@@ -236,7 +298,15 @@ void SimilarShapesWindow::updateHistogram() {
     case SimilarityType::SHAPE:
 
       if (!shapes_cached) {
-        updateShapesData();
+        
+        perfHelper.begin("shapes: analyse");
+        shapes = runSimilarShapes(node_tree);
+        perfHelper.end();
+
+        perfHelper.begin("subsumed shapes elimination");
+        eliminateSubsumed(node_tree, shapes);
+        perfHelper.end();
+
         shapes_cached = true;
       }
 
