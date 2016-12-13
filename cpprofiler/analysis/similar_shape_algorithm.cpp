@@ -1,4 +1,9 @@
+#include "similar_shape_algorithm.hh"
 #include <set>
+
+#include "visualnode.hh"
+#include "nodetree.hh"
+#include "tree_utils.hh"
 
 namespace cpprofiler {
 namespace analysis {
@@ -64,7 +69,7 @@ struct CompareShapes {
 };
 
 
-/// conver to a vector of shape information
+/// convert to a vector of shape information
 static std::vector<ShapeInfo> toShapeVector(std::multiset<ShapeI, CompareShapes>&& mset) {
 
   std::vector<ShapeInfo> shapes;
@@ -142,7 +147,7 @@ collectShapes(NodeTree& nt) {
 
 }
 
-static std::vector<ShapeInfo> runSimilarShapes(NodeTree& nt) {
+std::vector<ShapeInfo> runSimilarShapes(NodeTree& nt) {
     return detail::toShapeVector(detail::collectShapes(nt));
 }
 

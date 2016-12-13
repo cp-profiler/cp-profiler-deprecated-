@@ -16,14 +16,6 @@ enum class SimilarityType {
   SHAPE, SUBTREE
 };
 
-struct ShapeInfo {
-  int sol;
-  int size;
-  int height;
-  std::vector<VisualNode*> nodes;
-  Shape* s;
-};
-
 using GroupsOfNodes_t = std::vector<std::vector<VisualNode*>>;
 
 

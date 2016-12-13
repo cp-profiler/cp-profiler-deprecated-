@@ -2,6 +2,7 @@
 #include "nodetree.hh"
 #include "subtree_canvas.hh"
 #include "tree_utils.hh"
+#include "similar_shape_algorithm.hh"
 
 #include <QAbstractScrollArea>
 #include <QGraphicsView>

@@ -17,6 +17,7 @@ namespace cpprofiler {
 namespace analysis {
 
 class SubtreeCanvas;
+struct ShapeInfo;
 
 class HistogramWindow : public QDialog {
 

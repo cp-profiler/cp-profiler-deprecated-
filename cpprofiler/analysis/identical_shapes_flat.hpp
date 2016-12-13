@@ -233,10 +233,10 @@ static PosInGroups findNode(
 }
 
 /// TODO(maxim): can I make it linear time? (not used currently)
-GroupsOfNodes_t findIdentical(NodeTree& nt) {
-  /// ------ 0) group by height ------
+GroupsOfNodes_t findIdentical(NodeTree& nt, const GroupsOfNodes_t& init_p) {
 
-  std::vector<Group> groups = groupByHeight(nt);
+  /// ------ 0) Initial Partition ------
+  std::vector<Group> groups = prepareGroups(init_p, nt);
 
   /// ------ 1) assign a group id to each node -------
   std::unordered_map<const VisualNode*, PosInGroups> node2groupID;

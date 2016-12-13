@@ -16,48 +16,6 @@ struct PosInGroups {
 
 namespace detail {
 
-  /// get subtree height, while also populating group_items
-  static int getSubtreeHeight(const VisualNode* n, const NodeAllocator& na,
-                       ChildrenInfoGroups& groups) {
-    int max = 0;
-
-    int kids = n->getNumberOfChildren();
-
-    if (kids == 0) {
-      return 1;
-    }
-
-    for (int i = 0; i < kids; ++i) {
-      auto kid = n->getChild(na, i);
-      int h = getSubtreeHeight(kid, na, groups);
-      auto& group_items = groups[h - 1];
-      group_items.push_back({i, kid});
-      if (h > max) {
-        max = h;
-      }
-    }
-
-    return max + 1;
-  }
-
-
-  static ChildrenInfoGroups groupByHeight(NodeTree& nt) {
-    int max_depth = nt.getStatistics().maxDepth;
-
-    ChildrenInfoGroups groups(max_depth);
-
-    auto& na = nt.getNA();
-    auto* root = nt.getRoot();
-
-    auto max_depth_ignored = getSubtreeHeight(root, na, groups);
-    assert (max_depth == max_depth_ignored);
-
-    /// edge case of a root node
-    groups[groups.size() - 1].push_back({-1, root});
-
-    return groups;
-  }
-
   void separateNode(Group* g,
                     std::unordered_map<const VisualNode*, PosInGroups>& node2pos,
                     int idx) {
@@ -108,54 +66,26 @@ namespace detail {
   }
 }
 
-static ChildrenInfoGroups shapesToGroups(const std::vector<ShapeInfo>& shapes,
-                                         const NodeTree& nt) {
-  const auto& na = nt.getNA();
+static ChildrenInfoGroups prepareGroups(const GroupsOfNodes_t& init_p, const NodeTree& nt) {
 
-  ChildrenInfoGroups result;
-  result.reserve(shapes.size());
+  ChildrenInfoGroups groups;
 
-  for (const auto& s : shapes) {
-
-    vector<ChildInfo> group;
-    for (auto* n : s.nodes) {
-
-      /// figure out `alt`: have to check all parent's children
-      int alt;
-      auto* p = n->getParent(na);
-
-      if (p != nullptr) {
-
-        for (auto i = 0u; i < p->getNumberOfChildren(); ++i) {
-          if (n == p->getChild(na, i)) {
-            alt = i;
-            break;
-          }
-        }
-
-      } else {
-        alt = -1;
-      }
-
-      group.push_back({(int)alt, n});
+  for (auto& vec : init_p) {
+    vector<ChildInfo> g;
+    for (auto* n : vec) {
+      g.push_back(node2ci(n, nt));
     }
-
-    result.push_back(std::move(group));
+    groups.push_back(g);
   }
 
-  return result;
+  return groups;
 }
 
-GroupsOfNodes_t findIdentical(NodeTree& nt) {
+GroupsOfNodes_t findIdentical(NodeTree& nt, const GroupsOfNodes_t& init_p) {
 
-  // std::vector<ShapeInfo> shapes = runSimilarShapes(nt);
 
-  // ChildrenInfoGroups groups = shapesToGroups(shapes, nt);
   // / 0) Start with some initial partition:
-  ChildrenInfoGroups groups = groupByNoNodes(nt); /// slightly faster
-
-
-  // ChildrenInfoGroups groups = detail::groupByHeight(nt);
+  ChildrenInfoGroups groups = prepareGroups(init_p, nt);
 
   std::unordered_map<const VisualNode*, PosInGroups> node2pos;
   SplittableGroups sgroups{groups};
@@ -167,7 +97,6 @@ GroupsOfNodes_t findIdentical(NodeTree& nt) {
       node2pos[ci.node] = PosInGroups{(int)i, group};
     }
   }
-
 
   // print_groups(sgroups);
   // print(sgroups);

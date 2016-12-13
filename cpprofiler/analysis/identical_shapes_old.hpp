@@ -112,9 +112,10 @@ static std::pair<int, int> findNodeInGroups(
 // TODO/NOTE(maxim): This algorithm isn't supposed to work
 // (new groups pushed to the end), but I've failed
 // to find any cases where it produces a wrong result
-GroupsOfNodes_t findIdentical(NodeTree& nt) {
-  /// ------ 0) group by height ------
-  std::vector<Group> groups = groupByHeight(nt);
+GroupsOfNodes_t findIdentical(NodeTree& nt, const GroupsOfNodes_t& init_p) {
+
+  /// ------ 0) Initial Partition ------
+  std::vector<Group> groups = prepareGroups(init_p, nt);
 
     /// *** EXPERIMENT (shuffling) ***
   // std::random_shuffle( groups.begin(), groups.end() );

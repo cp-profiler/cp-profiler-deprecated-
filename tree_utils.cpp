@@ -191,8 +191,8 @@ void highlightSubtrees(NodeTree& nt, const std::vector<VisualNode*>& nodes) {
   }
 
   // TODO: hide not highlighted
-  // HideNotHighlightedCursor hnhc(root, na);
-  // PostorderNodeVisitor<HideNotHighlightedCursor>(hnhc).run();
+  HideNotHighlightedCursor hnhc(root, na);
+  PostorderNodeVisitor<HideNotHighlightedCursor>(hnhc).run();
 
   nt.treeModified();
 

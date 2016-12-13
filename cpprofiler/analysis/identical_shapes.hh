@@ -8,6 +8,7 @@ namespace subtrees {
 
 
 GroupsOfNodes_t findIdentical(NodeTree& nt);
+// GroupsOfNodes_t findIdentical(Execution& ex);
 
 
 }

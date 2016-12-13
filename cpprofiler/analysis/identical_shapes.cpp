@@ -10,6 +10,7 @@
 #include "tree_utils.hh"
 #include "nodetree.hh"
 #include "libs/perf_helper.hh"
+#include "similar_shape_algorithm.hh"
 
 class NodeAllocator;
 
@@ -18,25 +19,46 @@ namespace analysis {
 namespace subtrees {
 
 namespace identical_subtrees_new {
-  GroupsOfNodes_t findIdentical(NodeTree& nt);
+  GroupsOfNodes_t findIdentical(NodeTree& nt, const GroupsOfNodes_t& init_p);
 }
 
 namespace identical_subtrees_old {
-  GroupsOfNodes_t findIdentical(NodeTree& nt);
+  GroupsOfNodes_t findIdentical(NodeTree& nt, const GroupsOfNodes_t& init_p);
 }
 
 namespace identical_subtrees_flat {
-  GroupsOfNodes_t findIdentical(NodeTree& nt);
+  GroupsOfNodes_t findIdentical(NodeTree& nt, const GroupsOfNodes_t& init_p);
 }
 
 namespace identical_subtrees_queue {
-  GroupsOfNodes_t findIdentical(NodeTree& nt);
+  GroupsOfNodes_t findIdentical(NodeTree& nt, const GroupsOfNodes_t& init_p);
 }
 
 struct ChildInfo {
   int alt;
   VisualNode* node;
 };
+
+static ChildInfo node2ci(VisualNode* n, const NodeTree& nt) {
+  auto& na = nt.getNA();
+  /// figure out `alt`: have to check all parent's children
+  auto* p = n->getParent(na);
+  int alt;
+  if (p != nullptr) {
+
+    for (auto i = 0u; i < p->getNumberOfChildren(); ++i) {
+      if (n == p->getChild(na, i)) {
+        alt = i;
+        break;
+      }
+    }
+
+  } else {
+    alt = -1;
+  }
+
+  return {alt, n};
+}
 
 using std::vector;
 using ChildrenInfoGroups = vector<vector<ChildInfo>>;
@@ -53,20 +75,20 @@ public:
   Group(int s, const std::vector<ChildInfo>& i) : splitter(s), items(i) {}
 };
 
-static int countNodes(VisualNode* node,
-                      const NodeAllocator& na,
-                      std::unordered_map<int, vector<ChildInfo>>& map) {
-    if (node->getNumberOfChildren() == 0) return 1;
+/// transform initial partition into appropriate format for the algorithm ("flat", "queue", "old")
+static vector<Group> prepareGroups(const GroupsOfNodes_t& init_p, const NodeTree& nt) {
 
-    int result = 0;
-    for (auto i = 0u; i < node->getNumberOfChildren(); ++i) {
-        auto* child = node->getChild(na, i);
-        auto count = countNodes(child, na, map);
-        result += count;
-        map[count].push_back({(int)i, child});
+  vector<Group> groups;
+
+  for (auto& vec : init_p) {
+    Group g;
+    for (auto* n : vec) {
+      g.items.push_back(node2ci(n, nt));
     }
+    groups.push_back(g);
+  }
 
-    return result;
+  return groups;
 }
 
 QDebug& operator<<(QDebug& os, const Group& g) {
@@ -109,37 +131,39 @@ static vector<T> flatten(vector<vector<T>>& vecs) {
 }
 
 
-/// get subtree height, while also populating group_items
-static int getSubtreeHeight(const VisualNode* n, const NodeAllocator& na,
-                     std::vector<Group>& groups) {
-  int max = 0;
-
-  int kids = n->getNumberOfChildren();
-
-  if (kids == 0) {
-    return 1;
-  }
-
-  for (int i = 0; i < kids; ++i) {
-    auto kid = n->getChild(na, i);
-    int h = getSubtreeHeight(kid, na, groups);
-    auto& group_items = groups[h - 1].items;
-    group_items.push_back({i, kid});
-    if (h > max) {
-      max = h;
-    }
-  }
-
-  return max + 1;
-}
-
 /// Groups nodes by height of their underlying subtree
-/// TODO(maxim): NodeTree should be able to tell its depth
-static std::vector<Group> groupByHeight(NodeTree& nt) {
+static GroupsOfNodes_t groupByHeight(NodeTree& nt) {
+
+  using T = VisualNode;
+  using Fn = std::function<int(const T*, const NodeAllocator&, GroupsOfNodes_t&)>;
+
+  Fn getSubtreeHeight = [&getSubtreeHeight](const T* n,
+                            const NodeAllocator& na,
+                            GroupsOfNodes_t& groups) -> int {
+    int max = 0;
+
+    int kids = n->getNumberOfChildren();
+
+    if (kids == 0) {
+      return 1;
+    }
+
+    for (int i = 0; i < kids; ++i) {
+      auto kid = n->getChild(na, i);
+      int h = getSubtreeHeight(kid, na, groups);
+      auto& group_items = groups[h - 1];
+      group_items.push_back(kid);
+      if (h > max) {
+        max = h;
+      }
+    }
+
+    return max + 1;
+  };
+
   int max_depth = tree_utils::calculateMaxDepth(nt);
 
-  /// start from 1 for convenience
-  std::vector<Group> groups(max_depth);
+  GroupsOfNodes_t groups(max_depth);
 
   auto& na = nt.getNA();
   auto* root = nt.getRoot();
@@ -148,24 +172,43 @@ static std::vector<Group> groupByHeight(NodeTree& nt) {
   assert (max_depth == max_depth_ignored);
 
   /// edge case of a root node
-  groups[groups.size() - 1].items.push_back({-1, root});
+  groups[groups.size() - 1].push_back(root);
 
   return groups;
 }
 
-static ChildrenInfoGroups groupByNoNodes(NodeTree& nt) {
+static GroupsOfNodes_t groupByNoNodes(NodeTree& nt) {
 
-    std::unordered_map<int, vector<ChildInfo>> group_map;
+    using T = VisualNode;
+    using Fn = std::function<int(T*, const NodeAllocator&, std::unordered_map<int, vector<T*>>&)>;
+
+    Fn countNodes = [&](T* node,
+                      const NodeAllocator& na,
+                      std::unordered_map<int, vector<T*>>& map) -> int {
+      if (node->getNumberOfChildren() == 0) return 1;
+
+      int result = 0;
+      for (auto i = 0u; i < node->getNumberOfChildren(); ++i) {
+          auto* child = node->getChild(na, i);
+          auto count = countNodes(child, na, map);
+          result += count;
+          map[count].push_back(child);
+      }
+
+      return result;
+    };
+
+    std::unordered_map<int, vector<T*>> group_map;
 
     auto& na = nt.getNA();
     auto* root = nt.getRoot();
 
     auto count = countNodes(root, na, group_map);
-    group_map[count].push_back({-1, root});
+    group_map[count].push_back(root);
 
     /// convert a map into a vector
 
-    ChildrenInfoGroups result;
+    GroupsOfNodes_t result;
     result.reserve(group_map.size());
 
     for (auto& pair : group_map) {
@@ -175,18 +218,54 @@ static ChildrenInfoGroups groupByNoNodes(NodeTree& nt) {
     return result;
 }
 
+static GroupsOfNodes_t groupByShapes(NodeTree& nt) {
+
+  auto shapesToGroups = [] (const std::vector<ShapeInfo>& shapes,
+                                         const NodeTree& nt) {
+    const auto& na = nt.getNA();
+
+    GroupsOfNodes_t result;
+    result.reserve(shapes.size());
+
+    for (const auto& s : shapes) {
+      vector<VisualNode*> group;
+      for (auto* n : s.nodes) {
+        group.push_back(n);
+      }
+      result.push_back(std::move(group));
+    }
+    return result;
+  };
+
+  std::vector<ShapeInfo> shapes = runSimilarShapes(nt);
+  return shapesToGroups(shapes, nt);
+}
+
 struct PosInGroups {
   int g_id; /// Group identifier
   int inner_idx; /// ?
 };
 
+GroupsOfNodes_t groupByLabels(NodeTree& nt) {
+
+  /// Can I get labels without execution (no)
+
+}
+
 
 
 GroupsOfNodes_t findIdentical(NodeTree& nt) {
-  // return identical_subtrees_new::findIdenticalShapes(nt);
-  // return identical_subtrees_flat::findIdentical(nt);
-  // return identical_subtrees_old::findIdentical(nt);
-  return identical_subtrees_queue::findIdentical(nt);
+
+  /// Initial Partition
+  // GroupsOfNodes_t init_p = groupByHeight(nt);
+  GroupsOfNodes_t init_p = groupByNoNodes(nt); /// slightly faster
+  // GroupsOfNodes_t init_p = groupByShapes(nt); /// slower
+
+  // return identical_subtrees_new::findIdentical(nt, init_p);
+  // return identical_subtrees_flat::findIdentical(nt, init_p);
+  // return identical_subtrees_old::findIdentical(nt, init_p);
+
+  return identical_subtrees_queue::findIdentical(nt, init_p);
 }
 
 

@@ -23,7 +23,7 @@
 #include "identical_shapes.hh"
 
 #include "shape_rect.hh"
-#include "similar_shapes_algorithm.hpp"
+#include "similar_shape_algorithm.hh"
 #include "subsumed_subtrees.hpp"
 
 using std::vector;
@@ -306,6 +306,8 @@ void SimilarShapesWindow::updateHistogram() {
         perfHelper.begin("subsumed shapes elimination");
         eliminateSubsumed(node_tree, shapes);
         perfHelper.end();
+
+        qDebug() << "shapes (no subsumed): " << shapes.size();
 
         shapes_cached = true;
       }

@@ -65,10 +65,10 @@ static std::pair<int, int> findNodeInGroups(
 }
 
 
-GroupsOfNodes_t findIdentical(NodeTree& nt) {
+GroupsOfNodes_t findIdentical(NodeTree& nt, const GroupsOfNodes_t& init_p) {
 
   /// ------ 0) Initial Partition ------
-  std::vector<Group> groups = groupByHeight(nt);
+  std::vector<Group> groups = prepareGroups(init_p, nt);
 
   /// ------ 1) Assign a group id to each node -------
   std::unordered_map<const VisualNode*, PosInGroups> node2groupID;

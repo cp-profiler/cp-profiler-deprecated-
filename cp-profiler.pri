@@ -39,6 +39,7 @@ SOURCES += \
     $$PWD/cpprofiler\analysis\histogram_win.cpp \
     $$PWD/cpprofiler\analysis\subtree_canvas.cpp \
     $$PWD/cpprofiler\analysis\identical_shapes.cpp \
+    $$PWD/cpprofiler\analysis\similar_shape_algorithm.cpp \
     $$PWD/cpprofiler\analysis\shape_rect.cpp \
 
 HEADERS  += \
@@ -97,6 +98,7 @@ HEADERS  += \
     $$PWD/cpprofiler\analysis\subtree_canvas.hh \
     $$PWD/cpprofiler\analysis\identical_shapes.hh \
     $$PWD/cpprofiler\analysis\subtree_analysis.hh \
+    $$PWD/cpprofiler\analysis\similar_shape_algorithm.hh \
     $$PWD/cpprofiler\analysis\shape_rect.hh \
     $$PWD/webscript.hh \
     
