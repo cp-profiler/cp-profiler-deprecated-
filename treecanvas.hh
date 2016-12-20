@@ -286,6 +286,9 @@ public Q_SLOTS:
   /// Analyze similar subtrees of current node
   void analyzeSimilarSubtrees();
 
+  /// Analyze similar subtrees of current node
+  void compareSubtreeLabels();
+
   /// Show highlight nodes dialog
   void highlightNodesMenu();
 

@@ -153,6 +153,9 @@ private:
   QAction* hideSize;
   /// Follow path
   QAction* followPath;
+
+  /// Compare labels of bookmarked subtrees
+  QAction* compareSubtreeLabels;
   
   /// Show on a pixel tree
   QAction* showNodeOnPixelTree;

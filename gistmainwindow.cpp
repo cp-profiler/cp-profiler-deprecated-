@@ -228,6 +228,7 @@ GistMainWindow::GistMainWindow(Execution& e,
   treeVisMenu->addAction(showIcicleTree);
   treeVisMenu->addAction(hideSize);
   treeVisMenu->addAction(followPath);
+  treeVisMenu->addAction(compareSubtreeLabels);
   treeVisMenu->addAction(printPaths);
   treeVisMenu->addAction(deleteWhiteNodes);
   treeVisMenu->addAction(deleteSkippedNodes);
@@ -392,6 +393,10 @@ void GistMainWindow::addActions() {
   followPath = new QAction("Follow Path", this);
   addAction(followPath);
   connect(followPath, SIGNAL(triggered()), canvas, SLOT(followPath()));
+
+  compareSubtreeLabels = new QAction("Compare Subtree Labels", this);
+  addAction(compareSubtreeLabels);
+  connect(compareSubtreeLabels, &QAction::triggered, canvas, &TreeCanvas::compareSubtreeLabels);
 
     /// Expand current node
   auto expand_action = new QAction("Expand", this);

@@ -1370,11 +1370,63 @@ static void copyTree(VisualNode* target, NodeTree& tree_target,
   stats.maxDepth = depth;
 }
 
+QString getLabel(VisualNode* n) {
+
+}
+
+void
+TreeCanvas::compareSubtreeLabels() {
+  /// Find two subtrees bookmarked
+  if (bookmarks.size() != 2) return;
+
+  auto root_1 = bookmarks[0];
+  auto root_2 = bookmarks[1];
+
+  vector<VisualNode*> diff_nodes;
+
+  /// Traverse two trees in lockstep (pre-order)
+  std::stack<VisualNode*> stk1;
+  std::stack<VisualNode*> stk2;
+
+  stk1.push(root_1); stk2.push(root_2);
+
+  while(stk1.size() > 0) {
+    auto n1 = stk1.top(); stk1.pop();
+    auto n2 = stk2.top(); stk2.pop();
+
+    auto label_1 = execution.getLabel(n1->getIndex(na));
+    auto label_2 = execution.getLabel(n2->getIndex(na));
+
+    if (label_1 != label_2) {
+      qDebug() << label_1.c_str() << "!=" << label_2.c_str();
+      diff_nodes.push_back(n1);
+    }
+
+    /// Add children to the stacks
+
+    auto kids = n1->getNumberOfChildren();
+    if (kids != n2->getNumberOfChildren()) {
+      qDebug() << "Abort: subtrees have different structure\n";
+      return;
+    }
+
+    for (auto i = 0u; i < kids; ++i) {
+      stk1.push(n1->getChild(na, i));
+      stk2.push(n2->getChild(na, i));
+    }
+
+  }
+
+  if (diff_nodes.size() == 0) {
+    qDebug() << "all labels are pairwise identical";
+  }
+
+}
+
 /// TODO(maxim): shouldn't really be a part of TreeCanvas
 pair<unique_ptr<NodeTree>, unique_ptr<Data>>
 TreeCanvas::extractSubtree() {
   
-  /// populate this
   unique_ptr<NodeTree> nt{new NodeTree};
   unique_ptr<Data> data{new Data};
 
