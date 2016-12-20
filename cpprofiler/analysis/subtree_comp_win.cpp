@@ -153,8 +153,8 @@ static void drawAnalysisHistogram(QGraphicsScene* scene, HistogramWindow* ssw,
   }
 }
 
-SubtreeCompWindow::SubtreeCompWindow(NodeTree& nt, std::unique_ptr<ExecMap_t>&& map)
-: HistogramWindow{nt}, node2ex_id{std::move(map)} {
+SubtreeCompWindow::SubtreeCompWindow(Execution& ex, std::unique_ptr<ExecMap_t>&& map)
+: HistogramWindow{ex}, node2ex_id{std::move(map)} {
 
     initInterface();
     updateHistogram();
@@ -169,7 +169,7 @@ void SubtreeCompWindow::updateHistogram() {
     hist_view->setScene(m_scene.get());
 
     if (!subtrees_cached) {
-        m_identicalGroups = subtrees::findIdentical(node_tree);
+        m_identicalGroups = subtrees::findIdentical(execution);
         subtrees_cached = true;
     }
 

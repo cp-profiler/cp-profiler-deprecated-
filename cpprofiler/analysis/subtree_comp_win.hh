@@ -55,7 +55,7 @@ class SubtreeCompWindow : public HistogramWindow {
   void updateHistogram();
   void drawComparisonHistogram();
 public:
-  SubtreeCompWindow(NodeTree& nt, std::unique_ptr<ExecMap_t>&& map);
+  SubtreeCompWindow(Execution& ex, std::unique_ptr<ExecMap_t>&& map);
   ~SubtreeCompWindow();
 
 };

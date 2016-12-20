@@ -12,6 +12,7 @@ class QAbstractScrollArea;
 class QGraphicsScene;
 class QGraphicsView;
 class QHBoxLayout;
+class Execution;
 
 namespace cpprofiler {
 namespace analysis {
@@ -33,6 +34,7 @@ protected:
 
     SimilarityType  simType = SimilarityType::SUBTREE;
 
+    Execution& execution;
     NodeTree& node_tree;
     std::unique_ptr<QGraphicsScene> m_scene;
     QGraphicsView* hist_view;
@@ -52,7 +54,7 @@ protected:
 
 
 public:
-    HistogramWindow(NodeTree& nt);
+    HistogramWindow(Execution& nt);
 
     virtual ~HistogramWindow();
 

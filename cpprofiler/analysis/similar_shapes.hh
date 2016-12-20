@@ -16,6 +16,7 @@ class VisualNode;
 class QGraphicsScene;
 class QGraphicsView;
 class QAbstractScrollArea;
+class Execution;
 class NodeTree;
 
 namespace cpprofiler {
@@ -51,8 +52,6 @@ public:
 class SimilarShapesWindow : public HistogramWindow {
   Q_OBJECT
 
-  NodeTree& node_tree;
-
   ShapeProperty   m_histType  = ShapeProperty::SIZE;
   ShapeProperty   m_sortType  = ShapeProperty::SIZE;
 
@@ -66,7 +65,7 @@ class SimilarShapesWindow : public HistogramWindow {
   void drawAlternativeHistogram();
 
  public:
-  SimilarShapesWindow(NodeTree& nt);
+  SimilarShapesWindow(Execution& nt);
   ~SimilarShapesWindow();
 
 

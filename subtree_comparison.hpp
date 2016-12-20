@@ -50,7 +50,7 @@ static void compareExecutions(Execution& ex, const Execution& ex1,
   (*node2ex_id)[root] = 3;
 
   /// run similar subtree analysis
-  auto shapes_window = new SubtreeCompWindow{nt, std::move(node2ex_id)};
+  auto shapes_window = new SubtreeCompWindow{ex, std::move(node2ex_id)};
   shapes_window->show();
 
 

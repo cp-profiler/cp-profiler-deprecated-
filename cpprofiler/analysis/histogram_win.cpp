@@ -1,5 +1,6 @@
 #include "histogram_win.hh"
 #include "nodetree.hh"
+#include "execution.hh"
 #include "subtree_canvas.hh"
 #include "tree_utils.hh"
 #include "similar_shape_algorithm.hh"
@@ -22,15 +23,14 @@
 namespace cpprofiler {
 namespace analysis {
 
-
-HistogramWindow::HistogramWindow(NodeTree& nt): node_tree{nt} {
+HistogramWindow::HistogramWindow(Execution& ex)
+    : execution{ex}, node_tree{ex.nodeTree()} {
 
     std::unique_ptr<QAbstractScrollArea> sa{new QAbstractScrollArea()};
     initSharedInterface(sa.get());
     m_SubtreeCanvas.reset(new SubtreeCanvas(std::move(sa), node_tree));
 
     m_SubtreeCanvas->show();
-
 }
 
 HistogramWindow::~HistogramWindow() = default;

@@ -17,7 +17,7 @@
 
 #include "visualnode.hh"
 #include "libs/perf_helper.hh"
-#include "nodetree.hh"
+#include "execution.hh"
 #include "globalhelper.hh"
 #include "tree_utils.hh"
 #include "identical_shapes.hh"
@@ -105,8 +105,8 @@ static void sortSubtrees(std::vector<SI>& vec, ShapeProperty prop) {
   }
 }
 
-SimilarShapesWindow::SimilarShapesWindow(NodeTree& nt)
-    : HistogramWindow{nt}, node_tree{nt} {
+SimilarShapesWindow::SimilarShapesWindow(Execution& ex)
+    : HistogramWindow{ex} {
 
   initInterface();
 
@@ -320,7 +320,7 @@ void SimilarShapesWindow::updateHistogram() {
 
           /// TODO(maxim): get rid of the unnecessary copy here:
         perfHelper.begin("identical_shapes");
-        m_identicalGroups = subtrees::findIdentical(node_tree);
+        m_identicalGroups = subtrees::findIdentical(execution);
         perfHelper.end();
 
           subtrees_cached = true;

@@ -4,11 +4,12 @@
 #include "similar_shapes.hh"
 
 #include <vector>
+#include <string>
 #include <unordered_map>
 
 #include "visualnode.hh"
 #include "tree_utils.hh"
-#include "nodetree.hh"
+#include "execution.hh"
 #include "libs/perf_helper.hh"
 #include "similar_shape_algorithm.hh"
 
@@ -246,15 +247,55 @@ struct PosInGroups {
   int inner_idx; /// ?
 };
 
-GroupsOfNodes_t groupByLabels(NodeTree& nt) {
+GroupsOfNodes_t groupByLabels(Execution& ex) {
 
-  /// Can I get labels without execution (no)
+  using std::string;
+
+  auto& nt = ex.nodeTree();
+
+  GroupsOfNodes_t result;
+
+  /// Group by height first
+
+  GroupsOfNodes_t h_part = groupByHeight(nt);
+
+  for (auto& vec : h_part) {
+
+    /// Split vec based on labels
+
+    std::unordered_map<string, vector<VisualNode*>> label_map;
+
+    for (auto* n : vec) {
+      string l = ex.getLabel(*n);
+      label_map[l].push_back(n);
+    }
+
+    /// Add groups into result
+
+    for (auto& pair : label_map) {
+      result.push_back(std::move(pair.second));
+    }
+  }
+
+  return result;
 
 }
 
 
 
-GroupsOfNodes_t findIdentical(NodeTree& nt) {
+GroupsOfNodes_t findIdentical(Execution& ex) {
+
+  auto& nt = ex.nodeTree();
+
+  GroupsOfNodes_t init_p2 = groupByLabels(ex);
+
+  for (auto& vec: init_p2) {
+    for (auto* n : vec) {
+      std::cout << n->debug_id << " (" << ex.getLabel(*n) <<  ") ";
+    }
+
+    std::cout << std::endl;
+  }
 
   /// Initial Partition
   // GroupsOfNodes_t init_p = groupByHeight(nt);
@@ -265,7 +306,7 @@ GroupsOfNodes_t findIdentical(NodeTree& nt) {
   // return identical_subtrees_flat::findIdentical(nt, init_p);
   // return identical_subtrees_old::findIdentical(nt, init_p);
 
-  return identical_subtrees_queue::findIdentical(nt, init_p);
+  return identical_subtrees_queue::findIdentical(nt, init_p2);
 }
 
 
