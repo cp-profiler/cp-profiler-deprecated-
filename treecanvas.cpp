@@ -912,6 +912,8 @@ void TreeCanvas::resizeToOuter(void) {
 }
 
 void TreeCanvas::paintEvent(QPaintEvent* event) {
+    if (root==NULL || root->getShape()==NULL)
+        return;
   QMutexLocker locker(&layoutMutex);
   QPainter painter(this);
   painter.setRenderHint(QPainter::Antialiasing);

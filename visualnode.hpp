@@ -39,6 +39,7 @@
 #define VISUALNODE_HPP
 
 #include <iostream>
+#include <QString>
 
 #ifdef MAXIM_DEBUG
 #include <QDebug>
