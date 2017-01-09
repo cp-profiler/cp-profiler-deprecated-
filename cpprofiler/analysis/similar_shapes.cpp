@@ -237,8 +237,7 @@ static void drawAnalysisHistogram(QGraphicsScene* scene, SimilarShapesWindow* ss
     rect->addToScene(scene);
 
     if (shape.marked) {
-      int y = row * ROW_HEIGHT;
-      auto flag = new QGraphicsRectItem(0, y - 5, 10, 10);
+      auto flag = new QGraphicsRectItem(0, row * ROW_HEIGHT + 3, 10, 10);
       flag->setBrush(Qt::yellow);
       scene->addItem(flag);
     }

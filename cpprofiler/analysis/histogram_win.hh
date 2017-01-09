@@ -32,7 +32,7 @@ protected:
     bool shapes_cached    = false;
     bool subtrees_cached  = false;
 
-    SimilarityType  simType = SimilarityType::SUBTREE;
+    SimilarityType  simType = SimilarityType::SHAPE;
 
     Execution& execution;
     NodeTree& node_tree;

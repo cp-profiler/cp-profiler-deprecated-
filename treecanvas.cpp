@@ -270,7 +270,9 @@ void TreeCanvas::analyzeSimilarSubtrees(void) {
   QMutexLocker locker_1(&mutex);
   QMutexLocker locker_2(&layoutMutex);
 
-  shapesWindow.reset(new SimilarShapesWindow{execution});
+  auto ssw = new SimilarShapesWindow{execution};
+
+  shapesWindow.reset(std::move(ssw));
   shapesWindow->show();
 }
 

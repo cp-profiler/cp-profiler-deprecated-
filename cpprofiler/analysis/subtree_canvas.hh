@@ -15,13 +15,13 @@ namespace analysis {
 /// "Connects" to a tree and shows a part of it
 class SubtreeCanvas : public QWidget {
 Q_OBJECT
-  std::unique_ptr<QAbstractScrollArea> m_ScrollArea;
+  QAbstractScrollArea* m_ScrollArea;
   const NodeTree& m_NodeTree;
   VisualNode* cur_node = nullptr;
 
   void paintEvent(QPaintEvent* event) override;
 public:
-  SubtreeCanvas(std::unique_ptr<QAbstractScrollArea>&& sa, const NodeTree& nt);
+  SubtreeCanvas(QAbstractScrollArea* sa, const NodeTree& nt);
   void showSubtree(VisualNode* node);
 
   ~SubtreeCanvas();

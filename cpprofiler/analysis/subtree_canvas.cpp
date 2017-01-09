@@ -11,8 +11,8 @@
 namespace cpprofiler {
 namespace analysis {
 
-SubtreeCanvas::SubtreeCanvas(std::unique_ptr<QAbstractScrollArea>&& sa, const NodeTree& nt)
-    : QWidget{sa.get()}, m_ScrollArea{std::move(sa)}, m_NodeTree{nt} {}
+SubtreeCanvas::SubtreeCanvas(QAbstractScrollArea* sa, const NodeTree& nt)
+    : QWidget{sa}, m_ScrollArea{sa}, m_NodeTree{nt} {}
 
 SubtreeCanvas::~SubtreeCanvas() = default;
 

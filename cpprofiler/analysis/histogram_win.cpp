@@ -26,9 +26,9 @@ namespace analysis {
 HistogramWindow::HistogramWindow(Execution& ex)
     : execution{ex}, node_tree{ex.nodeTree()} {
 
-    std::unique_ptr<QAbstractScrollArea> sa{new QAbstractScrollArea()};
-    initSharedInterface(sa.get());
-    m_SubtreeCanvas.reset(new SubtreeCanvas(std::move(sa), node_tree));
+    auto sa = new QAbstractScrollArea();
+    initSharedInterface(sa);
+    m_SubtreeCanvas.reset(new SubtreeCanvas(sa, node_tree));
 
     m_SubtreeCanvas->show();
 }

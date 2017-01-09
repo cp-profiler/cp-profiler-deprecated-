@@ -287,15 +287,7 @@ GroupsOfNodes_t findIdentical(Execution& ex) {
 
   auto& nt = ex.nodeTree();
 
-  GroupsOfNodes_t init_p2 = groupByLabels(ex);
-
-  for (auto& vec: init_p2) {
-    for (auto* n : vec) {
-      std::cout << n->debug_id << " (" << ex.getLabel(*n) <<  ") ";
-    }
-
-    std::cout << std::endl;
-  }
+  // GroupsOfNodes_t init_p2 = groupByLabels(ex);
 
   /// Initial Partition
   // GroupsOfNodes_t init_p = groupByHeight(nt);
@@ -306,7 +298,7 @@ GroupsOfNodes_t findIdentical(Execution& ex) {
   // return identical_subtrees_flat::findIdentical(nt, init_p);
   // return identical_subtrees_old::findIdentical(nt, init_p);
 
-  return identical_subtrees_queue::findIdentical(nt, init_p2);
+  return identical_subtrees_queue::findIdentical(nt, init_p);
 }
 
 
