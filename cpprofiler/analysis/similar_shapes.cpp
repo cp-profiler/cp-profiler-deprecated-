@@ -319,7 +319,7 @@ void SimilarShapesWindow::updateHistogram() {
 
           /// TODO(maxim): get rid of the unnecessary copy here:
         perfHelper.begin("identical_shapes");
-        m_identicalGroups = subtrees::findIdentical(execution);
+        m_identicalGroups = subtrees::findIdentical(execution, labelSensitive);
         perfHelper.end();
 
           subtrees_cached = true;

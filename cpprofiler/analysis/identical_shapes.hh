@@ -9,7 +9,7 @@ namespace analysis {
 namespace subtrees {
 
 
-GroupsOfNodes_t findIdentical(Execution& nt);
+GroupsOfNodes_t findIdentical(Execution& nt, bool labelSensitive);
 
 
 }

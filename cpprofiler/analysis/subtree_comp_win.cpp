@@ -169,7 +169,7 @@ void SubtreeCompWindow::updateHistogram() {
     hist_view->setScene(m_scene.get());
 
     if (!subtrees_cached) {
-        m_identicalGroups = subtrees::findIdentical(execution);
+        m_identicalGroups = subtrees::findIdentical(execution, labelSensitive);
         subtrees_cached = true;
     }
 

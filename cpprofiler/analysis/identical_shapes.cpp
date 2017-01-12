@@ -283,21 +283,27 @@ GroupsOfNodes_t groupByLabels(Execution& ex) {
 
 
 
-GroupsOfNodes_t findIdentical(Execution& ex) {
+GroupsOfNodes_t findIdentical(Execution& ex, bool label_sensitive = false) {
 
   auto& nt = ex.nodeTree();
 
-  // GroupsOfNodes_t init_p2 = groupByLabels(ex);
+  /// Initial partition
+  GroupsOfNodes_t init_p;
 
-  /// Initial Partition
-  // GroupsOfNodes_t init_p = groupByHeight(nt);
-  GroupsOfNodes_t init_p = groupByNoNodes(nt); /// slightly faster
-  // GroupsOfNodes_t init_p = groupByShapes(nt); /// slower
+  if (label_sensitive) {
+    init_p = groupByLabels(ex);
+  } else {
+    /// NOTE(maxim): it is also possible to group by height and shapes using
+    /// `groupByShapes` (significantly slower) and `groupsByHeight` (a bit slower)
+    init_p = groupByNoNodes(nt);
+  }
 
+  /// TODO(maxim): figure out which one works best and keep only that one
   // return identical_subtrees_new::findIdentical(nt, init_p);
   // return identical_subtrees_flat::findIdentical(nt, init_p);
   // return identical_subtrees_old::findIdentical(nt, init_p);
 
+  /// TODO(maxim): the below doesn't actually use queue yet
   return identical_subtrees_queue::findIdentical(nt, init_p);
 }
 
