@@ -302,9 +302,14 @@ void SimilarShapesWindow::updateHistogram() {
         shapes = runSimilarShapes(node_tree);
         perfHelper.end();
 
+        shapes = filterOutUnique(shapes);
+
         perfHelper.begin("subsumed shapes elimination");
         eliminateSubsumed(node_tree, shapes);
         perfHelper.end();
+
+        /// some shapes may have become unique
+        shapes = filterOutUnique(shapes);
 
         qDebug() << "shapes (no subsumed): " << shapes.size();
 
@@ -322,18 +327,25 @@ void SimilarShapesWindow::updateHistogram() {
         m_identicalGroups = subtrees::findIdentical(execution, labelSensitive);
         perfHelper.end();
 
-          subtrees_cached = true;
-          qDebug() << "identical groups:" << m_identicalGroups.size();
+        m_identicalGroups = filterOutUnique(m_identicalGroups);
 
-        #ifdef MAXIM_DEBUG
-          auto str = "IdenticalGroups: " + std::to_string(m_identicalGroups.size());
-          debug_label.setText(str.c_str());
+        perfHelper.begin("subsumed subtrees elimination");
+        eliminateSubsumed(node_tree, m_identicalGroups);
+        perfHelper.end();
 
-          if (Settings::get_bool("save_shapes_to_file")) {
-            save_partition(m_identicalGroups);
-          }
+        m_identicalGroups = filterOutUnique(m_identicalGroups);
 
-        #endif
+        subtrees_cached = true;
+        qDebug() << "identical groups:" << m_identicalGroups.size();
+
+#ifdef MAXIM_DEBUG
+        auto str = "IdenticalGroups: " + std::to_string(m_identicalGroups.size());
+        debug_label.setText(str.c_str());
+
+        if (Settings::get_bool("save_shapes_to_file")) {
+          save_partition(m_identicalGroups);
+        }
+#endif
 
       }
 

@@ -135,6 +135,7 @@ bool compareSubtrees(const NodeTree& nt, const VisualNode& root1,
   return true;
 }
 
+/// Distance to the root
 int calculateDepth(const NodeTree& nt, const VisualNode& node) {
   int count = 0;
 
@@ -146,6 +147,7 @@ int calculateDepth(const NodeTree& nt, const VisualNode& node) {
   return count;
 }
 
+/// Distance to the lowest leaf
 static int calcDepth(const NodeAllocator& na, const VisualNode* n) {
   auto kids = n->getNumberOfChildren();
   if (kids == 0) { return 1; }
@@ -190,7 +192,7 @@ void highlightSubtrees(NodeTree& nt, const std::vector<VisualNode*>& nodes) {
     node->setHighlighted(true);
   }
 
-  // TODO: hide not highlighted
+  /// Hide not highlighted
   HideNotHighlightedCursor hnhc(root, na);
   PostorderNodeVisitor<HideNotHighlightedCursor>(hnhc).run();
 
