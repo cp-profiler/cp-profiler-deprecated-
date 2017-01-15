@@ -53,7 +53,7 @@ void HistogramWindow::highlightSubtrees(VisualNode* node) {
       });
 
       if (shape_it != end(shapes)) {
-        tree_utils::highlightSubtrees(node_tree, shape_it->nodes);
+        tree_utils::highlightSubtrees(node_tree, shape_it->nodes, settings.hideNotHighlighted);
 
       }
       // perfHelper.end();
@@ -78,7 +78,7 @@ void HistogramWindow::highlightSubtrees(VisualNode* node) {
           vec.push_back(n);
         }
 
-        tree_utils::highlightSubtrees(node_tree, vec);
+        tree_utils::highlightSubtrees(node_tree, vec, settings.hideNotHighlighted);
         break;
       }
 
@@ -104,11 +104,13 @@ void HistogramWindow::initSharedInterface(QAbstractScrollArea* sa) {
   splitter->setSizes(QList<int>{1, 1});  // for splitter to be centered
 
   filtersLayout = new QHBoxLayout{};
+  miscLayout = new QHBoxLayout{};
 
   auto globalLayout = new QVBoxLayout{this};
   globalLayout->addLayout(settingsLayout);
   globalLayout->addWidget(splitter, 1);
   globalLayout->addLayout(filtersLayout);
+  globalLayout->addLayout(miscLayout);
 
 #ifdef MAXIM_DEBUG
   globalLayout->addWidget(&debug_label);

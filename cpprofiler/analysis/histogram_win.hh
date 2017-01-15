@@ -20,6 +20,11 @@ namespace analysis {
 class SubtreeCanvas;
 struct ShapeInfo;
 
+struct HistogramSettings {
+    bool labelSensitive = false;
+    bool hideNotHighlighted = true;
+};
+
 class HistogramWindow : public QDialog {
 
     std::unique_ptr<SubtreeCanvas> m_SubtreeCanvas;
@@ -28,7 +33,7 @@ class HistogramWindow : public QDialog {
 
 protected:
 
-    bool labelSensitive   = false;
+    HistogramSettings settings;
     bool shapes_cached    = false;
     bool subtrees_cached  = false;
 
@@ -44,9 +49,9 @@ protected:
     /// the result of identical subree analysis
     GroupsOfNodes_t m_identicalGroups;
 
-
     QHBoxLayout* settingsLayout;
     QHBoxLayout* filtersLayout;
+    QHBoxLayout* miscLayout;
 
 #ifdef MAXIM_DEBUG
     QLabel debug_label{"debug info"};

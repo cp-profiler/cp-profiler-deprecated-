@@ -5,6 +5,7 @@
 
 #include <QLabel>
 #include <QScrollBar>
+#include <QPushButton>
 #include <QPaintEvent>
 #include <QGraphicsRectItem>
 
@@ -115,22 +116,42 @@ SimilarShapesWindow::SimilarShapesWindow(Execution& ex)
 
 SimilarShapesWindow::~SimilarShapesWindow() = default;
 
+void highlightAllSubtrees(NodeTree& nt, GroupsOfNodes_t& groups) {
+
+  tree_utils::applyToEachNode(nt, [](VisualNode* n) {
+    n->setHighlighted(false);
+  });
+
+  for (auto& group : groups) {
+    for (auto node : group) {
+      node->setHighlighted(true);
+    }
+  }
+
+  nt.treeModified();
+}
+
+void highlightAllSubtrees(NodeTree& nt, std::vector<ShapeInfo>& shapes) {
+
+  tree_utils::applyToEachNode(nt, [](VisualNode* n) {
+    n->setHighlighted(false);
+  });
+
+  for (auto& si : shapes) {
+    for (auto node : si.nodes) {
+      node->setHighlighted(true);
+    }
+  }
+
+  nt.treeModified();
+}
+
 void SimilarShapesWindow::initInterface() {
     settingsLayout->addWidget(new QLabel{"Type:"});
 
     auto typeChoice = new QComboBox();
-    typeChoice->addItem("shape");
-    typeChoice->addItem("subtree");
+    typeChoice->addItems({"shape", "subtree"});
     settingsLayout->addWidget(typeChoice);
-
-    auto labels_flag = new QCheckBox{"Compare labels"};
-    settingsLayout->addWidget(labels_flag);
-
-    connect(labels_flag, &QCheckBox::stateChanged, [this](int state) {
-        labelSensitive = (state == Qt::Checked);
-        subtrees_cached = false;
-        updateHistogram();
-    });
 
     connect(typeChoice, &QComboBox::currentTextChanged, [this](const QString& str) {
       if (str == "shape") {
@@ -141,6 +162,22 @@ void SimilarShapesWindow::initInterface() {
       updateHistogram();
     });
 
+    auto labels_flag = new QCheckBox{"Compare labels"};
+    settingsLayout->addWidget(labels_flag);
+
+    connect(labels_flag, &QCheckBox::stateChanged, [this](int state) {
+        settings.labelSensitive = (state == Qt::Checked);
+        subtrees_cached = false;
+        updateHistogram();
+    });
+
+    auto hideNotHighlighted = new QCheckBox{"Hide not selected"};
+    hideNotHighlighted->setCheckState(Qt::Checked);
+    settingsLayout->addWidget(hideNotHighlighted);
+
+    connect(hideNotHighlighted, &QCheckBox::stateChanged, [this](int state) {
+      settings.hideNotHighlighted = (state == Qt::Checked);
+    });
 
     auto depthFilterSB = new QSpinBox{this};
     depthFilterSB->setMinimum(1);
@@ -193,6 +230,18 @@ void SimilarShapesWindow::initInterface() {
 
     filtersLayout->addWidget(new QLabel{"histogram: "});
     filtersLayout->addWidget(histChoiceCB);
+
+
+    auto highlightAll = new QPushButton{"Highlight All"};
+    connect(highlightAll, &QPushButton::clicked, [this]() {
+
+      if (simType == SimilarityType::SUBTREE)
+        highlightAllSubtrees(node_tree, m_identicalGroups);
+      else if (simType == SimilarityType::SHAPE)
+        highlightAllSubtrees(node_tree, shapes);
+
+    });
+    miscLayout->addWidget(highlightAll, 0, Qt::AlignLeft);
 }
 
 
@@ -324,7 +373,7 @@ void SimilarShapesWindow::updateHistogram() {
 
           /// TODO(maxim): get rid of the unnecessary copy here:
         perfHelper.begin("identical_shapes");
-        m_identicalGroups = subtrees::findIdentical(execution, labelSensitive);
+        m_identicalGroups = subtrees::findIdentical(execution, settings.labelSensitive);
         perfHelper.end();
 
         m_identicalGroups = filterOutUnique(m_identicalGroups);

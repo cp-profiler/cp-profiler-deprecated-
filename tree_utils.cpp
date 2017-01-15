@@ -169,7 +169,8 @@ int calculateMaxDepth(const NodeTree& nt) {
   return calcDepth(na, root);
 }
 
-void highlightSubtrees(NodeTree& nt, const std::vector<VisualNode*>& nodes) {
+void highlightSubtrees(NodeTree& nt, const std::vector<VisualNode*>& nodes,
+                       bool hideNotHighlighted) {
 
   QMutexLocker lock(&nt.getMutex());
 
@@ -192,12 +193,12 @@ void highlightSubtrees(NodeTree& nt, const std::vector<VisualNode*>& nodes) {
     node->setHighlighted(true);
   }
 
-  /// Hide not highlighted
-  HideNotHighlightedCursor hnhc(root, na);
-  PostorderNodeVisitor<HideNotHighlightedCursor>(hnhc).run();
+  if (hideNotHighlighted) {
+    HideNotHighlightedCursor hnhc(root, na);
+    PostorderNodeVisitor<HideNotHighlightedCursor>(hnhc).run();
+  }
 
   nt.treeModified();
-
 }
 
 Statistics gatherNodeStats(NodeTree& nt) {

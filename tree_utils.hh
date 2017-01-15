@@ -32,7 +32,8 @@ bool compareSubtrees(const NodeTree& nt, const VisualNode& root1,
                      const VisualNode& root2);
 
 /// Hide all subtrees except for those represented by `nodes`
-void highlightSubtrees(NodeTree& nt, const std::vector<VisualNode*>& nodes);
+void highlightSubtrees(NodeTree& nt, const std::vector<VisualNode*>& nodes,
+    bool hideNotHighlighted = true);
 
 /// The distance between current node to the root
 int calculateDepth(const NodeTree& nt, const VisualNode& node);

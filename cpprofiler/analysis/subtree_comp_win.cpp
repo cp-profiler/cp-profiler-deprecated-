@@ -169,7 +169,7 @@ void SubtreeCompWindow::updateHistogram() {
     hist_view->setScene(m_scene.get());
 
     if (!subtrees_cached) {
-        m_identicalGroups = subtrees::findIdentical(execution, labelSensitive);
+        m_identicalGroups = subtrees::findIdentical(execution, settings.labelSensitive);
         subtrees_cached = true;
     }
 
@@ -235,7 +235,7 @@ void SubtreeCompWindow::initInterface() {
     settingsLayout->addWidget(labels_flag);
 
     connect(labels_flag, &QCheckBox::stateChanged, [this](int state) {
-        labelSensitive = (state == Qt::Checked);
+        settings.labelSensitive = (state == Qt::Checked);
         subtrees_cached = false;
         updateHistogram();
     });
