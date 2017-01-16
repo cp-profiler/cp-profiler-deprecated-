@@ -354,6 +354,7 @@ void TreeCanvas::showNodeInfo(void) {
 
   NodeInfoDialog* nidialog = new NodeInfoDialog(this, extra_info);
   nidialog->show();
+  emit(showNodeInfo(extra_info));
 }
 
 void TreeCanvas::showNodeOnPixelTree(void) {

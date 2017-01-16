@@ -219,6 +219,10 @@ GistMainWindow* ProfilerConductor::createGist(Execution& e, QString title) {
   auto gist = new GistMainWindow{e, this};
   gist->changeTitle(title);
   executionInfoHash[&e]->gistWindow = gist;
+
+  connect(gist->getCanvas(), SIGNAL(showNodeInfo(std::string)),
+          this, SLOT(showNodeInfoToIDE(std::string)));
+
   return gist;
 }
 
@@ -515,4 +519,8 @@ void ProfilerConductor::createExecution(unique_ptr<NodeTree> nt,
   addExecution(*e);
 
   auto gist = createGist(*e, e->getTitle().c_str());
+}
+
+void ProfilerConductor::showNodeInfoToIDE(std::string extra_info) {
+    emit(showNodeInfo(extra_info));
 }

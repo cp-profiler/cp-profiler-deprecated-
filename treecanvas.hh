@@ -216,6 +216,8 @@ Q_SIGNALS:
 
   void moreNodesDrawn();
 
+  void showNodeInfo(std::string extra_info);
+
 public Q_SLOTS:
   void reset();
 
