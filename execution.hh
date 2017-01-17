@@ -34,6 +34,19 @@ public:
 
     const std::string* getNogood(const Node& node) const;
     const std::string* getInfo(const Node& node) const;
+    void setNameMap(std::unordered_map<std::string, std::string>& names) {
+        nameMap = names;
+    }
+
+    std::string getBetterName(std::string id) {
+      std::string realName = "";
+      auto it = nameMap.find(id);
+      if(it != nameMap.end())
+        realName = it->second;
+      return realName;
+    }
+
+    const std::string replaceNames(std::string text);
 
     std::string getTitle() const;
     std::string getDescription() {
@@ -96,6 +109,7 @@ private:
     std::unique_ptr<NodeTree> m_NodeTree;
     std::unique_ptr<Data> m_Data;
     std::unique_ptr<TreeBuilder> m_Builder;
+    std::unordered_map<std::string, std::string> nameMap;
     bool _is_restarts;
     std::string variableListString;
 public Q_SLOTS:

@@ -153,6 +153,7 @@ ProfilerConductor::ProfilerConductor() : QMainWindow() {
   // Listen for new executions.
   listener.reset(new ProfilerTcpServer([this](qintptr socketDescriptor) {
     auto execution = new Execution();
+    execution->setNameMap(currentNameMap);
 
     /// TODO(maxim): receiver should be destroyed when done
     auto receiver = new ReceiverThread(socketDescriptor, execution, this);
@@ -177,6 +178,9 @@ class ExecutionListItem : public QListWidgetItem {
   Execution& execution_;
 };
 
+void ProfilerConductor::setCurrentNameMap(std::unordered_map<std::string, std::string>& names) {
+    currentNameMap = names;
+}
 
 void ProfilerConductor::addExecution(Execution& e) {
   auto newItem = new ExecutionListItem(e, &executionList);
@@ -516,6 +520,7 @@ void ProfilerConductor::createExecution(unique_ptr<NodeTree> nt,
                                         unique_ptr<Data> data) {
 
   auto e = new Execution(std::move(nt), std::move(data));
+  e->setNameMap(currentNameMap);
   addExecution(*e);
 
   auto gist = createGist(*e, e->getTitle().c_str());

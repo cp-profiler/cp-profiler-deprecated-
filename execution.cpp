@@ -2,6 +2,8 @@
 #include "data.hh"
 #include "treebuilder.hh"
 
+#include <regex>
+
 using std::string;
 
 Execution::Execution()
@@ -39,6 +41,27 @@ void Execution::start(std::string label, bool isRestarts) {
     m_Builder->start();
 
     emit titleKnown();
+}
+
+const std::string Execution::replaceNames(std::string text) {
+      std::regex r("[A-Za-z][A-Za-z0-9_]*");
+      std::regex_iterator<std::string::iterator> rit(text.begin(), text.end(), r);
+      std::regex_iterator<std::string::iterator> rend;
+
+      std::stringstream ss;
+      long prev = 0;
+      while(rit != rend) {
+        long pos = rit->position();
+        ss << text.substr(prev, pos-prev);
+        std::string id = rit->str();
+        std::string name = getBetterName(id);
+        ss << (name.length() > 0 ? name : id);
+        prev = pos + id.length();
+        ++rit;
+      }
+
+      return ss.str();
+
 }
 
 const std::string* Execution::getNogood(const Node& node) const {

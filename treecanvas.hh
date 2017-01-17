@@ -135,6 +135,10 @@ class TreeCanvas : public QWidget {
   /// Timer id for delaying the update
   int layoutDoneTimerId = 0;
 
+  /// Store mapping from id to path
+  std::unordered_map<std::string, std::string> pathmap;
+  std::string getBetterName(std::string id);
+
     /// Return the node corresponding to the \a event position
   VisualNode* eventNode(QEvent *event);
   /// General event handler, used for displaying tool tips
@@ -157,6 +161,7 @@ class TreeCanvas : public QWidget {
 
 public:
 
+
   TreeCanvas(Execution* execution, QGridLayout* layout, QWidget* parent);
 
   ~TreeCanvas();
@@ -164,7 +169,8 @@ public:
   QSlider* scaleBar() const { return m_scaleBar; }
 
   std::string getLabel(unsigned int gid) {
-    return execution.getLabel(gid);
+    std::string origLabel = execution.getLabel(gid);
+    return execution.replaceNames(origLabel);
   }
   unsigned long long getTotalTime() const { return execution.getTotalTime(); }
   std::string getTitle() const { return execution.getTitle(); }
@@ -192,6 +198,9 @@ public:
   std::pair<std::unique_ptr<NodeTree>, std::unique_ptr<Data>> extractSubtree();
 
   void findSelectedShape();
+
+  // Replaces all identifiers with better ones (hopefully)
+  std::string replaceNames(std::string text);
 
 Q_SIGNALS:
 

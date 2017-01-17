@@ -321,8 +321,7 @@ std::string boolToString(bool flag) {
 
 void TreeCanvas::showNodeInfo(void) {
   auto info = execution.getInfo(*currentNode);
-
-  std::string extra_info = (info) ? *info : "";
+  std::string extra_info = info ? execution.replaceNames(*info) : "";
   extra_info += "\n";
 
   auto id = currentNode->getIndex(na);
