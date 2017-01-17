@@ -59,9 +59,8 @@ const std::string Execution::replaceNames(std::string text) {
         prev = pos + id.length();
         ++rit;
       }
-
+      ss << text.substr(prev, text.size());
       return ss.str();
-
 }
 
 const std::string* Execution::getNogood(const Node& node) const {
