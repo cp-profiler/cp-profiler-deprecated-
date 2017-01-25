@@ -516,7 +516,7 @@ void TreeCanvas::timerEvent(QTimerEvent* e) {
 
 void TreeCanvas::zoomToFit(void) {
   QMutexLocker locker(&layoutMutex);
-  if (root != nullptr) {
+  if (root && root->getShape()) {
     BoundingBox bb;
     bb = root->getBoundingBox();
     QWidget* p = parentWidget();
