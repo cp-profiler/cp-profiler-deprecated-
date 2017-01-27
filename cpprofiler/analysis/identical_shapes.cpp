@@ -6,6 +6,7 @@
 #include <vector>
 #include <string>
 #include <unordered_map>
+#include <regex>
 
 #include "visualnode.hh"
 #include "tree_utils.hh"
@@ -247,7 +248,17 @@ struct PosInGroups {
   int inner_idx; /// ?
 };
 
-GroupsOfNodes_t groupByLabels(Execution& ex) {
+std::string extractVar(const std::string& label) {
+
+      auto found = label.find_first_of("!=><?");
+
+      if (found != std::string::npos) {
+        return label.substr(0, found);
+      }
+      return label;
+}
+
+static GroupsOfNodes_t groupByLabels(Execution& ex, bool vars_only = false) {
 
   using std::string;
 
@@ -267,6 +278,10 @@ GroupsOfNodes_t groupByLabels(Execution& ex) {
 
     for (auto* n : vec) {
       string l = ex.getLabel(*n);
+
+      /// truncate l to a contain var name only if `vars_only`
+      if (vars_only) { l = extractVar(l); }
+
       label_map[l].push_back(n);
     }
 
@@ -281,17 +296,17 @@ GroupsOfNodes_t groupByLabels(Execution& ex) {
 
 }
 
-
-
-GroupsOfNodes_t findIdentical(Execution& ex, bool label_sensitive = false) {
+GroupsOfNodes_t findIdentical(Execution& ex, LabelOption label_opt = LabelOption::IGNORE) {
 
   auto& nt = ex.nodeTree();
 
   /// Initial partition
   GroupsOfNodes_t init_p;
 
-  if (label_sensitive) {
+  if (label_opt == LabelOption::FULL) {
     init_p = groupByLabels(ex);
+  } else if (label_opt == LabelOption::VARS) {
+    init_p = groupByLabels(ex, true);
   } else {
     /// NOTE(maxim): it is also possible to group by height and shapes using
     /// `groupByShapes` (significantly slower) and `groupsByHeight` (a bit slower)

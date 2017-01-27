@@ -147,7 +147,7 @@ void highlightAllSubtrees(NodeTree& nt, std::vector<ShapeInfo>& shapes) {
 }
 
 void SimilarShapesWindow::initInterface() {
-    settingsLayout->addWidget(new QLabel{"Type:"});
+    settingsLayout->addWidget(new QLabel{"Type:"}, 0, Qt::AlignRight);
 
     auto typeChoice = new QComboBox();
     typeChoice->addItems({"shape", "subtree"});
@@ -162,13 +162,29 @@ void SimilarShapesWindow::initInterface() {
       updateHistogram();
     });
 
-    auto labels_flag = new QCheckBox{"Compare labels"};
-    settingsLayout->addWidget(labels_flag);
+    settingsLayout->addWidget(new QLabel{"Labels:"}, 0, Qt::AlignRight);
 
-    connect(labels_flag, &QCheckBox::stateChanged, [this](int state) {
-        settings.labelSensitive = (state == Qt::Checked);
-        subtrees_cached = false;
-        updateHistogram();
+    const QStringList label_options{"Ignore", "Vars only", "Full labels"};
+
+    auto labels_comp = new QComboBox{};
+    labels_comp->addItems(label_options);
+    settingsLayout->addWidget(labels_comp);
+
+    connect(labels_comp, &QComboBox::currentTextChanged, [this, label_options](const QString& str) {
+
+      if (str == label_options[0]) {
+        settings.label_opt = LabelOption::IGNORE;
+      } else if (str == label_options[1]) {
+        settings.label_opt = LabelOption::VARS;
+      } else if (str == label_options[2]) {
+        settings.label_opt = LabelOption::FULL;
+      } else {
+        std::cerr << "case not handeled\n";
+        return;
+      }
+
+      subtrees_cached = false;
+      updateHistogram();
     });
 
     auto hideNotHighlighted = new QCheckBox{"Hide not selected"};
@@ -197,7 +213,7 @@ void SimilarShapesWindow::initInterface() {
       updateHistogram();
     });
 
-        auto sortChoiceCB = new QComboBox();
+    auto sortChoiceCB = new QComboBox();
     sortChoiceCB->addItem("size");
     sortChoiceCB->addItem("count");
     sortChoiceCB->addItem("height");
@@ -373,7 +389,7 @@ void SimilarShapesWindow::updateHistogram() {
 
           /// TODO(maxim): get rid of the unnecessary copy here:
         perfHelper.begin("identical_shapes");
-        m_identicalGroups = subtrees::findIdentical(execution, settings.labelSensitive);
+        m_identicalGroups = subtrees::findIdentical(execution, settings.label_opt);
         perfHelper.end();
 
         m_identicalGroups = filterOutUnique(m_identicalGroups);
