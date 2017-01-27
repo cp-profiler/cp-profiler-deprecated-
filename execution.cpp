@@ -6,6 +6,29 @@
 
 using std::string;
 
+std::string replaceNames(const NameMap& nameMap, const std::string& text) {
+      std::regex r("[A-Za-z][A-Za-z0-9_]*");
+      std::regex_iterator<std::string::const_iterator> rit(text.begin(), text.end(), r);
+      std::regex_iterator<std::string::const_iterator> rend;
+
+      std::stringstream ss;
+      long prev = 0;
+      while(rit != rend) {
+        long pos = rit->position();
+        ss << text.substr(prev, pos-prev);
+        std::string id = rit->str();
+        std::string name;
+        auto it = nameMap.find(id);
+        if(it != nameMap.end())
+          name = it->second;
+        ss << (name != "" ? name : id);
+        prev = pos + id.length();
+        ++rit;
+      }
+      ss << text.substr(prev, text.size());
+      return ss.str();
+}
+
 Execution::Execution()
     : m_NodeTree{new NodeTree},
       m_Data{new Data()},
@@ -41,26 +64,6 @@ void Execution::start(std::string label, bool isRestarts) {
     m_Builder->start();
 
     emit titleKnown();
-}
-
-const std::string Execution::replaceNames(std::string text) {
-      std::regex r("[A-Za-z][A-Za-z0-9_]*");
-      std::regex_iterator<std::string::iterator> rit(text.begin(), text.end(), r);
-      std::regex_iterator<std::string::iterator> rend;
-
-      std::stringstream ss;
-      long prev = 0;
-      while(rit != rend) {
-        long pos = rit->position();
-        ss << text.substr(prev, pos-prev);
-        std::string id = rit->str();
-        std::string name = getBetterName(id);
-        ss << (name.length() > 0 ? name : id);
-        prev = pos + id.length();
-        ++rit;
-      }
-      ss << text.substr(prev, text.size());
-      return ss.str();
 }
 
 const std::string* Execution::getNogood(const Node& node) const {

@@ -170,7 +170,7 @@ public:
 
   std::string getLabel(unsigned int gid) {
     std::string origLabel = execution.getLabel(gid);
-    return execution.replaceNames(origLabel);
+    return replaceNames(execution.getNameMap(), origLabel);
   }
   unsigned long long getTotalTime() const { return execution.getTotalTime(); }
   std::string getTitle() const { return execution.getTitle(); }
@@ -198,9 +198,6 @@ public:
   std::pair<std::unique_ptr<NodeTree>, std::unique_ptr<Data>> extractSubtree();
 
   void findSelectedShape();
-
-  // Replaces all identifiers with better ones (hopefully)
-  std::string replaceNames(std::string text);
 
 Q_SIGNALS:
 

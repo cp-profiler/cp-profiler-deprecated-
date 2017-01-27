@@ -19,6 +19,9 @@ namespace message {
 
 class TreeBuilder;
 
+using NameMap = std::unordered_map<std::string, std::string>;
+std::string replaceNames(const NameMap& nameMap, const std::string& text);
+
 class Execution : public QObject {
     Q_OBJECT
 
@@ -37,16 +40,6 @@ public:
     void setNameMap(std::unordered_map<std::string, std::string>& names) {
         nameMap = names;
     }
-
-    std::string getBetterName(std::string id) {
-      std::string realName = "";
-      auto it = nameMap.find(id);
-      if(it != nameMap.end())
-        realName = it->second;
-      return realName;
-    }
-
-    const std::string replaceNames(std::string text);
 
     std::string getTitle() const;
     std::string getDescription() {
@@ -98,6 +91,10 @@ public:
         return variableListString;
     }
 
+    const NameMap& getNameMap() const {
+        return nameMap;
+    }
+
 signals:
     void newNode();
     void newRoot();
@@ -109,7 +106,7 @@ private:
     std::unique_ptr<NodeTree> m_NodeTree;
     std::unique_ptr<Data> m_Data;
     std::unique_ptr<TreeBuilder> m_Builder;
-    std::unordered_map<std::string, std::string> nameMap;
+    NameMap nameMap;
     bool _is_restarts;
     std::string variableListString;
 public Q_SLOTS:
