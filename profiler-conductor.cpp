@@ -129,6 +129,21 @@ ProfilerConductor::ProfilerConductor() : QMainWindow() {
   connect(debugExecutionButton, SIGNAL(clicked()), this,
           SLOT(createDebugExecution()));
 
+  connect(executionList.selectionModel(),&QItemSelectionModel::selectionChanged,[=]() {//with lambda
+      int nselected = executionList.selectionModel()->selectedIndexes().size();
+
+      gistButton->setEnabled            (nselected > 0);
+      compareButton->setEnabled         (nselected == 2);
+      compareSubtrees->setEnabled       (nselected == 2);
+      compareWithLabelsCB.setEnabled    (nselected == 2);
+      gatherStatisticsButton->setEnabled(nselected > 0);
+      webscriptButton->setEnabled       (nselected > 0);
+      saveExecutionButton->setEnabled   (nselected == 1);
+      loadExecutionButton->setEnabled   (true);
+      deleteExecutionButton->setEnabled (nselected > 0);
+      debugExecutionButton->setEnabled  (true);
+  });
+
   auto layout = new QGridLayout();
 
   layout->addWidget(&executionList,         0, 0, 1, 2);
