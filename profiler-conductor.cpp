@@ -89,31 +89,38 @@ ProfilerConductor::ProfilerConductor() : QMainWindow() {
 
   executionList.setSelectionMode(QAbstractItemView::MultiSelection);
   compareWithLabelsCB.setText("with labels");
+  compareWithLabelsCB.setEnabled(false);
 
   auto centralWidget = new QWidget(this);
   setCentralWidget(centralWidget);
 
   auto gistButton = new QPushButton("show tree");
+  gistButton->setEnabled(false);
   connect(gistButton, SIGNAL(clicked()), this,
           SLOT(gistButtonClicked()));
 
   auto compareButton = new QPushButton("compare trees");
+  compareButton->setEnabled(false);
   connect(compareButton, SIGNAL(clicked()), this,
           SLOT(compareButtonClicked()));
 
   auto compareSubtrees = new QPushButton("compare subtrees");
+  compareSubtrees->setEnabled(false);
   connect(compareSubtrees, &QPushButton::clicked,
           this, &ProfilerConductor::compareSubtrees);
 
   auto gatherStatisticsButton = new QPushButton("gather statistics");
+  gatherStatisticsButton->setEnabled(false);
   connect(gatherStatisticsButton, SIGNAL(clicked()), this,
           SLOT(gatherStatisticsClicked()));
 
   auto webscriptButton = new QPushButton("webscript view");
+  webscriptButton->setEnabled(false);
   connect(webscriptButton, SIGNAL(clicked()), this,
           SLOT(webscriptClicked()));
 
   auto saveExecutionButton = new QPushButton("save execution");
+  saveExecutionButton->setEnabled(false);
   connect(saveExecutionButton, SIGNAL(clicked()), this,
           SLOT(saveExecutionClicked()));
 
@@ -122,6 +129,7 @@ ProfilerConductor::ProfilerConductor() : QMainWindow() {
           SLOT(loadExecutionClicked()));
 
   auto deleteExecutionButton = new QPushButton("delete execution");
+  deleteExecutionButton->setEnabled(false);
   connect(deleteExecutionButton, SIGNAL(clicked()), this,
           SLOT(deleteExecutionClicked()));
 
@@ -129,7 +137,7 @@ ProfilerConductor::ProfilerConductor() : QMainWindow() {
   connect(debugExecutionButton, SIGNAL(clicked()), this,
           SLOT(createDebugExecution()));
 
-  connect(executionList.selectionModel(),&QItemSelectionModel::selectionChanged,[=]() {//with lambda
+  connect(executionList.selectionModel(), &QItemSelectionModel::selectionChanged, [=]() {
       int nselected = executionList.selectionModel()->selectedIndexes().size();
 
       gistButton->setEnabled            (nselected > 0);
