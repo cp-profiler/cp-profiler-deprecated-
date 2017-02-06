@@ -230,12 +230,31 @@ void Data::pushInstance(DbEntry* entry) {
 
     auto full_sid = entry->full_sid;
     sid2aid[full_sid] = nodes_arr.size() - 1;
-
-    // qDebug() << "sid2aid[" << full_sid << "] = " << sid2aid[full_sid];
 }
 
 
 #ifdef MAXIM_DEBUG
+
+/// NOTE(maxim): creates new entry if does not exist yet
+void Data::setLabel(int gid, const std::string& str) {
+    QMutexLocker locker(&dataMutex);
+
+    auto it = gid2entry.find(gid);
+    if (it != gid2entry.end() && it->second != nullptr) {
+        it->second->label = str;
+    } else {
+
+        static int dummy_sid = 0;
+        dummy_sid++;
+
+        auto entry = new DbEntry{};
+        nodes_arr.push_back(entry);
+        gid2entry[gid] = entry;
+        sid2aid[dummy_sid] = nodes_arr.size() - 1;
+
+        entry->label = str;
+    }
+}
 
 const std::string Data::getDebugInfo() const {
     std::ostringstream os;

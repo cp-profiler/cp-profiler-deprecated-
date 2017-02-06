@@ -515,26 +515,6 @@ void ProfilerConductor::createDebugExecution() {
   qDebug() << "createDebugExecution";
   auto e = new Execution{};
   addExecution(*e);
-
-  // auto& na = e->getNA();
-
-  // na.allocateRoot();
-
-  // auto root = na[0];
-
-  // root->setStatus(BRANCH);
-  // root->setNumberOfChildren(2, na);
-
-  // auto kid1 = root->getChild(na, 0);
-  // kid1->setStatus(FAILED);
-
-  // auto kid2 = root->getChild(na, 0);
-  // kid2->setStatus(BRANCH);
-  // kid2->setNumberOfChildren(2, na);
-
-  // kid1->dirtyUp(na);
-  // kid2->dirtyUp(na);
-
 }
 
 using namespace std;

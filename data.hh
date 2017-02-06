@@ -62,6 +62,8 @@ public:
     {
     }
 
+    DbEntry() {}
+
     friend std::ostream& operator<<(std::ostream& s, const DbEntry& e);
 
     union {
@@ -199,6 +201,7 @@ public:
     void setDoneReceiving(void);
 
 #ifdef MAXIM_DEBUG
+    void setLabel(int gid, const std::string& str);
     const std::string getDebugInfo() const;
 #endif
 };

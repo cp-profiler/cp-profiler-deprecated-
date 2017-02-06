@@ -22,23 +22,43 @@
 #include "node_info_dialog.hh"
 #include <QDebug>
 #include <QHBoxLayout>
+#include <QVBoxLayout>
+#include <QLabel>
+#include <QTextEdit>
+#include <QLineEdit>
 
 const int NodeInfoDialog::DEFAULT_WIDTH = 600;
 const int NodeInfoDialog::DEFAULT_HEIGHT = 400;
 
 NodeInfoDialog::NodeInfoDialog(QWidget* parent, const std::string& text)
-: QDialog(parent), _textField(this) {
+: QDialog(parent) {
 
-  _textField.setText(text.c_str());
-  _textField.setReadOnly(true);
+  auto textField = new QTextEdit(this);
 
-  QHBoxLayout* layout = new QHBoxLayout(this);
-  layout->addWidget(&_textField);
+  textField->setText(text.c_str());
+  textField->setReadOnly(true);
+
+  auto layout = new QVBoxLayout(this);
+  layout->addWidget(textField);
+
+#ifdef MAXIM_DEBUG
+
+  auto label_lo = new QHBoxLayout(this);
+
+  auto edit_text = new QLabel("Change label: ");
+  label_lo->addWidget(edit_text);
+
+
+  auto label_edit = new QLineEdit(this);
+  label_lo->addWidget(label_edit);
+  connect(label_edit, &QLineEdit::returnPressed, [label_edit, this] () {
+    emit changeLabel(label_edit->text());
+    close();
+  });
+
+  layout->addLayout(label_lo);
+#endif
 
   resize(DEFAULT_WIDTH, DEFAULT_HEIGHT);
-
-}
-
-NodeInfoDialog::~NodeInfoDialog() {
 
 }

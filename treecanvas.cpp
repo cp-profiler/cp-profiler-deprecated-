@@ -351,7 +351,17 @@ void TreeCanvas::showNodeInfo(void) {
   assert (na[id] == currentNode);
 #endif
 
-  NodeInfoDialog* nidialog = new NodeInfoDialog(this, extra_info);
+  auto nidialog = new NodeInfoDialog(this, extra_info);
+
+#ifdef MAXIM_DEBUG
+  connect(nidialog, &NodeInfoDialog::changeLabel, [this] (QString label) {
+    auto gid = currentNode->getIndex(na);
+    execution.getData().setLabel(gid, label.toStdString());
+
+  });
+
+#endif
+
   nidialog->show();
   emit(showNodeInfo(extra_info));
 }
