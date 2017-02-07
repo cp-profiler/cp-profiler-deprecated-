@@ -132,6 +132,9 @@ class TreeCanvas : public QWidget {
   /// Timer for smooth scrolling
   QTimeLine scrollTimeLine{1000};
 
+  /// Filter used by Node Info Dialog
+  QString domain_filter{""};
+
   /// Timer id for delaying the update
   int layoutDoneTimerId = 0;
 

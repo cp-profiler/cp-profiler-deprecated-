@@ -351,7 +351,11 @@ void TreeCanvas::showNodeInfo(void) {
   assert (na[id] == currentNode);
 #endif
 
-  auto nidialog = new NodeInfoDialog(this, extra_info);
+  auto nidialog = new NodeInfoDialog(this, extra_info, domain_filter);
+
+  connect(nidialog, &NodeInfoDialog::filterChanged, [this] (QString new_filter) {
+    domain_filter = new_filter;
+  });
 
 #ifdef MAXIM_DEBUG
   connect(nidialog, &NodeInfoDialog::changeLabel, [this] (QString label) {

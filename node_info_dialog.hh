@@ -31,16 +31,17 @@ private:
   static const int DEFAULT_WIDTH;
   static const int DEFAULT_HEIGHT;
 
+  const QString orig_text;
+
 public:
 
-  NodeInfoDialog(QWidget* parent, const std::string& text);
-
-#ifdef MAXIM_DEBUG
+  NodeInfoDialog(QWidget* parent, const std::string& text, const QString& filter);
 
 signals:
+#ifdef MAXIM_DEBUG
   void changeLabel(QString str);
-
 #endif
+  void filterChanged(QString str);
 
 
 
