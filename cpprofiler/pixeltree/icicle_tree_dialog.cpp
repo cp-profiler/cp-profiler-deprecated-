@@ -25,6 +25,7 @@
 #include <functional>
 
 #include "treecanvas.hh"
+#include "execution.hh"
 #include "spacenode.hh"
 #include "data.hh"
 #include "libs/perf_helper.hh"
@@ -39,7 +40,7 @@ IcicleTreeDialog::IcicleTreeDialog(TreeCanvas* tc) : QDialog(tc) {
 
   this->resize(INIT_WIDTH, INIT_HEIGHT);
   this->setWindowTitle(
-      QString::fromStdString(tc->getExecution()->getData().getTitle()));
+      QString::fromStdString(tc->getExecution().getData().getTitle()));
 
   scrollArea_ = new QAbstractScrollArea();
 
@@ -152,7 +153,7 @@ bool IcicleTreeCanvas::compressInit(VisualNode& root, int idx, int absX) {
 }
 
 IcicleTreeCanvas::IcicleTreeCanvas(QAbstractScrollArea* parent, TreeCanvas* tc)
-    : QWidget(parent), sa_(*parent), tc_(*tc), node_tree(tc->getExecution()->nodeTree()) {
+    : QWidget(parent), sa_(*parent), tc_(*tc), node_tree(tc->getExecution().nodeTree()) {
   compressLevel = 0;
   auto& na = node_tree.getNA();
   statistic.resize(na.size());
@@ -228,7 +229,7 @@ void IcicleTreeCanvas::drawIcicleTree() {
   drawRects();
   perfHelper.end();
   qDebug() << "average domain reduction: "
-           << domain_red_sum / tc_.get_stats().allNodes();
+           << domain_red_sum / node_tree.getStatistics().allNodes();
 }
 
 void IcicleTreeCanvas::drawRects() {
@@ -267,7 +268,7 @@ QRgb IcicleTreeCanvas::getColorByType(const VisualNode& node) {
 
   QRgb color;
   auto& na = node_tree.getNA();
-  auto& data = tc_.getExecution()->getData();
+  auto& data = tc_.getExecution().getData();
   auto gid = node.getIndex(na);
   auto* entry = data.getEntry(gid);
   auto domain_red = entry == nullptr ? 0 : entry->domain;
@@ -367,8 +368,8 @@ void IcicleTreeCanvas::mouseMoveEvent(QMouseEvent* event) {
   if (node == nullptr) return;
 
 
-  // auto& na = tc_.getExecution()->getNA();
-  // auto data = tc_.getExecution()->getData();
+  // auto& na = tc_.getExecution().getNA();
+  // auto data = tc_.getExecution().getData();
   // auto gid = node->getIndex(na);
   // auto* entry = data->getEntry(gid);
 

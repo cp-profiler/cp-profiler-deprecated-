@@ -26,10 +26,10 @@
 #include <QtGui>
 #include <QtWidgets>
 #include <memory>
-
+#include <sstream>
 #include <functional>
-#include "visualnode.hh"
-#include "execution.hh"
+#include <unordered_map>
+
 
 /// \brief Parameters for the tree layout
 namespace LayoutConfig {
@@ -41,7 +41,13 @@ namespace LayoutConfig {
   constexpr int maxAutoZoomScale = 100;
 }
 
+class Execution;
+class Data;
 class TreeCanvas;
+class NodeTree;
+class NodeAllocator;
+class VisualNode;
+class Node;
 
 namespace cpprofiler { namespace analysis {
   class SimilarShapesWindow;
@@ -171,19 +177,9 @@ public:
 
   QSlider* scaleBar() const { return m_scaleBar; }
 
-  std::string getLabel(unsigned int gid) {
-    std::string origLabel = execution.getLabel(gid);
-    return replaceNames(execution.getNameMap(), origLabel);
-  }
-  unsigned long long getTotalTime() const { return execution.getTotalTime(); }
-  std::string getTitle() const { return execution.getTitle(); }
-  DbEntry* getEntry(unsigned int gid) { return execution.getEntry(gid); }
+  std::string getLabel(int gid);
 
-  const Statistics& get_stats() const { return execution.getStatistics(); }
-
-  Execution* getExecution() const { return &execution; }
-
-  unsigned int getTreeDepth();
+  Execution& getExecution() const { return execution; }
 
   /// Apply `action` to every node that satisfies the predicate
   void applyToEachNodeIf(std::function<void (VisualNode*)> action,

@@ -21,7 +21,6 @@
 #include "tree_utils.hh"
 
 #include <fstream>
-
 #include <QPushButton>
 #include <QVBoxLayout>
 
@@ -178,7 +177,7 @@ ProfilerConductor::ProfilerConductor() : QMainWindow() {
     auto execution = new Execution();
     execution->setNameMap(currentNameMap);
 
-    /// TODO(maxim): receiver should be destroyed when done
+    /// TODO(maxim): receiver should be destroyed when done?
     auto receiver = new ReceiverThread(socketDescriptor, execution, this);
 
     addExecution(*execution);
@@ -224,7 +223,7 @@ void ProfilerConductor::addExecution(Execution& e) {
 
 void ProfilerConductor::displayExecution(Execution& ex, QString&& title) {
   auto gistMW = executionInfoHash[&ex]->gistWindow;
-  if (gistMW == nullptr) {
+  if (!gistMW) {
     gistMW = createGist(ex, title);
   }
   gistMW->show();
@@ -420,18 +419,11 @@ void ProfilerConductor::saveExecutionClicked() {
 
   QString filename =
       QFileDialog::getSaveFileName(this, "Save execution", QDir::currentPath());
+
   std::ofstream outputFile(filename.toStdString(),
                            std::ios::out | std::ios::binary);
   OstreamOutputStream raw_output(&outputFile);
   auto& data = item->execution_.getData();
-
-  std::vector<unsigned int> keys;
-  keys.reserve(data.gid2entry.size());
-
-  for (const auto& pair : data.gid2entry) {
-    keys.push_back(pair.first);
-  }
-  sort(keys.begin(), keys.end());
 
   message::Node start_node;
   start_node.set_type(message::Node::START);
@@ -445,8 +437,7 @@ void ProfilerConductor::saveExecutionClicked() {
   start_node.set_info(item->execution_.getVariableListString());
   writeDelimitedTo(start_node, &raw_output);
 
-  for (auto& key : keys) {
-    DbEntry* entry = data.gid2entry[key];
+  for (auto* entry : data.getEntries()) {
     message::Node node;
     node.set_type(message::Node::NODE);
     node.set_sid(entry->s_node_id);

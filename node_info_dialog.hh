@@ -40,6 +40,7 @@ public:
 signals:
 #ifdef MAXIM_DEBUG
   void changeLabel(QString str);
+  void changeStatus(QString str);
 #endif
   void filterChanged(QString str);
 

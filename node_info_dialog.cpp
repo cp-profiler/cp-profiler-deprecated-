@@ -26,6 +26,7 @@
 #include <QLabel>
 #include <QTextEdit>
 #include <QLineEdit>
+#include <QComboBox>
 
 const int NodeInfoDialog::DEFAULT_WIDTH = 600;
 const int NodeInfoDialog::DEFAULT_HEIGHT = 400;
@@ -62,25 +63,6 @@ NodeInfoDialog::NodeInfoDialog(QWidget* parent, const std::string& text, const Q
   auto layout = new QVBoxLayout(this);
   layout->addWidget(textField);
 
-#ifdef MAXIM_DEBUG
-
-  /// text edit field for specifying labels
-
-  auto label_lo = new QHBoxLayout();
-  layout->addLayout(label_lo);
-
-  auto edit_text = new QLabel{"Change label:"};
-  label_lo->addWidget(edit_text);
-
-  auto label_edit = new QLineEdit(this);
-  label_lo->addWidget(label_edit);
-  connect(label_edit, &QLineEdit::returnPressed, [label_edit, this] () {
-    emit changeLabel(label_edit->text());
-    close();
-  });
-
-#endif
-
   /// var name filter for domains
 
   auto domain_filter_lo = new QHBoxLayout();
@@ -103,10 +85,36 @@ NodeInfoDialog::NodeInfoDialog(QWidget* parent, const std::string& text, const Q
 
   });
 
-
   filter_edit->setToolTip("variable names separated by commas expected; empty to disable");
-
   emit filter_edit->returnPressed();
+
+
+#ifdef MAXIM_DEBUG
+
+  /// text edit field for specifying labels
+
+  auto label_lo = new QHBoxLayout();
+  layout->addLayout(label_lo);
+
+  auto edit_text = new QLabel{"Change label:"};
+  label_lo->addWidget(edit_text);
+
+  auto label_edit = new QLineEdit(this);
+  label_lo->addWidget(label_edit);
+  connect(label_edit, &QLineEdit::returnPressed, [label_edit, this] () {
+    emit changeLabel(label_edit->text());
+    close();
+  });
+
+  auto status_cb = new QComboBox();
+  status_cb->addItems({"Undetermined", "Branch", "Solved", "Failed"});
+  layout->addWidget(status_cb);
+  connect(status_cb, &QComboBox::currentTextChanged, [this] (QString str) {
+    emit changeStatus(str);
+  });
+
+#endif
+
 
   resize(DEFAULT_WIDTH, DEFAULT_HEIGHT);
 

@@ -138,8 +138,6 @@ TreeCanvas::~TreeCanvas() {
 
 ///***********************
 
-unsigned TreeCanvas::getTreeDepth() { return get_stats().maxDepth; }
-
 void TreeCanvas::scaleTree(int scale0, int zoomx, int zoomy) {
   layoutMutex.lock();
 
@@ -363,7 +361,7 @@ void TreeCanvas::showNodeInfo(void) {
   extra_info += "number of direct children: " + std::to_string(currentNode->getNumberOfChildren()) + "\n";
   extra_info += "--------------------------------------------\n";
 
-  auto db_entry = getEntry(id);
+  auto db_entry = execution.getEntry(id);
 
   extra_info += "gecode/na id: " + std::to_string(currentNode->getIndex(na)) + "\n";
   // extra_info += "array index: " + std::to_string(db_entry) + "\n";
@@ -382,6 +380,20 @@ void TreeCanvas::showNodeInfo(void) {
     auto gid = currentNode->getIndex(na);
     execution.getData().setLabel(gid, label.toStdString());
 
+  });
+
+  connect(nidialog, &NodeInfoDialog::changeStatus, [this] (QString label) {
+    if (label == "Branch") {
+        currentNode->setStatus(BRANCH);
+    } else if (label == "Solved") {
+        currentNode->setStatus(SOLVED);
+    } else if (label == "Failed") {
+        currentNode->setStatus(FAILED);
+    } else if (label == "Undetermined") {
+        currentNode->setStatus(UNDETERMINED);
+    }
+
+    update();
   });
 
 #endif
@@ -1436,8 +1448,9 @@ static void copyTree(VisualNode* target, NodeTree& tree_target,
   stats.maxDepth = depth;
 }
 
-QString getLabel(VisualNode* n) {
-
+std::string TreeCanvas::getLabel(int gid) {
+    std::string origLabel = execution.getLabel(gid);
+    return replaceNames(execution.getNameMap(), origLabel);
 }
 
 void
@@ -1544,6 +1557,7 @@ void TreeCanvas::_addChildren(VisualNode* node) {
 void TreeCanvas::addChildren() {
   if (currentNode->getNumberOfChildren() == 0) {
     _addChildren(currentNode);
+    currentNode->setStatus(BRANCH);
   }
   
   updateCanvas();

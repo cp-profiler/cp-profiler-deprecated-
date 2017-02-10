@@ -32,6 +32,7 @@
 #include "nodecursor.hh"
 
 #include "treecanvas.hh"
+#include "execution.hh"
 
 #include <cmath>
 #include <fstream>

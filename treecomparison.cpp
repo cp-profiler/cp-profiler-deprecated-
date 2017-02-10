@@ -208,7 +208,7 @@ std::unique_ptr<ComparisonResult> compare(TreeCanvas* new_tc,
   stack1.push(root1);
   stack2.push(root2);
 
-  Execution& execution = *new_tc->getExecution();
+  Execution& execution = new_tc->getExecution();
 
   VisualNode* root = execution.nodeTree().getRoot();
   stack.push(root);
@@ -329,9 +329,9 @@ std::unique_ptr<ComparisonResult> compare(TreeCanvas* new_tc,
       stack.push(next->getChild(na, 0));
 
       int left_size =
-          copyTree(stack.pop(), *new_tc->getExecution(), node1, ex1, 1);
+          copyTree(stack.pop(), new_tc->getExecution(), node1, ex1, 1);
       int right_size =
-          copyTree(stack.pop(), *new_tc->getExecution(), node2, ex2, 2);
+          copyTree(stack.pop(), new_tc->getExecution(), node2, ex2, 2);
 
       /// hide the nodes one level below a pentagon
       /// if they are hidden on the original tree

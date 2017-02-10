@@ -36,6 +36,7 @@
  */
 
 #include "treecanvas.hh"
+#include "execution.hh"
 
 inline
 NodeCursor::NodeCursor(VisualNode* theNode,
