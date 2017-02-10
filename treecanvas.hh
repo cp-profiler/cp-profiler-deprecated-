@@ -242,7 +242,12 @@ public Q_SLOTS:
   /// Set the selected not to a node by solver id (from no-good table)
   void navigateToNodeById(int gid);
 
+  /// Delete the node and all its descendants
+  /// not sure if memory is properly released here
   void deleteNode(Node* n);
+
+  /// Delete the node and its left child, while reparenting its (alt) child
+  void deleteMiddleNode(Node* n, int alt);
 
   /// Set scale factor to \a scale0
   void scaleTree(int scale0, int zoomx=-1, int zoomy=-1);
@@ -287,6 +292,9 @@ public Q_SLOTS:
 
   /// Delete Unexplored Nodes (needed e.g. for replaying with restart)
   void deleteWhiteNodes();
+
+  /// Delete (immediately) unsuccessful assignments in the middle (chains)
+  void deleteTrials();
 
   /// Delete Skipped Nodes (needed e.g. for replaying with restart)
   void deleteSkippedNodes();
@@ -389,6 +397,7 @@ public:
   void addChildren();
   void createRandomTree(); // in place
   void deleteSelectedNode();
+  void deleteSelectedMiddleNode();
   void dirtyUpNode();
 #endif
 private Q_SLOTS:

@@ -231,6 +231,7 @@ GistMainWindow::GistMainWindow(Execution& e,
   treeVisMenu->addAction(compareSubtreeLabels);
   treeVisMenu->addAction(printPaths);
   treeVisMenu->addAction(deleteWhiteNodes);
+  treeVisMenu->addAction(deleteTrials);
   treeVisMenu->addAction(deleteSkippedNodes);
 
 #ifdef MAXIM_DEBUG
@@ -413,6 +414,10 @@ void GistMainWindow::addActions() {
   addAction(deleteWhiteNodes);
   connect(deleteWhiteNodes, &QAction::triggered, canvas, &TreeCanvas::deleteWhiteNodes);
 
+  deleteTrials = new QAction{"Delete Trials", this};
+  addAction(deleteTrials);
+  connect(deleteTrials, &QAction::triggered, canvas, &TreeCanvas::deleteTrials);
+
   deleteSkippedNodes = new QAction{"Delete Skipped Nodes", this};
   addAction(deleteSkippedNodes);
   connect(deleteSkippedNodes, &QAction::triggered, canvas, &TreeCanvas::deleteSkippedNodes);
@@ -496,10 +501,15 @@ void GistMainWindow::addActions() {
   connect(addChildren, &QAction::triggered, canvas, &TreeCanvas::addChildren);
   addAction(addChildren);
 
-  deleteNode = new QAction{"Delete Node", this};
+  auto deleteNode = new QAction{"Delete Node", this};
   deleteNode->setShortcut(QKeySequence("del"));
   connect(deleteNode, &QAction::triggered, canvas, &TreeCanvas::deleteSelectedNode);
   addAction(deleteNode);
+
+  auto deleteMiddleNode = new QAction{"Delete Middle Node", this};
+  deleteMiddleNode->setShortcut(QKeySequence("shift+del"));
+  connect(deleteMiddleNode, &QAction::triggered, canvas, &TreeCanvas::deleteSelectedMiddleNode);
+  addAction(deleteMiddleNode);
 
   createRandomTree = new QAction{"Create Random Tree", this};
   connect(createRandomTree, &QAction::triggered, canvas, &TreeCanvas::createRandomTree);
@@ -622,6 +632,7 @@ void GistMainWindow::addActions() {
 
 #ifdef MAXIM_DEBUG
   contextMenu->addAction(deleteNode);
+  contextMenu->addAction(deleteMiddleNode);
   contextMenu->addAction(dirtyUpNode);
 #endif
 

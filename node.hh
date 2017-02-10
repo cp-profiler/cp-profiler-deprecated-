@@ -44,7 +44,6 @@
 class VisualNode;
 
 #include "heap.hpp"
-#define GECODE_NEVER assert(false)
 
 class NodeAllocator;
 
@@ -94,6 +93,8 @@ public:
 
   /// Construct node with parent \a p
   Node(int p, bool failed = false);
+
+  void replaceChild(NodeAllocator& na, int new_gid, int alt);
 
   int getChild(int n) const;
   /// Return the parent

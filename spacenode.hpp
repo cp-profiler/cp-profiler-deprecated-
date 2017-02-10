@@ -128,7 +128,7 @@ SpaceNode::getAlternative(const NodeAllocator& na) const {
   for (int i=p->getNumberOfChildren(); i--;)
     if (p->getChild(na,i) == this)
       return i;
-  GECODE_NEVER;
+  assert(false);
   return -1;
 }
 

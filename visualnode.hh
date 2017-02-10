@@ -297,6 +297,8 @@ bool compareNodes(const VisualNode& n1, const VisualNode& n2);
 
 std::ostream& operator<<(std::ostream& os, const VisualNode* n);
 
+#include <QDebug>
+
 #include "node.hpp"
 #include "spacenode.hpp"
 #include "visualnode.hpp"

@@ -223,6 +223,26 @@ void TreeCanvas::deleteWhiteNodes() {
   qDebug() << "size after: " << na.size();
 }
 
+void TreeCanvas::deleteTrials() {
+
+  for (auto i = 0; i < na.size(); ++i) {
+    auto node = na[i];
+
+    if (node->getNumberOfChildren() == 2) {
+      auto l_child = node->getChild(na, 0);
+      auto r_child = node->getChild(na, 1);
+
+      if (l_child->getStatus() == FAILED && r_child->getStatus() == BRANCH) {
+        deleteMiddleNode(node, 1);
+      } else if (l_child->getStatus() == BRANCH && r_child->getStatus() == FAILED) {
+        deleteMiddleNode(node, 0);
+      }
+    }
+  }
+
+  updateCanvas();
+}
+
 void TreeCanvas::deleteSkippedNodes() {
 
   for (auto i = 0; i < na.size(); ++i) {
@@ -1312,6 +1332,36 @@ void TreeCanvas::deleteNode(Node* n) {
   parent->dirtyUp(na);
 }
 
+/// What does it mean to remove a node:
+///   Remove from its parent's children list
+///   Reparent (or remove) its children
+///   Does anything still point to it??? (pixel tree, similar subtree analysis?...)
+///   Remove its entry from the data?
+///   Remove it from NodeAllocator? (or leave holes)
+
+/// Idea: have a special node representing multiple removed nodes in a row
+
+/// NOTE(maxim): the deleted nodes still reside in na
+void TreeCanvas::deleteMiddleNode(Node* to_del_node, int alt_grand) {
+
+  auto parent = to_del_node->getParent(na);
+  if (!parent) return;
+
+  auto grand_child_gid = to_del_node->getChild(alt_grand);
+
+  /// TODO(maxim): remove all kids but alt_grand
+
+
+  // find the right (to_del_node) child
+  for (auto alt=0u; alt < parent->getNumberOfChildren(); alt++) {
+    if (parent->getChild(alt) == to_del_node->getIndex(na)) {
+      parent->replaceChild(na, grand_child_gid, alt);
+      break;
+    }
+  }
+
+}
+
 
 using namespace std;
 
@@ -1550,10 +1600,20 @@ void TreeCanvas::createRandomTree() {
 }
 
 void TreeCanvas::deleteSelectedNode() {
-  currentNode->dirtyUp(na);
   auto parent = currentNode->getParent(na);
   deleteNode(currentNode);
 
+  setCurrentNode(parent, false, false);
+  updateCanvas();
+}
+
+void TreeCanvas::deleteSelectedMiddleNode() {
+
+  auto parent = currentNode->getParent(na);
+  parent->dirtyUp(na);
+
+  /// replace with right child
+  deleteMiddleNode(currentNode, 1);
   setCurrentNode(parent, false, false);
   updateCanvas();
 }

@@ -99,6 +99,26 @@ Node::getParent(const NodeAllocator& na) const {
 inline bool
 Node::isUndetermined(void) const { return getTag() == UNDET; }
 
+inline void
+Node::replaceChild(NodeAllocator& na, int new_node_gid, int alt) {
+
+  /// NOTE(maxim): only handling binary trees for now
+  if (getTag() != TWO_CHILDREN) return;
+
+  qDebug() << "replacing" << getChild(na, alt)->debug_id
+           << "with" << na[new_node_gid]->debug_id;
+
+  if (alt == 0) {
+    childrenOrFirstChild =
+                reinterpret_cast<void*>(new_node_gid << 2);
+    setTag(TWO_CHILDREN);
+  } else if (alt == 1) {
+    noOfChildren = -new_node_gid;
+  }
+
+  na[new_node_gid]->parent = getIndex(na);
+}
+
 inline int
 Node::getChild(int n) const {
   assert(getTag() != UNDET && getTag() != LEAF);
@@ -130,17 +150,17 @@ Node::getNumberOfChildren(void) const {
 
 inline int
 Node::getIndex(const NodeAllocator& na) const {
-//  int j;
   if (parent==-1)
     return 0;
   Node* p = na[parent];
-  for (int i=p->getNumberOfChildren(); i--;)
-    if (p->getChild(na,i) == this){
+  for (int i=p->getNumberOfChildren(); i--;) {
+    if (p->getChild(na,i) == this) {
       return p->getChild(i);
     }
-  GECODE_NEVER;
-   return -1;
+  }
+  assert(false);
+  return -1;
 }
 
 
-#endif // NODE_HPP
+#endif

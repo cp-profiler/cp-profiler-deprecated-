@@ -146,6 +146,8 @@ private:
   QAction* showIcicleTree;
   /// Remove Unexplored Nodes
   QAction* deleteWhiteNodes;
+  /// Remove immediately unseccessful assignments
+  QAction* deleteTrials;
   /// Remove Unexplored Nodes
   QAction* deleteSkippedNodes;
 
@@ -170,8 +172,6 @@ private:
   QAction* findSelectedShape;
 
 #ifdef MAXIM_DEBUG
-  /// Delete a node from the tree
-  QAction* deleteNode;
 
   QAction* dirtyUpNode;
 
