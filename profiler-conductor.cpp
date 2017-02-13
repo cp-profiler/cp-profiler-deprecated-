@@ -527,6 +527,8 @@ void ProfilerConductor::createExecution(unique_ptr<NodeTree> nt,
   e->setNameMap(currentNameMap);
   addExecution(*e);
 
+  e->setTitle("Extracted Execution");
+
   auto gist = createGist(*e, e->getTitle().c_str());
 }
 

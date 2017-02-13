@@ -97,16 +97,11 @@ Q_OBJECT
 
 /// step for node rate counter (in microseconds)
     static constexpr int NODE_RATE_STEP = 1000;
-    /// counts instances of Data
-    static int instance_counter;
 
     std::vector<DbEntry*> nodes_arr;
 
     // Whether received DONE_SENDING message
     bool _isDone;
-
-    // Name of the FlatZinc model
-    std::string _title = "";
 
     // Total solver time in microseconds
     uint64_t _total_time;
@@ -174,8 +169,7 @@ public:
 /// ********* GETTERS **********
 
     bool isDone(void) { return _isDone; }
-    // bool isRestarts(void) { return _isRestarts; }
-    std::string getTitle(void) { return _title; }
+
     const std::vector<DbEntry*>& getEntries() const { return nodes_arr; }
     inline const std::unordered_map<int64_t, std::string>& getNogoods(void) { return sid2nogood; }
     inline std::unordered_map<int64_t, std::string*>& getInfo(void) { return sid2info; }
@@ -188,12 +182,6 @@ public:
 
 /// ****************************
 
-/// ********* SETTERS **********
-
-    void setTitle(std::string title) { _title = title; }
-
-
-/// ****************************
 
     public Q_SLOTS:
 

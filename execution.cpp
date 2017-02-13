@@ -54,7 +54,7 @@ void Execution::start(std::string label, bool isRestarts) {
 
     // asctime puts a newline at the end; remove it
     ts.pop_back();
-    m_Data->setTitle(label + " (" + ts + ")");
+    setTitle(label + " (" + ts + ")");
 
     connect(this, SIGNAL(doneReceiving(void)), m_Data.get(), SLOT(setDoneReceiving(void)));
 
@@ -98,7 +98,6 @@ DbEntry* Execution::getEntry(int gid) const { return m_Data->getEntry(gid); }
 unsigned int Execution::getGidBySid(int sid) { return m_Data->getGidBySid(sid); }
 std::string Execution::getLabel(int gid) const { return m_Data->getLabel(gid); }
 unsigned long long Execution::getTotalTime() { return m_Data->getTotalTime(); }
-string Execution::getTitle() const { return m_Data->getTitle(); }
 
 // Execution* Execution::clone() const {
 

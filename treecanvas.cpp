@@ -1509,8 +1509,6 @@ TreeCanvas::extractSubtree() {
   unique_ptr<NodeTree> nt{new NodeTree};
   unique_ptr<Data> data{new Data};
 
-  data->setTitle("Extracted Subtree");
-
   auto root = nt->getRoot();
 
   copyTree(root, *nt, *data, currentNode, execution.nodeTree(),

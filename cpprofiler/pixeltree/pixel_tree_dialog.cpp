@@ -31,7 +31,7 @@ PixelTreeDialog::PixelTreeDialog(TreeCanvas* tc) : QDialog(tc) {
   this->resize(INIT_WIDTH, INIT_HEIGHT);
 
   this->setWindowTitle(
-      QString::fromStdString(tc->getExecution().getData().getTitle()));
+      QString::fromStdString(tc->getExecution().getTitle()));
 
   canvas_ = new PixelTreeCanvas(&scrollArea, *tc, m_infoPanel);
 

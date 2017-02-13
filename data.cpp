@@ -32,8 +32,6 @@
 using namespace std;
 using namespace std::chrono;
 
-int Data::instance_counter = 0;
-
 ostream& operator<<(ostream& s, const DbEntry& e) {
     s << "dbEntry: {";
     s << " sid: "  << e.restart_id << '_' << e.s_node_id;
