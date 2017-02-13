@@ -136,6 +136,11 @@ ProfilerConductor::ProfilerConductor() : QMainWindow() {
   connect(debugExecutionButton, SIGNAL(clicked()), this,
           SLOT(createDebugExecution()));
 
+  auto cloneExecutionButton = new QPushButton("clone execution");
+  cloneExecutionButton->setEnabled(false);
+  connect(cloneExecutionButton, &QPushButton::clicked, this,
+          &ProfilerConductor::cloneExecution);
+
   connect(executionList.selectionModel(), &QItemSelectionModel::selectionChanged, [=]() {
       int nselected = executionList.selectionModel()->selectedIndexes().size();
 
@@ -149,6 +154,7 @@ ProfilerConductor::ProfilerConductor() : QMainWindow() {
       loadExecutionButton->setEnabled   (true);
       deleteExecutionButton->setEnabled (nselected > 0);
       debugExecutionButton->setEnabled  (true);
+      cloneExecutionButton->setEnabled  (nselected == 1);
   });
 
   auto layout = new QGridLayout();
@@ -164,10 +170,11 @@ ProfilerConductor::ProfilerConductor() : QMainWindow() {
   layout->addWidget(webscriptButton,        5, 0, 1, 2);
   layout->addWidget(saveExecutionButton,    6, 0, 1, 2);
   layout->addWidget(loadExecutionButton,    7, 0, 1, 2);
-  layout->addWidget(deleteExecutionButton,  8, 0, 1, 2);
+  layout->addWidget(cloneExecutionButton,   8, 0, 1, 2);
+  layout->addWidget(deleteExecutionButton,  9, 0, 1, 2);
 
 #ifdef MAXIM_DEBUG
-  layout->addWidget(debugExecutionButton,   9, 0, 1, 2);
+  layout->addWidget(debugExecutionButton,   10, 0, 1, 2);
 #endif
 
   centralWidget->setLayout(layout);
@@ -503,9 +510,12 @@ void ProfilerConductor::registerWebscriptView(Execution* execution, std::string 
 }
 
 void ProfilerConductor::createDebugExecution() {
-  qDebug() << "createDebugExecution";
   auto e = new Execution{};
   addExecution(*e);
+}
+
+void ProfilerConductor::cloneExecution() {
+  auto& sel_ex = static_cast<ExecutionListItem*>(executionList.selectedItems()[0])->execution_;
 }
 
 using namespace std;

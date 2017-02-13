@@ -49,7 +49,7 @@ inline NodeAllocator::NodeAllocator() {
   nodes.reserve(1000);
 }
 
-inline NodeAllocator::~NodeAllocator(void) {
+inline NodeAllocator::~NodeAllocator() {
   for (auto &node : nodes) {
     delete node;
   }

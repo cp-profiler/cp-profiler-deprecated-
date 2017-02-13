@@ -95,6 +95,12 @@ public:
         return nameMap;
     }
 
+    // Execution* clone() const;
+
+
+public slots:
+    void handleNewNode(message::Node& node);
+
 signals:
     void newNode();
     void newRoot();
@@ -109,8 +115,7 @@ private:
     NameMap nameMap;
     bool _is_restarts;
     std::string variableListString;
-public Q_SLOTS:
-    void handleNewNode(message::Node& node);
+
 
 };
 

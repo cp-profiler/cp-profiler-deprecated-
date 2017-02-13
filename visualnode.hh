@@ -270,8 +270,8 @@ private:
 public:
   NodeAllocator();
   ~NodeAllocator();
-  NodeAllocator(const NodeAllocator&) = delete;
-  NodeAllocator& operator=(const NodeAllocator&) = delete;
+  NodeAllocator(const NodeAllocator&) = default;
+  NodeAllocator& operator=(const NodeAllocator&) = default;
   /// Allocate new node with parent \a p and database id
   int allocate(int p);
   /// Allocate new root node
