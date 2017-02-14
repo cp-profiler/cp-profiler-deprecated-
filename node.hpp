@@ -105,9 +105,6 @@ Node::replaceChild(NodeAllocator& na, int new_node_gid, int alt) {
   /// NOTE(maxim): only handling binary trees for now
   if (getTag() != TWO_CHILDREN) return;
 
-  qDebug() << "replacing" << getChild(na, alt)->debug_id
-           << "with" << na[new_node_gid]->debug_id;
-
   if (alt == 0) {
     childrenOrFirstChild =
                 reinterpret_cast<void*>(new_node_gid << 2);
