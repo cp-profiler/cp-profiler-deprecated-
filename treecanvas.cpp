@@ -60,8 +60,6 @@
 
 using namespace cpprofiler::analysis;
 
-int TreeCanvas::counter = 0;
-
 TreeCanvas::TreeCanvas(Execution* e, QGridLayout* layout, QWidget* parent)
     : QWidget{parent},
       execution{*e},
@@ -70,8 +68,6 @@ TreeCanvas::TreeCanvas(Execution* e, QGridLayout* layout, QWidget* parent)
       na(execution.nodeTree().getNA())
   {
   QMutexLocker locker(&mutex);
-
-  _id = TreeCanvas::counter++;
 
   root = execution.nodeTree().getRoot();
 
@@ -1371,6 +1367,8 @@ void TreeCanvas::deleteMiddleNode(Node* to_del_node, int alt_grand) {
       break;
     }
   }
+
+  parent->dirtyUp(na);
 
 }
 

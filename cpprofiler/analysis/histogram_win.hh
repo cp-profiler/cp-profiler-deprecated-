@@ -28,6 +28,7 @@ struct HistogramSettings {
 
     LabelOption label_opt = LabelOption::IGNORE;
     bool hideNotHighlighted = true;
+    bool keepSubsumed = false;
 };
 
 class HistogramWindow : public QDialog {

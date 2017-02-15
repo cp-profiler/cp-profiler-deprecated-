@@ -147,7 +147,7 @@ void highlightAllSubtrees(NodeTree& nt, std::vector<ShapeInfo>& shapes) {
 }
 
 void SimilarShapesWindow::initInterface() {
-    settingsLayout->addWidget(new QLabel{"Type:"}, 0, Qt::AlignRight);
+    settingsLayout->addWidget(new QLabel{"Similarity Type:"}, 0, Qt::AlignRight);
 
     auto typeChoice = new QComboBox();
     typeChoice->addItems({"shape", "subtree"});
@@ -161,6 +161,18 @@ void SimilarShapesWindow::initInterface() {
       }
       updateHistogram();
     });
+
+    auto subsumedOption = new QCheckBox{"Keep subsumed"};
+    settingsLayout->addWidget(subsumedOption);
+
+    connect(subsumedOption, &QCheckBox::stateChanged, [this](int state) {
+      settings.keepSubsumed = (state == Qt::Checked);
+      shapes_cached = false;
+      subtrees_cached = false;
+      updateHistogram();
+    });
+
+    settingsLayout->addStretch();
 
     settingsLayout->addWidget(new QLabel{"Labels:"}, 0, Qt::AlignRight);
 
@@ -369,9 +381,11 @@ void SimilarShapesWindow::updateHistogram() {
 
         shapes = filterOutUnique(shapes);
 
-        perfHelper.begin("subsumed shapes elimination");
-        eliminateSubsumed(node_tree, shapes);
-        perfHelper.end();
+        if (!settings.keepSubsumed) {
+          perfHelper.begin("subsumed shapes elimination");
+          eliminateSubsumed(node_tree, shapes);
+          perfHelper.end();
+        }
 
         /// some shapes may have become unique
         shapes = filterOutUnique(shapes);
@@ -394,9 +408,11 @@ void SimilarShapesWindow::updateHistogram() {
 
         m_identicalGroups = filterOutUnique(m_identicalGroups);
 
-        perfHelper.begin("subsumed subtrees elimination");
-        eliminateSubsumed(node_tree, m_identicalGroups);
-        perfHelper.end();
+        if (!settings.keepSubsumed) {
+          perfHelper.begin("subsumed subtrees elimination");
+          eliminateSubsumed(node_tree, m_identicalGroups);
+          perfHelper.end();
+        }
 
         m_identicalGroups = filterOutUnique(m_identicalGroups);
 

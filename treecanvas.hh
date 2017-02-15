@@ -96,11 +96,6 @@ class TreeCanvas : public QWidget {
   friend class GistMainWindow;
   friend class Gist;
 
-  /// to generate ids
-  static int counter;
-
-  int _id;
-
   Execution& execution;
 
   int nodeCount = 0;
@@ -146,7 +141,6 @@ class TreeCanvas : public QWidget {
 
   /// Store mapping from id to path
   std::unordered_map<std::string, std::string> pathmap;
-  std::string getBetterName(std::string id);
 
     /// Return the node corresponding to the \a event position
   VisualNode* eventNode(QEvent *event);
@@ -206,8 +200,6 @@ Q_SIGNALS:
   /// Context menu triggered
   void contextMenu(QContextMenuEvent*);
 
-  /// Signals that %Gist is finished
-  void searchFinished();
   /// Signals that a bookmark has been added
   void addedBookmark(const QString& id);
   /// Signals that a bookmark has been removed
