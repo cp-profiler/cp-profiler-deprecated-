@@ -22,23 +22,100 @@
 #include "node_info_dialog.hh"
 #include <QDebug>
 #include <QHBoxLayout>
+#include <QVBoxLayout>
+#include <QLabel>
+#include <QTextEdit>
+#include <QLineEdit>
+#include <QComboBox>
 
 const int NodeInfoDialog::DEFAULT_WIDTH = 600;
 const int NodeInfoDialog::DEFAULT_HEIGHT = 400;
 
-NodeInfoDialog::NodeInfoDialog(QWidget* parent, const std::string& text)
-: QDialog(parent), _textField(this) {
+static QString filterVars(const QString& orig, const QString& filter) {
 
-  _textField.setText(text.c_str());
-  _textField.setReadOnly(true);
+  if (filter.isEmpty()) return orig;
 
-  QHBoxLayout* layout = new QHBoxLayout(this);
-  layout->addWidget(&_textField);
+  QString filtered;
 
-  resize(DEFAULT_WIDTH, DEFAULT_HEIGHT);
+  QStringList var_list = filter.split(',', QString::SkipEmptyParts);
+
+  for (auto& el : var_list) { el = el.trimmed(); }
+
+  QStringList info_lines = orig.split('\n', QString::SkipEmptyParts);
+
+  for (auto& line : info_lines) {
+    for (auto& var : var_list) {
+      if (line.startsWith(var)) { filtered += line + '\n'; }
+    }
+  }
+
+  return filtered;
 
 }
 
-NodeInfoDialog::~NodeInfoDialog() {
+NodeInfoDialog::NodeInfoDialog(QWidget* parent, const std::string& text, const QString& filter)
+: QDialog(parent), orig_text(text.c_str()) {
+
+  auto textField = new QTextEdit(this);
+
+  textField->setReadOnly(true);
+
+  auto layout = new QVBoxLayout(this);
+  layout->addWidget(textField);
+
+  /// var name filter for domains
+
+  auto domain_filter_lo = new QHBoxLayout();
+  layout->addLayout(domain_filter_lo);
+
+  auto filter_label = new QLabel{"Filter domains:"};
+  domain_filter_lo->addWidget(filter_label);
+
+  auto filter_edit = new QLineEdit(filter);
+  domain_filter_lo->addWidget(filter_edit);
+
+  connect(filter_edit, &QLineEdit::returnPressed, [filter_edit, textField, this] () {
+
+    const auto& filter_text = filter_edit->text();
+
+    QString to_show = filterVars(orig_text, filter_text);
+
+    emit this->filterChanged(filter_text);
+    textField->setText(to_show);
+
+  });
+
+  filter_edit->setToolTip("variable names separated by commas expected; empty to disable");
+  emit filter_edit->returnPressed();
+
+
+#ifdef MAXIM_DEBUG
+
+  /// text edit field for specifying labels
+
+  auto label_lo = new QHBoxLayout();
+  layout->addLayout(label_lo);
+
+  auto edit_text = new QLabel{"Change label:"};
+  label_lo->addWidget(edit_text);
+
+  auto label_edit = new QLineEdit(this);
+  label_lo->addWidget(label_edit);
+  connect(label_edit, &QLineEdit::returnPressed, [label_edit, this] () {
+    emit changeLabel(label_edit->text());
+    close();
+  });
+
+  auto status_cb = new QComboBox();
+  status_cb->addItems({"Undetermined", "Branch", "Solved", "Failed"});
+  layout->addWidget(status_cb);
+  connect(status_cb, &QComboBox::currentTextChanged, [this] (QString str) {
+    emit changeStatus(str);
+  });
+
+#endif
+
+
+  resize(DEFAULT_WIDTH, DEFAULT_HEIGHT);
 
 }

@@ -1,17 +1,15 @@
 #include "depth_analysis.hh"
+#include "nodetree.hh"
+
 #include <QDebug>
-#include "treecanvas.hh"
-#include "data.hh"
 
 using namespace cpprofiler::analysis;
 
-DepthAnalysis::DepthAnalysis(TreeCanvas& tc) : _tc(tc),
-  _na(tc.getExecution()->nodeTree().getNA()) {}
+DepthAnalysis::DepthAnalysis(NodeTree& nt) : _nt(nt), _na(nt.getNA()) {}
 
 std::vector<Direction> DepthAnalysis::collectDepthData() {
   SpaceNode* root = _na[0];
   std::vector<Direction> depth_data;
-  depth_data.reserve(_tc.getExecution()->getData().size());
 
   traverse(depth_data, root);
 
@@ -52,7 +50,7 @@ std::vector<std::vector<unsigned int> > DepthAnalysis::runMSL() {
 
   auto deepest = 0u;
   auto curr_level = 1u;
-  auto total_depth = _tc.getTreeDepth();
+  auto total_depth = _nt.getStatistics().maxDepth;
   vector<unsigned int> dl_list(total_depth);  /// deepest at level
   vector<unsigned int> count_list(total_depth, 0);
 

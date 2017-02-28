@@ -4,8 +4,7 @@
 #include <QDialog>
 #include <vector>
 
-class TreeCanvas;
-class VisualNode;
+class NodeTree;
 class SpaceNode;
 class NodeAllocator;
 
@@ -24,19 +23,18 @@ class DepthAnalysis : public QObject {
   Q_OBJECT
 
  private:
-  TreeCanvas& _tc;
+  NodeTree& _nt;
   NodeAllocator& _na;
 
   unsigned int _total_depth;
 
- private:
   /// returns a vector of 'UPs' and 'DOWNs'
   std::vector<Direction> collectDepthData();
 
   void traverse(std::vector<Direction>& depth_data, const SpaceNode* const n);
 
  public:
-  explicit DepthAnalysis(TreeCanvas& tc);
+  explicit DepthAnalysis(NodeTree& nt);
 
   /// Return a two-dimentional array of counts
   std::vector<std::vector<unsigned int> > runMSL();

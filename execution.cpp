@@ -37,7 +37,9 @@ Execution::Execution()
 Execution::Execution(std::unique_ptr<NodeTree> nt, std::unique_ptr<Data> data)
     : m_NodeTree{std::move(nt)},  m_Data{std::move(data)} {}
 
-Execution::~Execution() = default;
+Execution::~Execution() {
+  qDebug() << "~Execution";
+}
 
 Data& Execution::getData() const {
     return *m_Data.get();
@@ -52,7 +54,7 @@ void Execution::start(std::string label, bool isRestarts) {
 
     // asctime puts a newline at the end; remove it
     ts.pop_back();
-    m_Data->setTitle(label + " (" + ts + ")");
+    setTitle(label + " (" + ts + ")");
 
     connect(this, SIGNAL(doneReceiving(void)), m_Data.get(), SLOT(setDoneReceiving(void)));
 
@@ -96,4 +98,20 @@ DbEntry* Execution::getEntry(int gid) const { return m_Data->getEntry(gid); }
 unsigned int Execution::getGidBySid(int sid) { return m_Data->getGidBySid(sid); }
 std::string Execution::getLabel(int gid) const { return m_Data->getLabel(gid); }
 unsigned long long Execution::getTotalTime() { return m_Data->getTotalTime(); }
-string Execution::getTitle() const { return m_Data->getTitle(); }
+
+// Execution* Execution::clone() const {
+
+//   NodeTree nt;
+
+//   nt.getNA() = m_NodeTree->getNA();
+//   nt.getStatistics() = m_NodeTree->getStatistics();
+
+//   Data data;
+
+//   auto new_ex = new Execution(std::move(nt), std::move(data));
+
+//   return new_ex;
+
+//   /// copy tree structure + data (not treebuilder)
+
+// }

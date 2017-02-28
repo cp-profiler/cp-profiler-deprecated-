@@ -169,7 +169,7 @@ void SubtreeCompWindow::updateHistogram() {
     hist_view->setScene(m_scene.get());
 
     if (!subtrees_cached) {
-        m_identicalGroups = subtrees::findIdentical(execution, settings.labelSensitive);
+        m_identicalGroups = subtrees::findIdentical(execution, settings.label_opt);
         subtrees_cached = true;
     }
 
@@ -231,14 +231,16 @@ void SubtreeCompWindow::initInterface() {
     typeChoice->addItem("subtree");
     settingsLayout->addWidget(typeChoice);
 
-    auto labels_flag = new QCheckBox{"Compare labels"};
-    settingsLayout->addWidget(labels_flag);
+    //TODO(maxim)
 
-    connect(labels_flag, &QCheckBox::stateChanged, [this](int state) {
-        settings.labelSensitive = (state == Qt::Checked);
-        subtrees_cached = false;
-        updateHistogram();
-    });
+    // auto labels_flag = new QCheckBox{"Compare labels"};
+    // settingsLayout->addWidget(labels_flag);
+
+    // connect(labels_flag, &QCheckBox::stateChanged, [this](int state) {
+    //     settings.labelSensitive = (state == Qt::Checked);
+    //     subtrees_cached = false;
+    //     updateHistogram();
+    // });
 
     connect(typeChoice, &QComboBox::currentTextChanged, [this](const QString& str) {
       if (str == "shape") {

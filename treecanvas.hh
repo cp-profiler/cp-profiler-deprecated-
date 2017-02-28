@@ -26,10 +26,10 @@
 #include <QtGui>
 #include <QtWidgets>
 #include <memory>
-
+#include <sstream>
 #include <functional>
-#include "visualnode.hh"
-#include "execution.hh"
+#include <unordered_map>
+
 
 /// \brief Parameters for the tree layout
 namespace LayoutConfig {
@@ -41,7 +41,13 @@ namespace LayoutConfig {
   constexpr int maxAutoZoomScale = 100;
 }
 
+class Execution;
+class Data;
 class TreeCanvas;
+class NodeTree;
+class NodeAllocator;
+class VisualNode;
+class Node;
 
 namespace cpprofiler { namespace analysis {
   class SimilarShapesWindow;
@@ -132,6 +138,9 @@ class TreeCanvas : public QWidget {
   /// Timer for smooth scrolling
   QTimeLine scrollTimeLine{1000};
 
+  /// Filter used by Node Info Dialog
+  QString domain_filter{""};
+
   /// Timer id for delaying the update
   int layoutDoneTimerId = 0;
 
@@ -168,19 +177,9 @@ public:
 
   QSlider* scaleBar() const { return m_scaleBar; }
 
-  std::string getLabel(unsigned int gid) {
-    std::string origLabel = execution.getLabel(gid);
-    return replaceNames(execution.getNameMap(), origLabel);
-  }
-  unsigned long long getTotalTime() const { return execution.getTotalTime(); }
-  std::string getTitle() const { return execution.getTitle(); }
-  DbEntry* getEntry(unsigned int gid) { return execution.getEntry(gid); }
+  std::string getLabel(int gid);
 
-  const Statistics& get_stats() const { return execution.getStatistics(); }
-
-  Execution* getExecution() const { return &execution; }
-
-  unsigned int getTreeDepth();
+  Execution& getExecution() const { return execution; }
 
   /// Apply `action` to every node that satisfies the predicate
   void applyToEachNodeIf(std::function<void (VisualNode*)> action,
@@ -239,7 +238,12 @@ public Q_SLOTS:
   /// Set the selected not to a node by solver id (from no-good table)
   void navigateToNodeById(int gid);
 
+  /// Delete the node and all its descendants
+  /// not sure if memory is properly released here
   void deleteNode(Node* n);
+
+  /// Delete the node and its left child, while reparenting its (alt) child
+  void deleteMiddleNode(Node* n, int alt);
 
   /// Set scale factor to \a scale0
   void scaleTree(int scale0, int zoomx=-1, int zoomy=-1);
@@ -284,6 +288,9 @@ public Q_SLOTS:
 
   /// Delete Unexplored Nodes (needed e.g. for replaying with restart)
   void deleteWhiteNodes();
+
+  /// Delete (immediately) unsuccessful assignments in the middle (chains)
+  void deleteTrials();
 
   /// Delete Skipped Nodes (needed e.g. for replaying with restart)
   void deleteSkippedNodes();
@@ -386,6 +393,7 @@ public:
   void addChildren();
   void createRandomTree(); // in place
   void deleteSelectedNode();
+  void deleteSelectedMiddleNode();
   void dirtyUpNode();
 #endif
 private Q_SLOTS:

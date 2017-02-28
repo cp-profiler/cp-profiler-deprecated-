@@ -11,7 +11,6 @@ class ProfilerTcpServer : public QTcpServer {
 
  public:
   ProfilerTcpServer(std::function<void(qintptr)> callback);
-  // ~ProfilerTcpServer();
 
  protected:
   void incomingConnection(qintptr socketDescriptor) override;

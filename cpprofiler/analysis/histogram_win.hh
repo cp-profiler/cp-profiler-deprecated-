@@ -20,8 +20,13 @@ namespace analysis {
 class SubtreeCanvas;
 struct ShapeInfo;
 
+enum class LabelOption {
+    IGNORE, VARS, FULL
+};
+
 struct HistogramSettings {
-    bool labelSensitive = false;
+
+    LabelOption label_opt = LabelOption::IGNORE;
     bool hideNotHighlighted = true;
 };
 

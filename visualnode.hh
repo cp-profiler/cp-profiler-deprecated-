@@ -270,8 +270,8 @@ private:
 public:
   NodeAllocator();
   ~NodeAllocator();
-  NodeAllocator(const NodeAllocator&) = delete;
-  NodeAllocator& operator=(const NodeAllocator&) = delete;
+  NodeAllocator(const NodeAllocator&) = default;
+  NodeAllocator& operator=(const NodeAllocator&) = default;
   /// Allocate new node with parent \a p and database id
   int allocate(int p);
   /// Allocate new root node
@@ -296,6 +296,8 @@ public:
 bool compareNodes(const VisualNode& n1, const VisualNode& n2);
 
 std::ostream& operator<<(std::ostream& os, const VisualNode* n);
+
+#include <QDebug>
 
 #include "node.hpp"
 #include "spacenode.hpp"

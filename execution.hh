@@ -41,7 +41,8 @@ public:
         nameMap = names;
     }
 
-    std::string getTitle() const;
+    std::string getTitle() const { return _title; }
+    void setTitle(std::string title) { _title = title; }
     std::string getDescription() {
         std::stringstream ss;
         ss << getTitle();
@@ -95,6 +96,12 @@ public:
         return nameMap;
     }
 
+    // Execution* clone() const;
+
+
+public slots:
+    void handleNewNode(message::Node& node);
+
 signals:
     void newNode();
     void newRoot();
@@ -108,9 +115,10 @@ private:
     std::unique_ptr<TreeBuilder> m_Builder;
     NameMap nameMap;
     bool _is_restarts;
+    // Name of the FlatZinc model
+    std::string _title = "";
     std::string variableListString;
-public Q_SLOTS:
-    void handleNewNode(message::Node& node);
+
 
 };
 

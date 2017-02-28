@@ -36,6 +36,7 @@
  */
 
 #include "treecanvas.hh"
+#include "execution.hh"
 
 inline
 NodeCursor::NodeCursor(VisualNode* theNode,
@@ -489,9 +490,9 @@ BranchLabelCursor::processCurrentNode(void) {
     if (!_clear) {
         if (!na.hasLabel(n)) {
 #ifdef MAXIM_DEBUG
-            _na.setLabel(n, " " + QString::number(n->debug_id) + " ");
-            n->dirtyUp(na);
-            return;
+            // _na.setLabel(n, " " + QString::number(n->debug_id) + " ");
+            // n->dirtyUp(na);
+            // return;
 #endif
             VisualNode* p = n->getParent(_na);
             if (p) {

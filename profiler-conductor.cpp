@@ -21,7 +21,6 @@
 #include "tree_utils.hh"
 
 #include <fstream>
-
 #include <QPushButton>
 #include <QVBoxLayout>
 
@@ -89,31 +88,38 @@ ProfilerConductor::ProfilerConductor() : QMainWindow() {
 
   executionList.setSelectionMode(QAbstractItemView::MultiSelection);
   compareWithLabelsCB.setText("with labels");
+  compareWithLabelsCB.setEnabled(false);
 
   auto centralWidget = new QWidget(this);
   setCentralWidget(centralWidget);
 
   auto gistButton = new QPushButton("show tree");
+  gistButton->setEnabled(false);
   connect(gistButton, SIGNAL(clicked()), this,
           SLOT(gistButtonClicked()));
 
   auto compareButton = new QPushButton("compare trees");
+  compareButton->setEnabled(false);
   connect(compareButton, SIGNAL(clicked()), this,
           SLOT(compareButtonClicked()));
 
   auto compareSubtrees = new QPushButton("compare subtrees");
+  compareSubtrees->setEnabled(false);
   connect(compareSubtrees, &QPushButton::clicked,
           this, &ProfilerConductor::compareSubtrees);
 
   auto gatherStatisticsButton = new QPushButton("gather statistics");
+  gatherStatisticsButton->setEnabled(false);
   connect(gatherStatisticsButton, SIGNAL(clicked()), this,
           SLOT(gatherStatisticsClicked()));
 
   auto webscriptButton = new QPushButton("webscript view");
+  webscriptButton->setEnabled(false);
   connect(webscriptButton, SIGNAL(clicked()), this,
           SLOT(webscriptClicked()));
 
   auto saveExecutionButton = new QPushButton("save execution");
+  saveExecutionButton->setEnabled(false);
   connect(saveExecutionButton, SIGNAL(clicked()), this,
           SLOT(saveExecutionClicked()));
 
@@ -122,6 +128,7 @@ ProfilerConductor::ProfilerConductor() : QMainWindow() {
           SLOT(loadExecutionClicked()));
 
   auto deleteExecutionButton = new QPushButton("delete execution");
+  deleteExecutionButton->setEnabled(false);
   connect(deleteExecutionButton, SIGNAL(clicked()), this,
           SLOT(deleteExecutionClicked()));
 
@@ -129,7 +136,11 @@ ProfilerConductor::ProfilerConductor() : QMainWindow() {
   connect(debugExecutionButton, SIGNAL(clicked()), this,
           SLOT(createDebugExecution()));
 
-  connect(executionList.selectionModel(),&QItemSelectionModel::selectionChanged,[=]() {//with lambda
+  auto cloneExecutionButton = new QPushButton("clone execution");
+  connect(cloneExecutionButton, &QPushButton::clicked, this,
+          &ProfilerConductor::cloneExecution);
+
+  connect(executionList.selectionModel(), &QItemSelectionModel::selectionChanged, [=]() {
       int nselected = executionList.selectionModel()->selectedIndexes().size();
 
       gistButton->setEnabled            (nselected > 0);
@@ -142,6 +153,7 @@ ProfilerConductor::ProfilerConductor() : QMainWindow() {
       loadExecutionButton->setEnabled   (true);
       deleteExecutionButton->setEnabled (nselected > 0);
       debugExecutionButton->setEnabled  (true);
+      cloneExecutionButton->setEnabled  (nselected == 1);
   });
 
   auto layout = new QGridLayout();
@@ -157,10 +169,11 @@ ProfilerConductor::ProfilerConductor() : QMainWindow() {
   layout->addWidget(webscriptButton,        5, 0, 1, 2);
   layout->addWidget(saveExecutionButton,    6, 0, 1, 2);
   layout->addWidget(loadExecutionButton,    7, 0, 1, 2);
-  layout->addWidget(deleteExecutionButton,  8, 0, 1, 2);
+  layout->addWidget(cloneExecutionButton,   8, 0, 1, 2);
+  layout->addWidget(deleteExecutionButton,  9, 0, 1, 2);
 
 #ifdef MAXIM_DEBUG
-  layout->addWidget(debugExecutionButton,   9, 0, 1, 2);
+  layout->addWidget(debugExecutionButton,   10, 0, 1, 2);
 #endif
 
   centralWidget->setLayout(layout);
@@ -170,7 +183,7 @@ ProfilerConductor::ProfilerConductor() : QMainWindow() {
     auto execution = new Execution();
     execution->setNameMap(currentNameMap);
 
-    /// TODO(maxim): receiver should be destroyed when done
+    /// TODO(maxim): receiver should be destroyed when done?
     auto receiver = new ReceiverThread(socketDescriptor, execution, this);
 
     addExecution(*execution);
@@ -216,7 +229,7 @@ void ProfilerConductor::addExecution(Execution& e) {
 
 void ProfilerConductor::displayExecution(Execution& ex, QString&& title) {
   auto gistMW = executionInfoHash[&ex]->gistWindow;
-  if (gistMW == nullptr) {
+  if (!gistMW) {
     gistMW = createGist(ex, title);
   }
   gistMW->show();
@@ -412,18 +425,11 @@ void ProfilerConductor::saveExecutionClicked() {
 
   QString filename =
       QFileDialog::getSaveFileName(this, "Save execution", QDir::currentPath());
+
   std::ofstream outputFile(filename.toStdString(),
                            std::ios::out | std::ios::binary);
   OstreamOutputStream raw_output(&outputFile);
   auto& data = item->execution_.getData();
-
-  std::vector<unsigned int> keys;
-  keys.reserve(data.gid2entry.size());
-
-  for (const auto& pair : data.gid2entry) {
-    keys.push_back(pair.first);
-  }
-  sort(keys.begin(), keys.end());
 
   message::Node start_node;
   start_node.set_type(message::Node::START);
@@ -437,8 +443,7 @@ void ProfilerConductor::saveExecutionClicked() {
   start_node.set_info(item->execution_.getVariableListString());
   writeDelimitedTo(start_node, &raw_output);
 
-  for (auto& key : keys) {
-    DbEntry* entry = data.gid2entry[key];
+  for (auto* entry : data.getEntries()) {
     message::Node node;
     node.set_type(message::Node::NODE);
     node.set_sid(entry->s_node_id);
@@ -504,29 +509,12 @@ void ProfilerConductor::registerWebscriptView(Execution* execution, std::string 
 }
 
 void ProfilerConductor::createDebugExecution() {
-  qDebug() << "createDebugExecution";
   auto e = new Execution{};
   addExecution(*e);
+}
 
-  // auto& na = e->getNA();
-
-  // na.allocateRoot();
-
-  // auto root = na[0];
-
-  // root->setStatus(BRANCH);
-  // root->setNumberOfChildren(2, na);
-
-  // auto kid1 = root->getChild(na, 0);
-  // kid1->setStatus(FAILED);
-
-  // auto kid2 = root->getChild(na, 0);
-  // kid2->setStatus(BRANCH);
-  // kid2->setNumberOfChildren(2, na);
-
-  // kid1->dirtyUp(na);
-  // kid2->dirtyUp(na);
-
+void ProfilerConductor::cloneExecution() {
+  auto& sel_ex = static_cast<ExecutionListItem*>(executionList.selectedItems()[0])->execution_;
 }
 
 using namespace std;
@@ -537,6 +525,8 @@ void ProfilerConductor::createExecution(unique_ptr<NodeTree> nt,
   auto e = new Execution(std::move(nt), std::move(data));
   e->setNameMap(currentNameMap);
   addExecution(*e);
+
+  e->setTitle("Extracted Execution");
 
   auto gist = createGist(*e, e->getTitle().c_str());
 }

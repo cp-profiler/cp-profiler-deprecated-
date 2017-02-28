@@ -25,6 +25,7 @@
 #include <functional>
 
 #include "treecanvas.hh"
+#include "execution.hh"
 #include "spacenode.hh"
 #include "data.hh"
 #include "libs/perf_helper.hh"
@@ -35,11 +36,10 @@ using namespace cpprofiler::pixeltree;
 /// pos_x and pox_y -> node gid
 
 IcicleTreeDialog::IcicleTreeDialog(TreeCanvas* tc) : QDialog(tc) {
-  qDebug() << "tc in IcicleTree address: " << tc;
 
   this->resize(INIT_WIDTH, INIT_HEIGHT);
   this->setWindowTitle(
-      QString::fromStdString(tc->getExecution()->getData().getTitle()));
+      QString::fromStdString(tc->getExecution().getTitle()));
 
   scrollArea_ = new QAbstractScrollArea();
 
@@ -61,7 +61,6 @@ IcicleTreeDialog::IcicleTreeDialog(TreeCanvas* tc) : QDialog(tc) {
   color_map_cb->addItem("node time");
 
   canvas_ = new IcicleTreeCanvas(scrollArea_, tc);
-  qDebug() << "Tree Height: " << canvas_->getTreeHeight();
 
   setAttribute(Qt::WA_DeleteOnClose, true);
 
@@ -122,7 +121,6 @@ void IcicleTreeCanvas::compressLevelChanged(int value) {
   redrawAll();
   leafIndex = findLeftLeaf()->getIndex(na);
   sa_.horizontalScrollBar()->setValue(xoff);
-  qDebug() << "compressionChanged to: " << compressLevel;
 }
 
 bool IcicleTreeCanvas::compressInit(VisualNode& root, int idx, int absX) {
@@ -152,7 +150,7 @@ bool IcicleTreeCanvas::compressInit(VisualNode& root, int idx, int absX) {
 }
 
 IcicleTreeCanvas::IcicleTreeCanvas(QAbstractScrollArea* parent, TreeCanvas* tc)
-    : QWidget(parent), sa_(*parent), tc_(*tc), node_tree(tc->getExecution()->nodeTree()) {
+    : QWidget(parent), sa_(*parent), tc_(*tc), node_tree(tc->getExecution().nodeTree()) {
   compressLevel = 0;
   auto& na = node_tree.getNA();
   statistic.resize(na.size());
@@ -194,13 +192,11 @@ void IcicleTreeCanvas::resizeCanvas() {
 void IcicleTreeCanvas::redrawAll() {
   icicle_image_.clear();
   drawIcicleTree();
-  perfHelper.begin("icicle tree: update");
+  // perfHelper.begin("icicle tree: update");
   icicle_image_.update();
-  perfHelper.end();
+  // perfHelper.end();
   /// added 10 of padding here
   int icicle_width = statistic[0].leafCnt * icicle_image_.pixel_height();
-  qDebug() << "windows width: " << sa_.viewport()->width() << ", total image width: " << icicle_width;
-  qDebug() << "xoff: " << sa_.horizontalScrollBar()->value();
   sa_.horizontalScrollBar()->setRange(
       0, icicle_width - sa_.viewport()->width() + 10);
   sa_.horizontalScrollBar()->setPageStep(sa_.viewport()->width());
@@ -218,17 +214,13 @@ void IcicleTreeCanvas::drawIcicleTree() {
   int xoff = sa_.horizontalScrollBar()->value() / icicle_image_.pixel_height();
   int width = sa_.viewport()->width();
   int depth = sa_.viewport()->height();
-  qDebug() << "curx: " << curx << ", xoff: " << xoff
-        << ", width: " << width << ", yoff: " << yoff << ", depth: " << depth;
-  perfHelper.begin("icicle tree: dfs");
+  // perfHelper.begin("icicle tree: dfs");
   dfsVisible(root, idx, curx, cury, xoff, width, yoff, depth);
-  perfHelper.end();
+  // perfHelper.end();
 
-  perfHelper.begin("icicle tree: draw");
+  // perfHelper.begin("icicle tree: draw");
   drawRects();
-  perfHelper.end();
-  qDebug() << "average domain reduction: "
-           << domain_red_sum / tc_.get_stats().allNodes();
+  // perfHelper.end();
 }
 
 void IcicleTreeCanvas::drawRects() {
@@ -267,7 +259,7 @@ QRgb IcicleTreeCanvas::getColorByType(const VisualNode& node) {
 
   QRgb color;
   auto& na = node_tree.getNA();
-  auto& data = tc_.getExecution()->getData();
+  auto& data = tc_.getExecution().getData();
   auto gid = node.getIndex(na);
   auto* entry = data.getEntry(gid);
   auto domain_red = entry == nullptr ? 0 : entry->domain;
@@ -358,31 +350,24 @@ void IcicleTreeCanvas::mouseMoveEvent(QMouseEvent* event) {
 
   auto* node = getNodeByXY(x, y);
 
+  if (node == nullptr) return;
+
   if (node != selectedNode) {
     selectedNode = node;
 
-    redrawAll();
+    /// Do stuff not more often than 60hz
+    maybeCaller.call([this, node]() {
+      unselectNodes(nodes_selected);
+      nodes_selected.push_back(node);
+      node->setHovered(true);
+      tc_.updateCanvas();
+      redrawAll();
+    });
+
   }
 
-  if (node == nullptr) return;
+  
 
-
-  // auto& na = tc_.getExecution()->getNA();
-  // auto data = tc_.getExecution()->getData();
-  // auto gid = node->getIndex(na);
-  // auto* entry = data->getEntry(gid);
-
-  // auto domain_red = entry == nullptr ? 0 : entry->domain;
-
-  // qDebug() << "[node info] domain reduction: " << domain_red;
-
-  /// Do stuff not more often than 60hz
-  maybeCaller.call([this, node]() {
-    unselectNodes(nodes_selected);
-    nodes_selected.push_back(node);
-    node->setHovered(true);
-    tc_.updateCanvas();
-  });
 }
 
 void IcicleTreeCanvas::mousePressEvent(QMouseEvent*) {

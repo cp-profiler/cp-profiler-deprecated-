@@ -22,6 +22,7 @@
 #include "nogood_dialog.hh"
 #include "treecanvas.hh"
 #include "data.hh"
+#include "execution.hh"
 #include <QDebug>
 #include <QHBoxLayout>
 #include <QStandardItemModel>
@@ -72,7 +73,7 @@ void NogoodDialog::populateTable(const std::vector<int>& selected_nodes) {
   for (auto it = selected_nodes.begin(); it != selected_nodes.end(); it++) {
     int gid = *it;
 
-    int64_t sid = _tc.getExecution()->getData().gid2sid(gid);
+    int64_t sid = _tc.getExecution().getData().gid2sid(gid);
 
     /// TODO(maxim): check if a node is a failure node
 
@@ -81,7 +82,7 @@ void NogoodDialog::populateTable(const std::vector<int>& selected_nodes) {
       continue;  /// nogood not found
     }
 
-    std::string clause = replaceNames(_tc.getExecution()->getNameMap(), ng_item->second);
+    std::string clause = replaceNames(_tc.getExecution().getNameMap(), ng_item->second);
 
     _model->setItem(row, 0, new QStandardItem(QString::number(gid)));
     _model->setItem(row, 1, new QStandardItem(clause.c_str()));

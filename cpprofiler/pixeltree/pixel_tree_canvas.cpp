@@ -52,16 +52,18 @@ PixelTreeCanvas::PixelTreeCanvas(QWidget* parent, TreeCanvas& tc, InfoPanel& ip)
     : QWidget(parent),
       _tc(tc),
       infoPanel(ip),
-      _data(tc.getExecution()->getData()),
-      _na(tc.getExecution()->nodeTree().getNA()),
-      depthAnalysis(tc) {
+      _data(tc.getExecution().getData()),
+      _na(tc.getExecution().nodeTree().getNA()),
+      depthAnalysis(tc.getExecution().nodeTree()) {
   using cpprofiler::analysis::Backjumps;
 
   _sa = static_cast<QAbstractScrollArea*>(parentWidget());
 
-  _nodeCount = tc.get_stats().allNodes();
+  auto& stats = tc.getExecution().getStatistics();
 
-  tree_depth = tc.get_stats().maxDepth;
+  _nodeCount = stats.allNodes();
+
+  tree_depth = stats.maxDepth;
 
   /// TODO(maxim): do I still need to do this? (check if tree depth is correct)
   // if (_tc->getData()->isRestarts()) {

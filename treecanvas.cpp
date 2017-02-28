@@ -138,8 +138,6 @@ TreeCanvas::~TreeCanvas() {
 
 ///***********************
 
-unsigned TreeCanvas::getTreeDepth() { return get_stats().maxDepth; }
-
 void TreeCanvas::scaleTree(int scale0, int zoomx, int zoomy) {
   layoutMutex.lock();
 
@@ -221,6 +219,26 @@ void TreeCanvas::deleteWhiteNodes() {
   }
   updateCanvas();
   qDebug() << "size after: " << na.size();
+}
+
+void TreeCanvas::deleteTrials() {
+
+  for (auto i = 0; i < na.size(); ++i) {
+    auto node = na[i];
+
+    if (node->getNumberOfChildren() == 2) {
+      auto l_child = node->getChild(na, 0);
+      auto r_child = node->getChild(na, 1);
+
+      if (l_child->getStatus() == FAILED && r_child->getStatus() == BRANCH) {
+        deleteMiddleNode(node, 1);
+      } else if (l_child->getStatus() == BRANCH && r_child->getStatus() == FAILED) {
+        deleteMiddleNode(node, 0);
+      }
+    }
+  }
+
+  updateCanvas();
 }
 
 void TreeCanvas::deleteSkippedNodes() {
@@ -343,7 +361,7 @@ void TreeCanvas::showNodeInfo(void) {
   extra_info += "number of direct children: " + std::to_string(currentNode->getNumberOfChildren()) + "\n";
   extra_info += "--------------------------------------------\n";
 
-  auto db_entry = getEntry(id);
+  auto db_entry = execution.getEntry(id);
 
   extra_info += "gecode/na id: " + std::to_string(currentNode->getIndex(na)) + "\n";
   // extra_info += "array index: " + std::to_string(db_entry) + "\n";
@@ -351,7 +369,35 @@ void TreeCanvas::showNodeInfo(void) {
   assert (na[id] == currentNode);
 #endif
 
-  NodeInfoDialog* nidialog = new NodeInfoDialog(this, extra_info);
+  auto nidialog = new NodeInfoDialog(this, extra_info, domain_filter);
+
+  connect(nidialog, &NodeInfoDialog::filterChanged, [this] (QString new_filter) {
+    domain_filter = new_filter;
+  });
+
+#ifdef MAXIM_DEBUG
+  connect(nidialog, &NodeInfoDialog::changeLabel, [this] (QString label) {
+    auto gid = currentNode->getIndex(na);
+    execution.getData().setLabel(gid, label.toStdString());
+
+  });
+
+  connect(nidialog, &NodeInfoDialog::changeStatus, [this] (QString label) {
+    if (label == "Branch") {
+        currentNode->setStatus(BRANCH);
+    } else if (label == "Solved") {
+        currentNode->setStatus(SOLVED);
+    } else if (label == "Failed") {
+        currentNode->setStatus(FAILED);
+    } else if (label == "Undetermined") {
+        currentNode->setStatus(UNDETERMINED);
+    }
+
+    update();
+  });
+
+#endif
+
   nidialog->show();
   emit(showNodeInfo(extra_info));
 }
@@ -1298,6 +1344,36 @@ void TreeCanvas::deleteNode(Node* n) {
   parent->dirtyUp(na);
 }
 
+/// What does it mean to remove a node:
+///   Remove from its parent's children list
+///   Reparent (or remove) its children
+///   Does anything still point to it??? (pixel tree, similar subtree analysis?...)
+///   Remove its entry from the data?
+///   Remove it from NodeAllocator? (or leave holes)
+
+/// Idea: have a special node representing multiple removed nodes in a row
+
+/// NOTE(maxim): the deleted nodes still reside in na
+void TreeCanvas::deleteMiddleNode(Node* to_del_node, int alt_grand) {
+
+  auto parent = to_del_node->getParent(na);
+  if (!parent) return;
+
+  auto grand_child_gid = to_del_node->getChild(alt_grand);
+
+  /// TODO(maxim): remove all kids but alt_grand
+
+
+  // find the right (to_del_node) child
+  for (auto alt=0u; alt < parent->getNumberOfChildren(); alt++) {
+    if (parent->getChild(alt) == to_del_node->getIndex(na)) {
+      parent->replaceChild(na, grand_child_gid, alt);
+      break;
+    }
+  }
+
+}
+
 
 using namespace std;
 
@@ -1372,8 +1448,9 @@ static void copyTree(VisualNode* target, NodeTree& tree_target,
   stats.maxDepth = depth;
 }
 
-QString getLabel(VisualNode* n) {
-
+std::string TreeCanvas::getLabel(int gid) {
+    std::string origLabel = execution.getLabel(gid);
+    return replaceNames(execution.getNameMap(), origLabel);
 }
 
 void
@@ -1432,8 +1509,6 @@ TreeCanvas::extractSubtree() {
   unique_ptr<NodeTree> nt{new NodeTree};
   unique_ptr<Data> data{new Data};
 
-  data->setTitle("Extracted Subtree");
-
   auto root = nt->getRoot();
 
   copyTree(root, *nt, *data, currentNode, execution.nodeTree(),
@@ -1480,6 +1555,7 @@ void TreeCanvas::_addChildren(VisualNode* node) {
 void TreeCanvas::addChildren() {
   if (currentNode->getNumberOfChildren() == 0) {
     _addChildren(currentNode);
+    currentNode->setStatus(BRANCH);
   }
   
   updateCanvas();
@@ -1536,10 +1612,20 @@ void TreeCanvas::createRandomTree() {
 }
 
 void TreeCanvas::deleteSelectedNode() {
-  currentNode->dirtyUp(na);
   auto parent = currentNode->getParent(na);
   deleteNode(currentNode);
 
+  setCurrentNode(parent, false, false);
+  updateCanvas();
+}
+
+void TreeCanvas::deleteSelectedMiddleNode() {
+
+  auto parent = currentNode->getParent(na);
+  parent->dirtyUp(na);
+
+  /// replace with right child
+  deleteMiddleNode(currentNode, 1);
   setCurrentNode(parent, false, false);
   updateCanvas();
 }
