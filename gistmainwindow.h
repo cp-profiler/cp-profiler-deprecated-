@@ -171,6 +171,9 @@ private:
   /// Highlight subtrees similar to the one selected
   QAction* findSelectedShape;
 
+  /// Backjump analysis
+  QAction* analyseBackjumps;
+
 #ifdef MAXIM_DEBUG
 
   QAction* dirtyUpNode;

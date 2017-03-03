@@ -45,6 +45,7 @@
 #include "nodevisitor.hh"
 #include "visualnode.hh"
 #include "drawingcursor.hh"
+#include "cpprofiler/analysis/backjumps.hh"
 
 #include "ml-stats.hh"
 #include "globalhelper.hh"
@@ -57,6 +58,7 @@
 #include <stack>
 
 #include "cpprofiler/analysis/similar_shapes.hh"
+#include "cpprofiler/analysis/shape_aggregation.hh"
 
 using namespace cpprofiler::analysis;
 
@@ -1530,6 +1532,22 @@ void TreeCanvas::findSelectedShape() {
   perfHelper.end();
 
   tree_utils::highlightSubtrees(execution.nodeTree(), nodes);
+}
+
+void TreeCanvas::analyseBackjumps() {
+  std::vector<BackjumpItem2> bjs = Backjumps::findBackjumps2(root, na);
+
+  std::vector<std::string> labels_to;
+
+  for (auto bj : bjs) {
+
+    auto label_from = execution.getLabel(*bj.from);
+    auto label_to   = execution.getLabel(*bj.to);
+
+    labels_to.push_back(label_to);
+  }
+
+  new ShapeAggregationWin(std::move(labels_to));
 }
 
 #ifdef MAXIM_DEBUG

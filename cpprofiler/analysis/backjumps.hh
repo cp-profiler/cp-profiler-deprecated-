@@ -34,6 +34,11 @@ struct BackjumpItem {
   int nodes_skipped;
 };
 
+struct BackjumpItem2 {
+  VisualNode* from;
+  VisualNode* to;
+};
+
 struct BackjumpData {
   std::unordered_map<uint, BackjumpItem> bj_map;
   int max_from = 0;
@@ -46,6 +51,7 @@ class Backjumps {
   Backjumps();
 
   const BackjumpData findBackjumps(VisualNode* root, const NodeAllocator& na);
+  static std::vector<BackjumpItem2> findBackjumps2(VisualNode* root, const NodeAllocator& na);
 };
 
 /// A cursor that prints backjumps
@@ -64,9 +70,18 @@ class BackjumpsCursor : public NodeCursor {
   /// contains a map from gid to backjump item
   BackjumpData& bj_data;
 
+
+  VisualNode* node_from;
+  std::vector<BackjumpItem2>& backjumps;
+
+
+
+  bool hack_mode;
+
  public:
   BackjumpsCursor(VisualNode* theNode, const NodeAllocator& na,
-                  BackjumpData& bj_data);
+                  BackjumpData& bj_data, std::vector<BackjumpItem2>& bjs,
+                  bool hack = false);
 
   void processCurrentNode();
   void moveDownwards();

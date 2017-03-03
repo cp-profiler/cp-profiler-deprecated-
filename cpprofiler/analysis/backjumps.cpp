@@ -34,10 +34,10 @@ Backjumps::Backjumps() {}
 
 const BackjumpData Backjumps::findBackjumps(VisualNode* root,
                                             const NodeAllocator& na) {
-  // std::unordered_map<uint, BackjumpItem> bj_data;
   BackjumpData bj_data;
+  std::vector<BackjumpItem2> backjumps; // unused
 
-  BackjumpsCursor bj_cursor(root, na, bj_data);
+  BackjumpsCursor bj_cursor(root, na, bj_data, backjumps, false);
   PreorderNodeVisitor<BackjumpsCursor> visitor(bj_cursor);
 
   visitor.run();
@@ -45,9 +45,23 @@ const BackjumpData Backjumps::findBackjumps(VisualNode* root,
   return bj_data;
 }
 
+std::vector<BackjumpItem2> Backjumps::findBackjumps2(VisualNode* root, const NodeAllocator& na) {
+
+  BackjumpData bj_data; /// unused
+  std::vector<BackjumpItem2> backjumps;
+
+  BackjumpsCursor bj_cursor(root, na, bj_data, backjumps, true);
+  PreorderNodeVisitor<BackjumpsCursor> visitor(bj_cursor);
+
+  visitor.run();
+
+  return backjumps;
+}
+
 BackjumpsCursor::BackjumpsCursor(VisualNode* root, const NodeAllocator& na,
-                                 BackjumpData& bj_data)
-    : NodeCursor(root, na), bj_data(bj_data) {}
+                                 BackjumpData& bj_data, std::vector<BackjumpItem2>& bjs,
+                                 bool hack)
+    : NodeCursor(root, na), bj_data(bj_data), backjumps{bjs}, hack_mode{hack} {}
 
 void BackjumpsCursor::moveDownwards() {
   ++cur_level;
@@ -72,14 +86,13 @@ void BackjumpsCursor::processCurrentNode() {
       bj_item.level_from = last_failure_level;
       bj_data.max_from = std::max(bj_data.max_from, bj_item.level_from);
       // cout << "Backjump from level: " << last_failure_level;
+      node_from = n;
     }
 
   } else {
     if (is_backjumping) {
       is_backjumping = false;
       /// One level above a non-skipped node (branch node)
-      cout << " to: " << cur_level - 1 << " skipping: " << skipped_count
-           << std::endl;
       bj_item.level_to = cur_level - 1;
       bj_item.nodes_skipped = skipped_count;
 
@@ -89,6 +102,9 @@ void BackjumpsCursor::processCurrentNode() {
 
       bj_data.bj_map[bj_gid] = bj_item;
       skipped_count = 0;
+
+      backjumps.push_back({node_from, n});
+
     }
   }
 

@@ -377,6 +377,8 @@ public Q_SLOTS:
   /// Resize to the outer widget size if auto zoom is enabled
   void resizeToOuter();
 
+  void analyseBackjumps();
+
 #ifdef MAXIM_DEBUG
 private:
   void _addChildren(VisualNode* n);
