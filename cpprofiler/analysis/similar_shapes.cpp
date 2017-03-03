@@ -352,7 +352,7 @@ void SimilarShapesWindow::drawAnalysisHistogram(ShapeProperty prop,
     const int rect_width = rect_max_w * value / max_value;
 
     auto rect =
-        new ShapeRect(0, row * ROW_HEIGHT, rect_width, *shape.nodes[0], this);
+        new ShapeRect(0, row * ROW_HEIGHT, rect_width, this);
 
     /// copy into unique_ptr since the original is about to be destroyed
     auto temp_si = new SubtreeInfo(shape.nodes, shape.size, shape.height,

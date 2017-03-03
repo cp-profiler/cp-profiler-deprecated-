@@ -41,13 +41,18 @@ HistogramWindow::HistogramWindow(Execution& ex)
 
 HistogramWindow::~HistogramWindow() = default;
 
+void HistogramWindow::handleRectClick(const ShapeRect* rect) {
+
+  auto* subtree_info = rect_to_si.at(rect).get();
+
+  highlightSubtrees(subtree_info->nodes[0]);
+  workoutLabelDiff(subtree_info);
+}
+
 void HistogramWindow::highlightSubtrees(VisualNode* node) {
 
     // /// TODO(maxim): does this do the right thing if SUBTREE?
     m_SubtreeCanvas->showSubtree(node);
-
-    const auto& na = node_tree.getNA();
-    auto root = node_tree.getRoot();
 
     if (simType == SimilarityType::SHAPE) {
 
@@ -142,17 +147,13 @@ static vector<T> set_symmetric_diff(vector<T> v1, vector<T> v2) {
   return res;
 }
 
-void HistogramWindow::workoutLabelDiff(const ShapeRect* rect) {
-
-  auto* subtree_info = rect_to_si.at(rect).get();
-
-  std::string text;
+void HistogramWindow::workoutLabelDiff(const SubtreeInfo* const si) {
 
   /// NOTE(maxim): working with two for now
-  if (subtree_info->nodes.size() < 2) return;
+  if (si->nodes.size() < 2) return;
 
-  auto path_1 = pathLabels(subtree_info->nodes[0], execution);
-  auto path_2 = pathLabels(subtree_info->nodes[1], execution);
+  auto path_1 = pathLabels(si->nodes[0], execution);
+  auto path_2 = pathLabels(si->nodes[1], execution);
 
   auto diff = set_symmetric_diff(path_1, path_2);
 
@@ -160,6 +161,8 @@ void HistogramWindow::workoutLabelDiff(const ShapeRect* rect) {
   vector<string> unique_1 = set_intersect(path_1, diff);
   /// unique labels in 2
   vector<string> unique_2 = set_intersect(path_2, diff);
+
+  std::string text;
 
   for (auto& label : unique_1) {
     text += label + " ";

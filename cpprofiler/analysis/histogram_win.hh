@@ -70,17 +70,16 @@ protected:
     QLabel debug_label{"debug info"};
 #endif
 
+    void workoutLabelDiff(const SubtreeInfo* const si);
+    void highlightSubtrees(VisualNode*);
 
 public:
     HistogramWindow(Execution& nt);
 
     virtual ~HistogramWindow();
 
-    void workoutLabelDiff(const ShapeRect* rect);
-    virtual void highlightSubtrees(VisualNode*);
 
-
-
+    void handleRectClick(const ShapeRect* rect);
 };
 
 
