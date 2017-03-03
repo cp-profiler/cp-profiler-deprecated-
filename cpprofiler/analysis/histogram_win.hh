@@ -2,7 +2,9 @@
 
 #include <QDialog>
 #include <QLabel>
+#include <QLineEdit>
 #include <memory>
+#include <unordered_map>
 
 #include "subtree_analysis.hh"
 
@@ -18,6 +20,7 @@ namespace cpprofiler {
 namespace analysis {
 
 class SubtreeCanvas;
+struct SubtreeInfo;
 struct ShapeInfo;
 
 enum class LabelOption {
@@ -50,6 +53,10 @@ protected:
     std::unique_ptr<QGraphicsScene> m_scene;
     QGraphicsView* hist_view;
 
+    QLineEdit labelDiff;
+
+    std::unordered_map<const ShapeRect*, std::unique_ptr<SubtreeInfo>> rect_to_si;
+
     /// the result of similar shapes analysis
     std::vector<ShapeInfo> shapes;
     /// the result of identical subree analysis
@@ -69,6 +76,7 @@ public:
 
     virtual ~HistogramWindow();
 
+    void workoutLabelDiff(const ShapeRect* rect);
     virtual void highlightSubtrees(VisualNode*);
 
 

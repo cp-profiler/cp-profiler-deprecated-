@@ -28,6 +28,7 @@ void ShapeRect::addToScene(QGraphicsScene* scene) {
 
 void ShapeRect::mousePressEvent(QGraphicsSceneMouseEvent*) {
   m_ssWindow->highlightSubtrees(&m_node);
+  m_ssWindow->workoutLabelDiff(this);
 }
 
 }

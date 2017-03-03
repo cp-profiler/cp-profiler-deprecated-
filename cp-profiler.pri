@@ -83,6 +83,7 @@ HEADERS  += \
     $$PWD/tree_utils.hh \
     $$PWD/cpprofiler\pixeltree\pixelImage.hh \
     $$PWD/maybeCaller.hh \
+    $$PWD/shape_aggregation.hh \
     $$PWD/ml-stats.hh \
     $$PWD/third-party\json.hpp \
     $$PWD/cpprofiler/analysis/backjumps.hh \
