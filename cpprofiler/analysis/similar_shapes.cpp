@@ -315,20 +315,10 @@ void SimilarShapesWindow::initInterface() {
     auto aggregateBtn = new QPushButton{"Aggregate"};
     connect(aggregateBtn, &QPushButton::clicked, [this]() {
 
-      /// Apply filters
-      std::vector<ShapeInfo> shapesShown;
-      shapesShown.reserve(shapes.size());
 
-      for (auto& shape : shapes) {
-        if (!filters.check(shape.height, shape.nodes.size())) {
-          continue;
-        }
-        shapesShown.push_back(shape);
-      }
+      // auto vec = toSubtreeInfoVec(node_tree, shapes);
 
-      auto vec = toSubtreeInfoVec(node_tree, shapes);
-
-      new ShapeAggregationWin(vec);
+      // new ShapeAggregationWin(vec);
     });
     miscLayout->addWidget(aggregateBtn);
 
@@ -415,6 +405,18 @@ static void save_partition(vector<vector<VisualNode*>> vecs) {
 
 #endif
 
+static GroupsOfNodes_t shapesToGroups(const vector<ShapeInfo>& vec) {
+
+  GroupsOfNodes_t result;
+  result.reserve(vec.size());
+
+  for (auto& si : vec) {
+    result.push_back(si.nodes);
+  }
+
+  return result;
+}
+
 void SimilarShapesWindow::updateHistogram() {
 
   m_scene.reset(new QGraphicsScene{});
@@ -426,27 +428,16 @@ void SimilarShapesWindow::updateHistogram() {
       if (!shapes_cached) {
         
         perfHelper.begin("shapes: analyse");
-        shapes = runSimilarShapes(node_tree);
+        shapes = shapesToGroups(runSimilarShapes(node_tree));
         perfHelper.end();
 
-        shapes = filterOutUnique(shapes);
-
-        if (!settings.keepSubsumed) {
-          perfHelper.begin("subsumed shapes elimination");
-          eliminateSubsumed(node_tree, shapes);
-          perfHelper.end();
-        }
-
-        /// some shapes may have become unique
-        shapes = filterOutUnique(shapes);
-
-        qDebug() << "shapes (no subsumed): " << shapes.size();
-
         shapes_cached = true;
+
       }
 
-      drawHistogram();
-      break;
+      groups_shown = shapes;
+
+    break;
     case SimilarityType::SUBTREE: {
 
       if (!subtrees_cached) {
@@ -455,65 +446,40 @@ void SimilarShapesWindow::updateHistogram() {
         perfHelper.begin("identical_shapes");
         m_identicalGroups = subtrees::findIdentical(execution, settings.label_opt);
         perfHelper.end();
-
-        m_identicalGroups = filterOutUnique(m_identicalGroups);
-
-        if (!settings.keepSubsumed) {
-          perfHelper.begin("subsumed subtrees elimination");
-          eliminateSubsumed(node_tree, m_identicalGroups);
-          perfHelper.end();
-        }
-
-        m_identicalGroups = filterOutUnique(m_identicalGroups);
-
         subtrees_cached = true;
-        qDebug() << "identical groups:" << m_identicalGroups.size();
-
-#ifdef MAXIM_DEBUG
-        auto str = "IdenticalGroups: " + std::to_string(m_identicalGroups.size());
-        debug_label.setText(str.c_str());
-
-        if (Settings::get_bool("save_shapes_to_file")) {
-          save_partition(m_identicalGroups);
-        }
-#endif
-
       }
 
-      drawAlternativeHistogram();
+      groups_shown = m_identicalGroups;
+
+#ifdef MAXIM_DEBUG
+      auto str = "IdenticalGroups: " + std::to_string(m_identicalGroups.size());
+      debug_label.setText(str.c_str());
+
+      if (Settings::get_bool("save_shapes_to_file")) {
+        save_partition(m_identicalGroups);
+      }
+#endif
 
       break;
     }
   }
-}
 
+  groups_shown = filterOutUnique(groups_shown);
 
-
-void SimilarShapesWindow::drawHistogram() {
-
-  /// TODO(maxim): is it okay to make copies here?
-
-  /// Apply filters
-  std::vector<ShapeInfo> shapesShown;
-  shapesShown.reserve(shapes.size());
-
-  for (auto& shape : shapes) {
-    if (!filters.check(shape.height, shape.nodes.size())) {
-      continue;
-    }
-    shapesShown.push_back(shape);
+  if (!settings.keepSubsumed) {
+    perfHelper.begin("subsumed shapes elimination");
+    eliminateSubsumed(node_tree, groups_shown);
+    perfHelper.end();
   }
 
-  auto vec = toSubtreeInfoVec(node_tree, shapesShown);
+  /// some shapes may have become unique
+  groups_shown = filterOutUnique(groups_shown);
 
-  sortSubtrees(vec, m_sortType);
+  drawHistogram();
 
-  perfHelper.begin("actually drawing the histogram");
-  drawAnalysisHistogram(m_histType, vec);
-  perfHelper.end();
 }
 
-void SimilarShapesWindow::drawAlternativeHistogram() {
+void SimilarShapesWindow::drawHistogram() {
 
   std::vector<SubtreeInfo> vec;
   vec.reserve(m_identicalGroups.size());
@@ -524,9 +490,7 @@ void SimilarShapesWindow::drawAlternativeHistogram() {
   root->unhideAll(na);
   root->layout(na);
 
-  // qDebug() << "identical groups: " << m_identicalGroups.size();
-
-  for (const auto& group : m_identicalGroups) {
+  for (const auto& group : groups_shown) {
     const int count = group.size();
     if (count == 0) continue;
 

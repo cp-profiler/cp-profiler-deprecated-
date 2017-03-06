@@ -62,13 +62,10 @@ class SimilarShapesWindow : public HistogramWindow {
 
   void initInterface();
 
-  /// Reset the scene and call drawHistorgram/drawAlternativeHistogram
   void updateHistogram();
 
   void drawAnalysisHistogram(ShapeProperty prop, std::vector<SubtreeInfo>& vec);
-
   void drawHistogram();
-  void drawAlternativeHistogram();
 
  public:
   SimilarShapesWindow(Execution& nt);

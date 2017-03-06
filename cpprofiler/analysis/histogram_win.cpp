@@ -54,45 +54,28 @@ void HistogramWindow::highlightSubtrees(VisualNode* node) {
     // /// TODO(maxim): does this do the right thing if SUBTREE?
     m_SubtreeCanvas->showSubtree(node);
 
+    GroupsOfNodes_t* groups = nullptr;
+
     if (simType == SimilarityType::SHAPE) {
-
-      auto shape_it = std::find_if(begin(shapes), end(shapes), [node] (const ShapeInfo& si) {
-
-        auto res = std::find(begin(si.nodes), end(si.nodes), node);
-
-        return res != end(si.nodes);
-      });
-
-      if (shape_it != end(shapes)) {
-        tree_utils::highlightSubtrees(node_tree, shape_it->nodes, settings.hideNotHighlighted);
-
-      }
-      // perfHelper.end();
+      groups = &shapes;
     } else if (simType == SimilarityType::SUBTREE) {
+      groups = &m_identicalGroups;
+    }
 
-      /// find the right group
-      for (auto& group : m_identicalGroups) {
-        bool found = false;
-        for (auto n : group) {
-          if (node == n) {
-            found = true;
-            break;
-          }
+    /// find the right group
+    for (auto& group : *groups) {
+      bool found = false;
+      for (auto n : group) {
+        if (node == n) {
+          found = true;
+          break;
         }
-
-        if (!found) continue;
-
-        std::vector<VisualNode*> vec;
-        vec.reserve(group.size());
-
-        for (auto n : group) {
-          vec.push_back(n);
-        }
-
-        tree_utils::highlightSubtrees(node_tree, vec, settings.hideNotHighlighted);
-        break;
       }
 
+      if (!found) continue;
+
+      tree_utils::highlightSubtrees(node_tree, group, settings.hideNotHighlighted);
+      break;
     }
 
 }

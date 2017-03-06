@@ -58,9 +58,12 @@ protected:
     std::unordered_map<const ShapeRect*, std::unique_ptr<SubtreeInfo>> rect_to_si;
 
     /// the result of similar shapes analysis
-    std::vector<ShapeInfo> shapes;
+    // std::vector<ShapeInfo> shapes;
+    GroupsOfNodes_t shapes;
     /// the result of identical subree analysis
     GroupsOfNodes_t m_identicalGroups;
+
+    GroupsOfNodes_t groups_shown;
 
     QHBoxLayout* settingsLayout;
     QHBoxLayout* filtersLayout;
@@ -75,9 +78,7 @@ protected:
 
 public:
     HistogramWindow(Execution& nt);
-
     virtual ~HistogramWindow();
-
 
     void handleRectClick(const ShapeRect* rect);
 };
