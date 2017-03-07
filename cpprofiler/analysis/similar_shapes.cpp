@@ -317,7 +317,7 @@ void SimilarShapesWindow::initInterface() {
 
       vector<std::string> labels;
 
-      for (auto& group : shapes) {
+      for (auto& group : groups_shown) {
 
         if (group.size() < 2) continue;
 
