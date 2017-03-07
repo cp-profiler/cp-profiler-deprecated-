@@ -6,27 +6,29 @@
 
 using std::string;
 
-std::string replaceNames(const NameMap& nameMap, const std::string& text) {
-      std::regex r("[A-Za-z][A-Za-z0-9_]*");
-      std::regex_iterator<std::string::const_iterator> rit(text.begin(), text.end(), r);
-      std::regex_iterator<std::string::const_iterator> rend;
+static std::regex var_name_regex("[A-Za-z][A-Za-z0-9_]*");
 
-      std::stringstream ss;
-      long prev = 0;
-      while(rit != rend) {
-        long pos = rit->position();
-        ss << text.substr(prev, pos-prev);
-        std::string id = rit->str();
-        std::string name;
-        auto it = nameMap.find(id);
-        if(it != nameMap.end())
-          name = it->second;
-        ss << (name != "" ? name : id);
-        prev = pos + id.length();
-        ++rit;
-      }
-      ss << text.substr(prev, text.size());
-      return ss.str();
+std::string replaceNames(const NameMap& nameMap, const std::string& text) {
+
+    std::regex_iterator<std::string::const_iterator> rit(text.begin(), text.end(), var_name_regex);
+    std::regex_iterator<std::string::const_iterator> rend;
+
+    std::stringstream ss;
+    long prev = 0;
+    while(rit != rend) {
+      long pos = rit->position();
+      ss << text.substr(prev, pos-prev);
+      std::string id = rit->str();
+      std::string name;
+      auto it = nameMap.find(id);
+      if(it != nameMap.end())
+        name = it->second;
+      ss << (name != "" ? name : id);
+      prev = pos + id.length();
+      ++rit;
+    }
+    ss << text.substr(prev, text.size());
+    return ss.str();
 }
 
 Execution::Execution()
@@ -37,9 +39,7 @@ Execution::Execution()
 Execution::Execution(std::unique_ptr<NodeTree> nt, std::unique_ptr<Data> data)
     : m_NodeTree{std::move(nt)},  m_Data{std::move(data)} {}
 
-Execution::~Execution() {
-  qDebug() << "~Execution";
-}
+Execution::~Execution() {}
 
 Data& Execution::getData() const {
     return *m_Data.get();
@@ -98,20 +98,3 @@ DbEntry* Execution::getEntry(int gid) const { return m_Data->getEntry(gid); }
 unsigned int Execution::getGidBySid(int sid) { return m_Data->getGidBySid(sid); }
 std::string Execution::getLabel(int gid) const { return m_Data->getLabel(gid); }
 unsigned long long Execution::getTotalTime() { return m_Data->getTotalTime(); }
-
-// Execution* Execution::clone() const {
-
-//   NodeTree nt;
-
-//   nt.getNA() = m_NodeTree->getNA();
-//   nt.getStatistics() = m_NodeTree->getStatistics();
-
-//   Data data;
-
-//   auto new_ex = new Execution(std::move(nt), std::move(data));
-
-//   return new_ex;
-
-//   /// copy tree structure + data (not treebuilder)
-
-// }

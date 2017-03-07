@@ -1448,7 +1448,7 @@ static void copyTree(VisualNode* target, NodeTree& tree_target,
 
 std::string TreeCanvas::getLabel(int gid) {
     std::string origLabel = execution.getLabel(gid);
-    // return replaceNames(execution.getNameMap(), origLabel);
+    replaceNames(execution.getNameMap(), origLabel);
     return origLabel;
 }
 
