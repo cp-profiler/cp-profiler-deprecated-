@@ -315,10 +315,25 @@ void SimilarShapesWindow::initInterface() {
     auto aggregateBtn = new QPushButton{"Aggregate"};
     connect(aggregateBtn, &QPushButton::clicked, [this]() {
 
+      vector<std::string> labels;
 
-      // auto vec = toSubtreeInfoVec(node_tree, shapes);
+      for (auto& group : shapes) {
 
-      // new ShapeAggregationWin(vec);
+        if (group.size() < 2) continue;
+
+        auto vec_pair = getLabelDiff(execution, group[0], group[1]);
+
+        for (auto& label : vec_pair.first) {
+          labels.push_back(label);
+        }
+
+        for (auto& label : vec_pair.second) {
+          labels.push_back(label);
+        }
+
+      }
+
+      new ShapeAggregationWin(std::move(labels));
     });
     miscLayout->addWidget(aggregateBtn);
 

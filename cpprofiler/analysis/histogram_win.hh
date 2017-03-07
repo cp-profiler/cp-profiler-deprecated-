@@ -34,6 +34,12 @@ struct HistogramSettings {
     bool keepSubsumed = false;
 };
 
+template<typename T>
+using VecPair = std::pair<std::vector<T>, std::vector<T>>;
+
+VecPair<std::string> getLabelDiff(const Execution& ex, const VisualNode* n1,
+                                  const VisualNode* n2);
+
 class HistogramWindow : public QDialog {
 
     std::unique_ptr<SubtreeCanvas> m_SubtreeCanvas;

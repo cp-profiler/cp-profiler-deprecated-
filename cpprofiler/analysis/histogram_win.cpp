@@ -81,7 +81,7 @@ void HistogramWindow::highlightSubtrees(VisualNode* node) {
 }
 
 
-std::vector<std::string> pathLabels(const VisualNode* const node,
+static std::vector<std::string> pathLabels(const VisualNode* const node,
                                     const Execution& ex) {
 
   auto& na = ex.nodeTree().getNA();
@@ -130,13 +130,10 @@ static vector<T> set_symmetric_diff(vector<T> v1, vector<T> v2) {
   return res;
 }
 
-void HistogramWindow::workoutLabelDiff(const SubtreeInfo* const si) {
-
-  /// NOTE(maxim): working with two for now
-  if (si->nodes.size() < 2) return;
-
-  auto path_1 = pathLabels(si->nodes[0], execution);
-  auto path_2 = pathLabels(si->nodes[1], execution);
+VecPair<string> getLabelDiff(const Execution& ex, const VisualNode* n1,
+                             const VisualNode* n2) {
+  auto path_1 = pathLabels(n1, ex);
+  auto path_2 = pathLabels(n2, ex);
 
   auto diff = set_symmetric_diff(path_1, path_2);
 
@@ -145,15 +142,25 @@ void HistogramWindow::workoutLabelDiff(const SubtreeInfo* const si) {
   /// unique labels in 2
   vector<string> unique_2 = set_intersect(path_2, diff);
 
+  return std::make_pair(std::move(unique_1), std::move(unique_2));
+}
+
+void HistogramWindow::workoutLabelDiff(const SubtreeInfo* const si) {
+
+  /// NOTE(maxim): working with just two for now
+  if (si->nodes.size() < 2) return;
+
+  auto vec_pair = getLabelDiff(execution, si->nodes[0], si->nodes[1]);
+
   std::string text;
 
-  for (auto& label : unique_1) {
+  for (auto& label : vec_pair.first) {
     text += label + " ";
   }
 
   text += "| ";
 
-  for (auto& label : unique_2) {
+  for (auto& label : vec_pair.second) {
     text += label + " ";
   }
 

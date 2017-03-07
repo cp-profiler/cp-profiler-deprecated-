@@ -29,6 +29,7 @@ SOURCES += \
     $$PWD/ml-stats.cpp \
     $$PWD/execution.cpp \
     $$PWD/tree_utils.cpp \
+    $$PWD/cpprofiler\analysis\shape_aggregation.cpp \
     $$PWD/cpprofiler\analysis\backjumps.cpp \
     $$PWD/cpprofiler\pixeltree\pixel_tree_dialog.cpp \
     $$PWD/cpprofiler\pixeltree\icicle_tree_dialog.cpp \
@@ -83,7 +84,7 @@ HEADERS  += \
     $$PWD/tree_utils.hh \
     $$PWD/cpprofiler\pixeltree\pixelImage.hh \
     $$PWD/maybeCaller.hh \
-    $$PWD/shape_aggregation.hh \
+    $$PWD/cpprofiler/analysis/shape_aggregation.hh \
     $$PWD/ml-stats.hh \
     $$PWD/third-party\json.hpp \
     $$PWD/cpprofiler/analysis/backjumps.hh \
