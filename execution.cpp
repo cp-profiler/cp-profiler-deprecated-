@@ -10,6 +10,10 @@ static std::regex var_name_regex("[A-Za-z][A-Za-z0-9_]*");
 
 std::string replaceNames(const NameMap& nameMap, const std::string& text) {
 
+    if (nameMap.size() == 0) {
+      return text;
+    }
+
     std::regex_iterator<std::string::const_iterator> rit(text.begin(), text.end(), var_name_regex);
     std::regex_iterator<std::string::const_iterator> rend;
 
