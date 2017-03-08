@@ -6,12 +6,11 @@ using Group = vector<VisualNode*>;
 
 namespace detail {
 
+/// Go from shallowest groups to the deepest and see if immediate children
+/// of corresponding nodes are roots for other groups of subtrees
 static void eliminateSubsumedStep(
-  const NodeTree& nt,
-  vector<Node*>& subsumed,
-  const vector<Group*>& groups_of_h,
-  const std::unordered_map<Node*, Group*>& node2group) {
-
+    const NodeTree& nt, Group& subsumed, const vector<Group*>& groups_of_h,
+    const std::unordered_map<VisualNode*, Group*>& node2group) {
   for (auto& group : groups_of_h) {
     for (auto& n : *group) {
       for (auto k = 0u; k < n->getNumberOfChildren(); ++k) {
@@ -24,7 +23,6 @@ static void eliminateSubsumedStep(
     }
   }
 }
-
 }
 
 /// Filter out unique shapes (with occurrence = 1)
@@ -40,36 +38,39 @@ static vector<Group> filterOutUnique(const vector<Group>& subtrees) {
 }
 
 
-static void eliminateSubsumed(NodeTree& nt, vector<Group>& subtrees) {
+static void eliminateSubsumed(const NodeTree& nt, vector<Group>& subtrees) {
 
-  /// sort nodes within each group:
+  /// NOTE(maxim): it is important that `subtrees` doesn't grow in size,
+  /// because pointers to `Group` are used
+
+  /// Sort nodes within each group: (why?)
   for (auto& vec : subtrees) {
     std::sort(begin(vec), end(vec));
   }
 
-  auto maxDepth = nt.getStatistics().maxDepth;
-
+  /// Work out subtree depths and populate soh ("subtrees of height")
+  const auto maxDepth = nt.getStatistics().maxDepth;
   vector< vector<Group*> > soh(maxDepth);
 
   for (auto& group : subtrees) {
-    assert(group.size() > 0);
-    auto&& n = group[0];
-    auto h = tree_utils::calculateDepth(nt, *n);
+    auto node = group[0];
+    auto h = tree_utils::calculateDepth(nt, *node);
     soh[h].push_back(&group);
   }
 
   /// a flat vector of elements to (potentially) remove later
-  vector<Node*> subsumed;
+  vector<VisualNode*> subsumed;
 
   {
-    /// link an element to its group
-    std::unordered_map<Node*, Group*> node2group;
-    for (auto& vec : subtrees) {
-        for (auto&& n : vec) {
-            node2group[n] = &vec;
+    /// Remember which group a node belongs to
+    std::unordered_map<VisualNode*, Group*> node2group;
+    for (auto& group : subtrees) {
+        for (auto node : group) {
+            node2group[node] = &group;
         }
     }
 
+    /// Populate `subsumed`
     for (int h = 2; h < soh.size(); ++h) {
         detail::eliminateSubsumedStep(nt, subsumed, soh[h], node2group);
     }
@@ -82,9 +83,14 @@ static void eliminateSubsumed(NodeTree& nt, vector<Group>& subtrees) {
 
   VisualNode dummy; /// delete all pointers to this node
 
+  vector<Group> result;
+
+  /// R-value reference to be able to move into?
+  /// TODO(maxim): remove only if the whole group is subsumed
   for (auto&& group : subtrees) {
-    Group new_group;
-    for (auto&& n : group) {
+
+    Group tmp_group = group;
+    for (auto&& n : tmp_group) {
         auto it = std::lower_bound(begin(subsumed), end(subsumed), n);
 
         if (it != end(subsumed) && (*it == n)) {
@@ -92,23 +98,19 @@ static void eliminateSubsumed(NodeTree& nt, vector<Group>& subtrees) {
         }
     }
 
-    for (auto&& n : group) {
-        if (n != &dummy) {
-            new_group.push_back(n);
+    /// count nodes marked as dummy
+    auto total_in_group = group.size();
+    auto dummy_count = 0u;
+
+    for (auto n : tmp_group) {
+        if (n == &dummy) {
+            dummy_count++;
         }
     }
 
-    if (group.size() != new_group.size()) {
-        group = std::move(new_group);
-    }
-  }
-
-  vector<Group> result;
-
-  /// remove empty groups
-  for (auto& g : subtrees) {
-    if (g.size() != 0) {
-        result.push_back(g);
+    /// only keep groups not fully subsumed
+    if (dummy_count != total_in_group) {
+      result.push_back(group);
     }
   }
 

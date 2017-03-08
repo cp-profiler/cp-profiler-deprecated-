@@ -55,6 +55,7 @@ public:
 
     int getIndex(const VisualNode*) const;
 
+    const Statistics& getStatistics() const;
     Statistics& getStatistics();
 
     QMutex& getMutex();
