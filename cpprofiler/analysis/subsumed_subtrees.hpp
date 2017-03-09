@@ -43,11 +43,6 @@ static void eliminateSubsumed(const NodeTree& nt, vector<Group>& subtrees) {
   /// NOTE(maxim): it is important that `subtrees` doesn't grow in size,
   /// because pointers to `Group` are used
 
-  /// Sort nodes within each group: (why?)
-  for (auto& vec : subtrees) {
-    std::sort(begin(vec), end(vec));
-  }
-
   /// Work out subtree depths and populate soh ("subtrees of height")
   const auto maxDepth = nt.getStatistics().maxDepth;
   vector< vector<Group*> > soh(maxDepth);
@@ -62,7 +57,8 @@ static void eliminateSubsumed(const NodeTree& nt, vector<Group>& subtrees) {
   vector<VisualNode*> subsumed;
 
   {
-    /// Remember which group a node belongs to
+    /// Remember which group a node belongs to;
+    /// should remain as local as possible (will soon become invalid)
     std::unordered_map<VisualNode*, Group*> node2group;
     for (auto& group : subtrees) {
         for (auto node : group) {
@@ -75,8 +71,6 @@ static void eliminateSubsumed(const NodeTree& nt, vector<Group>& subtrees) {
         detail::eliminateSubsumedStep(nt, subsumed, soh[h], node2group);
     }
   }
-
-  std::cout << "subsumed count: " << subsumed.size() << "\n";
 
   /// sorting for faster search (`std::lower_bound`)
   std::sort(begin(subsumed), end(subsumed));

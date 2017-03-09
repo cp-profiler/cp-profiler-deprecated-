@@ -98,4 +98,24 @@ std::unique_ptr<T> make_unique(Args&&... args) {
    return make_unique_helper<T>(std::is_array<T>(), std::forward<Args>(args)...);
 }
 
+/// Helper function for the one below
+template<typename T>
+static size_t findAnyOf(const std::string& str, T el) {
+  return str.find(el);
+}
+
+/// Return the position of some substrings from args in str,
+/// starting from the end of the list
+template <typename T, typename... Delimiters>
+static size_t findAnyOf(const std::string& str, T first, Delimiters... args) {
+
+  auto pos = findAnyOf(str, args...);
+
+  if (pos != std::string::npos) return pos;
+
+  pos = findAnyOf(str, first);
+
+  return pos;
+}
+
 #endif

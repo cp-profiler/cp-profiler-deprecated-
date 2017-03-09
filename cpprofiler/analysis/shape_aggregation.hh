@@ -16,12 +16,21 @@ using LCount = std::pair<std::string, int>;
 
 class ShapeAggregationWin : public QDialog {
 
+  struct Settings {
+    bool vars_only {false};
+  };
+
 private:
 
   QTableView* dataTable;
   QStandardItemModel* dataModel;
 
+  Settings settings;
+
+  std::vector<LCount> label_counts;
+
   void populateTable(const std::vector<LCount>& vec);
+  void update();
 
 public:
   ShapeAggregationWin(std::vector<std::string>&& vec);
