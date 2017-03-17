@@ -87,7 +87,11 @@ void Utils::writeToFile(const QString& str) {
 
   if (file_name == "") return;
 
-  QFile file(file_name);
+  writeToFile(file_name, str);
+}
+
+void Utils::writeToFile(const QString& path, const QString& str) {
+  QFile file(path);
 
   if (file.open(QFile::WriteOnly | QFile::Truncate)) {
     QTextStream out(&file);
@@ -95,7 +99,7 @@ void Utils::writeToFile(const QString& str) {
     out << str;
 
   } else {
-    qDebug() << "could not open the file: " << file_name;
+    qDebug() << "could not open the file: " << path;
   }
 }
 

@@ -317,21 +317,44 @@ void SimilarShapesWindow::initInterface() {
 
       vector<std::string> labels;
 
+      QString all_paths{""};
+
       for (auto& group : groups_shown) {
 
         if (group.size() < 2) continue;
 
-        auto vec_pair = getLabelDiff(execution, group[0], group[1]);
+        const int height = group[0]->getShape()->depth();
 
-        for (auto& label : vec_pair.first) {
-          labels.push_back(label);
+        if (!filters.check(height, group.size())) {
+          continue;
         }
 
-        for (auto& label : vec_pair.second) {
-          labels.push_back(label);
+        if (group.size() == 2) {
+          auto pair_labels = getLabelDiff(execution, group[0], group[1]);
+
+          for (auto& label : pair_labels.first) {
+            all_paths += (label + " ").c_str();
+          }
+
+          all_paths += "| ";
+
+          for (auto& label : pair_labels.second) {
+            all_paths += (label + " ").c_str();
+          }
+
+          all_paths += '\n';
+        }
+
+        auto cur_labels = getLabelDiff(execution, group);
+
+        for (auto& l : cur_labels) {
+          labels.push_back(l);
         }
 
       }
+
+      Utils::writeToFile("all_paths.txt", all_paths);
+      qDebug() << "writing all paths to all_paths.txt";
 
       new ShapeAggregationWin(std::move(labels));
     });

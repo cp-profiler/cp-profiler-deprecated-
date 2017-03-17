@@ -66,6 +66,9 @@ public:
   /// query the filename with a system dialog and fill it with `str`
   static void writeToFile(const QString& str);
 
+  /// write str to the file at path
+  static void writeToFile(const QString& path, const QString& str);
+
 };
 
 class Settings {

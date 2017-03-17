@@ -22,9 +22,11 @@
 #include <QSpinBox>
 
 #include <algorithm>
+#include <map>
 
 using std::vector;
 using std::string;
+using std::map;
 
 namespace cpprofiler {
 namespace analysis {
@@ -90,7 +92,12 @@ static std::vector<std::string> pathLabels(const VisualNode* const node,
   std::vector<std::string> labels;
 
   do {
-    labels.push_back(ex.getLabel(*cur_node));
+    /// NOTE(maxim): for root nodes labels will be empty;
+    /// they will be ignored (a bit of a hack)
+    auto&& label = ex.getLabel(*cur_node);
+    if (label != "") {
+      labels.push_back(label);
+    }
   } while (cur_node = cur_node->getParent(na));
 
   return labels;
@@ -145,10 +152,36 @@ VecPair<string> getLabelDiff(const Execution& ex, const VisualNode* n1,
   return std::make_pair(std::move(unique_1), std::move(unique_2));
 }
 
+vector<string> getLabelDiff(const Execution& ex,
+                                 const std::vector<VisualNode*>& vec) {
+  map<string, int> label_counts;
+
+  /// count all labels
+  for (auto node : vec) {
+    auto path = pathLabels(node, ex);
+
+    for (auto label : path) {
+      label_counts[label]++;
+    }
+
+  }
+
+  /// keep if the count is less than the paths count
+  vector<string> result;
+
+  for (auto& pair : label_counts) {
+    if (pair.second != vec.size()) {
+      result.push_back(pair.first);
+    }
+  }
+
+  return result;
+}
+
 void HistogramWindow::workoutLabelDiff(const SubtreeInfo* const si) {
 
   /// NOTE(maxim): working with just two for now
-  if (si->nodes.size() < 2) return;
+  if (si->nodes.size() != 2) return;
 
   auto vec_pair = getLabelDiff(execution, si->nodes[0], si->nodes[1]);
 

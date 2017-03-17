@@ -37,8 +37,14 @@ struct HistogramSettings {
 template<typename T>
 using VecPair = std::pair<std::vector<T>, std::vector<T>>;
 
+template<typename T>
+using VecVec = std::vector<std::vector<T>>;
+
 VecPair<std::string> getLabelDiff(const Execution& ex, const VisualNode* n1,
                                   const VisualNode* n2);
+
+std::vector<std::string> getLabelDiff(const Execution& ex,
+                                      const std::vector<VisualNode*>& vec);
 
 class HistogramWindow : public QDialog {
 
