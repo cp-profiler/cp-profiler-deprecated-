@@ -169,6 +169,11 @@ int calculateMaxDepth(const NodeTree& nt) {
   return calcDepth(na, root);
 }
 
+int calculateHeight(const NodeTree& nt, const VisualNode& n) {
+  const auto& na = nt.getNA();
+  return calcDepth(na, &n);
+}
+
 void highlightSubtrees(NodeTree& nt, const std::vector<VisualNode*>& nodes,
                        bool hideNotHighlighted) {
 

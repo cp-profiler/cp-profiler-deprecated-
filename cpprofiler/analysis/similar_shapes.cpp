@@ -342,6 +342,16 @@ void SimilarShapesWindow::initInterface() {
             all_paths += (label + " ").c_str();
           }
 
+
+          const auto depth = tree_utils::calculateDepth(node_tree, *group[0]);
+          const int size = shapeSize(*group[0]->getShape());
+
+          all_paths += "|" + QString::number(height);
+          all_paths += "|" + QString::number(depth);
+          all_paths += "|" + QString::number(size);
+
+
+
           all_paths += '\n';
         }
 
