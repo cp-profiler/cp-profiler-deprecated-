@@ -66,6 +66,9 @@ public:
   /// query the filename with a system dialog and fill it with `str`
   static void writeToFile(const QString& str);
 
+  /// write str to the file at path
+  static void writeToFile(const QString& path, const QString& str);
+
 };
 
 class Settings {
@@ -75,5 +78,47 @@ public:
   static int get_int(QString name);
   static bool get_bool(QString name);
 };
+
+#include <type_traits>
+#include <utility>
+
+template <typename T, typename... Args>
+std::unique_ptr<T> make_unique_helper(std::false_type, Args&&... args) {
+  return std::unique_ptr<T>(new T(std::forward<Args>(args)...));
+}
+
+template <typename T, typename... Args>
+std::unique_ptr<T> make_unique_helper(std::true_type, Args&&... args) {
+   static_assert(std::extent<T>::value == 0,
+       "make_unique<T[N]>() is forbidden, please use make_unique<T[]>().");
+
+   typedef typename std::remove_extent<T>::type U;
+   return std::unique_ptr<T>(new U[sizeof...(Args)]{std::forward<Args>(args)...});
+}
+
+template <typename T, typename... Args>
+std::unique_ptr<T> make_unique(Args&&... args) {
+   return make_unique_helper<T>(std::is_array<T>(), std::forward<Args>(args)...);
+}
+
+/// Helper function for the one below
+template<typename T>
+static size_t findAnyOf(const std::string& str, T el) {
+  return str.find(el);
+}
+
+/// Return the position of some substrings from args in str,
+/// starting from the end of the list
+template <typename T, typename... Delimiters>
+static size_t findAnyOf(const std::string& str, T first, Delimiters... args) {
+
+  auto pos = findAnyOf(str, args...);
+
+  if (pos != std::string::npos) return pos;
+
+  pos = findAnyOf(str, first);
+
+  return pos;
+}
 
 #endif

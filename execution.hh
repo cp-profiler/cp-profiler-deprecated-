@@ -85,19 +85,15 @@ public:
 
     void setVariableListString(const std::string& s) {
         variableListString = s;
-        // std::cerr << "set variableListString to " << s << "\n";
     }
 
-    std::string getVariableListString(void) {
+    std::string getVariableListString() {
         return variableListString;
     }
 
     const NameMap& getNameMap() const {
         return nameMap;
     }
-
-    // Execution* clone() const;
-
 
 public slots:
     void handleNewNode(message::Node& node);

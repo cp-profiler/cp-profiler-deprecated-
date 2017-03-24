@@ -60,8 +60,6 @@
 
 using namespace cpprofiler::analysis;
 
-int TreeCanvas::counter = 0;
-
 TreeCanvas::TreeCanvas(Execution* e, QGridLayout* layout, QWidget* parent)
     : QWidget{parent},
       execution{*e},
@@ -70,8 +68,6 @@ TreeCanvas::TreeCanvas(Execution* e, QGridLayout* layout, QWidget* parent)
       na(execution.nodeTree().getNA())
   {
   QMutexLocker locker(&mutex);
-
-  _id = TreeCanvas::counter++;
 
   root = execution.nodeTree().getRoot();
 
@@ -1372,6 +1368,8 @@ void TreeCanvas::deleteMiddleNode(Node* to_del_node, int alt_grand) {
     }
   }
 
+  parent->dirtyUp(na);
+
 }
 
 
@@ -1450,7 +1448,8 @@ static void copyTree(VisualNode* target, NodeTree& tree_target,
 
 std::string TreeCanvas::getLabel(int gid) {
     std::string origLabel = execution.getLabel(gid);
-    return replaceNames(execution.getNameMap(), origLabel);
+    replaceNames(execution.getNameMap(), origLabel);
+    return origLabel;
 }
 
 void
@@ -1505,9 +1504,9 @@ TreeCanvas::compareSubtreeLabels() {
 /// TODO(maxim): shouldn't really be a part of TreeCanvas
 pair<unique_ptr<NodeTree>, unique_ptr<Data>>
 TreeCanvas::extractSubtree() {
-  
-  unique_ptr<NodeTree> nt{new NodeTree};
-  unique_ptr<Data> data{new Data};
+
+  auto nt = make_unique<NodeTree>();
+  auto data = make_unique<Data>();
 
   auto root = nt->getRoot();
 

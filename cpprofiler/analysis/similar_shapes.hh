@@ -26,11 +26,14 @@ class SubtreeCanvas;
 class SimilarShapesWindow;
 
 struct SubtreeInfo {
-  VisualNode* node;
+  std::vector<VisualNode*> nodes;
   int size;
   int height;
   int count;
   bool marked;
+
+  SubtreeInfo(std::vector<VisualNode*> ns, int sz, int ht, int ct, bool mk)
+  : nodes{ns}, size{sz}, height{ht}, count{ct}, marked{mk} {}
 
   int get_count() const { return count; }
 };
@@ -59,10 +62,10 @@ class SimilarShapesWindow : public HistogramWindow {
 
   void initInterface();
 
-  /// Reset the scene and call drawHistorgram/drawAlternativeHistogram
   void updateHistogram();
+
+  void drawAnalysisHistogram(ShapeProperty prop, std::vector<SubtreeInfo>& vec);
   void drawHistogram();
-  void drawAlternativeHistogram();
 
  public:
   SimilarShapesWindow(Execution& nt);

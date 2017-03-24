@@ -55,5 +55,9 @@ Statistics& NodeTree::getStatistics() {
     return stats;
 }
 
+const Statistics& NodeTree::getStatistics() const {
+    return stats;
+}
+
 QMutex& NodeTree::getMutex() { return mutex; }
 QMutex& NodeTree::getLayoutMutex() { return layoutMutex; }

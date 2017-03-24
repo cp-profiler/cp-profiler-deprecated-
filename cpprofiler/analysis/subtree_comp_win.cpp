@@ -136,7 +136,7 @@ static void drawAnalysisHistogram(QGraphicsScene* scene, HistogramWindow* ssw,
 
     const int rect_max_w = ShapeRect::SELECTION_WIDTH;
     const int rect_width = rect_max_w * value / max_value;
-    auto rect = new ShapeRect(0, row * ROW_HEIGHT, rect_width, *shape.node, ssw);
+    auto rect = new ShapeRect(0, row * ROW_HEIGHT, rect_width, ssw);
     rect->addToScene(scene);
 
     auto c1 = shape.count_ex1;

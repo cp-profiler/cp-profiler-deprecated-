@@ -54,7 +54,7 @@ NogoodDialog::NogoodDialog(
 
   resize(DEFAULT_WIDTH, DEFAULT_HEIGHT);
 
-  QHBoxLayout* layout = new QHBoxLayout(this);
+  auto layout = new QHBoxLayout(this);
 
   populateTable(selected_nodes);
 

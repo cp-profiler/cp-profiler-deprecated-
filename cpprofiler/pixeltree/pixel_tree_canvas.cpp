@@ -27,6 +27,7 @@
 #include "cpprofiler/analysis/backjumps.hh"
 #include "pixel_tree_dialog.hh"
 #include "libs/perf_helper.hh"
+#include "globalhelper.hh"
 #include "data.hh"
 
 using namespace cpprofiler::pixeltree;
@@ -280,27 +281,6 @@ void PixelTreeCanvas::compressVarData(vector<vector<int>>& compressed,
       group_count = 0;
     }
   }
-}
-
-
-/// Helper function for the one below
-template<typename T>
-static size_t findAnyOf(const string& str, T el) {
-  return str.find(el);
-}
-
-/// Return the position of some substrings from args in str,
-/// starting from the end of the list
-template <typename T, typename... Delimiters>
-static size_t findAnyOf(const string& str, T first, Delimiters... args) {
-
-  auto pos = findAnyOf(str, args...);
-
-  if (pos != string::npos) return pos;
-
-  pos = findAnyOf(str, first);
-
-  return pos;
 }
 
 void PixelTreeCanvas::gatherVarData() {
