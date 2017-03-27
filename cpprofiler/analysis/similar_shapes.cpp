@@ -350,8 +350,6 @@ void SimilarShapesWindow::initInterface() {
           all_paths += "|" + QString::number(depth);
           all_paths += "|" + QString::number(size);
 
-
-
           all_paths += '\n';
         }
 

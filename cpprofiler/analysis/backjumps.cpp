@@ -103,7 +103,7 @@ void BackjumpsCursor::processCurrentNode() {
       bj_data.bj_map[bj_gid] = bj_item;
       skipped_count = 0;
 
-      backjumps.push_back({node_from, n});
+      backjumps.push_back({node_from, n->getParent(na)});
 
     }
   }

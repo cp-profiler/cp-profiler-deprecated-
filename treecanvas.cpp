@@ -1548,6 +1548,52 @@ void TreeCanvas::analyseBackjumps() {
   }
 
   new ShapeAggregationWin(std::move(labels_to));
+
+  QString bj_data("[");
+
+  /// Print out statistical info:
+  for (auto bj : bjs) {
+    int depth_from = tree_utils::calculateDepth(execution.nodeTree(), *bj.from);
+    int depth_to = tree_utils::calculateDepth(execution.nodeTree(), *bj.to);
+
+    int bj_distance = depth_from - depth_to;
+
+
+    /// NOTE(maxim): `skipped` nodes don't have labels, so need to find
+    /// a sibling and get a label from it:
+
+    const auto* pnode = bj.from->getParent(na);
+    const auto* sibling = pnode->getChild(na, 0);
+
+    std::stringstream ss;
+
+    ss << "{ \"from\": \"" << execution.getLabel(*sibling).c_str() << "\", ";
+    ss << "\"to\": \"" << execution.getLabel(*bj.to).c_str() << "\", ";
+    ss << "\"distance\": " << std::to_string(bj_distance) << ", ";
+
+    ss << "\"skipped\": [";
+
+    auto cur = bj.from->getParent(na);
+    ss << "\"" << execution.getLabel(*cur).c_str() << "\"";
+    cur = cur->getParent(na);
+
+    while (cur != bj.to) {
+      ss << ", \"" << execution.getLabel(*cur).c_str() << "\"";
+      cur = cur->getParent(na);
+    }
+
+    ss << "]}, ";
+
+    bj_data += ss.str().c_str();
+
+  }
+
+  bj_data = bj_data.left(bj_data.size() - 2);
+
+  bj_data += "]";
+
+  Utils::writeToFile("bj_data.txt", bj_data);
+  qDebug() << "wrote to bj_data.txt";
 }
 
 #ifdef MAXIM_DEBUG
