@@ -6,42 +6,14 @@
 
 using std::string;
 
-static std::regex var_name_regex("[A-Za-z][A-Za-z0-9_]*");
-
-std::string replaceNames(const NameMap& nameMap, const std::string& text) {
-
-    if (nameMap.size() == 0) {
-      return text;
-    }
-
-    std::regex_iterator<std::string::const_iterator> rit(text.begin(), text.end(), var_name_regex);
-    std::regex_iterator<std::string::const_iterator> rend;
-
-    std::stringstream ss;
-    long prev = 0;
-    while(rit != rend) {
-      long pos = rit->position();
-      ss << text.substr(prev, pos-prev);
-      std::string id = rit->str();
-      std::string name;
-      auto it = nameMap.find(id);
-      if(it != nameMap.end())
-        name = it->second;
-      ss << (name != "" ? name : id);
-      prev = pos + id.length();
-      ++rit;
-    }
-    ss << text.substr(prev, text.size());
-    return ss.str();
-}
-
 Execution::Execution()
     : m_NodeTree{new NodeTree},
       m_Data{new Data()},
-      m_Builder{new TreeBuilder(this)} {}
+      m_Builder{new TreeBuilder(this)},
+      execution_id(0) {}
 
 Execution::Execution(std::unique_ptr<NodeTree> nt, std::unique_ptr<Data> data)
-    : m_NodeTree{std::move(nt)},  m_Data{std::move(data)} {}
+    : m_NodeTree{std::move(nt)},  m_Data{std::move(data)}, execution_id(0)  {}
 
 Execution::~Execution() {}
 

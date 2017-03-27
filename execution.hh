@@ -20,7 +20,6 @@ namespace message {
 class TreeBuilder;
 
 using NameMap = std::unordered_map<std::string, std::string>;
-std::string replaceNames(const NameMap& nameMap, const std::string& text);
 
 class Execution : public QObject {
     Q_OBJECT
@@ -37,7 +36,15 @@ public:
 
     const std::string* getNogood(const Node& node) const;
     const std::string* getInfo(const Node& node) const;
-    void setNameMap(std::unordered_map<std::string, std::string>& names) {
+
+    int getExecutionId() const {
+        return execution_id;
+    }
+    void setExecutionId(int eid) {
+        execution_id = eid;
+    }
+
+    void setNameMap(const NameMap& names) {
         nameMap = names;
     }
 
@@ -110,6 +117,7 @@ private:
     std::unique_ptr<Data> m_Data;
     std::unique_ptr<TreeBuilder> m_Builder;
     NameMap nameMap;
+    int execution_id;
     bool _is_restarts;
     // Name of the FlatZinc model
     std::string _title = "";

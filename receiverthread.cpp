@@ -119,6 +119,10 @@ ReceiverWorker::doRead()
                     execution->start(msg1.label(), is_restarts);
                 }
                 break;
+                case message::Node::CONNECT:
+                    execution->setExecutionId(msg1.eid());
+                    qDebug() << "Received execution: " << msg1.eid() << "\n";
+                    break;
                 case message::Node::DONE:
                     emit doneReceiving();
                     break;

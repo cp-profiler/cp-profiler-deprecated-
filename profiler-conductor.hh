@@ -7,8 +7,10 @@
 
 #include <memory>
 #include <unordered_map>
+#include "execution.hh"
 
-class Execution;
+#include <utility>
+
 class WebscriptView;
 class GistMainWindow;
 class NodeTree;
@@ -33,8 +35,7 @@ class ProfilerConductor : public QMainWindow {
   QListWidget executionList;
   QCheckBox   compareWithLabelsCB;
 
-  // Temporary, once we have execution identifiers we can remove this
-  std::unordered_map<std::string, std::string> currentNameMap;
+  QVector<std::pair<std::string, NameMap> > nameMaps;
 
   std::unique_ptr<ProfilerTcpServer> listener;
 
@@ -63,9 +64,9 @@ class ProfilerConductor : public QMainWindow {
   ProfilerConductor();
   ~ProfilerConductor();
 
+  int getNextExecutionId(const std::string& filename, const NameMap& nameMap);
   void loadExecution(std::string filename);
   void createExecution(std::unique_ptr<NodeTree> nt, std::unique_ptr<Data>);
-  void setCurrentNameMap(std::unordered_map<std::string, std::string>& names);
 
 Q_SIGNALS:
   void showNodeInfo(std::string extra_info);

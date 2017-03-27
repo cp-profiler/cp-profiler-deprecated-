@@ -181,7 +181,6 @@ ProfilerConductor::ProfilerConductor() : QMainWindow() {
   // Listen for new executions.
   listener.reset(new ProfilerTcpServer([this](qintptr socketDescriptor) {
     auto execution = new Execution();
-    execution->setNameMap(currentNameMap);
 
     /// TODO(maxim): receiver should be destroyed when done?
     auto receiver = new ReceiverThread(socketDescriptor, execution, this);
@@ -206,8 +205,11 @@ class ExecutionListItem : public QListWidgetItem {
   Execution& execution_;
 };
 
-void ProfilerConductor::setCurrentNameMap(std::unordered_map<std::string, std::string>& names) {
-    currentNameMap = names;
+int ProfilerConductor::getNextExecutionId(const std::string& filename, const NameMap& nameMap) {
+   // Allocate some kind of execution placeholder
+   int eid=nameMaps.size();
+   nameMaps.push_back(std::make_pair(filename, nameMap));
+   return eid;
 }
 
 void ProfilerConductor::addExecution(Execution& e) {
@@ -248,6 +250,10 @@ void ProfilerConductor::updateTitles(void) {
 }
 
 GistMainWindow* ProfilerConductor::createGist(Execution& e, QString title) {
+  int eid = e.getExecutionId();
+  if (eid != -1 && eid < nameMaps.size()) {
+      e.setNameMap(nameMaps[eid].second);
+  }
   auto gist = new GistMainWindow{e, this};
   gist->changeTitle(title);
   executionInfoHash[&e]->gistWindow = gist;
@@ -523,7 +529,6 @@ void ProfilerConductor::createExecution(unique_ptr<NodeTree> nt,
                                         unique_ptr<Data> data) {
 
   auto e = new Execution(std::move(nt), std::move(data));
-  e->setNameMap(currentNameMap);
   addExecution(*e);
 
   e->setTitle("Extracted Execution");

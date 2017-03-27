@@ -57,8 +57,39 @@
 #include <stack>
 
 #include "cpprofiler/analysis/similar_shapes.hh"
+#include <regex>
 
 using namespace cpprofiler::analysis;
+
+static std::regex var_name_regex("[A-Za-z][A-Za-z0-9_]*");
+
+std::string replaceNames(const NameMap& nameMap, const std::string& text) {
+
+    if (nameMap.size() == 0) {
+      return text;
+    }
+
+    std::regex_iterator<std::string::const_iterator> rit(text.begin(), text.end(), var_name_regex);
+    std::regex_iterator<std::string::const_iterator> rend;
+
+    std::stringstream ss;
+    long prev = 0;
+    while(rit != rend) {
+      long pos = rit->position();
+      ss << text.substr(prev, pos-prev);
+      std::string id = rit->str();
+      std::string name;
+      auto it = nameMap.find(id);
+      if(it != nameMap.end())
+        name = it->second;
+      ss << (name != "" ? name : id);
+      prev = pos + id.length();
+      ++rit;
+    }
+    ss << text.substr(prev, text.size());
+    return ss.str();
+}
+
 
 TreeCanvas::TreeCanvas(Execution* e, QGridLayout* layout, QWidget* parent)
     : QWidget{parent},
@@ -1448,7 +1479,7 @@ static void copyTree(VisualNode* target, NodeTree& tree_target,
 
 std::string TreeCanvas::getLabel(int gid) {
     std::string origLabel = execution.getLabel(gid);
-    replaceNames(execution.getNameMap(), origLabel);
+    origLabel = replaceNames(execution.getNameMap(), origLabel);
     return origLabel;
 }
 
