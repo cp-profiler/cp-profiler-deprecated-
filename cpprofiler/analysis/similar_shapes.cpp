@@ -20,7 +20,7 @@
 #include "libs/perf_helper.hh"
 #include "execution.hh"
 #include "globalhelper.hh"
-#include "tree_utils.hh"
+#include "cpprofiler/utils/tree_utils.hh"
 #include "identical_shapes.hh"
 
 #include "shape_rect.hh"
@@ -119,7 +119,7 @@ static bool areShapesIdentical(const NodeTree& nt,
   if (nodes.size() == 1) return true;
 
   for (auto it = ++begin(nodes); it < end(nodes); ++it) {
-    auto equal = tree_utils::compareSubtrees(nt, *first_node, **it);
+    auto equal = utils::compareSubtrees(nt, *first_node, **it);
     if (!equal) return false;
   }
   return true;
@@ -159,7 +159,7 @@ SimilarShapesWindow::~SimilarShapesWindow() = default;
 
 void highlightAllSubtrees(NodeTree& nt, GroupsOfNodes_t& groups) {
 
-  tree_utils::applyToEachNode(nt, [](VisualNode* n) {
+  utils::applyToEachNode(nt, [](VisualNode* n) {
     n->setHighlighted(false);
   });
 
@@ -174,7 +174,7 @@ void highlightAllSubtrees(NodeTree& nt, GroupsOfNodes_t& groups) {
 
 void highlightAllSubtrees(NodeTree& nt, std::vector<ShapeInfo>& shapes) {
 
-  tree_utils::applyToEachNode(nt, [](VisualNode* n) {
+  utils::applyToEachNode(nt, [](VisualNode* n) {
     n->setHighlighted(false);
   });
 
@@ -313,62 +313,110 @@ void SimilarShapesWindow::initInterface() {
     miscLayout->addWidget(highlightAll);
 
     auto aggregateBtn = new QPushButton{"Aggregate"};
-    connect(aggregateBtn, &QPushButton::clicked, [this]() {
-
-      vector<std::string> labels;
-
-      QString all_paths{""};
-
-      for (auto& group : groups_shown) {
-
-        if (group.size() < 2) continue;
-
-        const int height = group[0]->getShape()->depth();
-
-        if (!filters.check(height, group.size())) {
-          continue;
-        }
-
-        if (group.size() == 2) {
-          auto pair_labels = getLabelDiff(execution, group[0], group[1]);
-
-          for (auto& label : pair_labels.first) {
-            all_paths += (label + " ").c_str();
-          }
-
-          all_paths += "| ";
-
-          for (auto& label : pair_labels.second) {
-            all_paths += (label + " ").c_str();
-          }
-
-
-          const auto depth = tree_utils::calculateDepth(node_tree, *group[0]);
-          const int size = shapeSize(*group[0]->getShape());
-
-          all_paths += "|" + QString::number(height);
-          all_paths += "|" + QString::number(depth);
-          all_paths += "|" + QString::number(size);
-
-          all_paths += '\n';
-        }
-
-        auto cur_labels = getLabelDiff(execution, group);
-
-        for (auto& l : cur_labels) {
-          labels.push_back(l);
-        }
-
-      }
-
-      Utils::writeToFile("all_paths.txt", all_paths);
-      qDebug() << "writing all paths to all_paths.txt";
-
-      new ShapeAggregationWin(std::move(labels));
-    });
+    connect(aggregateBtn, &QPushButton::clicked, this,
+            &SimilarShapesWindow::aggregatePaths);
     miscLayout->addWidget(aggregateBtn);
 
     miscLayout->addStretch();
+}
+
+using NodePair = std::pair<VisualNode*, VisualNode*>;
+
+static void writePathsToFile(const Execution& ex, const vector<NodePair>& node_pairs) {
+  
+  const auto& nt = ex.nodeTree();
+
+  QString all_paths{""};
+
+  for (const auto& pair : node_pairs) {
+
+    auto l_node = pair.first;
+    auto r_node = pair.second;
+
+    auto pair_labels = getLabelDiff(ex, l_node, r_node);
+
+    for (auto& label : pair_labels.first) {
+      all_paths += (label + " ").c_str();
+    }
+
+    all_paths += "| ";
+
+    for (auto& label : pair_labels.second) {
+      all_paths += (label + " ").c_str();
+    }
+
+    const int height = l_node->getShape()->depth();
+    const auto depth = utils::calculateDepth(nt, *l_node);
+    const int size = shapeSize(*l_node->getShape());
+
+    all_paths += "|" + QString::number(height);
+    all_paths += "|" + QString::number(depth);
+    all_paths += "|" + QString::number(size);
+
+    all_paths += '\n';
+
+  }
+
+  Utils::writeToFile("all_paths.txt", all_paths);
+  qDebug() << "writing all paths to all_paths.txt";
+}
+
+static void createPathsWindow(const Execution& ex, const GroupsOfNodes_t& groups) {
+  vector<std::string> labels;
+
+  for (auto& group : groups) {
+
+    auto cur_labels = getLabelDiff(ex, group);
+
+    for (auto& l : cur_labels) {
+      labels.push_back(l);
+    }
+
+  }
+
+  new ShapeAggregationWin(std::move(labels));
+}
+
+/// write domains differences to a file
+static void writeDomainsDiff(const Execution& ex, const vector<NodePair>& node_pairs) {
+
+  std::stringstream dom_diffs;
+
+  for (auto& pair : node_pairs) {
+    std::string dom_diff = utils::compareDomains(ex, *pair.first, *pair.second);
+
+    dom_diffs << dom_diff << "\n";
+  }
+
+  Utils::writeToFile("dom_diffs.txt", dom_diffs.str().c_str());
+
+}
+
+void SimilarShapesWindow::aggregatePaths() {
+
+  vector<NodePair> node_pairs;
+
+  for (auto& group : groups_shown) {
+
+    if (group.size() < 2) continue;
+
+    const int height = group[0]->getShape()->depth();
+
+    if (!filters.check(height, group.size())) {
+      continue;
+    }
+
+    if (group.size() == 2) {
+      node_pairs.push_back({group[0], group[1]});
+    }
+
+  }
+
+  writePathsToFile(execution, node_pairs);
+  createPathsWindow(execution, groups_shown);
+  writeDomainsDiff(execution, node_pairs);
+
+
 }
 
 void SimilarShapesWindow::drawAnalysisHistogram(ShapeProperty prop,

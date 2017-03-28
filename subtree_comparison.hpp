@@ -21,7 +21,7 @@ static void compareExecutions(Execution& ex, const Execution& ex1,
   auto* root = nt.getRoot();
 
   /// create two children and copy the trees into them
-  tree_utils::addChildren(root, nt, 2);
+  utils::addChildren(root, nt, 2);
 
   auto* l_child = root->getChild(na, 0);
   auto* r_child = root->getChild(na, 1);
@@ -31,19 +31,19 @@ static void compareExecutions(Execution& ex, const Execution& ex1,
   /// right source
   const auto* r_root_s = ex2.nodeTree().getRoot();
 
-  tree_utils::copyTree(l_child, nt, l_root_s, ex1.nodeTree());
-  tree_utils::copyTree(r_child, nt, r_root_s, ex2.nodeTree());
+  utils::copyTree(l_child, nt, l_root_s, ex1.nodeTree());
+  utils::copyTree(r_child, nt, r_root_s, ex2.nodeTree());
 
   /// maps nodes to execution id
   std::unique_ptr<std::unordered_map<VisualNode*, int>> node2ex_id;
 
   node2ex_id.reset(new std::unordered_map<VisualNode*, int>());
 
-  tree_utils::applyToEachNode(nt, l_child, [&node2ex_id](VisualNode* n){
+  utils::applyToEachNode(nt, l_child, [&node2ex_id](VisualNode* n){
     (*node2ex_id)[n] = 0;
   });
 
-  tree_utils::applyToEachNode(nt, r_child, [&node2ex_id](VisualNode* n){
+  utils::applyToEachNode(nt, r_child, [&node2ex_id](VisualNode* n){
     (*node2ex_id)[n] = 1;
   });
 

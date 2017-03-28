@@ -21,6 +21,7 @@
 
 #include "globalhelper.hh"
 #include <iostream>
+#include <sstream>
 #include <QFileDialog>
 #include <QJsonDocument>
 #include <QJsonObject>

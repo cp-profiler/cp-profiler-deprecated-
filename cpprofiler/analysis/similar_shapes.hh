@@ -67,10 +67,13 @@ class SimilarShapesWindow : public HistogramWindow {
   void drawAnalysisHistogram(ShapeProperty prop, std::vector<SubtreeInfo>& vec);
   void drawHistogram();
 
- public:
+public:
   SimilarShapesWindow(Execution& nt);
   ~SimilarShapesWindow();
 
+public slots:
+
+  void aggregatePaths();
 
 };
 

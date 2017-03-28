@@ -3,7 +3,7 @@
 #include "execution.hh"
 #include "subtree_canvas.hh"
 #include "cpprofiler/analysis/similar_shapes.hh"
-#include "tree_utils.hh"
+#include "cpprofiler/utils/tree_utils.hh"
 #include "similar_shape_algorithm.hh"
 
 #include <QAbstractScrollArea>
@@ -56,6 +56,8 @@ void HistogramWindow::highlightSubtrees(VisualNode* node) {
     // /// TODO(maxim): does this do the right thing if SUBTREE?
     m_SubtreeCanvas->showSubtree(node);
 
+    execution.compareDomains();
+
     GroupsOfNodes_t* groups = nullptr;
 
     if (simType == SimilarityType::SHAPE) {
@@ -76,7 +78,7 @@ void HistogramWindow::highlightSubtrees(VisualNode* node) {
 
       if (!found) continue;
 
-      tree_utils::highlightSubtrees(node_tree, group, settings.hideNotHighlighted);
+      utils::highlightSubtrees(node_tree, group, settings.hideNotHighlighted);
       break;
     }
 

@@ -1,6 +1,7 @@
 #include "execution.hh"
 #include "data.hh"
 #include "treebuilder.hh"
+#include "cpprofiler/utils/tree_utils.hh"
 
 #include <regex>
 
@@ -102,3 +103,25 @@ DbEntry* Execution::getEntry(int gid) const { return m_Data->getEntry(gid); }
 unsigned int Execution::getGidBySid(int sid) { return m_Data->getGidBySid(sid); }
 std::string Execution::getLabel(int gid) const { return m_Data->getLabel(gid); }
 unsigned long long Execution::getTotalTime() { return m_Data->getTotalTime(); }
+
+void Execution::compareDomains() {
+
+  const auto& na = m_NodeTree->getNA();
+
+  std::vector<VisualNode*> target_nodes;
+
+  for (auto i=0; i < na.size(); ++i) {
+    auto node = na[i];
+    if (node->isHighlighted()) {
+      target_nodes.push_back(node);
+    }
+  }
+
+  if (target_nodes.size() < 2) return;
+
+  auto l_node = target_nodes[0];
+  auto r_node = target_nodes[1];
+
+  qDebug() << utils::compareDomains(*this, *l_node, *r_node).c_str();
+
+}

@@ -49,7 +49,7 @@ static void eliminateSubsumed(const NodeTree& nt, vector<Group>& subtrees) {
 
   for (auto& group : subtrees) {
     auto node = group[0];
-    auto h = tree_utils::calculateDepth(nt, *node);
+    auto h = utils::calculateDepth(nt, *node);
     soh[h].push_back(&group);
   }
 

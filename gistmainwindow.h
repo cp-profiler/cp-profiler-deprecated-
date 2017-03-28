@@ -150,6 +150,8 @@ private:
   QAction* deleteTrials;
   /// Remove Unexplored Nodes
   QAction* deleteSkippedNodes;
+  /// Compare domains of two roots of highlighted subtrees
+  QAction* compareDomains;
 
   /// Hide subtrees by their size
   QAction* hideSize;

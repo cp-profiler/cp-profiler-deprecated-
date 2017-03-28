@@ -97,6 +97,8 @@ public:
 
 public slots:
     void handleNewNode(message::Node& node);
+    /// Compare domains of two nodes (highlighted)
+    void compareDomains();
 
 signals:
     void newNode();

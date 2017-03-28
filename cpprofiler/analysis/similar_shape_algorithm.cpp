@@ -3,7 +3,7 @@
 
 #include "visualnode.hh"
 #include "nodetree.hh"
-#include "tree_utils.hh"
+#include "cpprofiler/utils/tree_utils.hh"
 
 namespace cpprofiler {
 namespace analysis {
@@ -139,7 +139,7 @@ collectShapes(NodeTree& nt) {
   root->unhideAll(na);
   root->layout(na);
 
-  tree_utils::applyToEachNodePO(nt, action);
+  utils::applyToEachNodePO(nt, action);
 
   return res;
 }

@@ -5,8 +5,9 @@
 
 class VisualNode;
 class NodeTree;
+class Execution;
 
-namespace tree_utils {
+namespace utils {
 
 using NodeAction = std::function<void(VisualNode*)>;
 /// TODO(maxim): update stats
@@ -44,7 +45,8 @@ int calculateMaxDepth(const NodeTree& nt);
 
 Statistics gatherNodeStats(NodeTree& nt);
 
-
+std::string compareDomains(const Execution& ex, const VisualNode& lhs,
+                    const VisualNode& rhs);
 }
 
 #endif

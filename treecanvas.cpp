@@ -49,7 +49,7 @@
 
 #include "ml-stats.hh"
 #include "globalhelper.hh"
-#include "tree_utils.hh"
+#include "cpprofiler/utils/tree_utils.hh"
 #include "execution.hh"
 
 #include <fstream>
@@ -341,7 +341,7 @@ void TreeCanvas::showNodeInfo(void) {
   extra_info += "\n";
 
   auto id = currentNode->getIndex(na);
-  auto depth = tree_utils::calculateDepth(execution.nodeTree(), *currentNode);
+  auto depth = utils::calculateDepth(execution.nodeTree(), *currentNode);
 
   extra_info += "--------------------------------------------\n";
   extra_info += " id: " + std::to_string(id) + "\tdepth: " + std::to_string(depth) + "\n";
@@ -1525,13 +1525,13 @@ void TreeCanvas::findSelectedShape() {
   std::vector<VisualNode*> nodes;
 
   applyToEachNode([&](VisualNode* n) {
-    if (tree_utils::compareSubtrees(execution.nodeTree(), *currentNode, *n)) {
+    if (utils::compareSubtrees(execution.nodeTree(), *currentNode, *n)) {
       nodes.push_back(n);
     }
   });
   perfHelper.end();
 
-  tree_utils::highlightSubtrees(execution.nodeTree(), nodes);
+  utils::highlightSubtrees(execution.nodeTree(), nodes);
 }
 
 void TreeCanvas::analyseBackjumps() {
@@ -1553,8 +1553,8 @@ void TreeCanvas::analyseBackjumps() {
 
   /// Print out statistical info:
   for (auto bj : bjs) {
-    int depth_from = tree_utils::calculateDepth(execution.nodeTree(), *bj.from);
-    int depth_to = tree_utils::calculateDepth(execution.nodeTree(), *bj.to);
+    int depth_from = utils::calculateDepth(execution.nodeTree(), *bj.from);
+    int depth_to = utils::calculateDepth(execution.nodeTree(), *bj.to);
 
     int bj_distance = depth_from - depth_to;
 
@@ -1609,7 +1609,7 @@ void TreeCanvas::_addChildren(VisualNode* node) {
   auto& stats = execution.getStatistics();
   stats.undetermined += 2;
 
-  int depth = tree_utils::calculateDepth(execution.nodeTree(), *node) + 1;
+  int depth = utils::calculateDepth(execution.nodeTree(), *node) + 1;
   int new_depth = depth + 1;
 
   stats.maxDepth = std::max(stats.maxDepth, new_depth);

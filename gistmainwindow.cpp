@@ -235,6 +235,7 @@ GistMainWindow::GistMainWindow(Execution& e,
   treeVisMenu->addAction(deleteWhiteNodes);
   treeVisMenu->addAction(deleteTrials);
   treeVisMenu->addAction(deleteSkippedNodes);
+  treeVisMenu->addAction(compareDomains);
 
 #ifdef MAXIM_DEBUG
   treeVisMenu->addAction(createRandomTree);
@@ -423,6 +424,10 @@ void GistMainWindow::addActions() {
   deleteSkippedNodes = new QAction{"Delete Skipped Nodes", this};
   addAction(deleteSkippedNodes);
   connect(deleteSkippedNodes, &QAction::triggered, canvas, &TreeCanvas::deleteSkippedNodes);
+
+  compareDomains = new QAction{"Compare Domains", this};
+  addAction(compareDomains);
+  connect(compareDomains, &QAction::triggered, &execution, &Execution::compareDomains);
 
   navUp = new QAction("Up", this);
   addAction(navUp);

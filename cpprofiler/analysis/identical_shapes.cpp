@@ -9,7 +9,7 @@
 #include <regex>
 
 #include "visualnode.hh"
-#include "tree_utils.hh"
+#include "cpprofiler/utils/tree_utils.hh"
 #include "execution.hh"
 #include "libs/perf_helper.hh"
 #include "similar_shape_algorithm.hh"
@@ -163,7 +163,7 @@ static GroupsOfNodes_t groupByHeight(NodeTree& nt) {
     return max + 1;
   };
 
-  int max_depth = tree_utils::calculateMaxDepth(nt);
+  int max_depth = utils::calculateMaxDepth(nt);
 
   GroupsOfNodes_t groups(max_depth);
 
