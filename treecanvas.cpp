@@ -61,36 +61,6 @@
 
 using namespace cpprofiler::analysis;
 
-static std::regex var_name_regex("[A-Za-z][A-Za-z0-9_]*");
-
-std::string replaceNames(const NameMap& nameMap, const std::string& text) {
-
-    if (nameMap.size() == 0) {
-      return text;
-    }
-
-    std::regex_iterator<std::string::const_iterator> rit(text.begin(), text.end(), var_name_regex);
-    std::regex_iterator<std::string::const_iterator> rend;
-
-    std::stringstream ss;
-    long prev = 0;
-    while(rit != rend) {
-      long pos = rit->position();
-      ss << text.substr(prev, pos-prev);
-      std::string id = rit->str();
-      std::string name;
-      auto it = nameMap.find(id);
-      if(it != nameMap.end())
-        name = it->second;
-      ss << (name != "" ? name : id);
-      prev = pos + id.length();
-      ++rit;
-    }
-    ss << text.substr(prev, text.size());
-    return ss.str();
-}
-
-
 TreeCanvas::TreeCanvas(Execution* e, QGridLayout* layout, QWidget* parent)
     : QWidget{parent},
       execution{*e},
@@ -364,9 +334,13 @@ std::string boolToString(bool flag) {
 
 #endif
 
+void TreeCanvas::emitShowNogoodToIDE(std::string heatmap) {
+    emit showNogood(heatmap);
+}
+
 void TreeCanvas::showNodeInfo(void) {
   auto info = execution.getInfo(*currentNode);
-  std::string extra_info = info ? replaceNames(execution.getNameMap(), *info) : "";
+  std::string extra_info = info ? execution.getNameMap().replaceNames(*info) : "";
   extra_info += "\n";
 
   auto id = currentNode->getIndex(na);
@@ -1479,7 +1453,7 @@ static void copyTree(VisualNode* target, NodeTree& tree_target,
 
 std::string TreeCanvas::getLabel(int gid) {
     std::string origLabel = execution.getLabel(gid);
-    origLabel = replaceNames(execution.getNameMap(), origLabel);
+    origLabel = execution.getNameMap().replaceNames(origLabel);
     return origLabel;
 }
 

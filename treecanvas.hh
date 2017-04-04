@@ -23,16 +23,13 @@
 #ifndef TREECANVAS_HH
 #define TREECANVAS_HH
 
+#include "namemap.hh"
 #include <QtGui>
 #include <QtWidgets>
 #include <memory>
 #include <sstream>
 #include <functional>
 #include <unordered_map>
-
-
-using NameMap = std::unordered_map<std::string, std::string>;
-std::string replaceNames(const NameMap& nameMap, const std::string& text);
 
 /// \brief Parameters for the tree layout
 namespace LayoutConfig {

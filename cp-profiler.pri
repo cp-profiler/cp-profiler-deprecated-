@@ -42,6 +42,7 @@ SOURCES += \
     $$PWD/cpprofiler\analysis\identical_shapes.cpp \
     $$PWD/cpprofiler\analysis\similar_shape_algorithm.cpp \
     $$PWD/cpprofiler\analysis\shape_rect.cpp \
+    $$PWD/namemap.cpp
 
 HEADERS  += \
     $$PWD/globalhelper.hh \
@@ -103,6 +104,7 @@ HEADERS  += \
     $$PWD/cpprofiler\analysis\similar_shape_algorithm.hh \
     $$PWD/cpprofiler\analysis\shape_rect.hh \
     $$PWD/webscript.hh \
+    $$PWD/namemap.hh
     
 
 FORMS    +=

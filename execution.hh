@@ -7,6 +7,7 @@
 #include <ctime>
 #include <memory>
 #include "nodetree.hh"
+#include "namemap.hh"
 #include <unordered_map>
 
 class Data;
@@ -18,8 +19,6 @@ namespace message {
 }
 
 class TreeBuilder;
-
-using NameMap = std::unordered_map<std::string, std::string>;
 
 class Execution : public QObject {
     Q_OBJECT
