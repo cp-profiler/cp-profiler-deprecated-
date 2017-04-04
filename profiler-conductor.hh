@@ -8,6 +8,7 @@
 #include <memory>
 #include <unordered_map>
 #include "execution.hh"
+#include "namemap.hh"
 
 #include <utility>
 
@@ -70,9 +71,11 @@ class ProfilerConductor : public QMainWindow {
 
 Q_SIGNALS:
   void showNodeInfo(std::string extra_info);
+  void showNogood(std::string heatmap);
 
-public Q_SLOTS:
+ public Q_SLOTS:
   void showNodeInfoToIDE(std::string extra_info);
+  void showNogoodToIDE(std::string heatmap);
 
 };
 

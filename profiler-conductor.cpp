@@ -260,6 +260,8 @@ GistMainWindow* ProfilerConductor::createGist(Execution& e, QString title) {
 
   connect(gist->getCanvas(), SIGNAL(showNodeInfo(std::string)),
           this, SLOT(showNodeInfoToIDE(std::string)));
+  connect(gist->getCanvas(), SIGNAL(showNogood(std::string)),
+          this, SLOT(showNogoodToIDE(std::string)));
 
   return gist;
 }
@@ -538,4 +540,8 @@ void ProfilerConductor::createExecution(unique_ptr<NodeTree> nt,
 
 void ProfilerConductor::showNodeInfoToIDE(std::string extra_info) {
     emit(showNodeInfo(extra_info));
+}
+
+void ProfilerConductor::showNogoodToIDE(std::string extra_info) {
+    emit showNogood(extra_info);
 }

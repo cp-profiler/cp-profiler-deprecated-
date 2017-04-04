@@ -192,6 +192,9 @@ public:
 
   void findSelectedShape();
 
+  // Send nogood heatmap to IDE
+  void emitShowNogoodToIDE(std::string heatmap);
+
 Q_SIGNALS:
 
   void scaleChanged(int);
@@ -214,6 +217,7 @@ Q_SIGNALS:
   void moreNodesDrawn();
 
   void showNodeInfo(std::string extra_info);
+  void showNogood(std::string heatmap);
 
 public Q_SLOTS:
   void reset();

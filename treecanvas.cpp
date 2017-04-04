@@ -299,11 +299,13 @@ void TreeCanvas::highlightNodesMenu(void) {
 void TreeCanvas::showNogoods(void) {
   std::vector<int> selected_gids;
 
-  GetIndexesCursor gic(currentNode, execution.nodeTree().getNA(), selected_gids);
+  const NodeAllocator& na = execution.nodeTree().getNA();
+  GetIndexesCursor gic(currentNode, na, selected_gids);
   PreorderNodeVisitor<GetIndexesCursor>(gic).run();
 
+  int64_t gid = currentNode->getIndex(na);
   NogoodDialog* ngdialog =
-      new NogoodDialog(this, *this, selected_gids, execution.getNogoods());
+      new NogoodDialog(this, *this, selected_gids, execution.getNogoods(), gid);
 
   ngdialog->show();
 }

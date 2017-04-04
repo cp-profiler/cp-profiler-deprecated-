@@ -143,7 +143,8 @@ int Data::handleNodeCallback(message::Node& node) {
     pushInstance(entry);
 
     if (node.has_nogood() && node.nogood().length() > 0) {
-        sid2nogood[entry->s_node_id] = node.nogood();
+        std::string nogood = node.nogood();
+        sid2nogood[entry->full_sid] = node.nogood();
     }
 
     _prev_node_timestamp = node.time();
