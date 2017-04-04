@@ -106,13 +106,18 @@ ReceiverWorker::doRead()
                 case message::Node::START:
                 {
                     if (msg1.has_info()) {
+                        std::string s = msg1.info();
                         auto info_json = nlohmann::json::parse(msg1.info());
 
-                        int execution_id = info_json["execution_id"];
-                        execution->setExecutionId(execution_id);
+                        auto execution_id = info_json.find("execution_id");
+                        if(execution_id != info_json.end()) {
+                            execution->setExecutionId(*execution_id);
+                        }
 
-                        std::string variableListString = info_json["variable_list"];
-                        execution->setVariableListString(variableListString);
+                        auto variableListString = info_json.find("variable_list");
+                        if(variableListString != info_json.end()) {
+                            execution->setVariableListString(*variableListString);
+                        }
                     }
 
                     if (msg1.restart_id() != -1 && msg1.restart_id() != 0) {
