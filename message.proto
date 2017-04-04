@@ -10,7 +10,6 @@ message Node {
     NODE  = 0;
     DONE  = 1;
     START = 2;
-    CONNECT = 3;
   }
 
   enum NodeStatus {
@@ -44,5 +43,4 @@ message Node {
   optional bool   uses_assumptions = 16;
   optional int32  backjump_distance = 17;
   optional int32  decision_level = 18;
-  optional int32  eid  = 19;
 }

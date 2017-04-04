@@ -52,12 +52,11 @@ void InitDefaults();
 enum Node_MsgType {
   Node_MsgType_NODE = 0,
   Node_MsgType_DONE = 1,
-  Node_MsgType_START = 2,
-  Node_MsgType_CONNECT = 3
+  Node_MsgType_START = 2
 };
 bool Node_MsgType_IsValid(int value);
 const Node_MsgType Node_MsgType_MsgType_MIN = Node_MsgType_NODE;
-const Node_MsgType Node_MsgType_MsgType_MAX = Node_MsgType_CONNECT;
+const Node_MsgType Node_MsgType_MsgType_MAX = Node_MsgType_START;
 const int Node_MsgType_MsgType_ARRAYSIZE = Node_MsgType_MsgType_MAX + 1;
 
 const ::google::protobuf::EnumDescriptor* Node_MsgType_descriptor();
@@ -177,8 +176,6 @@ class Node : public ::google::protobuf::Message /* @@protoc_insertion_point(clas
     Node_MsgType_DONE;
   static const MsgType START =
     Node_MsgType_START;
-  static const MsgType CONNECT =
-    Node_MsgType_CONNECT;
   static inline bool MsgType_IsValid(int value) {
     return Node_MsgType_IsValid(value);
   }
@@ -398,13 +395,6 @@ class Node : public ::google::protobuf::Message /* @@protoc_insertion_point(clas
   ::google::protobuf::int32 decision_level() const;
   void set_decision_level(::google::protobuf::int32 value);
 
-  // optional int32 eid = 19;
-  bool has_eid() const;
-  void clear_eid();
-  static const int kEidFieldNumber = 19;
-  ::google::protobuf::int32 eid() const;
-  void set_eid(::google::protobuf::int32 value);
-
   // @@protoc_insertion_point(class_scope:message.Node)
  private:
   void set_has_type();
@@ -443,8 +433,6 @@ class Node : public ::google::protobuf::Message /* @@protoc_insertion_point(clas
   void clear_has_backjump_distance();
   void set_has_decision_level();
   void clear_has_decision_level();
-  void set_has_eid();
-  void clear_has_eid();
 
   ::google::protobuf::internal::InternalMetadataWithArena _internal_metadata_;
   ::google::protobuf::internal::HasBits<1> _has_bits_;
@@ -467,7 +455,6 @@ class Node : public ::google::protobuf::Message /* @@protoc_insertion_point(clas
   bool uses_assumptions_;
   ::google::protobuf::int32 backjump_distance_;
   ::google::protobuf::int32 decision_level_;
-  ::google::protobuf::int32 eid_;
   friend struct  protobuf_message_2eproto::TableStruct;
 };
 // ===================================================================
@@ -1062,30 +1049,6 @@ inline void Node::set_decision_level(::google::protobuf::int32 value) {
   set_has_decision_level();
   decision_level_ = value;
   // @@protoc_insertion_point(field_set:message.Node.decision_level)
-}
-
-// optional int32 eid = 19;
-inline bool Node::has_eid() const {
-  return (_has_bits_[0] & 0x00040000u) != 0;
-}
-inline void Node::set_has_eid() {
-  _has_bits_[0] |= 0x00040000u;
-}
-inline void Node::clear_has_eid() {
-  _has_bits_[0] &= ~0x00040000u;
-}
-inline void Node::clear_eid() {
-  eid_ = 0;
-  clear_has_eid();
-}
-inline ::google::protobuf::int32 Node::eid() const {
-  // @@protoc_insertion_point(field_get:message.Node.eid)
-  return eid_;
-}
-inline void Node::set_eid(::google::protobuf::int32 value) {
-  set_has_eid();
-  eid_ = value;
-  // @@protoc_insertion_point(field_set:message.Node.eid)
 }
 
 #endif  // !PROTOBUF_INLINE_NOT_IN_HEADERS

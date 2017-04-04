@@ -25,6 +25,7 @@
 
 #include <QTcpSocket>
 #include "execution.hh"
+#include <third-party/json.hpp>
 
 // This is a bit wrong.  We have both a separate thread and
 // asynchronous reading from the socket.  One or the other would
@@ -104,9 +105,14 @@ ReceiverWorker::doRead()
                     break;
                 case message::Node::START:
                 {
-
                     if (msg1.has_info()) {
-                        execution->setVariableListString(msg1.info());
+                        auto info_json = nlohmann::json::parse(msg1.info());
+
+                        int execution_id = info_json["execution_id"];
+                        execution->setExecutionId(execution_id);
+
+                        std::string variableListString = info_json["variable_list"];
+                        execution->setVariableListString(variableListString);
                     }
 
                     if (msg1.restart_id() != -1 && msg1.restart_id() != 0) {
@@ -119,10 +125,6 @@ ReceiverWorker::doRead()
                     execution->start(msg1.label(), is_restarts);
                 }
                 break;
-                case message::Node::CONNECT:
-                    execution->setExecutionId(msg1.eid());
-                    qDebug() << "Received execution: " << msg1.eid() << "\n";
-                    break;
                 case message::Node::DONE:
                     emit doneReceiving();
                     break;

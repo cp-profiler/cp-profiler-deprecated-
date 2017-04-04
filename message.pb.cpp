@@ -54,7 +54,6 @@ const ::google::protobuf::uint32 TableStruct::offsets[] = {
   GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(Node, uses_assumptions_),
   GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(Node, backjump_distance_),
   GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(Node, decision_level_),
-  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(Node, eid_),
   4,
   5,
   6,
@@ -73,11 +72,10 @@ const ::google::protobuf::uint32 TableStruct::offsets[] = {
   15,
   16,
   17,
-  18,
 };
 
 static const ::google::protobuf::internal::MigrationSchema schemas[] = {
-  { 0, 23, sizeof(Node)},
+  { 0, 22, sizeof(Node)},
 };
 
 static ::google::protobuf::Message const * const file_default_instances[] = {
@@ -126,7 +124,7 @@ void InitDefaults() {
 void AddDescriptorsImpl() {
   InitDefaults();
   static const char descriptor[] = {
-      "\n\rmessage.proto\022\007message\"\254\004\n\004Node\022#\n\004typ"
+      "\n\rmessage.proto\022\007message\"\222\004\n\004Node\022#\n\004typ"
       "e\030\001 \002(\0162\025.message.Node.MsgType\022\013\n\003sid\030\002 "
       "\001(\005\022\013\n\003pid\030\003 \001(\005\022\013\n\003alt\030\004 \001(\005\022\014\n\004kids\030\005 "
       "\001(\005\022(\n\006status\030\006 \001(\0162\030.message.Node.NodeS"
@@ -135,16 +133,15 @@ void AddDescriptorsImpl() {
       "ain_size\030\013 \001(\002\022\020\n\010solution\030\014 \001(\t\022\016\n\006nogo"
       "od\030\r \001(\t\022\014\n\004info\030\016 \001(\t\022\022\n\nnogood_bld\030\017 \001"
       "(\005\022\030\n\020uses_assumptions\030\020 \001(\010\022\031\n\021backjump"
-      "_distance\030\021 \001(\005\022\026\n\016decision_level\030\022 \001(\005\022"
-      "\013\n\003eid\030\023 \001(\005\"5\n\007MsgType\022\010\n\004NODE\020\000\022\010\n\004DON"
-      "E\020\001\022\t\n\005START\020\002\022\013\n\007CONNECT\020\003\"r\n\nNodeStatu"
-      "s\022\n\n\006SOLVED\020\000\022\n\n\006FAILED\020\001\022\n\n\006BRANCH\020\002\022\020\n"
-      "\014UNDETERMINED\020\003\022\010\n\004STOP\020\004\022\n\n\006UNSTOP\020\005\022\013\n"
-      "\007SKIPPED\020\006\022\013\n\007MERGING\020\007B\027\n\025com.github.cp"
-      "profiler"
+      "_distance\030\021 \001(\005\022\026\n\016decision_level\030\022 \001(\005\""
+      "(\n\007MsgType\022\010\n\004NODE\020\000\022\010\n\004DONE\020\001\022\t\n\005START\020"
+      "\002\"r\n\nNodeStatus\022\n\n\006SOLVED\020\000\022\n\n\006FAILED\020\001\022"
+      "\n\n\006BRANCH\020\002\022\020\n\014UNDETERMINED\020\003\022\010\n\004STOP\020\004\022"
+      "\n\n\006UNSTOP\020\005\022\013\n\007SKIPPED\020\006\022\013\n\007MERGING\020\007B\027\n"
+      "\025com.github.cpprofiler"
   };
   ::google::protobuf::DescriptorPool::InternalAddGeneratedFile(
-      descriptor, 608);
+      descriptor, 582);
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedFile(
     "message.proto", &protobuf_RegisterTypes);
   ::google::protobuf::internal::OnShutdown(&TableStruct::Shutdown);
@@ -172,7 +169,6 @@ bool Node_MsgType_IsValid(int value) {
     case 0:
     case 1:
     case 2:
-    case 3:
       return true;
     default:
       return false;
@@ -183,7 +179,6 @@ bool Node_MsgType_IsValid(int value) {
 const Node_MsgType Node::NODE;
 const Node_MsgType Node::DONE;
 const Node_MsgType Node::START;
-const Node_MsgType Node::CONNECT;
 const Node_MsgType Node::MsgType_MIN;
 const Node_MsgType Node::MsgType_MAX;
 const int Node::MsgType_ARRAYSIZE;
@@ -243,7 +238,6 @@ const int Node::kNogoodBldFieldNumber;
 const int Node::kUsesAssumptionsFieldNumber;
 const int Node::kBackjumpDistanceFieldNumber;
 const int Node::kDecisionLevelFieldNumber;
-const int Node::kEidFieldNumber;
 #endif  // !defined(_MSC_VER) || _MSC_VER >= 1900
 
 Node::Node()
@@ -277,8 +271,8 @@ Node::Node(const Node& from)
     info_.AssignWithDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), from.info_);
   }
   ::memcpy(&type_, &from.type_,
-    reinterpret_cast<char*>(&eid_) -
-    reinterpret_cast<char*>(&type_) + sizeof(eid_));
+    reinterpret_cast<char*>(&decision_level_) -
+    reinterpret_cast<char*>(&type_) + sizeof(decision_level_));
   // @@protoc_insertion_point(copy_constructor:message.Node)
 }
 
@@ -288,8 +282,8 @@ void Node::SharedCtor() {
   solution_.UnsafeSetDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   nogood_.UnsafeSetDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   info_.UnsafeSetDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
-  ::memset(&type_, 0, reinterpret_cast<char*>(&eid_) -
-    reinterpret_cast<char*>(&type_) + sizeof(eid_));
+  ::memset(&type_, 0, reinterpret_cast<char*>(&decision_level_) -
+    reinterpret_cast<char*>(&type_) + sizeof(decision_level_));
 }
 
 Node::~Node() {
@@ -355,9 +349,9 @@ void Node::Clear() {
     ::memset(&kids_, 0, reinterpret_cast<char*>(&uses_assumptions_) -
       reinterpret_cast<char*>(&kids_) + sizeof(uses_assumptions_));
   }
-  if (_has_bits_[16 / 32] & 458752u) {
-    ::memset(&backjump_distance_, 0, reinterpret_cast<char*>(&eid_) -
-      reinterpret_cast<char*>(&backjump_distance_) + sizeof(eid_));
+  if (_has_bits_[16 / 32] & 196608u) {
+    ::memset(&backjump_distance_, 0, reinterpret_cast<char*>(&decision_level_) -
+      reinterpret_cast<char*>(&backjump_distance_) + sizeof(decision_level_));
   }
   _has_bits_.Clear();
   _internal_metadata_.Clear();
@@ -625,19 +619,6 @@ bool Node::MergePartialFromCodedStream(
         break;
       }
 
-      // optional int32 eid = 19;
-      case 19: {
-        if (tag == 152u) {
-          set_has_eid();
-          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
-                   ::google::protobuf::int32, ::google::protobuf::internal::WireFormatLite::TYPE_INT32>(
-                 input, &eid_)));
-        } else {
-          goto handle_unusual;
-        }
-        break;
-      }
-
       default: {
       handle_unusual:
         if (tag == 0 ||
@@ -775,11 +756,6 @@ void Node::SerializeWithCachedSizes(
     ::google::protobuf::internal::WireFormatLite::WriteInt32(18, this->decision_level(), output);
   }
 
-  // optional int32 eid = 19;
-  if (has_eid()) {
-    ::google::protobuf::internal::WireFormatLite::WriteInt32(19, this->eid(), output);
-  }
-
   if (_internal_metadata_.have_unknown_fields()) {
     ::google::protobuf::internal::WireFormat::SerializeUnknownFields(
         unknown_fields(), output);
@@ -905,11 +881,6 @@ void Node::SerializeWithCachedSizes(
   // optional int32 decision_level = 18;
   if (has_decision_level()) {
     target = ::google::protobuf::internal::WireFormatLite::WriteInt32ToArray(18, this->decision_level(), target);
-  }
-
-  // optional int32 eid = 19;
-  if (has_eid()) {
-    target = ::google::protobuf::internal::WireFormatLite::WriteInt32ToArray(19, this->eid(), target);
   }
 
   if (_internal_metadata_.have_unknown_fields()) {
@@ -1040,7 +1011,7 @@ size_t Node::ByteSizeLong() const {
     }
 
   }
-  if (_has_bits_[16 / 32] & 458752u) {
+  if (_has_bits_[16 / 32] & 196608u) {
     // optional int32 backjump_distance = 17;
     if (has_backjump_distance()) {
       total_size += 2 +
@@ -1053,13 +1024,6 @@ size_t Node::ByteSizeLong() const {
       total_size += 2 +
         ::google::protobuf::internal::WireFormatLite::Int32Size(
           this->decision_level());
-    }
-
-    // optional int32 eid = 19;
-    if (has_eid()) {
-      total_size += 2 +
-        ::google::protobuf::internal::WireFormatLite::Int32Size(
-          this->eid());
     }
 
   }
@@ -1145,15 +1109,12 @@ void Node::MergeFrom(const Node& from) {
       set_uses_assumptions(from.uses_assumptions());
     }
   }
-  if (from._has_bits_[16 / 32] & 458752u) {
+  if (from._has_bits_[16 / 32] & 196608u) {
     if (from.has_backjump_distance()) {
       set_backjump_distance(from.backjump_distance());
     }
     if (from.has_decision_level()) {
       set_decision_level(from.decision_level());
-    }
-    if (from.has_eid()) {
-      set_eid(from.eid());
     }
   }
 }
@@ -1200,7 +1161,6 @@ void Node::InternalSwap(Node* other) {
   std::swap(uses_assumptions_, other->uses_assumptions_);
   std::swap(backjump_distance_, other->backjump_distance_);
   std::swap(decision_level_, other->decision_level_);
-  std::swap(eid_, other->eid_);
   std::swap(_has_bits_[0], other->_has_bits_[0]);
   _internal_metadata_.Swap(&other->_internal_metadata_);
   std::swap(_cached_size_, other->_cached_size_);
@@ -1798,30 +1758,6 @@ void Node::set_decision_level(::google::protobuf::int32 value) {
   set_has_decision_level();
   decision_level_ = value;
   // @@protoc_insertion_point(field_set:message.Node.decision_level)
-}
-
-// optional int32 eid = 19;
-bool Node::has_eid() const {
-  return (_has_bits_[0] & 0x00040000u) != 0;
-}
-void Node::set_has_eid() {
-  _has_bits_[0] |= 0x00040000u;
-}
-void Node::clear_has_eid() {
-  _has_bits_[0] &= ~0x00040000u;
-}
-void Node::clear_eid() {
-  eid_ = 0;
-  clear_has_eid();
-}
-::google::protobuf::int32 Node::eid() const {
-  // @@protoc_insertion_point(field_get:message.Node.eid)
-  return eid_;
-}
-void Node::set_eid(::google::protobuf::int32 value) {
-  set_has_eid();
-  eid_ = value;
-  // @@protoc_insertion_point(field_set:message.Node.eid)
 }
 
 #endif  // PROTOBUF_INLINE_NOT_IN_HEADERS
