@@ -45,10 +45,11 @@
 #include "nodevisitor.hh"
 #include "visualnode.hh"
 #include "drawingcursor.hh"
+#include "cpprofiler/analysis/backjumps.hh"
 
 #include "ml-stats.hh"
 #include "globalhelper.hh"
-#include "tree_utils.hh"
+#include "cpprofiler/utils/tree_utils.hh"
 #include "execution.hh"
 
 #include <fstream>
@@ -58,6 +59,7 @@
 
 #include "cpprofiler/analysis/similar_shapes.hh"
 #include <regex>
+#include "cpprofiler/analysis/shape_aggregation.hh"
 
 using namespace cpprofiler::analysis;
 
@@ -346,7 +348,7 @@ void TreeCanvas::showNodeInfo(void) {
   extra_info += "\n";
 
   auto id = currentNode->getIndex(na);
-  auto depth = tree_utils::calculateDepth(execution.nodeTree(), *currentNode);
+  auto depth = utils::calculateDepth(execution.nodeTree(), *currentNode);
 
   extra_info += "--------------------------------------------\n";
   extra_info += " id: " + std::to_string(id) + "\tdepth: " + std::to_string(depth) + "\n";
@@ -1530,13 +1532,75 @@ void TreeCanvas::findSelectedShape() {
   std::vector<VisualNode*> nodes;
 
   applyToEachNode([&](VisualNode* n) {
-    if (tree_utils::compareSubtrees(execution.nodeTree(), *currentNode, *n)) {
+    if (utils::compareSubtrees(execution.nodeTree(), *currentNode, *n)) {
       nodes.push_back(n);
     }
   });
   perfHelper.end();
 
-  tree_utils::highlightSubtrees(execution.nodeTree(), nodes);
+  utils::highlightSubtrees(execution.nodeTree(), nodes);
+}
+
+void TreeCanvas::analyseBackjumps() {
+  std::vector<BackjumpItem2> bjs = Backjumps::findBackjumps2(root, na);
+
+  std::vector<std::string> labels_to;
+
+  for (auto bj : bjs) {
+
+    auto label_from = execution.getLabel(*bj.from);
+    auto label_to   = execution.getLabel(*bj.to);
+
+    labels_to.push_back(label_to);
+  }
+
+  new ShapeAggregationWin(std::move(labels_to));
+
+  QString bj_data("[");
+
+  /// Print out statistical info:
+  for (auto bj : bjs) {
+    int depth_from = utils::calculateDepth(execution.nodeTree(), *bj.from);
+    int depth_to = utils::calculateDepth(execution.nodeTree(), *bj.to);
+
+    int bj_distance = depth_from - depth_to;
+
+
+    /// NOTE(maxim): `skipped` nodes don't have labels, so need to find
+    /// a sibling and get a label from it:
+
+    const auto* pnode = bj.from->getParent(na);
+    const auto* sibling = pnode->getChild(na, 0);
+
+    std::stringstream ss;
+
+    ss << "{ \"from\": \"" << execution.getLabel(*sibling).c_str() << "\", ";
+    ss << "\"to\": \"" << execution.getLabel(*bj.to).c_str() << "\", ";
+    ss << "\"distance\": " << std::to_string(bj_distance) << ", ";
+
+    ss << "\"skipped\": [";
+
+    auto cur = bj.from->getParent(na);
+    ss << "\"" << execution.getLabel(*cur).c_str() << "\"";
+    cur = cur->getParent(na);
+
+    while (cur != bj.to) {
+      ss << ", \"" << execution.getLabel(*cur).c_str() << "\"";
+      cur = cur->getParent(na);
+    }
+
+    ss << "]}, ";
+
+    bj_data += ss.str().c_str();
+
+  }
+
+  bj_data = bj_data.left(bj_data.size() - 2);
+
+  bj_data += "]";
+
+  Utils::writeToFile("bj_data.txt", bj_data);
+  qDebug() << "wrote to bj_data.txt";
 }
 
 #ifdef MAXIM_DEBUG
@@ -1552,7 +1616,7 @@ void TreeCanvas::_addChildren(VisualNode* node) {
   auto& stats = execution.getStatistics();
   stats.undetermined += 2;
 
-  int depth = tree_utils::calculateDepth(execution.nodeTree(), *node) + 1;
+  int depth = utils::calculateDepth(execution.nodeTree(), *node) + 1;
   int new_depth = depth + 1;
 
   stats.maxDepth = std::max(stats.maxDepth, new_depth);

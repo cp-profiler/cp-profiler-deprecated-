@@ -18,7 +18,7 @@
 #include "ml-stats.hh"
 #include "webscript.hh"
 
-#include "tree_utils.hh"
+#include "cpprofiler/utils/tree_utils.hh"
 
 #include <fstream>
 #include <QPushButton>

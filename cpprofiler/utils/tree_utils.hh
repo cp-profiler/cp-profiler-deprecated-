@@ -5,8 +5,9 @@
 
 class VisualNode;
 class NodeTree;
+class Execution;
 
-namespace tree_utils {
+namespace utils {
 
 using NodeAction = std::function<void(VisualNode*)>;
 /// TODO(maxim): update stats
@@ -38,11 +39,14 @@ void highlightSubtrees(NodeTree& nt, const std::vector<VisualNode*>& nodes,
 /// The distance between current node to the root
 int calculateDepth(const NodeTree& nt, const VisualNode& node);
 
+int calculateHeight(const NodeTree& nt, const VisualNode& n);
+
 int calculateMaxDepth(const NodeTree& nt);
 
 Statistics gatherNodeStats(NodeTree& nt);
 
-
+std::string compareDomains(const Execution& ex, const VisualNode& lhs,
+                    const VisualNode& rhs);
 }
 
 #endif

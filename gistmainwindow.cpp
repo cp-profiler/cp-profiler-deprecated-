@@ -231,9 +231,11 @@ GistMainWindow::GistMainWindow(Execution& e,
   treeVisMenu->addAction(followPath);
   treeVisMenu->addAction(compareSubtreeLabels);
   treeVisMenu->addAction(printPaths);
+  treeVisMenu->addAction(analyseBackjumps);
   treeVisMenu->addAction(deleteWhiteNodes);
   treeVisMenu->addAction(deleteTrials);
   treeVisMenu->addAction(deleteSkippedNodes);
+  treeVisMenu->addAction(compareDomains);
 
 #ifdef MAXIM_DEBUG
   treeVisMenu->addAction(createRandomTree);
@@ -423,6 +425,10 @@ void GistMainWindow::addActions() {
   addAction(deleteSkippedNodes);
   connect(deleteSkippedNodes, &QAction::triggered, canvas, &TreeCanvas::deleteSkippedNodes);
 
+  compareDomains = new QAction{"Compare Domains", this};
+  addAction(compareDomains);
+  connect(compareDomains, &QAction::triggered, &execution, &Execution::compareDomains);
+
   navUp = new QAction("Up", this);
   addAction(navUp);
   navUp->setShortcut(QKeySequence("Up"));
@@ -481,6 +487,11 @@ void GistMainWindow::addActions() {
   hideSize = new QAction("Hide small subtrees", this);
   addAction(hideSize);
   connect(hideSize, SIGNAL(triggered()), canvas, SLOT(hideSize()));
+
+  analyseBackjumps = new QAction("Analyse Backjumps", this);
+  addAction(analyseBackjumps);
+  connect(analyseBackjumps, &QAction::triggered,
+          canvas, &TreeCanvas::analyseBackjumps);
 
 #ifdef MAXIM_DEBUG
   auto printDebugInfo = new QAction("Print Debug Info", this);

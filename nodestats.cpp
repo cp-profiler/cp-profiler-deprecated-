@@ -39,7 +39,7 @@
 #include "nodecursor.hh"
 #include "nodevisitor.hh"
 #include "drawingcursor.hh"
-#include "tree_utils.hh"
+#include "cpprofiler/utils/tree_utils.hh"
 
 
 NodeStatInspector::NodeStatInspector(QWidget* parent, const NodeTree& nt)
@@ -109,7 +109,7 @@ NodeStatInspector::node(VisualNode* n) {
 
     // if (isVisible()) {
 
-        auto depth = tree_utils::calculateDepth(nt, *n);
+        auto depth = utils::calculateDepth(nt, *n);
         nodeDepthLabel->setPlainText(QString("%1").arg(depth));;
         StatCursor sc(n,na);
         PreorderNodeVisitor<StatCursor> pnv(sc);

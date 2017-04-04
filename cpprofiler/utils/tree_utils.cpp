@@ -2,12 +2,13 @@
 #include <functional>
 #include "visualnode.hh"
 #include "execution.hh"
-#include "tree_utils.hh"
+#include "cpprofiler/utils/tree_utils.hh"
 
 #include "nodecursor.hh"
 #include "nodevisitor.hh"
+#include "utils.hh"
 
-namespace tree_utils {
+namespace utils {
 
 using std::stack;
 
@@ -52,7 +53,7 @@ void addChildren(VisualNode* node, NodeTree& nt, int kids) {
   auto& stats = nt.getStatistics();
   stats.undetermined += kids;
 
-  int depth = tree_utils::calculateDepth(nt, *node) + 1;
+  int depth = utils::calculateDepth(nt, *node) + 1;
   int new_depth = depth + 1;
 
   stats.maxDepth = std::max(stats.maxDepth, new_depth);
@@ -169,6 +170,11 @@ int calculateMaxDepth(const NodeTree& nt) {
   return calcDepth(na, root);
 }
 
+int calculateHeight(const NodeTree& nt, const VisualNode& n) {
+  const auto& na = nt.getNA();
+  return calcDepth(na, &n);
+}
+
 void highlightSubtrees(NodeTree& nt, const std::vector<VisualNode*>& nodes,
                        bool hideNotHighlighted) {
 
@@ -224,6 +230,36 @@ Statistics gatherNodeStats(NodeTree& nt) {
   stats.maxDepth = calculateMaxDepth(nt);
 
   return stats;
+}
+
+std::string compareDomains(const Execution& ex, const VisualNode& lhs,
+                    const VisualNode& rhs) {
+
+  std::stringstream result;
+
+  auto l_info = ex.getInfo(lhs);
+  auto r_info = ex.getInfo(rhs);
+
+  if (l_info == nullptr || r_info == nullptr) return "";
+
+  auto l_lines = split(*l_info, '\n');
+  auto r_lines = split(*r_info, '\n');
+
+  if (l_lines.size() != r_lines.size()) return "";
+
+  for (auto i = 0u; i < l_lines.size(); i++) {
+    /// End of domain-specific info
+    if (l_lines[i].substr(0, 16) == "full domain size") break;
+
+    if (l_lines[i] != r_lines[i]) {
+      if (l_lines[i].substr(0, 12) == "X_INTRODUCED") continue;
+      result << l_lines[i] << "| " << r_lines[i] << "\n";
+    }
+
+  }
+
+  return result.str();
+
 }
 
 
