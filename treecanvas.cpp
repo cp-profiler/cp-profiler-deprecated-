@@ -51,6 +51,7 @@
 #include "globalhelper.hh"
 #include "cpprofiler/utils/tree_utils.hh"
 #include "execution.hh"
+#include "cpprofiler/utils/utils.hh"
 
 #include <fstream>
 #include <iostream>
@@ -1542,6 +1543,7 @@ void TreeCanvas::findSelectedShape() {
 }
 
 void TreeCanvas::analyseBackjumps() {
+
   std::vector<BackjumpItem2> bjs = Backjumps::findBackjumps2(root, na);
 
   std::vector<std::string> labels_to;
@@ -1598,6 +1600,8 @@ void TreeCanvas::analyseBackjumps() {
   bj_data = bj_data.left(bj_data.size() - 2);
 
   bj_data += "]";
+
+  qDebug() << "bj count: " << bjs.size();
 
   Utils::writeToFile("bj_data.txt", bj_data);
   qDebug() << "wrote to bj_data.txt";

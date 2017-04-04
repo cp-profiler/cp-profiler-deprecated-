@@ -223,8 +223,7 @@ CmpTreeDialog::showPentagonHist() {
 
 static string empty_string = "";
 
-// string& getNogoodById(int ng_id, const Execution& e) {
-string& getNogoodById(int64_t ng_id, const std::unordered_map<int64_t, string>& ng_map) {
+string& getNogoodById(int ng_id, const std::unordered_map<int, string>& ng_map) {
 
 
   string& nogood = empty_string;
@@ -276,7 +275,7 @@ CmpTreeDialog::saveComparisonStats() {
 /// *************** Pentagon List Window ****************
 
 
-void initNogoodTable(QTableWidget& ng_table) {
+static void initNogoodTable(QTableWidget& ng_table) {
   ng_table.setEditTriggers(QAbstractItemView::NoEditTriggers);
 
   ng_table.setColumnCount(3);
@@ -317,10 +316,12 @@ PentListWindow::populateNogoodTable(const std::vector<int>& nogoods) {
 
   for (auto i = 0u; i < nogoods.size(); i++) {
 
-    int ng_id = nogoods[i]; /// is this sid of gid???
+    int64_t ng_id = nogoods[i]; /// is this sid of gid???
     _nogoodTable.setItem(i, 0, new QTableWidgetItem(QString::number(ng_id)));
 
     string& nogood = getNogoodById(ng_id, nogood_map);
+
+    qDebug() << "nogood id " << ng_id << ": " << nogood.c_str();
 
     int ng_count = ng_stats.at(ng_id).occurrence;
 
@@ -373,7 +374,7 @@ PentListWindow::PentListWindow(CmpTreeDialog* parent,
 
 
 
-QString infoToNogoodStr(const string& info) {
+static QString infoToNogoodStr(const string& info) {
   QString result = "";
 
   auto info_json = nlohmann::json::parse(info);
@@ -486,8 +487,6 @@ CmpTreeDialog::showResponsibleNogoods() {
   ng_table->setRowCount(ng_stats.size());
 
   auto& nogood_map = m_Cmp_result->left_execution().getNogoods();
-
-  qDebug() << "map2: " << (void*)(&nogood_map);
 
   int row = 0;
   for (auto ng : ng_stats_vector) {

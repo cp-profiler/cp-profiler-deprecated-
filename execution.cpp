@@ -48,7 +48,7 @@ void Execution::start(std::string label, bool isRestarts) {
 const std::string* Execution::getNogood(const Node& node) const {
     auto entry = getEntry(node);
     if (!entry) return nullptr;
-    auto nogood = m_Data->getNogoods().find(entry->full_sid);
+    auto nogood = m_Data->getNogoods().find(entry->s_node_id);
     if (nogood == m_Data->getNogoods().end()) return nullptr;
     return &nogood->second;
 }
@@ -65,7 +65,7 @@ void Execution::handleNewNode(message::Node& node) {
     m_Data->handleNodeCallback(node);
 }
 
-const std::unordered_map<int64_t, string>& Execution::getNogoods() const {
+const std::unordered_map<int, string>& Execution::getNogoods() const {
   return m_Data->getNogoods();
 }
 std::unordered_map<int64_t, string*>& Execution::getInfo(void) const {

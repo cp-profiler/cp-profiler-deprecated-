@@ -72,7 +72,7 @@ class NogoodDialog : public QDialog {
 
   // QTableWidget* _nogoodTable;
   QTableView* _nogoodTable;
-  const std::unordered_map<int64_t, std::string>& _sid2nogood;
+  const std::unordered_map<int, std::string>& _sid2nogood;
 
   QStandardItemModel* _model;
   MyProxyModel* _proxy_model;
@@ -91,8 +91,9 @@ class NogoodDialog : public QDialog {
   /// Create a nogood dialog with nogoods for selected nodes
   NogoodDialog(QWidget* parent, TreeCanvas& tc,
                const std::vector<int>& selected,
-               const std::unordered_map<int64_t, std::string>& sid2nogood,
+               const std::unordered_map<int, std::string>& sid2nogood,
                int64_t root_gid);
+
 
   ~NogoodDialog();
 };

@@ -134,7 +134,7 @@ public:
     }
 
     int getNogoodStringLength(int sid) {
-        std::unordered_map<int64_t, string>::const_iterator it = execution->getNogoods().find(sid);
+        const auto it = execution->getNogoods().find(sid);
         if (it != execution->getNogoods().end()) {
             return it->second.length();
         } else {
@@ -143,7 +143,7 @@ public:
     }
 
     string getNogoodString(int sid) {
-        std::unordered_map<int64_t, string>::const_iterator it = execution->getNogoods().find(sid);
+        const auto it = execution->getNogoods().find(sid);
         if (it != execution->getNogoods().end()) {
             return it->second;
         } else {
@@ -152,7 +152,7 @@ public:
     }
 
     string getSolutionString(int sid) {
-        std::unordered_map<int64_t, string*>::const_iterator it = execution->getInfo().find(sid);
+        const auto it = execution->getInfo().find(sid);
         if (it != execution->getInfo().end()) {
             return *it->second;
         } else {

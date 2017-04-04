@@ -58,7 +58,7 @@ QString getPathHead(QString& path) {
 
 NogoodDialog::NogoodDialog(
     QWidget* parent, TreeCanvas& tc, const std::vector<int>& selected_nodes,
-    const std::unordered_map<int64_t, std::string>& sid2nogood, int64_t root_gid)
+    const std::unordered_map<int, std::string>& sid2nogood, int64_t root_gid)
     : QDialog(parent), _tc(tc), _sid2nogood(sid2nogood), _root_gid(root_gid) {
   _model = new QStandardItemModel(0, 2, this);
 

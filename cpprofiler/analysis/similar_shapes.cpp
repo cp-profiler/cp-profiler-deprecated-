@@ -396,6 +396,8 @@ void SimilarShapesWindow::aggregatePaths() {
 
   vector<NodePair> node_pairs;
 
+  qDebug() << "groups shown: " << groups_shown.size();
+
   for (auto& group : groups_shown) {
 
     if (group.size() < 2) continue;
@@ -406,9 +408,34 @@ void SimilarShapesWindow::aggregatePaths() {
       continue;
     }
 
-    if (group.size() == 2) {
-      node_pairs.push_back({group[0], group[1]});
+    /// Quick hacK!
+
+    // bool group_highlighted = false;
+    // for (auto n : group) {
+    //   if (n->isHighlighted()) {
+    //     group_highlighted = true;
+    //   }
+    // }
+
+    // if (!group_highlighted) continue;
+
+    /// OPTION 1: only consider shapes of occurrence of 2
+    // if (group.size() >= 2) {
+    //   node_pairs.push_back({group[0], group[1]});
+    // }
+
+    /// OPTION 2: consider all posible pairs
+
+    qDebug() << "group size: " << group.size();
+
+    for (auto i = 0u; i < group.size()-1; ++i) {
+      for (auto j = i+1; j < group.size(); ++j) {
+        node_pairs.push_back({group[i], group[j]});
+      }
     }
+
+    qDebug() << "node_pairs size: " << node_pairs.size();
+
 
   }
 

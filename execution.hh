@@ -64,7 +64,7 @@ public:
 
     NodeTree& nodeTree() { return *m_NodeTree.get(); }
 
-    const std::unordered_map<int64_t, std::string>& getNogoods() const;
+    const std::unordered_map<int, std::string>& getNogoods() const;
     std::unordered_map<int64_t, std::string*>& getInfo(void) const;
     DbEntry* getEntry(int gid) const;
     unsigned int getGidBySid(int sid);

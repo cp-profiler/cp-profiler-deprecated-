@@ -250,6 +250,7 @@ std::string compareDomains(const Execution& ex, const VisualNode& lhs,
   for (auto i = 0u; i < l_lines.size(); i++) {
     /// End of domain-specific info
     if (l_lines[i].substr(0, 16) == "full domain size") break;
+    if (l_lines[i].substr(0, 16) == "domain reduction") break;
 
     if (l_lines[i] != r_lines[i]) {
       if (l_lines[i].substr(0, 12) == "X_INTRODUCED") continue;

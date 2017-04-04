@@ -121,8 +121,8 @@ Q_OBJECT
 
     int last_interval_nc;
 
-    /// Map solver Id to no-good string
-    std::unordered_map<int64_t, std::string> sid2nogood;
+    /// Map solver Id to no-good string (rid = 0 always for chuffed)
+    std::unordered_map<int, std::string> sid2nogood;
 
 public:
 
@@ -171,7 +171,7 @@ public:
     bool isDone(void) { return _isDone; }
 
     const std::vector<DbEntry*>& getEntries() const { return nodes_arr; }
-    inline const std::unordered_map<int64_t, std::string>& getNogoods(void) { return sid2nogood; }
+    inline const std::unordered_map<int, std::string>& getNogoods(void) { return sid2nogood; }
     inline std::unordered_map<int64_t, std::string*>& getInfo(void) { return sid2info; }
 
     unsigned long long getTotalTime(void); /// time in microseconds
