@@ -27,6 +27,8 @@
 #include <QHBoxLayout>
 #include <QStandardItemModel>
 
+#include "third-party/json.hpp"
+
 const int NogoodDialog::DEFAULT_WIDTH = 600;
 const int NogoodDialog::DEFAULT_HEIGHT = 400;
 
@@ -97,37 +99,36 @@ NogoodDialog::NogoodDialog(
 
       auto sid2info = _tc.getExecution().getInfo();
       const NameMap& nm = _tc.getExecution().getNameMap();
-      std::unordered_map<std::string, int> con_ids;
+      std::unordered_map<int, int> con_ids;
 
       int max_count = 0;
       for(int i=0; i<selection.count(); i++) {
-          size_t row = size_t(selection.at(i).row());
-          int64_t sid = sids[row];
-          auto info_item = sid2info.find(sid);
-          if(info_item != sid2info.end()) {
-              std::string info_text = *info_item->second;
-              size_t start = info_text.find("[");
-              size_t end = info_text.find("]");
-              QString cons = QString::fromStdString(info_text.substr(start+1, end-start-1));
-              QStringList consSplit = cons.split(",");
+        size_t row = size_t(selection.at(i).row());
+        int64_t sid = sids[row];
+        auto info_item = sid2info.find(sid);
+        if(info_item != sid2info.end()) {
+          std::string info_text = *info_item->second;
+          auto info_json = nlohmann::json::parse(info_text);
 
-              for(QString& s : consSplit) {
-                  std::string con_string = s.toStdString();
-                  int count = 0;
-                  if(con_ids.find(con_string) == con_ids.end()) {
-                      con_ids[con_string] = 1;
-                      count = 1;
-                  } else {
-                      con_ids[con_string]++;
-                      count = con_ids[con_string];
-                  }
-
-                  max_count = count > max_count ? count : max_count;
+          auto reasonIt = info_json.find("reasons");
+          if(reasonIt != info_json.end()) {
+            auto reasons = *reasonIt;
+            for(int con_id : reasons) {
+              int count = 0;
+              if(con_ids.find(con_id) == con_ids.end()) {
+                con_ids[con_id] = 1;
+                count = 1;
+              } else {
+                con_ids[con_id]++;
+                count = con_ids[con_id];
               }
-
-          } else {
-              qDebug() << "Can't match sid to info_item.\n";
+              max_count = count > max_count ? count : max_count;
+            }
           }
+
+        } else {
+          qDebug() << "Can't match sid to info_item.\n";
+        }
       }
 
       int bucket = int(ceil(255.0/double(max_count+1)));
@@ -135,7 +136,8 @@ NogoodDialog::NogoodDialog(
       QStringList highlight_url;
       highlight_url << "<a href=\"highlight://?";
       for(auto it : con_ids) {
-        QString path = QString::fromStdString(nm.getPath(it.first));
+        std::string con_string = std::to_string(it.first);
+        QString path = QString::fromStdString(nm.getPath(con_string));
         QString path_head = getPathHead(path);
         QStringList location_etc = path_head.split(":");
         int count = it.second;
