@@ -106,17 +106,22 @@ ReceiverWorker::doRead()
                 case message::Node::START:
                 {
                     if (msg1.has_info()) {
-                        std::string s = msg1.info();
-                        auto info_json = nlohmann::json::parse(msg1.info());
 
-                        auto execution_id = info_json.find("execution_id");
-                        if(execution_id != info_json.end()) {
-                            execution->setExecutionId(*execution_id);
-                        }
+                        try {
+                            std::string s = msg1.info();
+                            auto info_json = nlohmann::json::parse(msg1.info());
 
-                        auto variableListString = info_json.find("variable_list");
-                        if(variableListString != info_json.end()) {
-                            execution->setVariableListString(*variableListString);
+                            auto execution_id = info_json.find("execution_id");
+                            if(execution_id != info_json.end()) {
+                                execution->setExecutionId(*execution_id);
+                            }
+
+                            auto variableListString = info_json.find("variable_list");
+                            if(variableListString != info_json.end()) {
+                                execution->setVariableListString(*variableListString);
+                            }
+                        } catch (std::exception& e) {
+                            std::cerr << "Can't parse json in info: " << e.what() << "\n";
                         }
                     }
 
