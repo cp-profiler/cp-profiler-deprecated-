@@ -72,7 +72,7 @@ std::unordered_map<int64_t, string*>& Execution::getInfo(void) const {
   return m_Data->getInfo();
 }
 DbEntry* Execution::getEntry(int gid) const { return m_Data->getEntry(gid); }
-unsigned int Execution::getGidBySid(int sid) { return m_Data->getGidBySid(sid); }
+unsigned Execution::getGidBySid(int64_t sid) { return m_Data->getGidBySid(sid); }
 std::string Execution::getLabel(int gid) const { return m_Data->getLabel(gid); }
 unsigned long long Execution::getTotalTime() { return m_Data->getTotalTime(); }
 

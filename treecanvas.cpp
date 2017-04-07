@@ -1607,6 +1607,25 @@ void TreeCanvas::analyseBackjumps() {
   qDebug() << "wrote to bj_data.txt";
 }
 
+void TreeCanvas::openNodeSearch() {
+
+  auto text = QInputDialog::getText(this,
+    tr("Find node by id"), tr("Enter node id (sid):"));
+
+  bool ok;
+  auto sid = text.toInt(&ok);
+
+  if (!ok) {
+    qDebug() << "can't parse int";
+    return;
+  }
+
+  auto gid = execution.getGidBySid(sid);
+
+  navigateToNodeById(gid);
+
+}
+
 #ifdef MAXIM_DEBUG
 void TreeCanvas::printDebugInfo() {
   print_debug(na, execution.getData());

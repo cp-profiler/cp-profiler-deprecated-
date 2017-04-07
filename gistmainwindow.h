@@ -176,6 +176,9 @@ private:
   /// Backjump analysis
   QAction* analyseBackjumps;
 
+  /// Find Node
+  QAction* findNode;
+
 #ifdef MAXIM_DEBUG
 
   QAction* dirtyUpNode;

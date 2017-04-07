@@ -218,6 +218,8 @@ GistMainWindow::GistMainWindow(Execution& e,
   nodeMenu->addAction(zoomToFit);
   nodeMenu->addAction(center);
   nodeMenu->addAction(exportPDF);
+  nodeMenu->addSeparator();
+  nodeMenu->addAction(findNode);
 
   /// ***** Tree Visualisaitons *****
 
@@ -492,6 +494,12 @@ void GistMainWindow::addActions() {
   addAction(analyseBackjumps);
   connect(analyseBackjumps, &QAction::triggered,
           canvas, &TreeCanvas::analyseBackjumps);
+
+  findNode = new QAction("Find Node", this);
+  addAction(findNode);
+  findNode->setShortcut(QKeySequence("Ctrl+F"));
+  connect(findNode, &QAction::triggered,
+          canvas, &TreeCanvas::openNodeSearch);
 
 #ifdef MAXIM_DEBUG
   auto printDebugInfo = new QAction("Print Debug Info", this);

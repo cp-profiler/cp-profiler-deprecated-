@@ -383,6 +383,8 @@ public Q_SLOTS:
 
   void analyseBackjumps();
 
+  void openNodeSearch();
+
 #ifdef MAXIM_DEBUG
 private:
   void _addChildren(VisualNode* n);

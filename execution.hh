@@ -67,7 +67,7 @@ public:
     const std::unordered_map<int, std::string>& getNogoods() const;
     std::unordered_map<int64_t, std::string*>& getInfo(void) const;
     DbEntry* getEntry(int gid) const;
-    unsigned int getGidBySid(int sid);
+    unsigned getGidBySid(int64_t sid);
     std::string getLabel(int gid) const;
 
     std::string getLabel(const VisualNode& node) const {

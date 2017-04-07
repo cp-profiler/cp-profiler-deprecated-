@@ -316,7 +316,7 @@ PentListWindow::populateNogoodTable(const std::vector<int>& nogoods) {
 
   for (auto i = 0u; i < nogoods.size(); i++) {
 
-    int64_t ng_id = nogoods[i]; /// is this sid of gid???
+    auto ng_id = nogoods[i]; /// is this sid of gid???
     _nogoodTable.setItem(i, 0, new QTableWidgetItem(QString::number(ng_id)));
 
     string& nogood = getNogoodById(ng_id, nogood_map);

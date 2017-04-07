@@ -176,7 +176,7 @@ public:
 
     unsigned long long getTotalTime(void); /// time in microseconds
 
-    int getGidBySid(int64_t sid) { return nodes_arr[sid2aid[sid]]->gid; }
+    unsigned getGidBySid(int64_t sid) { return nodes_arr[sid2aid[sid]]->gid; }
     DbEntry* getEntry(int gid) const;
 
 
