@@ -75,7 +75,7 @@ const QString NameMap::path2Expression(const QString& path) const {
     if(!ok) return "";
 
     // Extract text from file
-    newName = modelText[sl].mid(sc-1, ec);
+    newName = modelText[sl-1].mid(sc-1, ec-1);
 
     return newName;
 }
