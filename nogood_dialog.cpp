@@ -32,32 +32,6 @@
 const int NogoodDialog::DEFAULT_WIDTH = 600;
 const int NogoodDialog::DEFAULT_HEIGHT = 400;
 
-// Get the most specific path component that is still in the user model
-QString getPathHead(QString& path) {
-  QStringList pathSplit = path.split(";");
-
-  QString mzn_file;
-  QString previousHead;
-  int i=0;
-  do {
-    QString path_head = pathSplit[i];
-    QStringList head = path_head.split(":");
-    QString head_file;
-    if(head.size() > 0) {
-      if(i==0) mzn_file = head[0];
-      head_file = head[0];
-    }
-
-    if(head_file != mzn_file)
-        return previousHead;
-
-    previousHead = path_head;
-    i++;
-  } while(i < pathSplit.size());
-
-  return previousHead;
-}
-
 NogoodDialog::NogoodDialog(
     QWidget* parent, TreeCanvas& tc, const std::vector<int>& selected_nodes,
     const std::unordered_map<int, std::string>& sid2nogood, int64_t root_gid)
@@ -98,7 +72,6 @@ NogoodDialog::NogoodDialog(
       QModelIndexList selection = _nogoodTable->selectionModel()->selectedRows();
 
       auto sid2info = _tc.getExecution().getInfo();
-      const NameMap& nm = _tc.getExecution().getNameMap();
       std::unordered_map<int, int> con_ids;
 
       int max_count = 0;
@@ -131,29 +104,8 @@ NogoodDialog::NogoodDialog(
         }
       }
 
-      int bucket = int(ceil(255.0/double(max_count+1)));
-
-      QStringList highlight_url;
-      highlight_url << "<a href=\"highlight://?";
-      for(auto it : con_ids) {
-        std::string con_string = std::to_string(it.first);
-        QString path = QString::fromStdString(nm.getPath(con_string));
-        QString path_head = getPathHead(path);
-        QStringList location_etc = path_head.split(":");
-        int count = it.second;
-
-        if(location_etc.count() >= 5) {
-          QStringList newLoc;
-          for(int i=0; i<5; i++) newLoc << location_etc[i];
-          int val = (1 + count) * bucket;
-          newLoc << QString::number(val <= 255 ? val : 255);
-          highlight_url << newLoc.join(":") << ";";
-        }
-      }
-      highlight_url << "\">Heatmap ("<< QString::number(_root_gid) << ")</a>";
-
-      std::string thestring = highlight_url.join("").toStdString();
-      _tc.emitShowNogoodToIDE(thestring);
+      const NameMap& nm = _tc.getExecution().getNameMap();
+      _tc.emitShowNogoodToIDE(nm.getHeatMap(con_ids, max_count, QString::number(_root_gid)));
 
   });
 
@@ -181,7 +133,7 @@ void NogoodDialog::populateTable(const std::vector<int>& selected_nodes) {
 
     std::string clause = _tc.getExecution().getNameMap().replaceNames(ng_item->second);
 
-    _model->setItem(row, 0, new QStandardItem(QString::number(gid)));
+    _model->setItem(row, 0, new QStandardItem(QString::number(sid)));
     _model->setItem(row, 1, new QStandardItem(clause.c_str()));
     sids.push_back(sid);
 
@@ -192,7 +144,6 @@ void NogoodDialog::populateTable(const std::vector<int>& selected_nodes) {
 }
 
 void NogoodDialog::selectNode(const QModelIndex& index) {
-  int gid = index.sibling(index.row(), 0).data().toInt();
-  qDebug() << "gid: " << gid;
+  int gid = _tc.getExecution().getData().gid2sid(index.sibling(index.row(), 0).data().toInt());
   _tc.navigateToNodeById(gid);
 }

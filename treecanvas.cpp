@@ -339,7 +339,7 @@ std::string boolToString(bool flag) {
 
 #endif
 
-void TreeCanvas::emitShowNogoodToIDE(std::string heatmap) {
+void TreeCanvas::emitShowNogoodToIDE(const QString heatmap) {
     emit showNogood(heatmap);
 }
 
@@ -349,9 +349,16 @@ void TreeCanvas::showNodeInfo(void) {
   extra_info += "\n";
 
   auto id = currentNode->getIndex(na);
+  DbEntry* entry = execution.getEntry(*currentNode);
+  int64_t sid;
+  if(entry)
+    sid = entry->full_sid;
+
   auto depth = utils::calculateDepth(execution.nodeTree(), *currentNode);
 
   extra_info += "--------------------------------------------\n";
+  if(entry)
+    extra_info += "sid: " + std::to_string(sid) + "\t";
   extra_info += " id: " + std::to_string(id) + "\tdepth: " + std::to_string(depth) + "\n";
   extra_info += "--------------------------------------------\n";
 

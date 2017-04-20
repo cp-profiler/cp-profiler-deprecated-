@@ -75,7 +75,7 @@ static int copyTree(VisualNode* target_node, Execution& ex_target,
 
             /// TODO(maxim): connect nogoods as well
 
-            auto sid = entry->s_node_id;
+            auto sid = entry->full_sid;
             auto info = source_data.sid2info.find(sid);
 
             /// note(maxim): should have to maintain another map
@@ -312,6 +312,10 @@ std::unique_ptr<ComparisonResult> compare(TreeCanvas* new_tc,
       for (auto i = 0u; i < kids; ++i) {
         stack.push(next->getChild(na, kids - i - 1));
       }
+
+      const string* info_str = ex1.getInfo(*node1);
+      result->m_pentagonItems.emplace_back(
+          PentagonItem{0, 0, next, info_str});
 
     } else {
       /// not equal
