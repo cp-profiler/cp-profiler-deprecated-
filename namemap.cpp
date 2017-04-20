@@ -30,6 +30,7 @@ const std::string NameMap::replaceNames(std::string text) const {
       return text;
     }
 
+
     std::regex_iterator<std::string::const_iterator> rit(text.begin(), text.end(), var_name_regex);
     std::regex_iterator<std::string::const_iterator> rend;
 
@@ -38,17 +39,17 @@ const std::string NameMap::replaceNames(std::string text) const {
     while(rit != rend) {
       long pos = rit->position();
       ss << text.substr(prev, pos-prev);
-      std::string id = rit->str();
+      const std::string id = rit->str();
       std::string name = getNiceName(id);
-      //if(name == id && modelText.size() > 0) {
-      //    name = path2Expression(QString().fromStdString(getPath(id))).toStdString();
-      //    if(!name.empty()) {
-      //        name = "〈" + name + "〉";
-      //    } else {
-      //        name = id;
-      //    }
-      //}
-      ss << name;
+      if(name == id && modelText.size() > 0) {
+        name = path2Expression(QString().fromStdString(getPath(id))).toStdString();
+        if(!name.empty()) {
+          name = "〈" + name + "〉";
+        } else {
+          name = id;
+        }
+      }
+      ss << (name != "" ? name : id);
       prev = pos + id.length();
       ++rit;
     }

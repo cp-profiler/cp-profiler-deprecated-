@@ -44,6 +44,8 @@ class GlobalParser {
   static QCommandLineOption test_option;
   static QCommandLineOption port_option;
   static QCommandLineOption load_option;
+  static QCommandLineOption paths_option;
+  static QCommandLineOption mzn_option;
   static QCommandLineOption save_log;
   static QCommandLineOption auto_compare;
 

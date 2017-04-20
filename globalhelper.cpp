@@ -42,6 +42,12 @@ QCommandLineOption GlobalParser::port_option{
 QCommandLineOption GlobalParser::load_option{
     {"l", "load"}, "Load execution <file_name>.", "file_name"};
 
+QCommandLineOption GlobalParser::paths_option{
+    "paths", "Use symbol table from: <file_name>.", "file_name"};
+
+QCommandLineOption GlobalParser::mzn_option{
+    "mzn", "Use MiniZinc file for tying ids to expressions: <file_name>.", "file_name"};
+
 QCommandLineOption GlobalParser::save_log{
     "save_log", "Save search log to <file_name>.", "file_name"};
 
@@ -63,6 +69,8 @@ GlobalParser::GlobalParser() {
   clParser.addOption(test_option);
   clParser.addOption(port_option);
   clParser.addOption(load_option);
+  clParser.addOption(mzn_option);
+  clParser.addOption(paths_option);
   clParser.addOption(save_log);
   clParser.addOption(auto_compare);
   clParser.addOption(auto_stats);

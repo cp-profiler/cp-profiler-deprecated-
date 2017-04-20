@@ -21,7 +21,19 @@ public:
     using Map = unordered_map<string, pair<string, string> >;
 
     NameMap() {}
-    NameMap(QString& model_filename, Map& nm) : filename(model_filename), _nameMap(nm) {
+    NameMap(QString& path_filename, QString& model_filename) : filename(model_filename) {
+      if(path_filename != "") {
+        QFile pf(path_filename);
+        if(pf.open(QIODevice::ReadOnly)) {
+          QTextStream in(&pf);
+          while(!in.atEnd()) {
+            QString line = in.readLine();
+            QStringList s = line.split("\t");
+            _nameMap[s[0].toStdString()] = std::make_pair(s[1].toStdString(), s[2].toStdString());
+          }
+        }
+      }
+
       QFile model_file(model_filename);
       if(model_file.open(QIODevice::ReadOnly | QIODevice::Text)) {
         QTextStream tstream(&model_file);

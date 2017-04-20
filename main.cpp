@@ -47,6 +47,18 @@ int main(int argc, char *argv[]) {
 
   w.show();
 
+  QString mzn_name;
+  if (GlobalParser::isSet(GlobalParser::mzn_option)) {
+    mzn_name = GlobalParser::value(GlobalParser::mzn_option);
+    qDebug() << "loading mzn file: " << mzn_name;
+  }
+
+  if (GlobalParser::isSet(GlobalParser::paths_option)) {
+    auto file_name = GlobalParser::value(GlobalParser::paths_option);
+    qDebug() << "loading paths file: " << file_name;
+    w.getNextExecutionId(file_name.toStdString(), NameMap(file_name, mzn_name));
+  }
+
   /// NOTE(maxim): only can load 1 execution for now
   if (GlobalParser::isSet(GlobalParser::load_option)) {
     auto file_name = GlobalParser::value(GlobalParser::load_option);
