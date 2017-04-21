@@ -131,10 +131,10 @@ void NogoodDialog::populateTable(const std::vector<int>& selected_nodes) {
       continue;  /// nogood not found
     }
 
-    std::string clause = _tc.getExecution().getNameMap().replaceNames(ng_item->second);
+    QString clause = _tc.getExecution().getNameMap().replaceNames(QString::fromStdString(ng_item->second));
 
     _model->setItem(row, 0, new QStandardItem(QString::number(sid)));
-    _model->setItem(row, 1, new QStandardItem(clause.c_str()));
+    _model->setItem(row, 1, new QStandardItem(clause));
     sids.push_back(sid);
 
     row++;
