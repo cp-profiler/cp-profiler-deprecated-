@@ -46,8 +46,11 @@ class ReceiverThread : public QThread {
   ~ReceiverThread() = default;
 
  signals:
-
   void doneReceiving(void);
+  void executionIdReady(Execution* execution);
+
+ private slots:
+  void emitExecutionIdReady(void);
 
  private:
   void run(void) override;
@@ -68,6 +71,7 @@ class ReceiverWorker : public QObject {
 
  signals:
   void doneReceiving(void);
+  void executionIdReady(void);
 
  private:
   Execution* execution;

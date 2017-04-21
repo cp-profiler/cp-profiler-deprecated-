@@ -43,7 +43,7 @@ public:
         execution_id = eid;
     }
 
-    void setNameMap(const NameMap& names) {
+    void setNameMap(NameMap* names) {
         nameMap = names;
     }
 
@@ -97,7 +97,7 @@ public:
         return variableListString;
     }
 
-    const NameMap& getNameMap() const {
+    const NameMap* getNameMap() const {
         return nameMap;
     }
 
@@ -119,7 +119,7 @@ private:
     std::unique_ptr<NodeTree> m_NodeTree;
     std::unique_ptr<Data> m_Data;
     std::unique_ptr<TreeBuilder> m_Builder;
-    NameMap nameMap;
+    NameMap* nameMap;
     int execution_id;
     bool _is_restarts;
     // Name of the FlatZinc model

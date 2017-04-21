@@ -60,6 +60,7 @@ class ProfilerConductor : public QMainWindow {
   void createDebugExecution();
   void updateTitles();
   void cloneExecution();
+  void executionIdReady(Execution* e);
 
  public:
   ProfilerConductor();

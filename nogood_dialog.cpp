@@ -104,9 +104,9 @@ NogoodDialog::NogoodDialog(
         }
       }
 
-      const NameMap& nm = _tc.getExecution().getNameMap();
-      _tc.emitShowNogoodToIDE(nm.getHeatMap(con_ids, max_count, QString::number(_root_gid)));
-
+      const NameMap* nm = _tc.getExecution().getNameMap();
+      if(nm != nullptr)
+        _tc.emitShowNogoodToIDE(nm->getHeatMap(con_ids, max_count, QString::number(_root_gid)));
   });
 
   layout->addWidget(heatmapButton);
@@ -131,7 +131,9 @@ void NogoodDialog::populateTable(const std::vector<int>& selected_nodes) {
       continue;  /// nogood not found
     }
 
-    QString clause = _tc.getExecution().getNameMap().replaceNames(QString::fromStdString(ng_item->second));
+    const NameMap* nm = _tc.getExecution().getNameMap();
+    QString qclause = QString::fromStdString(ng_item->second);
+    QString clause = nm != nullptr ? nm->replaceNames(qclause) : qclause;
 
     _model->setItem(row, 0, new QStandardItem(QString::number(sid)));
     _model->setItem(row, 1, new QStandardItem(clause));

@@ -516,7 +516,8 @@ CmpTreeDialog::showResponsibleNogoods() {
     ng_table->setItem(row, 1, new QTableWidgetItem(QString::number(ng.second.occurrence)));
 
     const QString nogood = QString::fromStdString(getNogoodById(ng.first, nogood_map));
-    QString renamed_nogood = m_Cmp_result->left_execution().getNameMap().replaceNames(nogood);
+    const NameMap* nm = m_Cmp_result->left_execution().getNameMap();
+    QString renamed_nogood = nm != nullptr ? nm->replaceNames(nogood) : nogood;
 
     ng_table->setItem(row, 2, new QTableWidgetItem(QString::number(ng.second.search_eliminated)));
     ng_table->setItem(row, 3, new QTableWidgetItem(renamed_nogood));

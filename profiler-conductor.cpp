@@ -184,6 +184,7 @@ ProfilerConductor::ProfilerConductor() : QMainWindow() {
 
     /// TODO(maxim): receiver should be destroyed when done?
     auto receiver = new ReceiverThread(socketDescriptor, execution, this);
+    connect(receiver, SIGNAL(executionIdReady(Execution*)), this, SLOT(executionIdReady(Execution*)));
 
     addExecution(*execution);
 
@@ -266,10 +267,6 @@ void ProfilerConductor::updateTitles(void) {
 }
 
 GistMainWindow* ProfilerConductor::createGist(Execution& e, QString title) {
-  int eid = e.getExecutionId();
-  if (eid != -1 && eid < nameMaps.size()) {
-      e.setNameMap(nameMaps[eid].second);
-  }
   auto gist = new GistMainWindow{e, this};
   gist->changeTitle(title);
   executionInfoHash[&e]->gistWindow = gist;
@@ -575,6 +572,13 @@ void ProfilerConductor::createExecution(unique_ptr<NodeTree> nt,
   e->setTitle("Extracted Execution");
 
   auto gist = createGist(*e, e->getTitle().c_str());
+}
+
+void ProfilerConductor::executionIdReady(Execution* e) {
+  int eid = e->getExecutionId();
+  if (eid != -1 && eid < nameMaps.size()) {
+      e->setNameMap(&nameMaps[eid].second);
+  }
 }
 
 void ProfilerConductor::showNodeInfoToIDE(std::string extra_info) {
