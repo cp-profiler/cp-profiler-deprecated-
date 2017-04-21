@@ -288,6 +288,9 @@ public Q_SLOTS:
   /// Delete (immediately) unsuccessful assignments in the middle (chains)
   void deleteTrials();
 
+  /// Delete unexplored and skipped nodes etc.
+  void finalize();
+
   /// Delete Skipped Nodes (needed e.g. for replaying with restart)
   void deleteSkippedNodes();
 

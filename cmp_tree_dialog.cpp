@@ -23,6 +23,7 @@
 #include <cmath>
 #include "third-party/json.hpp"
 
+#include "globalhelper.hh"
 #include "cmp_tree_dialog.hh"
 #include "nodewidget.hh"
 #include "treecomparison.hh"
@@ -239,32 +240,48 @@ string& getNogoodById(int ng_id, const std::unordered_map<int, string>& ng_map) 
 
 void
 CmpTreeDialog::saveComparisonStatsTo(const QString& file_name) {
-  if (file_name != "") {
-        QFile outputFile(file_name);
-        if (outputFile.open(QFile::WriteOnly | QFile::Truncate)) {
-            QTextStream out(&outputFile);
+  if (file_name == "") return;
 
-            auto ng_stats = m_Cmp_result->responsible_nogood_stats();
-            auto nogood_map = m_Cmp_result->left_execution().getNogoods();
+  QFile outputFile(file_name);
 
-            out << "id,occur,score,nogood\n";
+  if (!outputFile.open(QFile::WriteOnly | QFile::Truncate)) {
+    qDebug() << "could not open the file: " << file_name;
+    return;
+  }
 
-            for (auto& ng : ng_stats) {
+  QTextStream out(&outputFile);
 
-              out << ng.first << ",";
-              out << ng.second.occurrence << ",";
-              out << ng.second.search_eliminated << ",";
+  auto ng_stats = m_Cmp_result->responsible_nogood_stats();
+  auto nogood_map = m_Cmp_result->left_execution().getNogoods();
 
-              string& nogood = getNogoodById(ng.first, nogood_map);
+  out << "id, occur, score, ng_id, nogood\n";
 
-              out << nogood.c_str() << "\n";
-            }
+  std::vector<std::pair<int, NogoodCmpStats> > ng_stats_vector;
+  ng_stats_vector.reserve(ng_stats.size());
 
-            qDebug() << "writing comp stats to the file: " << file_name;
-        } else {
-          qDebug() << "could not open the file: " << file_name;
-        }
-    }
+  for (auto ng : ng_stats) {
+    ng_stats_vector.push_back(ng);
+  }
+
+  std::sort(ng_stats_vector.begin(), ng_stats_vector.end(),
+    [](const std::pair<int, NogoodCmpStats>& lhs,
+       const std::pair<int, NogoodCmpStats>& rhs) {
+      return lhs.second.search_eliminated > rhs.second.search_eliminated;
+  });
+
+  for (auto& ng : ng_stats_vector) {
+
+    out << ng.first << ", ";
+    out << ng.second.occurrence << ", ";
+    out << ng.second.search_eliminated << ", ";
+
+    string& nogood = getNogoodById(ng.first, nogood_map);
+
+    out << nogood.c_str() << "\n";
+  }
+
+  qDebug() << "writing comp stats to the file: " << file_name;
+
 }
 
 void
@@ -458,6 +475,11 @@ CmpTreeDialog::showResponsibleNogoods() {
   ng_layout->addWidget(ng_table);
 
   auto save_btn = new QPushButton("Save as", ng_dialog);
+
+  if (GlobalParser::isSet(GlobalParser::auto_compare)) {
+    saveComparisonStatsTo("ng_stats.txt");
+    std::cerr << "STATS SAVED\n";
+  }
 
   connect(save_btn, &QPushButton::clicked, this, [this](){
     saveComparisonStatsTo("temp_stats.txt");

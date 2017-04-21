@@ -122,6 +122,10 @@ TreeCanvas::TreeCanvas(Execution* e, QGridLayout* layout, QWidget* parent)
           SLOT(setValue(int)));
   zoomTimeLine.setCurveShape(QTimeLine::EaseInOutCurve);
 
+  if (execution.finished) {
+    finalize();
+  }
+
   qRegisterMetaType<Statistics>("Statistics");
 
   updateTimer = new QTimer(this);
@@ -239,6 +243,12 @@ void TreeCanvas::deleteTrials() {
   }
 
   updateCanvas();
+}
+
+void TreeCanvas::finalize() {
+  if (GlobalParser::isSet(GlobalParser::save_log)) {
+    // deleteWhiteNodes();
+  }
 }
 
 void TreeCanvas::deleteSkippedNodes() {
@@ -898,6 +908,7 @@ void TreeCanvas::print(void) {
   }
 }
 
+/// This already exists in execution (reconnect and remove)
 void TreeCanvas::printSearchLog(void) {
 
   std::stringstream out;
@@ -906,7 +917,11 @@ void TreeCanvas::printSearchLog(void) {
 
   std::cout << "SEARCH LOG READY" << std::endl;
 
-  Utils::writeToFile(out.str().c_str());
+  // if (GlobalParser::isSet(GlobalParser::save_log)) {
+    Utils::writeToFile("search.log", out.str().c_str());
+  // } else {
+    // Utils::writeToFile(out.str().c_str());
+  // }
 }
 
 VisualNode* TreeCanvas::eventNode(QEvent* event) {

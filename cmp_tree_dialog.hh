@@ -88,6 +88,10 @@ public:
   void saveComparisonStatsTo(const QString& file_name);
   void selectPentagon(int row);
 
+public Q_SLOTS:
+
+  void showResponsibleNogoods();
+
 private Q_SLOTS:
 
   /// Pentagon navigation
@@ -97,8 +101,6 @@ private Q_SLOTS:
 
   void showPentagonHist();
   void saveComparisonStats();
-
-  void showResponsibleNogoods();
 
 };
 

@@ -18,6 +18,7 @@
  *  WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 #include "data.hh"
+#include "cpprofiler/utils/utils.hh"
 
 #include <iostream>
 #include <qdebug.h>
@@ -143,7 +144,6 @@ int Data::handleNodeCallback(message::Node& node) {
     pushInstance(entry);
 
     if (node.has_nogood() && node.nogood().length() > 0) {
-        std::string nogood = node.nogood();
         sid2nogood[entry->full_sid] = node.nogood();
     }
 

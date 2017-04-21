@@ -44,9 +44,6 @@ TreeBuilder::TreeBuilder(Execution* exec, QObject* parent)
       _na(execution.nodeTree().getNA()) {
 
   read_queue.reset(new ReadingQueue(_data.getEntries()));
-    
-  connect(this, &TreeBuilder::doneBuilding,
-          &execution, &Execution::doneBuilding);
 }
 
 TreeBuilder::~TreeBuilder() {}

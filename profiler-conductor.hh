@@ -69,6 +69,8 @@ class ProfilerConductor : public QMainWindow {
   void loadExecution(std::string filename);
   void createExecution(std::unique_ptr<NodeTree> nt, std::unique_ptr<Data>);
 
+  void autoCompareTwoExecution();
+
 Q_SIGNALS:
   void showNodeInfo(std::string extra_info);
   void showNogood(QString heatmap);

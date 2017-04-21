@@ -1,6 +1,9 @@
 #include "execution.hh"
 #include "data.hh"
 #include "treebuilder.hh"
+#include "nodecursor.hh"
+#include "globalhelper.hh"
+#include "nodevisitor.hh"
 #include "cpprofiler/utils/tree_utils.hh"
 
 #include <regex>
@@ -22,6 +25,69 @@ Data& Execution::getData() const {
     return *m_Data.get();
 }
 
+static void printSearchLog(Execution& ex) {
+
+  std::stringstream ss;
+
+  auto& nt = ex.nodeTree();
+  auto root = nt.getRoot();
+  SearchLogCursor slc(root, ss, nt.getNA(), ex);
+  PreorderNodeVisitor<SearchLogCursor>(slc).run();
+
+  std::cerr << "SEARCH LOG READY" << std::endl;
+
+  if (GlobalParser::isSet(GlobalParser::save_log)) {
+    Utils::writeToFile("search.log", ss.str().c_str());
+  } else {
+    Utils::writeToFile(ss.str().c_str());
+  }
+}
+
+static void deleteNode(Execution& ex, Node* n) {
+
+  auto& na = ex.nodeTree().getNA();
+
+  auto parent = n->getParent(na);
+  if (!parent) return;
+  parent->removeChild(n->getIndex(na), na);
+  parent->dirtyUp(na);
+}
+
+static void deleteSkippedNodes(Execution& ex) {
+
+  auto& na = ex.nodeTree().getNA();
+
+  for (auto i = 0; i < na.size(); ++i) {
+    auto node = na[i];
+
+    if (node->getStatus() == SKIPPED) {
+      deleteNode(ex, node);
+    }
+  }
+}
+
+static void deleteWhiteNodes(Execution& ex) {
+  // TODO(maxim): might have to reset 'current node' if
+  //              is is no longer visible
+  // TODO(maxim): fix this crashing pixel tree
+
+  // IMPORTANT(maxim): currently I leave 'holes' in *na* that
+  //                   can be examined and point to nodes not visualised
+
+  // 1. swap deleted nodes in *na* with the last in *na*
+  // and remap array ids.
+
+  auto& na = ex.nodeTree().getNA();
+
+  for (auto i = 0; i < na.size(); ++i) {
+    auto node = na[i];
+    if (node->getStatus() == UNDETERMINED) {
+      deleteNode(ex, node);
+    }
+  }
+}
+
+
 void Execution::start(std::string label, bool isRestarts) {
 
     _is_restarts = isRestarts;
@@ -39,6 +105,19 @@ void Execution::start(std::string label, bool isRestarts) {
 
     connect(m_Builder.get(), &TreeBuilder::addedNode, this, &Execution::newNode);
     connect(m_Builder.get(), &TreeBuilder::addedRoot, this, &Execution::newRoot);
+    // connect(m_Builder.get(), &TreeBuilder::doneBuilding, this, &Execution::doneBuilding);
+
+    connect(m_Builder.get(), &TreeBuilder::doneBuilding, [this]() {
+
+      if (GlobalParser::isSet(GlobalParser::save_log)) {
+        deleteSkippedNodes(*this);
+        deleteWhiteNodes(*this);
+        printSearchLog(*this);
+      }
+
+      finished = true;
+      emit doneBuilding();
+    });
 
     m_Builder->start();
 

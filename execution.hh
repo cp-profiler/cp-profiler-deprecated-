@@ -101,6 +101,8 @@ public:
         return nameMap;
     }
 
+    bool finished{false};
+
 public slots:
     void handleNewNode(message::Node& node);
     /// Compare domains of two nodes (highlighted)

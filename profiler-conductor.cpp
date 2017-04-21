@@ -191,6 +191,8 @@ ProfilerConductor::ProfilerConductor() : QMainWindow() {
   }));
 
   listener->listen(QHostAddress::Any, 6565);
+
+  std::cerr << "READY TO LISTEN\n";
 }
 
 ProfilerConductor::~ProfilerConductor() = default;
@@ -225,6 +227,20 @@ void ProfilerConductor::addExecution(Execution& e) {
 
   /// updates titles when a new one becomes known
   connect(&e, SIGNAL(titleKnown()), this, SLOT(updateTitles()));
+
+    /// See if should auto compare the first two execution
+  if (GlobalParser::isSet(GlobalParser::auto_compare)) {
+    connect(&e, &Execution::doneBuilding, [this]() {
+
+      if (executions.size() < 2) return;
+
+      if (executions[0]->finished && executions[1]->finished) {
+        std::cerr << "TWO EXECUTIONS READY\n";
+        autoCompareTwoExecution();
+      }
+
+    });
+  }
 
   show();
 }
@@ -263,6 +279,9 @@ GistMainWindow* ProfilerConductor::createGist(Execution& e, QString title) {
   connect(gist->getCanvas(), SIGNAL(showNogood(QString)),
           this, SLOT(showNogoodToIDE(QString)));
 
+  connect(&e, &Execution::doneBuilding,
+          gist->getCanvas(), &TreeCanvas::finalize);
+
   return gist;
 }
 
@@ -290,6 +309,24 @@ void ProfilerConductor::compareButtonClicked() {
 
   /// NOTE(maxim): the new window will delete itself when closed
   new CmpTreeDialog(this, new Execution{}, withLabels, *ex1, *ex2);
+}
+
+void ProfilerConductor::autoCompareTwoExecution() {
+  if (executions.size() < 2) return;
+
+  auto ex1 = executions[0];
+  auto ex2 = executions[1];
+
+  /// display the two executions if not already displayed
+
+  // displayExecution(*ex1, "ex1");
+  // displayExecution(*ex2, "ex2");
+
+  bool withLabels = true;
+
+  auto cmp_dialog = new CmpTreeDialog(nullptr, new Execution{}, withLabels, *ex1, *ex2);
+
+  cmp_dialog->showResponsibleNogoods();
 }
 
 
