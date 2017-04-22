@@ -27,18 +27,6 @@
 #include <QHBoxLayout>
 #include <QStandardItemModel>
 
-class QStandardItemModelSetter : public TableHelpers::TableSetItem {
-public:
-    QStandardItemModelSetter(QStandardItemModel* model) : _model(model){};
-    ~QStandardItemModelSetter() {};
-    void assign(int row, QString newNogood) {
-      int nogood_col = 1;
-      _model->setItem(row, nogood_col, new QStandardItem(newNogood));
-    }
-private:
-    QStandardItemModel* _model;
-};
-
 const int NogoodDialog::DEFAULT_WIDTH = 600;
 const int NogoodDialog::DEFAULT_HEIGHT = 400;
 
@@ -80,29 +68,33 @@ NogoodDialog::NogoodDialog(
 
   const NameMap* nm = _tc.getExecution().getNameMap();
   if(nm != nullptr) {
-      int sid_col = 0;
-      auto heatmapButton = new QPushButton("Heatmap");
-      connect(heatmapButton, &QPushButton::clicked, this, [=](){
-        const QString heatmap = nm->getHeatMapFromModel(
-              _tc.getExecution().getInfo(), *_nogoodTable, sid_col);
-        if(!heatmap.isEmpty())
-          _tc.emitShowNogoodToIDE(heatmap);
-      });
+    int sid_col = 0;
+    int nogood_col = 1;
+    auto heatmapButton = new QPushButton("Heatmap");
+    connect(heatmapButton, &QPushButton::clicked, this, [=](){
+      const QString heatmap = nm->getHeatMapFromModel(
+            _tc.getExecution().getInfo(), *_nogoodTable, sid_col);
+      if(!heatmap.isEmpty())
+        _tc.emitShowNogoodToIDE(heatmap);
+    });
 
-      auto showExpressions = new QPushButton("Show/Hide Expressions");
-      connect(showExpressions, &QPushButton::clicked, this, [=](){
-        expand_expressions ^= true;
-        QStandardItemModelSetter tsi(_model);
-        nm->refreshModelRenaming(
-                    _tc.getExecution().getNogoods(), *_nogoodTable,
-                    sid_col, expand_expressions, tsi);
-      });
+    auto showExpressions = new QPushButton("Show/Hide Expressions");
+    connect(showExpressions, &QPushButton::clicked, this, [=](){
+      expand_expressions ^= true;
+      nm->refreshModelRenaming(
+            _tc.getExecution().getNogoods(), *_nogoodTable,
+            sid_col, expand_expressions,
+            [=](int row, QString newNogood) {
+        _model->setItem(row, nogood_col, new QStandardItem(newNogood));
+      }
+      );
+    });
 
-      auto buttons = new QHBoxLayout(this);
-      buttons->addWidget(heatmapButton);
-      buttons->addWidget(showExpressions);
+    auto buttons = new QHBoxLayout(this);
+    buttons->addWidget(heatmapButton);
+    buttons->addWidget(showExpressions);
 
-      layout->addLayout(buttons);
+    layout->addLayout(buttons);
   }
 }
 

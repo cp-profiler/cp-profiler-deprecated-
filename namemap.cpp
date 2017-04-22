@@ -172,7 +172,7 @@ void NameMap::refreshModelRenaming(
         const std::unordered_map<int, std::string>& sid2nogood,
         const QTableView& table,
         int sid_col, bool expand_expressions,
-        TableHelpers::TableSetItem& tsi) const {
+        const std::function <void (int, QString)>& tsi) const {
   const QModelIndexList selection = TableHelpers::getSelection(table, sid_col);
   for(int i=0; i<selection.count(); i++) {
     int row = selection.at(i).row();
@@ -186,7 +186,7 @@ void NameMap::refreshModelRenaming(
     QString qclause = QString::fromStdString(ng_item->second);
     QString clause = replaceNames(qclause, expand_expressions);
 
-    tsi.assign(row, clause);
+    tsi(row, clause);
   }
   TableHelpers::updateSelection(table);
 }

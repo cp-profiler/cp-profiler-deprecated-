@@ -16,13 +16,6 @@ using std::pair;
 using std::unordered_map;
 using std::regex;
 
-namespace TableHelpers {
-class TableSetItem {
-public:
-    virtual void assign(int row, QString nogood) = 0;
-};
-}
-
 class NameMap {
 public:
   using Path = QString;
@@ -48,7 +41,7 @@ public:
       const std::unordered_map<int, std::string>& sid2nogood,
       const QTableView& table,
       int sid_col, bool expand_expressions,
-      TableHelpers::TableSetItem& tsi) const;
+      const std::function <void (int, QString)>& tsi) const;
   const QString getHeatMapFromModel(
       std::unordered_map<int64_t, std::string*>& sid2info,
       const QTableView& table,
@@ -59,6 +52,7 @@ private:
   void addIdExpressionToMap(const Ident& ident);
 
   static QRegExp var_name_regex;
+  static QRegExp assignment_regex;
   QString _model_filename;
   SymbolTable _nameMap;
   ExpressionTable _expressionMap;

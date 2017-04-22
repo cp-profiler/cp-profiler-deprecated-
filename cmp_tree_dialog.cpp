@@ -461,18 +461,6 @@ CmpTreeDialog::selectPentagon(int row) {
   
 }
 
-class QTableWidgetSetter : public TableHelpers::TableSetItem {
-public:
-    QTableWidgetSetter(QTableWidget* table) : _table(table){};
-    ~QTableWidgetSetter() {};
-    void assign(int row, QString newNogood) {
-      int nogood_col = 3;
-      _table->setItem(row, nogood_col, new QTableWidgetItem(newNogood));
-    }
-private:
-    QTableWidget* _table;
-};
-
 void
 CmpTreeDialog::showResponsibleNogoods() {
 
@@ -482,7 +470,6 @@ CmpTreeDialog::showResponsibleNogoods() {
   ng_dialog->resize(600, 400);
   ng_dialog->setLayout(ng_layout);
   ng_dialog->show();
-
 
   auto ng_table = new QTableWidget(ng_dialog);
   ng_table->setEditTriggers(QAbstractItemView::NoEditTriggers);
@@ -574,10 +561,11 @@ CmpTreeDialog::showResponsibleNogoods() {
       auto showExpressions = new QPushButton("Show/Hide Expressions");
       connect(showExpressions, &QPushButton::clicked, this, [=](){
         expand_expressions ^= true;
-      QTableWidgetSetter tsi(ng_table);
         nm->refreshModelRenaming(
-                    m_Cmp_result->left_execution().getNogoods(), *ng_table,
-                    sid_col, expand_expressions, tsi);
+              m_Cmp_result->left_execution().getNogoods(), *ng_table,
+              sid_col, expand_expressions, [=](int row, QString newNogood) {
+          ng_table->setItem(row, nogood_col, new QTableWidgetItem(newNogood));
+        });
       });
 
       auto buttons = new QHBoxLayout(this);
