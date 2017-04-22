@@ -35,7 +35,7 @@ using std::string;
 
 CmpTreeDialog::CmpTreeDialog(QWidget* parent, Execution* execution, bool with_labels,
                              const Execution& ex1, const Execution& ex2)
-    : QDialog{parent} {
+    : QDialog{parent}, expand_expressions(false) {
 
   qDebug() << "new CmpTreeDialog";
 
@@ -509,6 +509,7 @@ CmpTreeDialog::showResponsibleNogoods() {
 
   auto& nogood_map = m_Cmp_result->left_execution().getNogoods();
 
+  const NameMap* nm = m_Cmp_result->left_execution().getNameMap();
   int row = 0;
   for (auto ng : ng_stats_vector) {
 
@@ -516,7 +517,6 @@ CmpTreeDialog::showResponsibleNogoods() {
     ng_table->setItem(row, 1, new QTableWidgetItem(QString::number(ng.second.occurrence)));
 
     const QString nogood = QString::fromStdString(getNogoodById(ng.first, nogood_map));
-    const NameMap* nm = m_Cmp_result->left_execution().getNameMap();
     QString renamed_nogood = nm != nullptr ? nm->replaceNames(nogood) : nogood;
 
     ng_table->setItem(row, 2, new QTableWidgetItem(QString::number(ng.second.search_eliminated)));
@@ -539,6 +539,53 @@ CmpTreeDialog::showResponsibleNogoods() {
 
   ng_layout->addWidget(new QLabel{reduction_label});
 
+  if(nm != nullptr) {
+      int sid_col = 0;
+      int nogood_col = 3;
+      auto heatmapButton = new QPushButton("Heatmap");
+      connect(heatmapButton, &QPushButton::clicked, this, [=](){
+        const QModelIndexList selection = getSelection(ng_table, sid_col);
+        const QString heatmap = nm->getHeatMapFromModel(
+                    m_Cmp_result->left_execution().getInfo(), selection, *ng_table, sid_col);
+        if(!heatmap.isEmpty())
+          m_Canvas->emitShowNogoodToIDE(heatmap);
+        updateSelection(ng_table);
+      });
+
+      //auto showExpressions = new QPushButton("Show/Hide Expressions");
+      //connect(showExpressions, &QPushButton::clicked, this, [=](){
+      //  expand_expressions ^= true;
+      //  const QModelIndexList selection = getSelection(ng_table, sid_col);
+      //  nm->refreshModelRenaming(
+      //              m_Cmp_result->left_execution().getNogoods(), selection, *ng_table,
+      //              sid_col, nogood_col, expand_expressions);
+      //  updateSelection(ng_table);
+      //});
+
+      auto buttons = new QHBoxLayout(this);
+      buttons->addWidget(heatmapButton);
+      //buttons->addWidget(showExpressions);
+
+      ng_layout->addLayout(buttons);
+  }
+}
+
+TreeCanvas* CmpTreeDialog::getCanvas() {
+  return m_Canvas.get();
+}
+
+void CmpTreeDialog::updateSelection(QTableView* table) {
+  QItemSelection selection = table->selectionModel()->selection();
+  table->selectionModel()->select(
+          selection, QItemSelectionModel::Select | QItemSelectionModel::Rows);
+}
+
+QModelIndexList CmpTreeDialog::getSelection(QTableView* table, int sid_col) {
+  QModelIndexList selection = table->selectionModel()->selectedRows();
+  if(selection.count() == 0)
+    for(int row=0; row<table->model()->rowCount(); row++)
+      selection.append(table->model()->index(row, sid_col));
+  return selection;
 }
 
 /// ******************************************************

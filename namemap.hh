@@ -9,6 +9,8 @@
 #include <qtextstream.h>
 
 #include <iostream>
+#include <qstandarditemmodel.h>
+#include <qtableview.h>
 
 using std::pair;
 using std::unordered_map;
@@ -33,6 +35,19 @@ public:
       std::unordered_map<int, int> con_id_counts,
       int max_count,
       const QString& desc) const;
+
+  // Functions for use with nogood tables
+  void refreshModelRenaming(
+      const std::unordered_map<int, std::string>& sid2nogood,
+      const QModelIndexList& selection,
+      QStandardItemModel* model,
+      int sid_col, int nogood_col,
+      bool expand_expressions) const;
+  const QString getHeatMapFromModel(
+      std::unordered_map<int64_t, std::string*>& sid2info,
+      const QModelIndexList& selection,
+      const QTableView& table,
+      int sid_col) const;
 
 private:
   const QString getPathHead(const Path& path, bool includeTrail) const;

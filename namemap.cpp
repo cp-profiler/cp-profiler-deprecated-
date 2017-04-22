@@ -6,6 +6,8 @@
 #include <qtextstream.h>
 #include <qvector.h>
 
+#include "third-party/json.hpp"
+
 QRegExp NameMap::var_name_regex("[A-Za-z][A-Za-z0-9_]*");
 
 NameMap::NameMap(QString& path_filename, QString& model_filename) : _model_filename(model_filename) {
@@ -148,3 +150,68 @@ const QString NameMap::getHeatMap(
 
   return highlight_url.join("");
 }
+
+void NameMap::refreshModelRenaming(
+        const std::unordered_map<int, std::string>& sid2nogood,
+        const QModelIndexList& selection,
+        QStandardItemModel* model,
+        int sid_col, int nogood_col,
+        bool expand_expressions) const {
+  for(int i=0; i<selection.count(); i++) {
+    int row = selection.at(i).row();
+    int64_t sid = model->data(model->index(row, sid_col)).toLongLong();
+
+    auto ng_item = sid2nogood.find(sid);
+    if (ng_item == sid2nogood.end()) {
+      continue;  /// nogood not found
+    }
+
+    QString qclause = QString::fromStdString(ng_item->second);
+    QString clause = replaceNames(qclause, expand_expressions);
+
+    model->setItem(row, nogood_col, new QStandardItem(clause));
+  }
+}
+
+const QString NameMap::getHeatMapFromModel(
+        std::unordered_map<int64_t, std::string*>& sid2info,
+        const QModelIndexList& selection,
+        const QTableView& table,
+        int sid_col) const {
+  QStringList label;
+  std::unordered_map<int, int> con_ids;
+
+  int max_count = 0;
+  for(int i=0; i<selection.count(); i++) {
+    int row = selection.at(i).row();
+    int64_t sid = table.model()->data(table.model()->index(row, sid_col)).toLongLong();
+    auto info_item = sid2info.find(sid);
+    if(info_item != sid2info.end()) {
+      std::string info_text = *info_item->second;
+      auto info_json = nlohmann::json::parse(info_text);
+
+      auto reasonIt = info_json.find("reasons");
+      if(reasonIt != info_json.end()) {
+        auto reasons = *reasonIt;
+        for(int con_id : reasons) {
+          int count = 0;
+          if(con_ids.find(con_id) == con_ids.end()) {
+            con_ids[con_id] = 1;
+            count = 1;
+          } else {
+            con_ids[con_id]++;
+            count = con_ids[con_id];
+          }
+          max_count = count > max_count ? count : max_count;
+        }
+      }
+
+      label << QString::number(sid);
+
+    }
+  }
+
+  return getHeatMap(con_ids, max_count, label.join(" "));
+}
+
+

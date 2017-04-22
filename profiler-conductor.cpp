@@ -305,7 +305,9 @@ void ProfilerConductor::compareButtonClicked() {
   const bool withLabels = compareWithLabelsCB.isChecked();
 
   /// NOTE(maxim): the new window will delete itself when closed
-  new CmpTreeDialog(this, new Execution{}, withLabels, *ex1, *ex2);
+  auto cmp_tree_dialog = new CmpTreeDialog(this, new Execution{}, withLabels, *ex1, *ex2);
+  connect(cmp_tree_dialog->getCanvas(), SIGNAL(showNogood(QString)),
+          this, SLOT(showNogoodToIDE(QString)));
 }
 
 void ProfilerConductor::autoCompareTwoExecution() {

@@ -78,11 +78,12 @@ class NogoodDialog : public QDialog {
   MyProxyModel* _proxy_model;
 
   bool expand_expressions;
-  std::vector<int64_t> sids;
   int64_t _root_gid;
 
  private:
   void populateTable(const std::vector<int>& selected_gids);
+  QModelIndexList getSelection(int sid_col);
+  void updateSelection(void);
 
  private Q_SLOTS:
 

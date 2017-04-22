@@ -27,16 +27,14 @@
 #include <QHBoxLayout>
 #include <QStandardItemModel>
 
-#include "third-party/json.hpp"
-
 const int NogoodDialog::DEFAULT_WIDTH = 600;
 const int NogoodDialog::DEFAULT_HEIGHT = 400;
 
 NogoodDialog::NogoodDialog(
     QWidget* parent, TreeCanvas& tc, const std::vector<int>& selected_nodes,
     const std::unordered_map<int, std::string>& sid2nogood, int64_t root_gid)
-    : QDialog(parent), _tc(tc), _sid2nogood(sid2nogood), expand_expressions(false),
-      _root_gid(root_gid) {
+  : QDialog(parent), _tc(tc), _sid2nogood(sid2nogood), expand_expressions(false),
+    _root_gid(root_gid) {
   _model = new QStandardItemModel(0, 2, this);
 
   _nogoodTable = new QTableView(this);
@@ -68,97 +66,56 @@ NogoodDialog::NogoodDialog(
 
   layout->addWidget(_nogoodTable);
 
+  const NameMap* nm = _tc.getExecution().getNameMap();
+  if(nm != nullptr) {
+      int sid_col = 0;
+      int nogood_col = 1;
+      auto heatmapButton = new QPushButton("Heatmap");
+      connect(heatmapButton, &QPushButton::clicked, this, [=](){
+        const QModelIndexList selection = getSelection(sid_col);
+        const QString heatmap = nm->getHeatMapFromModel(
+              _tc.getExecution().getInfo(), selection, *_nogoodTable, sid_col);
+        if(!heatmap.isEmpty())
+          _tc.emitShowNogoodToIDE(heatmap);
+        updateSelection();
+      });
 
-  auto heatmapButton = new QPushButton("Heatmap");
-  connect(heatmapButton, &QPushButton::clicked, this, [=](){
-      QModelIndexList selection = _nogoodTable->selectionModel()->selectedRows();
+      auto showExpressions = new QPushButton("Show/Hide Expressions");
+      connect(showExpressions, &QPushButton::clicked, this, [=](){
+        expand_expressions ^= true;
+        const QModelIndexList selection = getSelection(sid_col);
+        nm->refreshModelRenaming(
+                    _tc.getExecution().getNogoods(), selection, _model,
+                    sid_col, nogood_col, expand_expressions);
+        updateSelection();
+      });
 
-      if(selection.count() == 0) {
-        for(int i=0; i<_model->rowCount(); i++)
-          selection.append(_model->index(i, 1));
-      }
+      auto buttons = new QHBoxLayout(this);
+      buttons->addWidget(heatmapButton);
+      buttons->addWidget(showExpressions);
 
-      auto sid2info = _tc.getExecution().getInfo();
-      std::unordered_map<int, int> con_ids;
-
-      int max_count = 0;
-      for(int i=0; i<selection.count(); i++) {
-        size_t row = size_t(selection.at(i).row());
-        int64_t sid = sids[row];
-        auto info_item = sid2info.find(sid);
-        if(info_item != sid2info.end()) {
-          std::string info_text = *info_item->second;
-          auto info_json = nlohmann::json::parse(info_text);
-
-          auto reasonIt = info_json.find("reasons");
-          if(reasonIt != info_json.end()) {
-            auto reasons = *reasonIt;
-            for(int con_id : reasons) {
-              int count = 0;
-              if(con_ids.find(con_id) == con_ids.end()) {
-                con_ids[con_id] = 1;
-                count = 1;
-              } else {
-                con_ids[con_id]++;
-                count = con_ids[con_id];
-              }
-              max_count = count > max_count ? count : max_count;
-            }
-          }
-
-        } else {
-          qDebug() << "Can't match sid to info_item.\n";
-        }
-        _nogoodTable->selectionModel()->select(_model->index(row, 1), QItemSelectionModel::Select | QItemSelectionModel::Rows);
-      }
-
-      const NameMap* nm = _tc.getExecution().getNameMap();
-      if(nm != nullptr)
-        _tc.emitShowNogoodToIDE(nm->getHeatMap(con_ids, max_count, QString::number(_root_gid)));
-  });
-
-  auto showExpressions = new QPushButton("Show/Hide Expressions");
-  connect(showExpressions, &QPushButton::clicked, this, [=](){
-    expand_expressions ^= true;
-    QModelIndexList selection = _nogoodTable->selectionModel()->selectedRows();
-    if(selection.count() == 0) {
-      for(int i=0; i<_model->rowCount(); i++)
-        selection.append(_model->index(i, 1));
-    }
-
-    const NameMap* nm = _tc.getExecution().getNameMap();
-
-    for(int i=0; i<selection.count(); i++) {
-      size_t row = size_t(selection.at(i).row());
-      int64_t sid = sids[row];
-
-      auto ng_item = _sid2nogood.find(sid);
-      if (ng_item == _sid2nogood.end()) {
-        continue;  /// nogood not found
-      }
-
-      QString qclause = QString::fromStdString(ng_item->second);
-      QString clause = nm != nullptr ? nm->replaceNames(qclause, expand_expressions) : qclause;
-
-      _model->setItem(row, 1, new QStandardItem(clause));
-      _nogoodTable->selectionModel()->select(_model->index(row, 1), QItemSelectionModel::Select | QItemSelectionModel::Rows);
-    }
-  });
-
-
-  auto buttons = new QHBoxLayout(this);
-  buttons->addWidget(heatmapButton);
-  buttons->addWidget(showExpressions);
-
-  layout->addLayout(buttons);
+      layout->addLayout(buttons);
+  }
 }
 
 NogoodDialog::~NogoodDialog() {}
 
+void NogoodDialog::updateSelection(void) {
+  QItemSelection selection = _nogoodTable->selectionModel()->selection();
+  _nogoodTable->selectionModel()->select(
+          selection, QItemSelectionModel::Select | QItemSelectionModel::Rows);
+}
+
+QModelIndexList NogoodDialog::getSelection(int sid_col) {
+  QModelIndexList selection = _nogoodTable->selectionModel()->selectedRows();
+  if(selection.count() == 0)
+    for(int row=0; row<_model->rowCount(); row++)
+      selection.append(_model->index(row, sid_col));
+  return selection;
+}
 
 void NogoodDialog::populateTable(const std::vector<int>& selected_nodes) {
   int row = 0;
-  sids.clear();
   auto sid2info = _tc.getExecution().getInfo();
   const NameMap* nm = _tc.getExecution().getNameMap();
   for (auto it = selected_nodes.begin(); it != selected_nodes.end(); it++) {
@@ -178,7 +135,6 @@ void NogoodDialog::populateTable(const std::vector<int>& selected_nodes) {
 
     _model->setItem(row, 0, new QStandardItem(QString::number(sid)));
     _model->setItem(row, 1, new QStandardItem(clause));
-    sids.push_back(sid);
 
     row++;
   }

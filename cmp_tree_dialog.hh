@@ -71,10 +71,15 @@ private:
 
   QStatusBar* statusBar;
 
+  bool expand_expressions;
+
 
 private:
 
   void addActions(QMenu* nodeMenu, QMenu* analysisMenu);
+
+  void updateSelection(QTableView* table);
+  QModelIndexList getSelection(QTableView* table, int sid_col);
 
   void setTitle(QString title);
 
@@ -87,6 +92,7 @@ public:
 
   void saveComparisonStatsTo(const QString& file_name);
   void selectPentagon(int row);
+  TreeCanvas* getCanvas();
 
 public Q_SLOTS:
 
