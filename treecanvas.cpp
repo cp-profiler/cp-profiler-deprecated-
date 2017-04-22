@@ -922,11 +922,11 @@ void TreeCanvas::printSearchLog(void) {
 
   std::cout << "SEARCH LOG READY" << std::endl;
 
-  // if (GlobalParser::isSet(GlobalParser::save_log)) {
+  if (GlobalParser::isSet(GlobalParser::save_log)) {
     Utils::writeToFile("search.log", out.str().c_str());
-  // } else {
-    // Utils::writeToFile(out.str().c_str());
-  // }
+  } else {
+    Utils::writeToFile(out.str().c_str());
+  }
 }
 
 VisualNode* TreeCanvas::eventNode(QEvent* event) {
