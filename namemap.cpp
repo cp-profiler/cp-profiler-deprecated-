@@ -50,7 +50,7 @@ const QString NameMap::getPath(const QString& ident) const {
   return "";
 }
 
-const QString NameMap::replaceNames(const QString& text) const {
+const QString NameMap::replaceNames(const QString& text, bool expand_expressions) const {
   if (_nameMap.size() == 0) {
     return text;
   }
@@ -62,7 +62,7 @@ const QString NameMap::replaceNames(const QString& text) const {
     ss += text.mid(prev, pos-prev);
     const Ident& id = text.mid(pos, var_name_regex.matchedLength());
     QString name = getNiceName(id);
-    if(name == id && modelText.size() > 0) {
+    if(name == id && modelText.size() > 0 && expand_expressions) {
       auto eit = _expressionMap.find(name);
       if(eit != _expressionMap.end()) {
         name = "\'" + *eit + "\'";

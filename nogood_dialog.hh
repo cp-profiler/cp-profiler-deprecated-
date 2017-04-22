@@ -77,6 +77,7 @@ class NogoodDialog : public QDialog {
   QStandardItemModel* _model;
   MyProxyModel* _proxy_model;
 
+  bool expand_expressions;
   std::vector<int64_t> sids;
   int64_t _root_gid;
 

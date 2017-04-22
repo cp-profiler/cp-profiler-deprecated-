@@ -35,7 +35,8 @@ const int NogoodDialog::DEFAULT_HEIGHT = 400;
 NogoodDialog::NogoodDialog(
     QWidget* parent, TreeCanvas& tc, const std::vector<int>& selected_nodes,
     const std::unordered_map<int, std::string>& sid2nogood, int64_t root_gid)
-    : QDialog(parent), _tc(tc), _sid2nogood(sid2nogood), _root_gid(root_gid) {
+    : QDialog(parent), _tc(tc), _sid2nogood(sid2nogood), expand_expressions(false),
+      _root_gid(root_gid) {
   _model = new QStandardItemModel(0, 2, this);
 
   _nogoodTable = new QTableView(this);
@@ -67,9 +68,15 @@ NogoodDialog::NogoodDialog(
 
   layout->addWidget(_nogoodTable);
 
+
   auto heatmapButton = new QPushButton("Heatmap");
   connect(heatmapButton, &QPushButton::clicked, this, [=](){
       QModelIndexList selection = _nogoodTable->selectionModel()->selectedRows();
+
+      if(selection.count() == 0) {
+        for(int i=0; i<_model->rowCount(); i++)
+          selection.append(_model->index(i, 1));
+      }
 
       auto sid2info = _tc.getExecution().getInfo();
       std::unordered_map<int, int> con_ids;
@@ -102,6 +109,7 @@ NogoodDialog::NogoodDialog(
         } else {
           qDebug() << "Can't match sid to info_item.\n";
         }
+        _nogoodTable->selectionModel()->select(_model->index(row, 1), QItemSelectionModel::Select | QItemSelectionModel::Rows);
       }
 
       const NameMap* nm = _tc.getExecution().getNameMap();
@@ -109,7 +117,40 @@ NogoodDialog::NogoodDialog(
         _tc.emitShowNogoodToIDE(nm->getHeatMap(con_ids, max_count, QString::number(_root_gid)));
   });
 
-  layout->addWidget(heatmapButton);
+  auto showExpressions = new QPushButton("Show/Hide Expressions");
+  connect(showExpressions, &QPushButton::clicked, this, [=](){
+    expand_expressions ^= true;
+    QModelIndexList selection = _nogoodTable->selectionModel()->selectedRows();
+    if(selection.count() == 0) {
+      for(int i=0; i<_model->rowCount(); i++)
+        selection.append(_model->index(i, 1));
+    }
+
+    const NameMap* nm = _tc.getExecution().getNameMap();
+
+    for(int i=0; i<selection.count(); i++) {
+      size_t row = size_t(selection.at(i).row());
+      int64_t sid = sids[row];
+
+      auto ng_item = _sid2nogood.find(sid);
+      if (ng_item == _sid2nogood.end()) {
+        continue;  /// nogood not found
+      }
+
+      QString qclause = QString::fromStdString(ng_item->second);
+      QString clause = nm != nullptr ? nm->replaceNames(qclause, expand_expressions) : qclause;
+
+      _model->setItem(row, 1, new QStandardItem(clause));
+      _nogoodTable->selectionModel()->select(_model->index(row, 1), QItemSelectionModel::Select | QItemSelectionModel::Rows);
+    }
+  });
+
+
+  auto buttons = new QHBoxLayout(this);
+  buttons->addWidget(heatmapButton);
+  buttons->addWidget(showExpressions);
+
+  layout->addLayout(buttons);
 }
 
 NogoodDialog::~NogoodDialog() {}
@@ -119,6 +160,7 @@ void NogoodDialog::populateTable(const std::vector<int>& selected_nodes) {
   int row = 0;
   sids.clear();
   auto sid2info = _tc.getExecution().getInfo();
+  const NameMap* nm = _tc.getExecution().getNameMap();
   for (auto it = selected_nodes.begin(); it != selected_nodes.end(); it++) {
     int gid = *it;
 
@@ -131,9 +173,8 @@ void NogoodDialog::populateTable(const std::vector<int>& selected_nodes) {
       continue;  /// nogood not found
     }
 
-    const NameMap* nm = _tc.getExecution().getNameMap();
     QString qclause = QString::fromStdString(ng_item->second);
-    QString clause = nm != nullptr ? nm->replaceNames(qclause) : qclause;
+    QString clause = nm != nullptr ? nm->replaceNames(qclause, expand_expressions) : qclause;
 
     _model->setItem(row, 0, new QStandardItem(QString::number(sid)));
     _model->setItem(row, 1, new QStandardItem(clause));

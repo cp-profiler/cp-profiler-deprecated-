@@ -28,7 +28,7 @@ public:
 
   const QString getPath(const Ident& ident) const;
   const QString getNiceName(const Ident& ident) const;
-  const QString replaceNames(const QString& text) const;
+  const QString replaceNames(const QString& text, bool expand_expressions = false) const;
   const QString getHeatMap(
       std::unordered_map<int, int> con_id_counts,
       int max_count,
