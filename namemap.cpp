@@ -8,7 +8,13 @@
 
 #include "third-party/json.hpp"
 
-QRegExp NameMap::var_name_regex("[A-Za-z][A-Za-z0-9_]*");
+#define reg_mzn_ident "[A-Za-z][A-Za-z0-9_]*"
+#define reg_number "[0-9]*"
+
+QRegExp NameMap::var_name_regex(reg_mzn_ident);
+QRegExp NameMap::assignment_regex(reg_mzn_ident "=" reg_number);
+
+NameMap::NameMap(SymbolTable& st) : _nameMap(st) {};
 
 NameMap::NameMap(QString& path_filename, QString& model_filename) : _model_filename(model_filename) {
   QFile model_file(model_filename);
@@ -79,12 +85,26 @@ const QString NameMap::replaceNames(const QString& text, bool expand_expressions
   return ss.join("");
 }
 
+QString NameMap::replaceAssignments(const QString& path, const QString name) {
+    NameMap::SymbolTable st;
+
+    int pos = assignment_regex.indexIn(path);
+    const QStringList assignments = assignment_regex.capturedTexts();
+    for(const QString& assign : assignments) {
+      QStringList leftright = assign.split("=");
+      st[leftright[0]] = std::make_pair(leftright[1], leftright[1]);
+    }
+
+    NameMap nm(st);
+    return nm.replaceNames(name);
+}
+
 void NameMap::addIdExpressionToMap(const Ident& ident) {
   if(modelText.size() == 0) return;
   const QString& path = _nameMap[ident].second;
-  const QString loc = getPathHead(path, false);
+  const QStringList components = getPathHead(path, true);
 
-  QStringList locList = loc.split(":");
+  QStringList locList = components.last().split(":");
   bool ok;
   int sl = locList[1].toInt(&ok);
   int sc = locList[2].toInt(&ok);
@@ -93,11 +113,13 @@ void NameMap::addIdExpressionToMap(const Ident& ident) {
 
   // Extract text and store it in map
   QString newName = modelText[sl-1].mid(sc-1, ec-(sc-1));
+  newName = replaceAssignments(components.join(";"), newName);
+
   _expressionMap.insert(ident, newName);
 }
 
 // Get the most specific path component that is still in the user model
-const QString NameMap::getPathHead(const QString& path, bool includeTrail = false) const {
+const QStringList NameMap::getPathHead(const QString& path, bool includeTrail = false) const {
   QStringList pathSplit = path.split(";");
 
   QString mzn_file;
@@ -113,15 +135,15 @@ const QString NameMap::getPathHead(const QString& path, bool includeTrail = fals
     }
 
     if(head_file != mzn_file)
-      return previousHead.join("");
+      return previousHead;
 
     if(!includeTrail)
       previousHead.clear();
-    previousHead += path_head;
+    previousHead << path_head;
     i++;
   } while(i < pathSplit.size());
 
-  return previousHead.join("");
+  return previousHead;
 }
 
 const QString NameMap::getHeatMap(
@@ -134,7 +156,7 @@ const QString NameMap::getHeatMap(
   for(auto it : con_id_counts) {
     const QString con_string = QString::number(it.first);
     const QString path = getPath(con_string);
-    const QString path_head = getPathHead(path);
+    const QString path_head = getPathHead(path, false)[0];
     QStringList location_etc = path_head.split(":");
     int count = it.second;
 

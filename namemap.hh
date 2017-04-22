@@ -27,6 +27,7 @@ public:
 
   NameMap() {}
   NameMap(QString& path_filename, QString& model_filename);
+  NameMap(SymbolTable& st);
 
   const QString getPath(const Ident& ident) const;
   const QString getNiceName(const Ident& ident) const;
@@ -48,8 +49,9 @@ public:
       int sid_col) const;
 
 private:
-  const QString getPathHead(const Path& path, bool includeTrail) const;
+  const QStringList getPathHead(const Path& path, bool includeTrail) const;
   void addIdExpressionToMap(const Ident& ident);
+  QString replaceAssignments(const QString& path, const QString name);
 
   static QRegExp var_name_regex;
   static QRegExp assignment_regex;
