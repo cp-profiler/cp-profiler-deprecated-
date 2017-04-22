@@ -6,13 +6,18 @@
 #include <sstream>
 #include <ctime>
 #include <memory>
-#include "nodetree.hh"
+// #include "nodetree.hh"
 #include "namemap.hh"
 #include <unordered_map>
 
 class Data;
 class DbEntry;
 class NodeAllocator;
+class NodeTree;
+class Node;
+class VisualNode;
+class Statistics;
+class QMutex;
 
 namespace message {
     class Node;
@@ -55,10 +60,8 @@ public:
         return ss.str();
     }
     
-    DbEntry* getEntry(const Node& node) const {
-        auto gid = node.getIndex(m_NodeTree->getNA());
-        return getEntry(gid);
-    }
+    DbEntry* getEntry(int gid) const;
+    DbEntry* getEntry(const Node& node) const;
 
     const NodeTree& nodeTree() const { return *m_NodeTree.get(); }
 
@@ -66,14 +69,11 @@ public:
 
     const std::unordered_map<int, std::string>& getNogoods() const;
     std::unordered_map<int64_t, std::string*>& getInfo(void) const;
-    DbEntry* getEntry(int gid) const;
     unsigned getGidBySid(int64_t sid);
-    std::string getLabel(int gid) const;
 
-    std::string getLabel(const VisualNode& node) const {
-        auto gid = node.getIndex(m_NodeTree->getNA());
-        return getLabel(gid);
-    }
+    std::string getLabel(int gid) const;
+    std::string getLabel(const VisualNode& node) const;
+
     unsigned long long getTotalTime();
 
     Data& getData() const;
@@ -82,12 +82,10 @@ public:
 
     bool isRestarts() const { return _is_restarts; }
 
-    Statistics& getStatistics() {
-        return m_NodeTree->getStatistics();
-    }
+    Statistics& getStatistics();
 
-    QMutex& getMutex() { return m_NodeTree->getMutex(); }
-    QMutex& getLayoutMutex() { return m_NodeTree->getLayoutMutex(); }
+    QMutex& getMutex();
+    QMutex& getLayoutMutex();
 
     void setVariableListString(const std::string& s) {
         variableListString = s;

@@ -9,6 +9,7 @@
 #include <regex>
 
 #include "visualnode.hh"
+#include "nodetree.hh"
 #include "cpprofiler/utils/tree_utils.hh"
 #include "execution.hh"
 #include "libs/perf_helper.hh"

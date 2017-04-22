@@ -19,6 +19,7 @@
 #include "visualnode.hh"
 #include "libs/perf_helper.hh"
 #include "execution.hh"
+#include "nodetree.hh"
 #include "globalhelper.hh"
 #include "cpprofiler/utils/tree_utils.hh"
 #include "identical_shapes.hh"

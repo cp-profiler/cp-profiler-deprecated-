@@ -195,7 +195,7 @@ public:
 };
 
 inline
-void Data::connectNodeToEntry(int gid, DbEntry* entry) {
+void Data::connectNodeToEntry(int gid, DbEntry* const entry) {
     gid2entry[gid] = entry;
 }
 

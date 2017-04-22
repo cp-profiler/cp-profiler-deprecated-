@@ -25,6 +25,7 @@
 #include "treecanvas.hh"
 #include "node.hh"
 #include "data.hh"
+#include "nodetree.hh"
 
 using std::string;
 

@@ -1,5 +1,6 @@
 
 #include "cpprofiler/analysis/subtree_comp_win.hh"
+#include "nodetree.hh"
 #include <thread>
 #include <chrono>
 

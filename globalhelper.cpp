@@ -49,7 +49,7 @@ QCommandLineOption GlobalParser::mzn_option{
     "mzn", "Use MiniZinc file for tying ids to expressions: <file_name>.", "file_name"};
 
 QCommandLineOption GlobalParser::save_log{
-    "save_log", "Save search log to <file_name>.", "file_name"};
+    "save_log", "Save search log to <file_name>."};
 
 QCommandLineOption GlobalParser::auto_compare{
     "auto_compare", "Compare the first two executions"};

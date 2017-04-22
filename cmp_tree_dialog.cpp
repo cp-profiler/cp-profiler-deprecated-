@@ -29,6 +29,7 @@
 #include "treecomparison.hh"
 #include "treecanvas.hh"
 #include "execution.hh"
+#include "nodetree.hh"
 #include "data.hh"
 
 using std::string;
@@ -226,7 +227,6 @@ static string empty_string = "";
 
 string& getNogoodById(int ng_id, const std::unordered_map<int, string>& ng_map) {
 
-
   string& nogood = empty_string;
 
   auto maybe_nogood = ng_map.find(ng_id);
@@ -277,7 +277,16 @@ CmpTreeDialog::saveComparisonStatsTo(const QString& file_name) {
 
     string& nogood = getNogoodById(ng.first, nogood_map);
 
-    out << nogood.c_str() << "\n";
+    const auto&& name_map = m_Cmp_result->left_execution().getNameMap();
+
+    if (name_map) {
+      auto clause = name_map->replaceNames(nogood.c_str());
+      out << clause << "\n";
+    } else {
+      out << nogood.c_str() << "\n";
+    }
+
+
   }
 
   qDebug() << "writing comp stats to the file: " << file_name;

@@ -140,6 +140,10 @@ const std::string* Execution::getInfo(const Node& node) const {
     return info->second;
 }
 
+Statistics& Execution::getStatistics() {
+        return m_NodeTree->getStatistics();
+}
+
 void Execution::handleNewNode(message::Node& node) {
     m_Data->handleNodeCallback(node);
 }
@@ -147,12 +151,26 @@ void Execution::handleNewNode(message::Node& node) {
 const std::unordered_map<int, string>& Execution::getNogoods() const {
   return m_Data->getNogoods();
 }
+
 std::unordered_map<int64_t, string*>& Execution::getInfo(void) const {
   return m_Data->getInfo();
 }
+
 DbEntry* Execution::getEntry(int gid) const { return m_Data->getEntry(gid); }
+
+DbEntry* Execution::getEntry(const Node& node) const {
+    auto gid = node.getIndex(m_NodeTree->getNA());
+    return getEntry(gid);
+}
+
 unsigned Execution::getGidBySid(int64_t sid) { return m_Data->getGidBySid(sid); }
 std::string Execution::getLabel(int gid) const { return m_Data->getLabel(gid); }
+
+std::string Execution::getLabel(const VisualNode& node) const {
+  auto gid = node.getIndex(m_NodeTree->getNA());
+  return getLabel(gid);
+}
+
 unsigned long long Execution::getTotalTime() { return m_Data->getTotalTime(); }
 
 void Execution::compareDomains() {
@@ -176,3 +194,6 @@ void Execution::compareDomains() {
   qDebug() << utils::compareDomains(*this, *l_node, *r_node).c_str();
 
 }
+
+QMutex& Execution::getMutex() { return m_NodeTree->getMutex(); }
+QMutex& Execution::getLayoutMutex() { return m_NodeTree->getLayoutMutex(); }

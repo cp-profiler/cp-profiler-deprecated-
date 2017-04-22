@@ -23,6 +23,7 @@
 #include "globalhelper.hh"
 #include "libs/perf_helper.hh"
 #include "readingQueue.hh"
+#include "nodetree.hh"
 #include <cassert>
 
 #include <time.h>

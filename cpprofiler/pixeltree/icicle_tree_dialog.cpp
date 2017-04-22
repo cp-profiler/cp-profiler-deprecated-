@@ -26,6 +26,7 @@
 
 #include "treecanvas.hh"
 #include "execution.hh"
+#include "nodetree.hh"
 #include "spacenode.hh"
 #include "data.hh"
 #include "libs/perf_helper.hh"
