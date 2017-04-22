@@ -27,6 +27,18 @@
 #include <QHBoxLayout>
 #include <QStandardItemModel>
 
+class QStandardItemModelSetter : public TableHelpers::TableSetItem {
+public:
+    QStandardItemModelSetter(QStandardItemModel* model) : _model(model){};
+    ~QStandardItemModelSetter() {};
+    void assign(int row, QString newNogood) {
+      int nogood_col = 1;
+      _model->setItem(row, nogood_col, new QStandardItem(newNogood));
+    }
+private:
+    QStandardItemModel* _model;
+};
+
 const int NogoodDialog::DEFAULT_WIDTH = 600;
 const int NogoodDialog::DEFAULT_HEIGHT = 400;
 
@@ -69,25 +81,21 @@ NogoodDialog::NogoodDialog(
   const NameMap* nm = _tc.getExecution().getNameMap();
   if(nm != nullptr) {
       int sid_col = 0;
-      int nogood_col = 1;
       auto heatmapButton = new QPushButton("Heatmap");
       connect(heatmapButton, &QPushButton::clicked, this, [=](){
-        const QModelIndexList selection = getSelection(sid_col);
         const QString heatmap = nm->getHeatMapFromModel(
-              _tc.getExecution().getInfo(), selection, *_nogoodTable, sid_col);
+              _tc.getExecution().getInfo(), *_nogoodTable, sid_col);
         if(!heatmap.isEmpty())
           _tc.emitShowNogoodToIDE(heatmap);
-        updateSelection();
       });
 
       auto showExpressions = new QPushButton("Show/Hide Expressions");
       connect(showExpressions, &QPushButton::clicked, this, [=](){
         expand_expressions ^= true;
-        const QModelIndexList selection = getSelection(sid_col);
+        QStandardItemModelSetter tsi(_model);
         nm->refreshModelRenaming(
-                    _tc.getExecution().getNogoods(), selection, _model,
-                    sid_col, nogood_col, expand_expressions);
-        updateSelection();
+                    _tc.getExecution().getNogoods(), *_nogoodTable,
+                    sid_col, expand_expressions, tsi);
       });
 
       auto buttons = new QHBoxLayout(this);
@@ -99,20 +107,6 @@ NogoodDialog::NogoodDialog(
 }
 
 NogoodDialog::~NogoodDialog() {}
-
-void NogoodDialog::updateSelection(void) {
-  QItemSelection selection = _nogoodTable->selectionModel()->selection();
-  _nogoodTable->selectionModel()->select(
-          selection, QItemSelectionModel::Select | QItemSelectionModel::Rows);
-}
-
-QModelIndexList NogoodDialog::getSelection(int sid_col) {
-  QModelIndexList selection = _nogoodTable->selectionModel()->selectedRows();
-  if(selection.count() == 0)
-    for(int row=0; row<_model->rowCount(); row++)
-      selection.append(_model->index(row, sid_col));
-  return selection;
-}
 
 void NogoodDialog::populateTable(const std::vector<int>& selected_nodes) {
   int row = 0;

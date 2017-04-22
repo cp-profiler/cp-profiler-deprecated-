@@ -82,8 +82,8 @@ class NogoodDialog : public QDialog {
 
  private:
   void populateTable(const std::vector<int>& selected_gids);
-  QModelIndexList getSelection(int sid_col);
-  void updateSelection(void);
+
+  void updateNogood(int row, QString newNogood);
 
  private Q_SLOTS:
 

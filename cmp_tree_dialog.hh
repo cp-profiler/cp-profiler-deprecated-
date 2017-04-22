@@ -78,9 +78,6 @@ private:
 
   void addActions(QMenu* nodeMenu, QMenu* analysisMenu);
 
-  void updateSelection(QTableView* table);
-  QModelIndexList getSelection(QTableView* table, int sid_col);
-
   void setTitle(QString title);
 
 public:

@@ -151,15 +151,32 @@ const QString NameMap::getHeatMap(
   return highlight_url.join("");
 }
 
+namespace TableHelpers {
+
+void updateSelection(const QTableView& table) {
+  QItemSelection selection = table.selectionModel()->selection();
+  table.selectionModel()->select(
+        selection, QItemSelectionModel::Select | QItemSelectionModel::Rows);
+}
+
+QModelIndexList getSelection(const QTableView& table, int sid_col) {
+  QModelIndexList selection = table.selectionModel()->selectedRows();
+  if(selection.count() == 0)
+    for(int row=0; row<table.model()->rowCount(); row++)
+      selection.append(table.model()->index(row, sid_col));
+  return selection;
+}
+}
+
 void NameMap::refreshModelRenaming(
         const std::unordered_map<int, std::string>& sid2nogood,
-        const QModelIndexList& selection,
-        QStandardItemModel* model,
-        int sid_col, int nogood_col,
-        bool expand_expressions) const {
+        const QTableView& table,
+        int sid_col, bool expand_expressions,
+        TableHelpers::TableSetItem& tsi) const {
+  const QModelIndexList selection = TableHelpers::getSelection(table, sid_col);
   for(int i=0; i<selection.count(); i++) {
     int row = selection.at(i).row();
-    int64_t sid = model->data(model->index(row, sid_col)).toLongLong();
+    int64_t sid = table.model()->data(table.model()->index(row, sid_col)).toLongLong();
 
     auto ng_item = sid2nogood.find(sid);
     if (ng_item == sid2nogood.end()) {
@@ -169,15 +186,17 @@ void NameMap::refreshModelRenaming(
     QString qclause = QString::fromStdString(ng_item->second);
     QString clause = replaceNames(qclause, expand_expressions);
 
-    model->setItem(row, nogood_col, new QStandardItem(clause));
+    tsi.assign(row, clause);
   }
+  TableHelpers::updateSelection(table);
 }
 
 const QString NameMap::getHeatMapFromModel(
         std::unordered_map<int64_t, std::string*>& sid2info,
-        const QModelIndexList& selection,
         const QTableView& table,
         int sid_col) const {
+
+  const QModelIndexList selection = TableHelpers::getSelection(table, sid_col);
   QStringList label;
   std::unordered_map<int, int> con_ids;
 
@@ -211,6 +230,7 @@ const QString NameMap::getHeatMapFromModel(
     }
   }
 
+  TableHelpers::updateSelection(table);
   return getHeatMap(con_ids, max_count, label.join(" "));
 }
 
