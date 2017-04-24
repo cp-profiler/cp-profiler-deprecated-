@@ -84,7 +84,7 @@ Execution* loadSaved(Execution* e, std::string path) {
   return e;
 }
 
-ProfilerConductor::ProfilerConductor() : QMainWindow() {
+ProfilerConductor::ProfilerConductor() : QMainWindow(), listen_port(6565) {
 
   executionList.setSelectionMode(QAbstractItemView::MultiSelection);
   compareWithLabelsCB.setText("with labels");
@@ -191,12 +191,19 @@ ProfilerConductor::ProfilerConductor() : QMainWindow() {
     receiver->start();
   }));
 
-  listener->listen(QHostAddress::Any, 6565);
+  if(!listener->listen(QHostAddress::Any, listen_port)) {
+    listener->listen(QHostAddress::Any, 0); // Try any port
+    listen_port = listener->serverPort();
+  }
 
-  std::cerr << "READY TO LISTEN\n";
+  std::cerr << "READY TO LISTEN ON: " << listen_port << " \n";
 }
 
 ProfilerConductor::~ProfilerConductor() = default;
+
+int ProfilerConductor::getListenPort() {
+  return (int) listen_port;
+}
 
 class ExecutionListItem : public QListWidgetItem {
  public:
@@ -579,7 +586,7 @@ void ProfilerConductor::createExecution(unique_ptr<NodeTree> nt,
 void ProfilerConductor::executionIdReady(Execution* e) {
   int eid = e->getExecutionId();
   if (eid != -1 && eid < nameMaps.size()) {
-      e->setNameMap(&nameMaps[eid].second);
+    e->setNameMap(&nameMaps[eid].second);
   }
 }
 

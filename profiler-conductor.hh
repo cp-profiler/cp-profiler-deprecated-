@@ -33,6 +33,8 @@ class ProfilerConductor : public QMainWindow {
   QList<Execution*> executions;
   QHash<const Execution*, ExecutionInfo*> executionInfoHash;
 
+  quint16 listen_port;
+
   QListWidget executionList;
   QCheckBox   compareWithLabelsCB;
 
@@ -67,6 +69,7 @@ class ProfilerConductor : public QMainWindow {
   ~ProfilerConductor();
 
   int getNextExecutionId(const std::string& filename, const NameMap& nameMap);
+  int getListenPort();
   void loadExecution(std::string filename);
   void createExecution(std::unique_ptr<NodeTree> nt, std::unique_ptr<Data>);
 
