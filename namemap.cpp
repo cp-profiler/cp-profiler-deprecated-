@@ -16,7 +16,8 @@ QRegExp NameMap::assignment_regex(reg_mzn_ident "=" reg_number);
 
 NameMap::NameMap(SymbolTable& st) : _nameMap(st) {};
 
-NameMap::NameMap(QString& path_filename, QString& model_filename) : _model_filename(model_filename) {
+NameMap::NameMap(QString& path_filename, QString& model_filename) {
+  std::vector<QString> modelText;
   QFile model_file(model_filename);
   if(model_file.open(QIODevice::ReadOnly | QIODevice::Text)) {
     QString line;
@@ -35,8 +36,8 @@ NameMap::NameMap(QString& path_filename, QString& model_filename) : _model_filen
       line = in.readLine();
       QStringList s = line.split("\t");
       _nameMap[s[0]] = std::make_pair(s[1], s[2]);
-      if(s[0] == s[1] && s[1].left(12) == "X_INTRODUCED") {
-        addIdExpressionToMap(s[0]);
+      if(s[1].left(12) == "X_INTRODUCED") {
+        addIdExpressionToMap(s[0], modelText);
       }
     }
   }
@@ -70,7 +71,7 @@ const QString NameMap::replaceNames(const QString& text, bool expand_expressions
     ss += text.mid(prev, pos-prev);
     const Ident& id = text.mid(pos, var_name_regex.matchedLength());
     QString name = getNiceName(id);
-    if(name == id && modelText.size() > 0 && expand_expressions) {
+    if(expand_expressions && name.left(12) == "X_INTRODUCED") {
       auto eit = _expressionMap.find(name);
       if(eit != _expressionMap.end()) {
         name = "\'" + *eit + "\'";
@@ -85,21 +86,21 @@ const QString NameMap::replaceNames(const QString& text, bool expand_expressions
   return ss.join("");
 }
 
-QString NameMap::replaceAssignments(const QString& path, const QString name) {
+QString NameMap::replaceAssignments(const QString& path, const QString& expression) const {
     NameMap::SymbolTable st;
 
-    int pos = assignment_regex.indexIn(path);
+    (void) assignment_regex.indexIn(path);
     const QStringList assignments = assignment_regex.capturedTexts();
     for(const QString& assign : assignments) {
       QStringList leftright = assign.split("=");
-      st[leftright[0]] = std::make_pair(leftright[1], leftright[1]);
+      st[leftright[0]] = std::make_pair(leftright[1], "");
     }
 
     NameMap nm(st);
-    return nm.replaceNames(name);
+    return nm.replaceNames(expression);
 }
 
-void NameMap::addIdExpressionToMap(const Ident& ident) {
+void NameMap::addIdExpressionToMap(const Ident& ident, const std::vector<QString>& modelText) {
   if(modelText.size() == 0) return;
   const QString& path = _nameMap[ident].second;
   const QStringList components = getPathHead(path, true);
@@ -108,14 +109,15 @@ void NameMap::addIdExpressionToMap(const Ident& ident) {
   bool ok;
   int sl = locList[1].toInt(&ok);
   int sc = locList[2].toInt(&ok);
-  int el = locList[3].toInt(&ok);
+  // Ignore end-line for now
+  //int el = locList[3].toInt(&ok);
   int ec = locList[4].toInt(&ok);
 
   // Extract text and store it in map
-  QString newName = modelText[sl-1].mid(sc-1, ec-(sc-1));
-  newName = replaceAssignments(components.join(";"), newName);
+  QString expression = modelText[sl-1].mid(sc-1, ec-(sc-1));
+  expression = replaceAssignments(components.join(";"), expression);
 
-  _expressionMap.insert(ident, newName);
+  _expressionMap.insert(ident, expression);
 }
 
 // Get the most specific path component that is still in the user model
@@ -147,7 +149,7 @@ const QStringList NameMap::getPathHead(const QString& path, bool includeTrail = 
 }
 
 const QString NameMap::getHeatMap(
-    std::unordered_map<int, int> con_id_counts,
+    const std::unordered_map<int, int>& con_id_counts,
     int max_count,
     const QString& desc) const {
   int bucket = int(ceil(255.0/double(max_count+1)));
@@ -174,20 +176,19 @@ const QString NameMap::getHeatMap(
 }
 
 namespace TableHelpers {
+  void updateSelection(const QTableView& table) {
+    QItemSelection selection = table.selectionModel()->selection();
+    table.selectionModel()->select(
+          selection, QItemSelectionModel::Select | QItemSelectionModel::Rows);
+  }
 
-void updateSelection(const QTableView& table) {
-  QItemSelection selection = table.selectionModel()->selection();
-  table.selectionModel()->select(
-        selection, QItemSelectionModel::Select | QItemSelectionModel::Rows);
-}
-
-QModelIndexList getSelection(const QTableView& table, int sid_col) {
-  QModelIndexList selection = table.selectionModel()->selectedRows();
-  if(selection.count() == 0)
-    for(int row=0; row<table.model()->rowCount(); row++)
-      selection.append(table.model()->index(row, sid_col));
-  return selection;
-}
+  QModelIndexList getSelection(const QTableView& table, int sid_col) {
+    QModelIndexList selection = table.selectionModel()->selectedRows();
+    if(selection.count() == 0)
+      for(int row=0; row<table.model()->rowCount(); row++)
+        selection.append(table.model()->index(row, sid_col));
+    return selection;
+  }
 }
 
 void NameMap::refreshModelRenaming(
@@ -248,7 +249,6 @@ const QString NameMap::getHeatMapFromModel(
       }
 
       label << QString::number(sid);
-
     }
   }
 

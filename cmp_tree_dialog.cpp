@@ -551,7 +551,7 @@ CmpTreeDialog::showResponsibleNogoods() {
       int sid_col = 0;
       int nogood_col = 3;
       auto heatmapButton = new QPushButton("Heatmap");
-      connect(heatmapButton, &QPushButton::clicked, this, [=](){
+      connect(heatmapButton, &QPushButton::clicked, [=](){
         const QString heatmap = nm->getHeatMapFromModel(
                     m_Cmp_result->left_execution().getInfo(), *ng_table, sid_col);
         if(!heatmap.isEmpty())
@@ -559,7 +559,7 @@ CmpTreeDialog::showResponsibleNogoods() {
       });
 
       auto showExpressions = new QPushButton("Show/Hide Expressions");
-      connect(showExpressions, &QPushButton::clicked, this, [=](){
+      connect(showExpressions, &QPushButton::clicked, [=](){
         expand_expressions ^= true;
         nm->refreshModelRenaming(
               m_Cmp_result->left_execution().getNogoods(), *ng_table,
