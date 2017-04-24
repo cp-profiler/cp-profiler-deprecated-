@@ -117,7 +117,7 @@ private:
     std::unique_ptr<NodeTree> m_NodeTree;
     std::unique_ptr<Data> m_Data;
     std::unique_ptr<TreeBuilder> m_Builder;
-    NameMap* nameMap;
+    NameMap* nameMap{nullptr};
     int execution_id;
     bool _is_restarts;
     // Name of the FlatZinc model

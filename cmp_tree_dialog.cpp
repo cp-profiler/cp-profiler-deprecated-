@@ -36,7 +36,7 @@ using std::string;
 
 CmpTreeDialog::CmpTreeDialog(QWidget* parent, Execution* execution, bool with_labels,
                              const Execution& ex1, const Execution& ex2)
-    : QDialog{parent}, expand_expressions(false) {
+    : QDialog{parent}, expand_expressions(true) {
 
   qDebug() << "new CmpTreeDialog";
 
@@ -254,7 +254,7 @@ CmpTreeDialog::saveComparisonStatsTo(const QString& file_name) {
   auto ng_stats = m_Cmp_result->responsible_nogood_stats();
   auto nogood_map = m_Cmp_result->left_execution().getNogoods();
 
-  out << "id, occur, score, ng_id, nogood\n";
+  out << "id, occur, score, nogood, source_nogood\n";
 
   std::vector<std::pair<int, NogoodCmpStats> > ng_stats_vector;
   ng_stats_vector.reserve(ng_stats.size());
@@ -280,8 +280,10 @@ CmpTreeDialog::saveComparisonStatsTo(const QString& file_name) {
     const auto&& name_map = m_Cmp_result->left_execution().getNameMap();
 
     if (name_map) {
-      auto clause = name_map->replaceNames(nogood.c_str());
-      out << clause << "\n";
+      const bool to_expressions = true;
+      auto clause = name_map->replaceNames(nogood.c_str(), to_expressions);
+      out << clause << ", ";
+      out << nogood.c_str() << "\n";
     } else {
       out << nogood.c_str() << "\n";
     }
@@ -485,8 +487,10 @@ CmpTreeDialog::showResponsibleNogoods() {
   auto save_btn = new QPushButton("Save as", ng_dialog);
 
   if (GlobalParser::isSet(GlobalParser::auto_compare)) {
+
     saveComparisonStatsTo("ng_stats.txt");
     std::cerr << "STATS SAVED\n";
+    QCoreApplication::quit();
   }
 
   connect(save_btn, &QPushButton::clicked, this, [this](){
@@ -525,7 +529,7 @@ CmpTreeDialog::showResponsibleNogoods() {
     ng_table->setItem(row, 1, new QTableWidgetItem(QString::number(ng.second.occurrence)));
 
     const QString nogood = QString::fromStdString(getNogoodById(ng.first, nogood_map));
-    QString renamed_nogood = nm != nullptr ? nm->replaceNames(nogood) : nogood;
+    QString renamed_nogood = nm ? nm->replaceNames(nogood) : nogood;
 
     ng_table->setItem(row, 2, new QTableWidgetItem(QString::number(ng.second.search_eliminated)));
     ng_table->setItem(row, 3, new QTableWidgetItem(renamed_nogood));
