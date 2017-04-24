@@ -89,11 +89,12 @@ const QString NameMap::replaceNames(const QString& text, bool expand_expressions
 QString NameMap::replaceAssignments(const QString& path, const QString& expression) const {
     NameMap::SymbolTable st;
 
-    (void) assignment_regex.indexIn(path);
-    const QStringList assignments = assignment_regex.capturedTexts();
-    for(const QString& assign : assignments) {
+    int pos = 0;
+    while ((pos = assignment_regex.indexIn(path, pos)) != -1) {
+      const QString& assign =  assignment_regex.cap(0);
       QStringList leftright = assign.split("=");
       st[leftright[0]] = std::make_pair(leftright[1], "");
+      pos += assignment_regex.matchedLength();
     }
 
     NameMap nm(st);
