@@ -463,6 +463,35 @@ CmpTreeDialog::selectPentagon(int row) {
   
 }
 
+class MyProxyModel : public QSortFilterProxyModel {
+ public:
+  explicit MyProxyModel(QWidget* parent) : QSortFilterProxyModel(parent) {}
+
+ protected:
+  bool lessThan(const QModelIndex& left, const QModelIndex& right) const {
+    auto col = left.column();
+    if (left.column() <= 2) {
+      int lhs =
+          sourceModel()->data(sourceModel()->index(left.row(), col)).toInt();
+      int rhs =
+          sourceModel()->data(sourceModel()->index(right.row(), col)).toInt();
+      return lhs < rhs;
+    } else if (left.column() == 3) {
+      int lhs = sourceModel()
+                    ->data(sourceModel()->index(left.row(), 1))
+                    .toString()
+                    .size();
+      int rhs = sourceModel()
+                    ->data(sourceModel()->index(right.row(), 1))
+                    .toString()
+                    .size();
+      return lhs < rhs;
+    }
+    assert(true);
+    return false;  /// should not reach here; to prevent a warning
+  }
+};
+
 void
 CmpTreeDialog::showResponsibleNogoods() {
 
@@ -473,21 +502,29 @@ CmpTreeDialog::showResponsibleNogoods() {
   ng_dialog->setLayout(ng_layout);
   ng_dialog->show();
 
-  auto ng_table = new QTableWidget(ng_dialog);
+  auto ng_table = new QTableView(ng_dialog);
   ng_table->setEditTriggers(QAbstractItemView::NoEditTriggers);
-  ng_table->setColumnCount(4);
   ng_table->setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
   ng_table->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
+  ng_table->setEditTriggers(QAbstractItemView::NoEditTriggers);
+  ng_table->setSelectionBehavior(QAbstractItemView::SelectRows);
+  ng_table->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+  ng_table->horizontalHeader()->setStretchLastSection(true);
 
-  ng_table->setHorizontalHeaderLabels({"Id", "Occurrence",
-                                       "Reduction Total", "Literals"});
+  auto _model = new QStandardItemModel(0, 2, this);
+  QStringList tableHeaders;
+  tableHeaders << "Id"
+               << "Occurrence"
+               << "Reduction Total"
+               << "Literals";
+  _model->setHorizontalHeaderLabels(tableHeaders);
+  _model->setColumnCount(4);
 
   ng_layout->addWidget(ng_table);
 
   auto save_btn = new QPushButton("Save as", ng_dialog);
 
   if (GlobalParser::isSet(GlobalParser::auto_compare)) {
-
     saveComparisonStatsTo("ng_stats.txt");
     std::cerr << "STATS SAVED\n";
     QCoreApplication::quit();
@@ -499,45 +536,28 @@ CmpTreeDialog::showResponsibleNogoods() {
 
   ng_layout->addWidget(save_btn);
 
-  /// *** edit table ***
-
   auto ng_stats = m_Cmp_result->responsible_nogood_stats();
-
-  /// map to vector
-  std::vector<std::pair<int, NogoodCmpStats> > ng_stats_vector;
-  ng_stats_vector.reserve(ng_stats.size());
-
-  for (auto ng : ng_stats) {
-    ng_stats_vector.push_back(ng);
-  }
-
-  std::sort(ng_stats_vector.begin(), ng_stats_vector.end(),
-    [](const std::pair<int, NogoodCmpStats>& lhs, const std::pair<int, NogoodCmpStats>& rhs){
-      // return lhs.second.occurrence > rhs.second.occurrence;
-      return lhs.second.search_eliminated > rhs.second.search_eliminated;
-  });
-
-  ng_table->setRowCount(ng_stats.size());
-
   auto& nogood_map = m_Cmp_result->left_execution().getNogoods();
-
   const NameMap* nm = m_Cmp_result->left_execution().getNameMap();
   int row = 0;
-  for (auto ng : ng_stats_vector) {
-
-    ng_table->setItem(row, 0, new QTableWidgetItem(QString::number(ng.first)));
-    ng_table->setItem(row, 1, new QTableWidgetItem(QString::number(ng.second.occurrence)));
+  for (auto ng : ng_stats) {
+    _model->setItem(row, 0, new QStandardItem(QString::number(ng.first)));
+    _model->setItem(row, 1, new QStandardItem(QString::number(ng.second.occurrence)));
 
     const QString nogood = QString::fromStdString(getNogoodById(ng.first, nogood_map));
     QString renamed_nogood = nm ? nm->replaceNames(nogood) : nogood;
 
-    ng_table->setItem(row, 2, new QTableWidgetItem(QString::number(ng.second.search_eliminated)));
-    ng_table->setItem(row, 3, new QTableWidgetItem(renamed_nogood));
-
-    // if (row > 100) break;
+    _model->setItem(row, 2, new QStandardItem(QString::number(ng.second.search_eliminated)));
+    _model->setItem(row, 3, new QStandardItem(renamed_nogood));
 
     ++row;
   }
+
+  auto _proxy_model = new MyProxyModel(this);
+  _proxy_model->setSourceModel(_model);
+  ng_table->setModel(_proxy_model);
+  ng_table->setSortingEnabled(true);
+  ng_table->sortByColumn(2);
 
   ng_table->resizeColumnsToContents();
 
@@ -551,33 +571,52 @@ CmpTreeDialog::showResponsibleNogoods() {
 
   ng_layout->addWidget(new QLabel{reduction_label});
 
+  int sid_col = 0;
+  int nogood_col = 3;
   if(nm != nullptr) {
-      int sid_col = 0;
-      int nogood_col = 3;
-      auto heatmapButton = new QPushButton("Heatmap");
-      connect(heatmapButton, &QPushButton::clicked, [=](){
-        const QString heatmap = nm->getHeatMapFromModel(
-                    m_Cmp_result->left_execution().getInfo(), *ng_table, sid_col);
-        if(!heatmap.isEmpty())
-          m_Canvas->emitShowNogoodToIDE(heatmap);
+    auto heatmapButton = new QPushButton("Heatmap");
+    connect(heatmapButton, &QPushButton::clicked, [=](){
+      const QString heatmap = nm->getHeatMapFromModel(
+            m_Cmp_result->left_execution().getInfo(), *ng_table, sid_col);
+      if(!heatmap.isEmpty())
+        m_Canvas->emitShowNogoodToIDE(heatmap);
+    });
+
+    auto showExpressions = new QPushButton("Show/Hide Expressions");
+    connect(showExpressions, &QPushButton::clicked, [=](){
+      expand_expressions ^= true;
+      nm->refreshModelRenaming(
+            m_Cmp_result->left_execution().getNogoods(), *ng_table,
+            sid_col, expand_expressions, [this, nogood_col, _model, _proxy_model](int row, QString newNogood) {
+        QModelIndex idx = _proxy_model->mapToSource(_proxy_model->index(row, 0, QModelIndex()));
+        _model->setItem(idx.row(), nogood_col, new QStandardItem(newNogood));
       });
+    });
 
-      auto showExpressions = new QPushButton("Show/Hide Expressions");
-      connect(showExpressions, &QPushButton::clicked, [=](){
-        expand_expressions ^= true;
-        nm->refreshModelRenaming(
-              m_Cmp_result->left_execution().getNogoods(), *ng_table,
-              sid_col, expand_expressions, [=](int row, QString newNogood) {
-          ng_table->setItem(row, nogood_col, new QTableWidgetItem(newNogood));
-        });
-      });
+    auto buttons = new QHBoxLayout(this);
+    buttons->addWidget(heatmapButton);
+    buttons->addWidget(showExpressions);
 
-      auto buttons = new QHBoxLayout(this);
-      buttons->addWidget(heatmapButton);
-      buttons->addWidget(showExpressions);
-
-      ng_layout->addLayout(buttons);
+    ng_layout->addLayout(buttons);
   }
+
+  auto row_filter_lo = new QHBoxLayout();
+  ng_layout->addLayout(row_filter_lo);
+
+  auto filter_label = new QLabel{"Nogood Regex (comma separated):"};
+  row_filter_lo->addWidget(filter_label);
+
+  auto filter_edit = new QLineEdit("");
+  row_filter_lo->addWidget(filter_edit);
+
+  connect(filter_edit, &QLineEdit::returnPressed, [_proxy_model, filter_edit, nogood_col] () {
+    const QStringList splitFilter = filter_edit->text().split(",");
+    const QRegExp reg_filter("^(?=.*" + splitFilter.join(")(?=.*") + ").*$");
+    _proxy_model->setFilterKeyColumn(nogood_col);
+    _proxy_model->setFilterRegExp(reg_filter);
+  });
+
+  ng_layout->addLayout(row_filter_lo);
 }
 
 TreeCanvas* CmpTreeDialog::getCanvas() {

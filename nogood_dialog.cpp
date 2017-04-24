@@ -35,11 +35,15 @@ NogoodDialog::NogoodDialog(
     const std::unordered_map<int, std::string>& sid2nogood, int64_t root_gid)
   : QDialog(parent), _tc(tc), _sid2nogood(sid2nogood), expand_expressions(false),
     _root_gid(root_gid) {
+  int sid_col = 0;
+  int nogood_col = 1;
   _model = new QStandardItemModel(0, 2, this);
 
   _nogoodTable = new QTableView(this);
   _nogoodTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
   _nogoodTable->setSelectionBehavior(QAbstractItemView::SelectRows);
+  _nogoodTable->setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
+  _nogoodTable->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
 
   QStringList tableHeaders;
   tableHeaders << "node id"
@@ -59,19 +63,20 @@ NogoodDialog::NogoodDialog(
 
   populateTable(selected_nodes);
 
+  _nogoodTable->resizeColumnsToContents();
   _proxy_model = new MyProxyModel(this);
   _proxy_model->setSourceModel(_model);
 
   _nogoodTable->setModel(_proxy_model);
+  _nogoodTable->setSortingEnabled(true);
+  _nogoodTable->sortByColumn(sid_col, Qt::SortOrder::AscendingOrder);
 
   layout->addWidget(_nogoodTable);
 
   const NameMap* nm = _tc.getExecution().getNameMap();
   if(nm != nullptr) {
-    int sid_col = 0;
-    int nogood_col = 1;
     auto heatmapButton = new QPushButton("Heatmap");
-    connect(heatmapButton, &QPushButton::clicked, this, [=](){
+    connect(heatmapButton, &QPushButton::clicked, [=](){
       const QString heatmap = nm->getHeatMapFromModel(
             _tc.getExecution().getInfo(), *_nogoodTable, sid_col);
       if(!heatmap.isEmpty())
@@ -79,15 +84,15 @@ NogoodDialog::NogoodDialog(
     });
 
     auto showExpressions = new QPushButton("Show/Hide Expressions");
-    connect(showExpressions, &QPushButton::clicked, this, [=](){
+    connect(showExpressions, &QPushButton::clicked, [=](){
       expand_expressions ^= true;
       nm->refreshModelRenaming(
             _tc.getExecution().getNogoods(), *_nogoodTable,
             sid_col, expand_expressions,
             [=](int row, QString newNogood) {
-        _model->setItem(row, nogood_col, new QStandardItem(newNogood));
-      }
-      );
+        QModelIndex idx = _proxy_model->mapToSource(_proxy_model->index(row, 0, QModelIndex()));
+        _model->setItem(idx.row(), nogood_col, new QStandardItem(newNogood));
+      });
     });
 
     auto buttons = new QHBoxLayout(this);
@@ -96,6 +101,24 @@ NogoodDialog::NogoodDialog(
 
     layout->addLayout(buttons);
   }
+
+  auto row_filter_lo = new QHBoxLayout();
+  layout->addLayout(row_filter_lo);
+
+  auto filter_label = new QLabel{"Filter Nogoods (comma separated):"};
+  row_filter_lo->addWidget(filter_label);
+
+  auto filter_edit = new QLineEdit("");
+  row_filter_lo->addWidget(filter_edit);
+
+  connect(filter_edit, &QLineEdit::returnPressed, [this, filter_edit, nogood_col] () {
+    const QStringList splitFilter = filter_edit->text().split(",");
+    const QRegExp reg_filter("^(?=.*" + splitFilter.join(")(?=.*") + ").*$");
+    _proxy_model->setFilterKeyColumn(nogood_col);
+    _proxy_model->setFilterRegExp(reg_filter);
+  });
+
+  layout->addLayout(row_filter_lo);
 }
 
 NogoodDialog::~NogoodDialog() {}
@@ -124,8 +147,6 @@ void NogoodDialog::populateTable(const std::vector<int>& selected_nodes) {
 
     row++;
   }
-
-  _nogoodTable->resizeColumnsToContents();
 }
 
 void NogoodDialog::selectNode(const QModelIndex& index) {
