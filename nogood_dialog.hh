@@ -30,36 +30,10 @@
 #include <cstdint>
 #include <QSortFilterProxyModel>
 
+#include "nogoodtable.hh"
+
 class TreeCanvas;
 class QStandardItemModel;
-
-class MyProxyModel : public QSortFilterProxyModel {
- public:
-  explicit MyProxyModel(QWidget* parent) : QSortFilterProxyModel(parent) {}
-
- protected:
-  bool lessThan(const QModelIndex& left, const QModelIndex& right) const {
-    if (left.column() == 0) {
-      int lhs =
-          sourceModel()->data(sourceModel()->index(left.row(), 0)).toInt();
-      int rhs =
-          sourceModel()->data(sourceModel()->index(right.row(), 0)).toInt();
-      return lhs < rhs;
-    } else if (left.column() == 1) {
-      int lhs = sourceModel()
-                    ->data(sourceModel()->index(left.row(), 1))
-                    .toString()
-                    .size();
-      int rhs = sourceModel()
-                    ->data(sourceModel()->index(right.row(), 1))
-                    .toString()
-                    .size();
-      return lhs < rhs;
-    }
-    assert(true);
-    return false;  /// should not reach here; to prevent a warning
-  }
-};
 
 class NogoodDialog : public QDialog {
   Q_OBJECT
@@ -71,14 +45,11 @@ class NogoodDialog : public QDialog {
   TreeCanvas& _tc;
 
   // QTableWidget* _nogoodTable;
-  QTableView* _nogoodTable;
+  NogoodTableView* _nogoodTable;
   const std::unordered_map<int, std::string>& _sid2nogood;
 
   QStandardItemModel* _model;
-  MyProxyModel* _proxy_model;
-
-  bool expand_expressions;
-  int64_t _root_gid;
+  NogoodProxyModel* _proxy_model;
 
  private:
   void populateTable(const std::vector<int>& selected_gids);
@@ -93,9 +64,7 @@ class NogoodDialog : public QDialog {
   /// Create a nogood dialog with nogoods for selected nodes
   NogoodDialog(QWidget* parent, TreeCanvas& tc,
                const std::vector<int>& selected,
-               const std::unordered_map<int, std::string>& sid2nogood,
-               int64_t root_gid);
-
+               const std::unordered_map<int, std::string>& sid2nogood);
 
   ~NogoodDialog();
 };

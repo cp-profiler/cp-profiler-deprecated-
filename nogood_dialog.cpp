@@ -27,98 +27,55 @@
 #include <QHBoxLayout>
 #include <QStandardItemModel>
 
+#include "third-party/json.hpp"
+
 const int NogoodDialog::DEFAULT_WIDTH = 600;
 const int NogoodDialog::DEFAULT_HEIGHT = 400;
 
 NogoodDialog::NogoodDialog(
     QWidget* parent, TreeCanvas& tc, const std::vector<int>& selected_nodes,
-    const std::unordered_map<int, std::string>& sid2nogood, int64_t root_gid)
-  : QDialog(parent), _tc(tc), _sid2nogood(sid2nogood), expand_expressions(false),
-    _root_gid(root_gid) {
-  int sid_col = 0;
-  int nogood_col = 1;
+    const std::unordered_map<int, std::string>& sid2nogood)
+  : QDialog(parent), _tc(tc), _sid2nogood(sid2nogood) {
+  enum NCols {SID_COL=0, NOGOOD_COL};
+  resize(DEFAULT_WIDTH, DEFAULT_HEIGHT);
+
   _model = new QStandardItemModel(0, 2, this);
-
-  _nogoodTable = new QTableView(this);
-  _nogoodTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
-  _nogoodTable->setSelectionBehavior(QAbstractItemView::SelectRows);
-  _nogoodTable->setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
-  _nogoodTable->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
-
-  QStringList tableHeaders;
-  tableHeaders << "node id"
-               << "clause";
+  QStringList tableHeaders {"node id", "clause"};
   _model->setHorizontalHeaderLabels(tableHeaders);
 
-  _nogoodTable->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-  _nogoodTable->setSortingEnabled(true);
+  populateTable(selected_nodes);
+
+  QList<NogoodProxyModel::Sorter> sorters {
+      NogoodProxyModel::SORTER_INT, NogoodProxyModel::SORTER_NOGOOD};
+  _nogoodTable = new NogoodTableView(this, _model, sorters, SID_COL, NOGOOD_COL);
+  _nogoodTable->sortByColumn(SID_COL, Qt::SortOrder::AscendingOrder);
   _nogoodTable->horizontalHeader()->setStretchLastSection(true);
 
   connect(_nogoodTable, SIGNAL(doubleClicked(const QModelIndex&)), this,
           SLOT(selectNode(const QModelIndex&)));
 
-  resize(DEFAULT_WIDTH, DEFAULT_HEIGHT);
-
   auto layout = new QVBoxLayout(this);
-
-  populateTable(selected_nodes);
-
-  _nogoodTable->resizeColumnsToContents();
-  _proxy_model = new MyProxyModel(this);
-  _proxy_model->setSourceModel(_model);
-
-  _nogoodTable->setModel(_proxy_model);
-  _nogoodTable->setSortingEnabled(true);
-  _nogoodTable->sortByColumn(sid_col, Qt::SortOrder::AscendingOrder);
-
   layout->addWidget(_nogoodTable);
 
   const NameMap* nm = _tc.getExecution().getNameMap();
   if(nm != nullptr) {
-    auto heatmapButton = new QPushButton("Heatmap");
-    connect(heatmapButton, &QPushButton::clicked, [=](){
-      const QString heatmap = nm->getHeatMapFromModel(
-            _tc.getExecution().getInfo(), *_nogoodTable, sid_col);
-      if(!heatmap.isEmpty())
-        _tc.emitShowNogoodToIDE(heatmap);
-    });
-
-    auto showExpressions = new QPushButton("Show/Hide Expressions");
-    connect(showExpressions, &QPushButton::clicked, [=](){
-      expand_expressions ^= true;
-      nm->refreshModelRenaming(
-            _tc.getExecution().getNogoods(), *_nogoodTable,
-            sid_col, expand_expressions,
-            [=](int row, QString newNogood) {
-        QModelIndex idx = _proxy_model->mapToSource(_proxy_model->index(row, 0, QModelIndex()));
-        _model->setItem(idx.row(), nogood_col, new QStandardItem(newNogood));
-      });
-    });
-
     auto buttons = new QHBoxLayout(this);
+    auto heatmapButton = new QPushButton("Heatmap");
     buttons->addWidget(heatmapButton);
+    auto showExpressions = new QPushButton("Show/Hide Expressions");
     buttons->addWidget(showExpressions);
-
     layout->addLayout(buttons);
+
+    _nogoodTable->connectHeatmapButton(heatmapButton, _tc.getExecution(), _tc);
+    _nogoodTable->connectShowExpressionsButton(showExpressions, _tc.getExecution());
   }
 
-  auto row_filter_lo = new QHBoxLayout();
-  layout->addLayout(row_filter_lo);
-
-  auto filter_label = new QLabel{"Filter Nogoods (comma separated):"};
-  row_filter_lo->addWidget(filter_label);
-
-  auto filter_edit = new QLineEdit("");
-  row_filter_lo->addWidget(filter_edit);
-
-  connect(filter_edit, &QLineEdit::returnPressed, [this, filter_edit, nogood_col] () {
-    const QStringList splitFilter = filter_edit->text().split(",");
-    const QRegExp reg_filter("^(?=.*" + splitFilter.join(")(?=.*") + ").*$");
-    _proxy_model->setFilterKeyColumn(nogood_col);
-    _proxy_model->setFilterRegExp(reg_filter);
-  });
-
-  layout->addLayout(row_filter_lo);
+  auto regex_layout = new QHBoxLayout();
+  regex_layout->addWidget(new QLabel{"Nogood Regex (comma separated):"});
+  auto regex_edit = new QLineEdit("");
+  regex_layout->addWidget(regex_edit);
+  _nogoodTable->connectFilters(regex_edit);
+  layout->addLayout(regex_layout);
 }
 
 NogoodDialog::~NogoodDialog() {}
@@ -140,7 +97,7 @@ void NogoodDialog::populateTable(const std::vector<int>& selected_nodes) {
     }
 
     QString qclause = QString::fromStdString(ng_item->second);
-    QString clause = nm != nullptr ? nm->replaceNames(qclause, expand_expressions) : qclause;
+    QString clause = nm != nullptr ? nm->replaceNames(qclause) : qclause;
 
     _model->setItem(row, 0, new QStandardItem(QString::number(sid)));
     _model->setItem(row, 1, new QStandardItem(clause));

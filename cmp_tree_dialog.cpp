@@ -31,6 +31,7 @@
 #include "execution.hh"
 #include "nodetree.hh"
 #include "data.hh"
+#include "nogoodtable.hh"
 
 using std::string;
 
@@ -222,22 +223,6 @@ CmpTreeDialog::showPentagonHist() {
   pentagon_window->show();
 }
 
-
-static string empty_string = "";
-
-string& getNogoodById(int ng_id, const std::unordered_map<int, string>& ng_map) {
-
-  string& nogood = empty_string;
-
-  auto maybe_nogood = ng_map.find(ng_id);
-
-  if (maybe_nogood != ng_map.end()){
-    nogood = maybe_nogood->second;
-  }
-
-  return nogood;
-}
-
 void
 CmpTreeDialog::saveComparisonStatsTo(const QString& file_name) {
   if (file_name == "") return;
@@ -252,7 +237,7 @@ CmpTreeDialog::saveComparisonStatsTo(const QString& file_name) {
   QTextStream out(&outputFile);
 
   auto ng_stats = m_Cmp_result->responsible_nogood_stats();
-  auto nogood_map = m_Cmp_result->left_execution().getNogoods();
+  const Execution& left_execution = m_Cmp_result->left_execution();
 
   out << "id, occur, score, nogood, source_nogood\n";
 
@@ -275,7 +260,7 @@ CmpTreeDialog::saveComparisonStatsTo(const QString& file_name) {
     out << ng.second.occurrence << ", ";
     out << ng.second.search_eliminated << ", ";
 
-    string& nogood = getNogoodById(ng.first, nogood_map);
+    string& nogood = left_execution.getNogoodBySid(ng.first);
 
     const auto&& name_map = m_Cmp_result->left_execution().getNameMap();
 
@@ -313,8 +298,6 @@ static void initNogoodTable(QTableWidget& ng_table) {
   ng_table.setHorizontalHeaderLabels(table_header);
   ng_table.setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
   ng_table.setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
-
-
 }
 
 std::vector<int>
@@ -338,7 +321,7 @@ void
 PentListWindow::populateNogoodTable(const std::vector<int>& nogoods) {
 
   auto ng_stats = cmp_result.responsible_nogood_stats();
-  auto nogood_map = cmp_result.left_execution().getNogoods();
+  const Execution& left_execution = cmp_result.left_execution();
 
   _nogoodTable.setRowCount(nogoods.size());
 
@@ -347,8 +330,7 @@ PentListWindow::populateNogoodTable(const std::vector<int>& nogoods) {
     auto ng_id = nogoods[i]; /// is this sid of gid???
     _nogoodTable.setItem(i, 0, new QTableWidgetItem(QString::number(ng_id)));
 
-    string& nogood = getNogoodById(ng_id, nogood_map);
-
+    const string& nogood = left_execution.getNogoodBySid(ng_id);
     qDebug() << "nogood id " << ng_id << ": " << nogood.c_str();
 
     int ng_count = ng_stats.at(ng_id).occurrence;
@@ -399,8 +381,6 @@ PentListWindow::PentListWindow(CmpTreeDialog* parent,
   layout->addWidget(&_pentagonTable);
   layout->addWidget(&_nogoodTable);
 }
-
-
 
 static QString infoToNogoodStr(const string& info) {
   QString result = "";
@@ -463,66 +443,15 @@ CmpTreeDialog::selectPentagon(int row) {
   
 }
 
-class MyProxyModel : public QSortFilterProxyModel {
- public:
-  explicit MyProxyModel(QWidget* parent) : QSortFilterProxyModel(parent) {}
-
- protected:
-  bool lessThan(const QModelIndex& left, const QModelIndex& right) const {
-    auto col = left.column();
-    if (left.column() <= 2) {
-      int lhs =
-          sourceModel()->data(sourceModel()->index(left.row(), col)).toInt();
-      int rhs =
-          sourceModel()->data(sourceModel()->index(right.row(), col)).toInt();
-      return lhs < rhs;
-    } else if (left.column() == 3) {
-      int lhs = sourceModel()
-                    ->data(sourceModel()->index(left.row(), 1))
-                    .toString()
-                    .size();
-      int rhs = sourceModel()
-                    ->data(sourceModel()->index(right.row(), 1))
-                    .toString()
-                    .size();
-      return lhs < rhs;
-    }
-    assert(true);
-    return false;  /// should not reach here; to prevent a warning
-  }
-};
-
 void
 CmpTreeDialog::showResponsibleNogoods() {
+  enum RNCols {SID_COL = 0, OCCURRENCE_COL, REDUCTION_COL, NOGOOD_COL};
 
   auto ng_dialog = new QDialog(this);
   auto ng_layout = new QVBoxLayout();
-
   ng_dialog->resize(600, 400);
   ng_dialog->setLayout(ng_layout);
   ng_dialog->show();
-
-  auto ng_table = new QTableView(ng_dialog);
-  ng_table->setEditTriggers(QAbstractItemView::NoEditTriggers);
-  ng_table->setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
-  ng_table->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
-  ng_table->setEditTriggers(QAbstractItemView::NoEditTriggers);
-  ng_table->setSelectionBehavior(QAbstractItemView::SelectRows);
-  ng_table->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-  ng_table->horizontalHeader()->setStretchLastSection(true);
-
-  auto _model = new QStandardItemModel(0, 2, this);
-  QStringList tableHeaders;
-  tableHeaders << "Id"
-               << "Occurrence"
-               << "Reduction Total"
-               << "Literals";
-  _model->setHorizontalHeaderLabels(tableHeaders);
-  _model->setColumnCount(4);
-
-  ng_layout->addWidget(ng_table);
-
-  auto save_btn = new QPushButton("Save as", ng_dialog);
 
   if (GlobalParser::isSet(GlobalParser::auto_compare)) {
     saveComparisonStatsTo("ng_stats.txt");
@@ -530,22 +459,21 @@ CmpTreeDialog::showResponsibleNogoods() {
     QCoreApplication::quit();
   }
 
-  connect(save_btn, &QPushButton::clicked, this, [this](){
-    saveComparisonStatsTo("temp_stats.txt");
-  });
-
-  ng_layout->addWidget(save_btn);
-
   auto ng_stats = m_Cmp_result->responsible_nogood_stats();
-  auto& nogood_map = m_Cmp_result->left_execution().getNogoods();
+  const Execution& left_execution = m_Cmp_result->left_execution();
   const NameMap* nm = m_Cmp_result->left_execution().getNameMap();
+
+  auto _model = new QStandardItemModel(0, 2, this);
+  _model->setHorizontalHeaderLabels({"Id", "Occurrence", "Reduction Total", "Literals"});
+  _model->setColumnCount(4);
+
   int row = 0;
   for (auto ng : ng_stats) {
     _model->setItem(row, 0, new QStandardItem(QString::number(ng.first)));
     _model->setItem(row, 1, new QStandardItem(QString::number(ng.second.occurrence)));
 
-    const QString nogood = QString::fromStdString(getNogoodById(ng.first, nogood_map));
-    QString renamed_nogood = nm ? nm->replaceNames(nogood) : nogood;
+    const QString nogood = QString::fromStdString(left_execution.getNogoodBySid(ng.first));
+    const QString renamed_nogood = nm ? nm->replaceNames(nogood) : nogood;
 
     _model->setItem(row, 2, new QStandardItem(QString::number(ng.second.search_eliminated)));
     _model->setItem(row, 3, new QStandardItem(renamed_nogood));
@@ -553,70 +481,47 @@ CmpTreeDialog::showResponsibleNogoods() {
     ++row;
   }
 
-  auto _proxy_model = new MyProxyModel(this);
-  _proxy_model->setSourceModel(_model);
-  ng_table->setModel(_proxy_model);
+  QList<NogoodProxyModel::Sorter> sorters{
+      NogoodProxyModel::SORTER_INT , NogoodProxyModel::SORTER_INT,
+      NogoodProxyModel::SORTER_INT , NogoodProxyModel::SORTER_NOGOOD};
+  auto ng_table = new NogoodTableView(ng_dialog, _model, sorters, SID_COL, NOGOOD_COL);
   ng_table->setSortingEnabled(true);
-  ng_table->sortByColumn(2);
+  ng_table->sortByColumn(REDUCTION_COL, Qt::SortOrder::DescendingOrder);
+  ng_layout->addWidget(ng_table);
 
-  ng_table->resizeColumnsToContents();
+  auto save_btn = new QPushButton("Save as", ng_dialog);
+  ng_layout->addWidget(save_btn);
+  connect(save_btn, &QPushButton::clicked, this, [this](){
+    saveComparisonStatsTo("temp_stats.txt");
+  });
 
   auto total_reduced = m_Cmp_result->get_total_reduced();
   auto total_nodes = m_Cmp_result->right_execution().getData().size();
+  QStringList reduction_label = {"Nodes reduced:", QString::number(total_reduced),
+                                 "out of",         QString::number(total_nodes)};
+  ng_layout->addWidget(new QLabel{reduction_label.join(" ")});
 
-  auto reduction_label = QString{"Nodes reduced: "} +
-                         QString::number(total_reduced) +
-                         QString{" out of "} +
-                         QString::number(total_nodes);
-
-  ng_layout->addWidget(new QLabel{reduction_label});
-
-  int sid_col = 0;
-  int nogood_col = 3;
   if(nm != nullptr) {
-    auto heatmapButton = new QPushButton("Heatmap");
-    connect(heatmapButton, &QPushButton::clicked, [=](){
-      const QString heatmap = nm->getHeatMapFromModel(
-            m_Cmp_result->left_execution().getInfo(), *ng_table, sid_col);
-      if(!heatmap.isEmpty())
-        m_Canvas->emitShowNogoodToIDE(heatmap);
-    });
-
-    auto showExpressions = new QPushButton("Show/Hide Expressions");
-    connect(showExpressions, &QPushButton::clicked, [=](){
-      expand_expressions ^= true;
-      nm->refreshModelRenaming(
-            m_Cmp_result->left_execution().getNogoods(), *ng_table,
-            sid_col, expand_expressions, [this, nogood_col, _model, _proxy_model](int row, QString newNogood) {
-        QModelIndex idx = _proxy_model->mapToSource(_proxy_model->index(row, 0, QModelIndex()));
-        _model->setItem(idx.row(), nogood_col, new QStandardItem(newNogood));
-      });
-    });
-
     auto buttons = new QHBoxLayout(this);
+    auto heatmapButton = new QPushButton("Heatmap");
+    auto showExpressions = new QPushButton("Show/Hide Expressions");
     buttons->addWidget(heatmapButton);
     buttons->addWidget(showExpressions);
-
     ng_layout->addLayout(buttons);
+
+    ng_table->connectHeatmapButton(heatmapButton,
+                                   m_Cmp_result->left_execution(),
+                                   *m_Canvas.get());
+    ng_table->connectShowExpressionsButton(showExpressions,
+                                           m_Cmp_result->left_execution());
   }
 
-  auto row_filter_lo = new QHBoxLayout();
-  ng_layout->addLayout(row_filter_lo);
-
-  auto filter_label = new QLabel{"Nogood Regex (comma separated):"};
-  row_filter_lo->addWidget(filter_label);
-
-  auto filter_edit = new QLineEdit("");
-  row_filter_lo->addWidget(filter_edit);
-
-  connect(filter_edit, &QLineEdit::returnPressed, [_proxy_model, filter_edit, nogood_col] () {
-    const QStringList splitFilter = filter_edit->text().split(",");
-    const QRegExp reg_filter("^(?=.*" + splitFilter.join(")(?=.*") + ").*$");
-    _proxy_model->setFilterKeyColumn(nogood_col);
-    _proxy_model->setFilterRegExp(reg_filter);
-  });
-
-  ng_layout->addLayout(row_filter_lo);
+  auto regex_layout = new QHBoxLayout();
+  regex_layout->addWidget(new QLabel{"Nogood Regex (comma separated):"});
+  auto regex_edit = new QLineEdit("");
+  ng_table->connectFilters(regex_edit);
+  regex_layout->addWidget(regex_edit);
+  ng_layout->addLayout(regex_layout);
 }
 
 TreeCanvas* CmpTreeDialog::getCanvas() {

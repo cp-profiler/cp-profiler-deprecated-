@@ -6,8 +6,6 @@
 #include "nodevisitor.hh"
 #include "cpprofiler/utils/tree_utils.hh"
 
-#include <regex>
-
 using std::string;
 
 Execution::Execution()
@@ -150,6 +148,20 @@ void Execution::handleNewNode(message::Node& node) {
 
 const std::unordered_map<int, string>& Execution::getNogoods() const {
   return m_Data->getNogoods();
+}
+
+static string empty_string = "";
+string& Execution::getNogoodBySid(int sid) const {
+  const auto& ng_map = m_Data->getNogoods();
+  string& nogood = empty_string;
+
+  auto maybe_nogood = ng_map.find(sid);
+
+  if (maybe_nogood != ng_map.end()){
+    nogood = maybe_nogood->second;
+  }
+
+  return nogood;
 }
 
 std::unordered_map<int64_t, string*>& Execution::getInfo(void) const {

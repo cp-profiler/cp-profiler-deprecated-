@@ -316,9 +316,8 @@ void TreeCanvas::showNogoods(void) {
   GetIndexesCursor gic(currentNode, na, selected_gids);
   PreorderNodeVisitor<GetIndexesCursor>(gic).run();
 
-  int64_t gid = currentNode->getIndex(na);
   NogoodDialog* ngdialog =
-      new NogoodDialog(this, *this, selected_gids, execution.getNogoods(), gid);
+      new NogoodDialog(this, *this, selected_gids, execution.getNogoods());
 
   ngdialog->show();
 }
@@ -349,7 +348,7 @@ std::string boolToString(bool flag) {
 
 #endif
 
-void TreeCanvas::emitShowNogoodToIDE(const QString heatmap) {
+void TreeCanvas::emitShowNogoodToIDE(const QString& heatmap) const {
     emit showNogood(heatmap);
 }
 

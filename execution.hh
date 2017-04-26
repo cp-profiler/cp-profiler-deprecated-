@@ -68,6 +68,7 @@ public:
     NodeTree& nodeTree() { return *m_NodeTree.get(); }
 
     const std::unordered_map<int, std::string>& getNogoods() const;
+    std::string& getNogoodBySid(int sid) const;
     std::unordered_map<int64_t, std::string*>& getInfo(void) const;
     unsigned getGidBySid(int64_t sid);
 

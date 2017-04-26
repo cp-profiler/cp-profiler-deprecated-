@@ -14,6 +14,23 @@
 QRegExp NameMap::var_name_regex(reg_mzn_ident);
 QRegExp NameMap::assignment_regex(reg_mzn_ident "=" reg_number);
 
+QList<int> getReasons(const int64_t sid,
+                      const std::unordered_map<int64_t, std::string*>& sid2info) {
+    QList<int> reason_list;
+    auto info_item = sid2info.find(sid);
+    if(info_item != sid2info.end()) {
+      auto info_json = nlohmann::json::parse(*info_item->second);
+      auto reasonIt = info_json.find("reasons");
+      if(reasonIt != info_json.end()) {
+        auto reasons = *reasonIt;
+        for(int con_id : reasons) {
+          reason_list.append(con_id);
+        }
+      }
+    }
+    return reason_list;
+}
+
 NameMap::NameMap(SymbolTable& st) : _nameMap(st) {};
 
 NameMap::NameMap(QString& path_filename, QString& model_filename) {
@@ -43,20 +60,22 @@ NameMap::NameMap(QString& path_filename, QString& model_filename) {
   }
 }
 
-const QString NameMap::getNiceName(const QString& ident) const {
+const QString& NameMap::getNiceName(const QString& ident) const {
+  static QString empty_string;
   auto it = _nameMap.find(ident);
   if(it != _nameMap.end()) {
     return it.value().first;
   }
-  return "";
+  return empty_string;
 }
 
-const QString NameMap::getPath(const QString& ident) const {
+const QString& NameMap::getPath(const QString& ident) const {
+  static QString empty_string;
   auto it = _nameMap.find(ident);
   if(it != _nameMap.end()) {
     return it.value().second;
   }
-  return "";
+  return empty_string;
 }
 
 const QString NameMap::replaceNames(const QString& text, bool expand_expressions) const {
@@ -195,22 +214,25 @@ namespace TableHelpers {
 void NameMap::refreshModelRenaming(
         const std::unordered_map<int, std::string>& sid2nogood,
         const QTableView& table,
-        int sid_col, bool expand_expressions,
-        const std::function <void (int, QString)>& tsi) const {
+        QStandardItemModel& model,
+        const QSortFilterProxyModel& proxy_model,
+        int sid_col, int nogood_col,
+        bool expand_expressions) const {
   const QModelIndexList selection = TableHelpers::getSelection(table, sid_col);
   for(int i=0; i<selection.count(); i++) {
     int row = selection.at(i).row();
-    int64_t sid = table.model()->data(table.model()->index(row, sid_col)).toLongLong();
+    QModelIndex sid_idx = proxy_model.mapToSource(proxy_model.index(row, 0, QModelIndex()));
+    int64_t sid = model.data(model.index(sid_idx.row(), sid_col)).toLongLong();
 
     auto ng_item = sid2nogood.find(sid);
     if (ng_item == sid2nogood.end()) {
       continue;  /// nogood not found
     }
 
-    QString qclause = QString::fromStdString(ng_item->second);
-    QString clause = replaceNames(qclause, expand_expressions);
-
-    tsi(row, clause);
+    const QString& qclause = QString::fromStdString(ng_item->second);
+    const QString clause = replaceNames(qclause, expand_expressions);
+    QModelIndex idx = proxy_model.mapToSource(proxy_model.index(row, 0, QModelIndex()));
+    model.setData(idx.sibling(idx.row(), nogood_col), clause);
   }
   TableHelpers::updateSelection(table);
 }
@@ -228,29 +250,20 @@ const QString NameMap::getHeatMapFromModel(
   for(int i=0; i<selection.count(); i++) {
     int row = selection.at(i).row();
     int64_t sid = table.model()->data(table.model()->index(row, sid_col)).toLongLong();
-    auto info_item = sid2info.find(sid);
-    if(info_item != sid2info.end()) {
-      std::string info_text = *info_item->second;
-      auto info_json = nlohmann::json::parse(info_text);
 
-      auto reasonIt = info_json.find("reasons");
-      if(reasonIt != info_json.end()) {
-        auto reasons = *reasonIt;
-        for(int con_id : reasons) {
-          int count = 0;
-          if(con_ids.find(con_id) == con_ids.end()) {
-            con_ids[con_id] = 1;
-            count = 1;
-          } else {
-            con_ids[con_id]++;
-            count = con_ids[con_id];
-          }
-          max_count = count > max_count ? count : max_count;
-        }
+    for(int con_id : getReasons(sid, sid2info)) {
+      int count = 0;
+      if(con_ids.find(con_id) == con_ids.end()) {
+        con_ids[con_id] = 1;
+        count = 1;
+      } else {
+        con_ids[con_id]++;
+        count = con_ids[con_id];
       }
-
-      label << QString::number(sid);
+      max_count = count > max_count ? count : max_count;
     }
+
+    label << QString::number(sid);
   }
 
   TableHelpers::updateSelection(table);
