@@ -11,37 +11,36 @@
 
 class NogoodProxyModel : public QSortFilterProxyModel {
 public:
-  enum Sorter {SORTER_INT, SORTER_NOGOOD};
-  explicit NogoodProxyModel(QWidget* parent, const QList<Sorter>& sorters);
+  enum Sorter {SORTER_SID = 0, SORTER_INT, SORTER_NOGOOD};
+  explicit NogoodProxyModel(QWidget* parent,
+                            const Execution& e,
+                            const QList<Sorter>& sorters);
 
-  bool enabled {true};
+  void setTextFilterStrings(const QStringList& textFilterStrings);
+  void emptyTextFilterStrings();
+  void setLocationFilter(const LocationFilter& locationFilter);
+
 protected:
   bool lessThan(const QModelIndex& left, const QModelIndex& right) const;
+  bool filterAcceptsRow(int source_row, const QModelIndex&) const;
 
 private:
   QList<Sorter> _sorters;
-};
-
-class ReasonLocationFilterProxyModel : public QSortFilterProxyModel {
-public:
-  ReasonLocationFilterProxyModel(const Execution& e,
-                                 int sid_col);
-
-  virtual bool filterAcceptsRow(int source_row, const QModelIndex &source_parent) const;
-  void setReasonLocationFilter(const QList<QList<int> >& location);
-
-private:
-  const int _sid_col;
-  const Execution& _execution;
-  QList<QList<int> > _locationFilter;
+  QStringList _text_filter;
+  LocationFilter _loc_filter;
+  const std::unordered_map<int64_t, std::string*>& _sid2info;
+  const NameMap* _nm;
+  int _sid_col;
+  int _nogood_col;
 };
 
 class NogoodTableView : public QTableView {
 public:
   NogoodTableView(QWidget* parent,
-              QStandardItemModel* model,
-              QList<NogoodProxyModel::Sorter> sorters,
-              int sid_col, int nogood_col);
+                  QStandardItemModel* model,
+                  QList<NogoodProxyModel::Sorter> sorters,
+                  const Execution& e,
+                  int sid_col, int nogood_col);
 
   NogoodProxyModel* getProxyModel();
 
@@ -49,7 +48,11 @@ public:
                             const Execution& e,
                             const TreeCanvas& tc) const;
   void connectShowExpressionsButton(const QPushButton* showExpressions, const Execution& e);
-  void connectFilters(const QLineEdit* regex_edit);
+  void connectTextFilter(const QLineEdit* text_edit);
+  void connectLocationFilter(const QLineEdit* location_edit);
+  void connectLocationButton(const QPushButton* locationButton,
+                             QLineEdit* location_edit,
+                             const Execution& e);
 
 private:
   QStandardItemModel* _model;

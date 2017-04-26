@@ -46,8 +46,10 @@ NogoodDialog::NogoodDialog(
   populateTable(selected_nodes);
 
   QList<NogoodProxyModel::Sorter> sorters {
-      NogoodProxyModel::SORTER_INT, NogoodProxyModel::SORTER_NOGOOD};
-  _nogoodTable = new NogoodTableView(this, _model, sorters, SID_COL, NOGOOD_COL);
+      NogoodProxyModel::SORTER_SID, NogoodProxyModel::SORTER_NOGOOD};
+  _nogoodTable = new NogoodTableView(this, _model, sorters,
+                                     _tc.getExecution(),
+                                     SID_COL, NOGOOD_COL);
   _nogoodTable->sortByColumn(SID_COL, Qt::SortOrder::AscendingOrder);
   _nogoodTable->horizontalHeader()->setStretchLastSection(true);
 
@@ -58,11 +60,13 @@ NogoodDialog::NogoodDialog(
   layout->addWidget(_nogoodTable);
 
   const NameMap* nm = _tc.getExecution().getNameMap();
-  if(nm != nullptr) {
+  if(nm) {
     auto buttons = new QHBoxLayout(this);
     auto heatmapButton = new QPushButton("Heatmap");
+    heatmapButton->setAutoDefault(false);
     buttons->addWidget(heatmapButton);
     auto showExpressions = new QPushButton("Show/Hide Expressions");
+    showExpressions->setAutoDefault(false);
     buttons->addWidget(showExpressions);
     layout->addLayout(buttons);
 
@@ -70,12 +74,25 @@ NogoodDialog::NogoodDialog(
     _nogoodTable->connectShowExpressionsButton(showExpressions, _tc.getExecution());
   }
 
-  auto regex_layout = new QHBoxLayout();
-  regex_layout->addWidget(new QLabel{"Nogood Regex (comma separated):"});
-  auto regex_edit = new QLineEdit("");
-  regex_layout->addWidget(regex_edit);
-  _nogoodTable->connectFilters(regex_edit);
-  layout->addLayout(regex_layout);
+  auto filter_layout = new QHBoxLayout();
+  filter_layout->addWidget(new QLabel{"Text Filters:"});
+  auto text_edit = new QLineEdit("");
+  _nogoodTable->connectTextFilter(text_edit);
+  filter_layout->addWidget(text_edit);
+
+  if(nm) {
+    filter_layout->addWidget(new QLabel{"Location Filter:"});
+    auto location_edit = new QLineEdit("");
+    _nogoodTable->connectLocationFilter(location_edit);
+    filter_layout->addWidget(location_edit);
+
+    auto locationButton = new QPushButton("Get Location");
+    locationButton->setAutoDefault(false);
+    _nogoodTable->connectLocationButton(locationButton, location_edit, _tc.getExecution());
+    filter_layout->addWidget(locationButton);
+  }
+
+  layout->addLayout(filter_layout);
 }
 
 NogoodDialog::~NogoodDialog() {}

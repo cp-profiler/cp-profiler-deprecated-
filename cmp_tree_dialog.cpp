@@ -482,9 +482,11 @@ CmpTreeDialog::showResponsibleNogoods() {
   }
 
   QList<NogoodProxyModel::Sorter> sorters{
-      NogoodProxyModel::SORTER_INT , NogoodProxyModel::SORTER_INT,
+      NogoodProxyModel::SORTER_SID , NogoodProxyModel::SORTER_INT,
       NogoodProxyModel::SORTER_INT , NogoodProxyModel::SORTER_NOGOOD};
-  auto ng_table = new NogoodTableView(ng_dialog, _model, sorters, SID_COL, NOGOOD_COL);
+  auto ng_table = new NogoodTableView(ng_dialog, _model, sorters,
+                                      m_Cmp_result->left_execution(),
+                                      SID_COL, NOGOOD_COL);
   ng_table->setSortingEnabled(true);
   ng_table->sortByColumn(REDUCTION_COL, Qt::SortOrder::DescendingOrder);
   ng_layout->addWidget(ng_table);
@@ -504,7 +506,9 @@ CmpTreeDialog::showResponsibleNogoods() {
   if(nm != nullptr) {
     auto buttons = new QHBoxLayout(this);
     auto heatmapButton = new QPushButton("Heatmap");
+    heatmapButton->setAutoDefault(false);
     auto showExpressions = new QPushButton("Show/Hide Expressions");
+    showExpressions->setAutoDefault(false);
     buttons->addWidget(heatmapButton);
     buttons->addWidget(showExpressions);
     ng_layout->addLayout(buttons);
@@ -516,12 +520,26 @@ CmpTreeDialog::showResponsibleNogoods() {
                                            m_Cmp_result->left_execution());
   }
 
-  auto regex_layout = new QHBoxLayout();
-  regex_layout->addWidget(new QLabel{"Nogood Regex (comma separated):"});
-  auto regex_edit = new QLineEdit("");
-  ng_table->connectFilters(regex_edit);
-  regex_layout->addWidget(regex_edit);
-  ng_layout->addLayout(regex_layout);
+  auto filter_layout = new QHBoxLayout();
+  filter_layout->addWidget(new QLabel{"Text Filters:"});
+  auto text_edit = new QLineEdit("");
+  ng_table->connectTextFilter(text_edit);
+  filter_layout->addWidget(text_edit);
+
+  if(nm) {
+    filter_layout->addWidget(new QLabel{"Location Filter:"});
+    auto location_edit = new QLineEdit("");
+    ng_table->connectLocationFilter(location_edit);
+    filter_layout->addWidget(location_edit);
+
+    auto locationButton = new QPushButton("Get Location");
+    locationButton->setAutoDefault(false);
+    ng_table->connectLocationButton(locationButton, location_edit,
+                                    m_Cmp_result->left_execution());
+    filter_layout->addWidget(locationButton);
+  }
+
+  ng_layout->addLayout(filter_layout);
 }
 
 TreeCanvas* CmpTreeDialog::getCanvas() {

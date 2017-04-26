@@ -9,12 +9,33 @@
 #include "nogoodtable.hh"
 #include "treecanvas.hh"
 
-NogoodProxyModel::NogoodProxyModel(QWidget* parent, const QList<Sorter>& sorters)
-    : QSortFilterProxyModel(parent), _sorters(sorters) {}
+NogoodProxyModel::NogoodProxyModel(QWidget* parent,
+                                   const Execution& e,
+                                   const QList<Sorter>& sorters)
+    : QSortFilterProxyModel(parent), _sorters(sorters),
+      _sid2info(e.getInfo()), _nm(e.getNameMap()) {
+  _sid_col = sorters.indexOf(NogoodProxyModel::SORTER_SID);
+  _nogood_col = sorters.indexOf(NogoodProxyModel::SORTER_NOGOOD);
+}
+
+void NogoodProxyModel::setLocationFilter(const LocationFilter& locationFilter) {
+  _loc_filter = locationFilter;
+  invalidateFilter();
+}
+
+void NogoodProxyModel::emptyTextFilterStrings() {
+  _text_filter.clear();
+}
+
+void NogoodProxyModel::setTextFilterStrings(const QStringList& textFilterStrings) {
+  _text_filter = textFilterStrings;
+  invalidateFilter();
+}
 
 bool NogoodProxyModel::lessThan(const QModelIndex& left, const QModelIndex& right) const {
   int col = left.column();
   switch(_sorters[col]) {
+  case SORTER_SID:
   case SORTER_INT:
   {
     int lhs = sourceModel()->data(sourceModel()->index(left.row(), col)).toInt();
@@ -32,29 +53,32 @@ bool NogoodProxyModel::lessThan(const QModelIndex& left, const QModelIndex& righ
   return false;  /// should not reach here; to prevent a warning
 }
 
-ReasonLocationFilterProxyModel::ReasonLocationFilterProxyModel(
-    const Execution& e, int sid_col)
-  : _sid_col(sid_col), _execution(e) {}
+bool NogoodProxyModel::filterAcceptsRow(int source_row, const QModelIndex&) const {
+  const QString& nogood = sourceModel()->data(
+              sourceModel()->index(source_row, _nogood_col)).toString();
 
-bool ReasonLocationFilterProxyModel::filterAcceptsRow(
-    int source_row, const QModelIndex &source_parent) const {
-  const NameMap* nm = _execution.getNameMap();
-  const QModelIndex index = mapFromSource(source_parent);
-  int64_t sid = index.sibling(index.row(), _sid_col).data().toLongLong();
-  for(int reason : getReasons(sid, _execution.getInfo())) {
-    const QString& path = nm->getPath(QString::number(reason));
+  bool text_matches = std::all_of(
+              _text_filter.begin(), _text_filter.end(),
+              [&nogood](const QString& tf) { return nogood.contains(tf); });
+
+  const int sid = sourceModel()->data(sourceModel()->index(source_row, _sid_col)).toInt();
+  auto reasons = getReasons(sid, _sid2info);
+  bool loc_matches = true;
+  if(_nm) {
+    loc_matches = std::all_of(reasons.begin(),
+                              reasons.end(),
+                              [this](const int cid) {
+      return _loc_filter.contains(_nm->getLocation(QString::number(cid)));
+    });
   }
-}
 
-void ReasonLocationFilterProxyModel::setReasonLocationFilter(
-    const QList<QList<int> >& location) {
-  _locationFilter = location;
+  return text_matches && loc_matches;
 }
-
 
 NogoodTableView::NogoodTableView(QWidget* parent,
                                  QStandardItemModel* model,
                                  QList<NogoodProxyModel::Sorter> sorters,
+                                 const Execution& e,
                                  int sid_col, int nogood_col)
   : QTableView(parent), _model(model),
     _sid_col(sid_col), _nogood_col(nogood_col),
@@ -67,7 +91,7 @@ NogoodTableView::NogoodTableView(QWidget* parent,
   setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
   resizeColumnsToContents();
 
-  nogood_proxy_model = new NogoodProxyModel(this, sorters);
+  nogood_proxy_model = new NogoodProxyModel(this, e, sorters);
   nogood_proxy_model->setSourceModel(_model);
 
   setModel(nogood_proxy_model);
@@ -85,6 +109,14 @@ void NogoodTableView::connectHeatmapButton(const QPushButton* heatmapButton,
   });
 }
 
+void NogoodTableView::connectLocationButton(const QPushButton* locationButton,
+                                            QLineEdit* location_edit,
+                                            const Execution& e) {
+  connect(locationButton, &QPushButton::clicked, [&e,this,location_edit](){
+    e.getNameMap()->updateLocationFilter(e.getInfo(), *this, location_edit, _sid_col);
+  });
+}
+
 void NogoodTableView::connectShowExpressionsButton(
     const QPushButton* showExpressions,
     const Execution& e) {
@@ -99,12 +131,16 @@ void NogoodTableView::connectShowExpressionsButton(
   });
 }
 
-void NogoodTableView::connectFilters(const QLineEdit* regex_edit) {
-  connect(regex_edit, &QLineEdit::returnPressed, [this, regex_edit] () {
-    const QStringList splitFilter = regex_edit->text().split(",");
-    const QRegExp reg_filter("^(?=.*" + splitFilter.join(")(?=.*") + ").*$");
-    nogood_proxy_model->setFilterKeyColumn(_nogood_col);
-    nogood_proxy_model->setFilterRegExp(reg_filter);
+void NogoodTableView::connectTextFilter(const QLineEdit* text_edit) {
+  connect(text_edit, &QLineEdit::returnPressed, [this, text_edit] () {
+    const QStringList splitFilter = text_edit->text().split(",");
+    nogood_proxy_model->setTextFilterStrings(splitFilter);
+  });
+}
+
+void NogoodTableView::connectLocationFilter(const QLineEdit* location_edit) {
+  connect(location_edit, &QLineEdit::returnPressed, [this, location_edit] () {
+    nogood_proxy_model->setLocationFilter(LocationFilter::fromString(location_edit->text()));
   });
 }
 

@@ -5,6 +5,7 @@
 #include <math.h>
 #include <qtextstream.h>
 #include <qvector.h>
+#include <qlineedit.h>
 
 #include "third-party/json.hpp"
 
@@ -16,19 +17,81 @@ QRegExp NameMap::assignment_regex(reg_mzn_ident "=" reg_number);
 
 QList<int> getReasons(const int64_t sid,
                       const std::unordered_map<int64_t, std::string*>& sid2info) {
-    QList<int> reason_list;
-    auto info_item = sid2info.find(sid);
-    if(info_item != sid2info.end()) {
-      auto info_json = nlohmann::json::parse(*info_item->second);
-      auto reasonIt = info_json.find("reasons");
-      if(reasonIt != info_json.end()) {
-        auto reasons = *reasonIt;
-        for(int con_id : reasons) {
-          reason_list.append(con_id);
-        }
+  QList<int> reason_list;
+  auto info_item = sid2info.find(sid);
+  if(info_item != sid2info.end()) {
+    auto info_json = nlohmann::json::parse(*info_item->second);
+    auto reasonIt = info_json.find("reasons");
+    if(reasonIt != info_json.end()) {
+      auto reasons = *reasonIt;
+      for(int con_id : reasons) {
+        reason_list.append(con_id);
       }
     }
-    return reason_list;
+  }
+  return reason_list;
+}
+
+static const Location empty_location;
+bool Location::contains(const Location& loc) const {
+  return ((sl  < loc.sl) ||
+          (sl == loc.sl && sc <= loc.sc)) &&
+         ((el  > loc.el) ||
+          (el == loc.el && ec >= loc.ec));
+}
+
+Location::Location() {}
+Location::Location(const QString& pathHead) {
+  const QStringList splitHead = pathHead.split(":");
+  path = splitHead[0];
+  sl = splitHead[1].toInt();
+  sc = splitHead[2].toInt();
+  el = splitHead[3].toInt();
+  ec = splitHead[4].toInt();
+}
+Location Location::fromString(const QString& text) {
+  Location loc;
+  const QStringList leftRight = text.split("-");
+  {
+    const QString& start = leftRight[0];
+    QStringList slc = start.split(":");
+    loc.sl = slc[0].toInt();
+    loc.sc = slc.size() > 1 ? slc[1].toInt() : 0;
+  }
+
+  if(leftRight.size() > 1) {
+    const QString& end = leftRight[1];
+    QStringList elc = end.split(":");
+    loc.el = elc[0].toInt();
+    loc.ec = elc.size() > 1 ? elc[1].toInt() : std::numeric_limits<int>::max();
+  } else {
+    loc.el = loc.sl;
+    loc.ec = std::numeric_limits<int>::max();
+  }
+
+  return loc;
+}
+
+QString Location::toString() const {
+  return QString("%1:%2-%3:%4").arg(sl).arg(sc).arg(el).arg(ec);
+}
+
+LocationFilter::LocationFilter() {}
+LocationFilter::LocationFilter(const QList<Location> locations) : _locations(locations) {}
+
+bool LocationFilter::contains(const Location& loc) const {
+  if(_locations.empty()) return true;
+  for(const Location& floc : _locations)
+    if(floc.contains(loc)) return true;
+  return false;
+}
+
+LocationFilter LocationFilter::fromString(const QString& text) {
+  QList<Location> locs;
+  for(const QString& locString : text.split(",", QString::SkipEmptyParts)) {
+    locs.append(Location::fromString(locString));
+  }
+  return LocationFilter(locs);
 }
 
 NameMap::NameMap(SymbolTable& st) : _nameMap(st) {};
@@ -52,7 +115,8 @@ NameMap::NameMap(QString& path_filename, QString& model_filename) {
     while(!in.atEnd()) {
       line = in.readLine();
       QStringList s = line.split("\t");
-      _nameMap[s[0]] = std::make_pair(s[1], s[2]);
+      Location loc(getPathHead(s[2], false).last());
+      _nameMap[s[0]] = std::make_tuple(s[1], s[2], loc);
       if(s[1].left(12) == "X_INTRODUCED") {
         addIdExpressionToMap(s[0], modelText);
       }
@@ -60,22 +124,29 @@ NameMap::NameMap(QString& path_filename, QString& model_filename) {
   }
 }
 
+static const QString empty_string;
 const QString& NameMap::getNiceName(const QString& ident) const {
-  static QString empty_string;
   auto it = _nameMap.find(ident);
   if(it != _nameMap.end()) {
-    return it.value().first;
+    return std::get<0>(it.value());
   }
   return empty_string;
 }
 
 const QString& NameMap::getPath(const QString& ident) const {
-  static QString empty_string;
   auto it = _nameMap.find(ident);
   if(it != _nameMap.end()) {
-    return it.value().second;
+    return std::get<1>(it.value());
   }
   return empty_string;
+}
+
+const Location& NameMap::getLocation(const QString& ident) const {
+  auto it = _nameMap.find(ident);
+  if(it != _nameMap.end()) {
+    return std::get<2>(it.value());
+  }
+  return empty_location;
 }
 
 const QString NameMap::replaceNames(const QString& text, bool expand_expressions) const {
@@ -84,8 +155,8 @@ const QString NameMap::replaceNames(const QString& text, bool expand_expressions
   }
 
   QStringList ss;
-  long pos = 0;
-  long prev = 0;
+  int pos = 0;
+  int prev = 0;
   while((pos = var_name_regex.indexIn(text, prev)) != -1) {
     ss += text.mid(prev, pos-prev);
     const Ident& id = text.mid(pos, var_name_regex.matchedLength());
@@ -106,35 +177,26 @@ const QString NameMap::replaceNames(const QString& text, bool expand_expressions
 }
 
 QString NameMap::replaceAssignments(const QString& path, const QString& expression) const {
-    NameMap::SymbolTable st;
+  NameMap::SymbolTable st;
 
-    int pos = 0;
-    while ((pos = assignment_regex.indexIn(path, pos)) != -1) {
-      const QString& assign =  assignment_regex.cap(0);
-      QStringList leftright = assign.split("=");
-      st[leftright[0]] = std::make_pair(leftright[1], "");
-      pos += assignment_regex.matchedLength();
-    }
+  int pos = 0;
+  while ((pos = assignment_regex.indexIn(path, pos)) != -1) {
+    const QString& assign =  assignment_regex.cap(0);
+    const QStringList leftright = assign.split("=");
+    st[leftright[0]] = std::make_tuple(leftright[1], "", empty_location);
+    pos += assignment_regex.matchedLength();
+  }
 
-    NameMap nm(st);
-    return nm.replaceNames(expression);
+  const NameMap nm(st);
+  return nm.replaceNames(expression);
 }
 
 void NameMap::addIdExpressionToMap(const Ident& ident, const std::vector<QString>& modelText) {
   if(modelText.size() == 0) return;
-  const QString& path = _nameMap[ident].second;
-  const QStringList components = getPathHead(path, true);
 
-  QStringList locList = components.last().split(":");
-  bool ok;
-  int sl = locList[1].toInt(&ok);
-  int sc = locList[2].toInt(&ok);
-  // Ignore end-line for now
-  //int el = locList[3].toInt(&ok);
-  int ec = locList[4].toInt(&ok);
-
-  // Extract text and store it in map
-  QString expression = modelText[sl-1].mid(sc-1, ec-(sc-1));
+  const Location& loc = getLocation(ident);
+  QString expression = modelText[static_cast<size_t>(loc.sl-1)].mid(loc.sc-1, loc.ec-(loc.sc-1));
+  const QStringList components = getPathHead(getPath(ident), true);
   expression = replaceAssignments(components.join(";"), expression);
 
   _expressionMap.insert(ident, expression);
@@ -196,35 +258,36 @@ const QString NameMap::getHeatMap(
 }
 
 namespace TableHelpers {
-  void updateSelection(const QTableView& table) {
-    QItemSelection selection = table.selectionModel()->selection();
-    table.selectionModel()->select(
-          selection, QItemSelectionModel::Select | QItemSelectionModel::Rows);
-  }
+void updateSelection(const QTableView& table) {
+  QItemSelection selection = table.selectionModel()->selection();
+  table.selectionModel()->select(
+        selection, QItemSelectionModel::Select | QItemSelectionModel::Rows);
+}
 
-  QModelIndexList getSelection(const QTableView& table, int sid_col) {
-    QModelIndexList selection = table.selectionModel()->selectedRows();
-    if(selection.count() == 0)
-      for(int row=0; row<table.model()->rowCount(); row++)
-        selection.append(table.model()->index(row, sid_col));
-    return selection;
-  }
+QModelIndexList getSelection(const QTableView& table, int sid_col) {
+  QModelIndexList selection = table.selectionModel()->selectedRows();
+  if(selection.count() == 0)
+    for(int row=0; row<table.model()->rowCount(); row++)
+      selection.append(table.model()->index(row, sid_col));
+  return selection;
+}
 }
 
 void NameMap::refreshModelRenaming(
-        const std::unordered_map<int, std::string>& sid2nogood,
-        const QTableView& table,
-        QStandardItemModel& model,
-        const QSortFilterProxyModel& proxy_model,
-        int sid_col, int nogood_col,
-        bool expand_expressions) const {
+    const std::unordered_map<int, std::string>& sid2nogood,
+    const QTableView& table,
+    QStandardItemModel& model,
+    const QSortFilterProxyModel& proxy_model,
+    int sid_col, int nogood_col,
+    bool expand_expressions) const {
   const QModelIndexList selection = TableHelpers::getSelection(table, sid_col);
   for(int i=0; i<selection.count(); i++) {
     int row = selection.at(i).row();
     QModelIndex sid_idx = proxy_model.mapToSource(proxy_model.index(row, 0, QModelIndex()));
     int64_t sid = model.data(model.index(sid_idx.row(), sid_col)).toLongLong();
 
-    auto ng_item = sid2nogood.find(sid);
+    // TODO: This will break if the solver provides a restart_id!
+    auto ng_item = sid2nogood.find(static_cast<int>(sid));
     if (ng_item == sid2nogood.end()) {
       continue;  /// nogood not found
     }
@@ -237,10 +300,30 @@ void NameMap::refreshModelRenaming(
   TableHelpers::updateSelection(table);
 }
 
-const QString NameMap::getHeatMapFromModel(
+void NameMap::updateLocationFilter(
         std::unordered_map<int64_t, std::string*>& sid2info,
         const QTableView& table,
+        QLineEdit* location_edit,
         int sid_col) const {
+
+  QStringList locationFilterText;
+  const QModelIndexList selection = TableHelpers::getSelection(table, sid_col);
+  for(int i=0; i<selection.count(); i++) {
+    int row = selection.at(i).row();
+    int64_t sid = table.model()->data(table.model()->index(row, sid_col)).toLongLong();
+    auto reasons = getReasons(sid, sid2info);
+    for(int cid : reasons) {
+      locationFilterText << getLocation(QString::number(cid)).toString();
+    }
+  }
+
+  location_edit->setText(locationFilterText.join(","));
+}
+
+const QString NameMap::getHeatMapFromModel(
+    std::unordered_map<int64_t, std::string*>& sid2info,
+    const QTableView& table,
+    int sid_col) const {
 
   const QModelIndexList selection = TableHelpers::getSelection(table, sid_col);
   QStringList label;

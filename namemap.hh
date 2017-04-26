@@ -13,8 +13,32 @@
 #include <qstandarditemmodel.h>
 #include <qtableview.h>
 
-using std::pair;
-using std::unordered_map;
+struct Location {
+  QString path = "";
+  int sl = 0;
+  int sc = 0;
+  int el = 0;
+  int ec = 0;
+
+  Location();
+  Location(const QString& pathHead);
+  bool contains(const Location& loc) const;
+
+  static Location fromString(const QString& text);
+  QString toString() const;
+
+};
+
+class LocationFilter {
+public:
+  LocationFilter();
+  LocationFilter(const QList<Location> locations);
+  bool contains(const Location& loc) const;
+
+  static LocationFilter fromString(const QString& text);
+private:
+  QList<Location> _locations;
+};
 
 // This should go somewhere more sensible
 QList<int> getReasons(const int64_t sid,
@@ -26,7 +50,7 @@ public:
   using NiceName = QString;
   using Ident = QString;
   using Expression = QString;
-  using SymbolTable = QHash<Ident, pair<NiceName, Path> >;
+  using SymbolTable = QHash<Ident, std::tuple<NiceName, Path, Location> >;
   using ExpressionTable = QHash<Ident, Expression>;
 
   NameMap() {}
@@ -34,6 +58,7 @@ public:
   NameMap(SymbolTable& st);
 
   const QString& getPath(const Ident& ident) const;
+  const Location& getLocation(const Ident& ident) const;
   const QString& getNiceName(const Ident& ident) const;
   const QString replaceNames(const QString& text, bool expand_expressions = false) const;
   const QString getHeatMap(
@@ -41,6 +66,11 @@ public:
       int max_count, const QString& desc) const;
 
   // Functions for use with nogood tables
+  void updateLocationFilter(
+        std::unordered_map<int64_t, std::string*>& sid2info,
+        const QTableView& table,
+        QLineEdit* location_edit,
+        int sid_col) const;
   void refreshModelRenaming(
         const std::unordered_map<int, std::string>& sid2nogood,
         const QTableView& table,
