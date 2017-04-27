@@ -197,9 +197,7 @@ void NogoodTableView::updateLocationFilter(QLineEdit* location_edit) const {
   for(int i=0; i<selection.count(); i++) {
     int64_t sid = getSidFromRow(selection.at(i).row());
     auto reasons = getReasons(sid, _execution.getInfo());
-    for(int cid : reasons) {
-      locationFilterText << _execution.getNameMap()->getLocation(QString::number(cid)).toString();
-    }
+    locationFilterText << _execution.getNameMap()->getLocationFilterString(reasons);
   }
 
   location_edit->setText(locationFilterText.join(","));

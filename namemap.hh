@@ -13,8 +13,10 @@
 #include <qstandarditemmodel.h>
 #include <qtableview.h>
 
+#include <set>
+
 struct Location {
-  QString path = "";
+  //QString path = "";
   int sl = 0;
   int sc = 0;
   int el = 0;
@@ -27,6 +29,7 @@ struct Location {
   static Location fromString(const QString& text);
   QString toString() const;
 
+  bool operator<(const Location& l2) const;
 };
 
 class LocationFilter {
@@ -36,8 +39,9 @@ public:
   bool contains(const Location& loc) const;
 
   static LocationFilter fromString(const QString& text);
+  QString toString() const;
 private:
-  QList<Location> _locations;
+  std::set<Location> _locations;
 };
 
 // This should go somewhere more sensible
@@ -59,13 +63,16 @@ public:
 
   const QString& getPath(const Ident& ident) const;
   const Location& getLocation(const Ident& ident) const;
+  const Location& getLocation(const int cid) const;
   const QString& getNiceName(const Ident& ident) const;
-  const QString replaceNames(const QString& text, bool expand_expressions = false) const;
-  const QString getHeatMap(const std::unordered_map<int, int>& con_id_counts,
-                           int max_count, const QString& desc) const;
+  QString replaceNames(const QString& text, bool expand_expressions = false) const;
+  QString getHeatMap(const std::unordered_map<int, int>& con_id_counts,
+                     int max_count, const QString& desc) const;
+  QList<Location> getLocations(const QList<int>& reasons) const;
+  QString getLocationFilterString(const QList<int>& reasons) const;
 
 private:
-  const QStringList getPathHead(const Path& path, bool includeTrail) const;
+  QStringList getPathHead(const Path& path, bool includeTrail) const;
   QString replaceAssignments(const QString& path, const QString& expression) const;
   void addIdExpressionToMap(const Ident& ident, const std::vector<QString>& modelText);
 

@@ -34,16 +34,14 @@ QList<int> getReasons(const int64_t sid,
 
 static const Location empty_location;
 bool Location::contains(const Location& loc) const {
-  return ((sl  < loc.sl) ||
-          (sl == loc.sl && sc <= loc.sc)) &&
-         ((el  > loc.el) ||
-          (el == loc.el && ec >= loc.ec));
+  return ((sl  < loc.sl) || (sl == loc.sl && sc <= loc.sc)) &&
+         ((el  > loc.el) || (el == loc.el && ec >= loc.ec));
 }
 
 Location::Location() {}
 Location::Location(const QString& pathHead) {
   const QStringList splitHead = pathHead.split(":");
-  path = splitHead[0];
+  //path = splitHead[0];
   sl = splitHead[1].toInt();
   sc = splitHead[2].toInt();
   el = splitHead[3].toInt();
@@ -76,20 +74,26 @@ QString Location::toString() const {
   return QString("%1:%2-%3:%4").arg(sl).arg(sc).arg(el).arg(ec);
 }
 
-LocationFilter::LocationFilter() {}
-LocationFilter::LocationFilter(const QList<Location> locations) {
-  for(const Location& newLoc : locations) {
-    if(_locations.empty() || !contains(newLoc)) {
-      _locations.append(locations);
-    }
-  }
+bool Location::operator<(const Location& l2) const {
+  return ((sl  < l2.sl) || (sl == l2.sl && sc < l2.sc)) &&
+         ((el  < l2.el) || (el == l2.el && ec < l2.ec));
 }
+
+QString LocationFilter::toString() const {
+  QStringList locStrings;
+  for(const Location& loc : _locations) {
+    locStrings << loc.toString();
+  }
+  return locStrings.join(",");
+}
+
+LocationFilter::LocationFilter() {}
+LocationFilter::LocationFilter(const QList<Location> locations) :
+  _locations(locations.begin(), locations.end()) {}
 
 bool LocationFilter::contains(const Location& loc) const {
   if(_locations.empty()) return true;
-  for(const Location& floc : _locations)
-    if(floc.contains(loc)) return true;
-  return false;
+  return _locations.find(loc) != _locations.end();
 }
 
 LocationFilter LocationFilter::fromString(const QString& text) {
@@ -147,6 +151,10 @@ const QString& NameMap::getPath(const QString& ident) const {
   return empty_string;
 }
 
+const Location& NameMap::getLocation(const int cid) const {
+  return getLocation(QString::number(cid));
+}
+
 const Location& NameMap::getLocation(const QString& ident) const {
   auto it = _nameMap.find(ident);
   if(it != _nameMap.end()) {
@@ -155,7 +163,7 @@ const Location& NameMap::getLocation(const QString& ident) const {
   return empty_location;
 }
 
-const QString NameMap::replaceNames(const QString& text, bool expand_expressions) const {
+QString NameMap::replaceNames(const QString& text, bool expand_expressions) const {
   if (_nameMap.size() == 0) {
     return text;
   }
@@ -209,7 +217,7 @@ void NameMap::addIdExpressionToMap(const Ident& ident, const std::vector<QString
 }
 
 // Get the most specific path component that is still in the user model
-const QStringList NameMap::getPathHead(const QString& path, bool includeTrail = false) const {
+QStringList NameMap::getPathHead(const QString& path, bool includeTrail = false) const {
   QStringList pathSplit = path.split(";");
 
   QString mzn_file;
@@ -236,7 +244,7 @@ const QStringList NameMap::getPathHead(const QString& path, bool includeTrail = 
   return previousHead;
 }
 
-const QString NameMap::getHeatMap(
+QString NameMap::getHeatMap(
     const std::unordered_map<int, int>& con_id_counts,
     int max_count,
     const QString& desc) const {
@@ -261,4 +269,15 @@ const QString NameMap::getHeatMap(
   highlight_url << "\">Heatmap ("<< desc << ")</a>";
 
   return highlight_url.join("");
+}
+
+QList<Location> NameMap::getLocations(const QList<int>& reasons) const {
+  QList<Location> locations;
+  for(int cid : reasons)
+    locations.append(getLocation(cid));
+  return locations;
+}
+
+QString NameMap::getLocationFilterString(const QList<int>& reasons) const {
+  return LocationFilter(getLocations(reasons)).toString();
 }
