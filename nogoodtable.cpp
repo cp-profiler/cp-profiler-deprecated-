@@ -80,9 +80,8 @@ NogoodTableView::NogoodTableView(QWidget* parent,
                                  QList<NogoodProxyModel::Sorter> sorters,
                                  const Execution& e,
                                  int sid_col, int nogood_col)
-  : QTableView(parent), _model(model),
-    _sid_col(sid_col), _nogood_col(nogood_col),
-    expand_expressions(false) {
+  : QTableView(parent), _execution(e), _model(model),
+    _sid_col(sid_col), _nogood_col(nogood_col), expand_expressions(false) {
   horizontalHeader()->setStretchLastSection(true);
   setEditTriggers(QAbstractItemView::NoEditTriggers);
   setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
@@ -91,44 +90,98 @@ NogoodTableView::NogoodTableView(QWidget* parent,
   setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
   resizeColumnsToContents();
 
-  nogood_proxy_model = new NogoodProxyModel(this, e, sorters);
+  nogood_proxy_model = new NogoodProxyModel(this, _execution, sorters);
   nogood_proxy_model->setSourceModel(_model);
 
   setModel(nogood_proxy_model);
   setSortingEnabled(true);
 }
 
+int64_t NogoodTableView::getSidFromRow(int row) const {
+  QModelIndex proxy_index = nogood_proxy_model->index(row, _sid_col, QModelIndex());
+  QModelIndex mapped_index = nogood_proxy_model->mapToSource(proxy_index);
+  return _model->data(mapped_index).toLongLong();
+}
+
+const QString NogoodTableView::getHeatMapFromModel() const {
+  const QModelIndexList selection = getSelection();
+  QStringList label;
+  std::unordered_map<int, int> con_ids;
+
+  int max_count = 0;
+  for(int i=0; i<selection.count(); i++) {
+    int64_t sid = getSidFromRow(selection.at(i).row());
+    for(int con_id : getReasons(sid, _execution.getInfo())) {
+      int count = 0;
+      if(con_ids.find(con_id) == con_ids.end()) {
+        con_ids[con_id] = 1;
+        count = 1;
+      } else {
+        con_ids[con_id]++;
+        count = con_ids[con_id];
+      }
+      max_count = count > max_count ? count : max_count;
+    }
+
+    label << QString::number(sid);
+  }
+
+  updateSelection();
+  return _execution.getNameMap()->getHeatMap(con_ids, max_count, label.join(" "));
+}
+
 void NogoodTableView::connectHeatmapButton(const QPushButton* heatmapButton,
-                                           const Execution& e,
                                            const TreeCanvas& tc) const {
-  connect(heatmapButton, &QPushButton::clicked, [&tc,this,&e](){
-    const QString heatmap = e.getNameMap()->getHeatMapFromModel(
-          e.getInfo(), *this, _sid_col);
+  connect(heatmapButton, &QPushButton::clicked, [&tc,this](){
+    const QString heatmap = getHeatMapFromModel();
     if(!heatmap.isEmpty())
       tc.emitShowNogoodToIDE(heatmap);
   });
 }
 
 void NogoodTableView::connectLocationButton(const QPushButton* locationButton,
-                                            QLineEdit* location_edit,
-                                            const Execution& e) {
-  connect(locationButton, &QPushButton::clicked, [&e,this,location_edit](){
-    e.getNameMap()->updateLocationFilter(e.getInfo(), *this, location_edit, _sid_col);
+                                            QLineEdit* location_edit) const {
+  connect(locationButton, &QPushButton::clicked, [this,location_edit](){
+    updateLocationFilter(location_edit);
   });
 }
 
-void NogoodTableView::connectShowExpressionsButton(
-    const QPushButton* showExpressions,
-    const Execution& e) {
-  connect(showExpressions, &QPushButton::clicked, [&e,this](){
-    expand_expressions ^= true;
-    setSortingEnabled(false);
-    e.getNameMap()->refreshModelRenaming(
-          e.getNogoods(),
-          *this, *_model, *nogood_proxy_model,
-          _sid_col, _nogood_col, expand_expressions);
-    setSortingEnabled(true);
-  });
+QModelIndexList NogoodTableView::getSelection() const {
+  QModelIndexList selection = selectionModel()->selectedRows();
+  if(selection.count() == 0)
+    for(int row=0; row<model()->rowCount(); row++)
+      selection.append(model()->index(row, _sid_col));
+  return selection;
+}
+
+void NogoodTableView::updateSelection() const {
+  QItemSelection selection = selectionModel()->selection();
+  selectionModel()->select(
+        selection, QItemSelectionModel::Select | QItemSelectionModel::Rows);
+}
+
+void NogoodTableView::refreshModelRenaming() {
+  expand_expressions ^= true;
+  setSortingEnabled(false);
+  const QModelIndexList selection = getSelection();
+  for(int i=0; i<selection.count(); i++) {
+    int row = selection.at(i).row();
+    int64_t sid = getSidFromRow(row);
+
+    const QString& qclause = QString::fromStdString(_execution.getNogoodBySid(sid));
+    const NameMap* nm = _execution.getNameMap();
+    if(!qclause.isEmpty() && nm) {
+      const QString clause = nm->replaceNames(qclause, expand_expressions);
+      QModelIndex idx = nogood_proxy_model->mapToSource(nogood_proxy_model->index(row, 0, QModelIndex()));
+      _model->setData(idx.sibling(idx.row(), _nogood_col), clause);
+    }
+  }
+  updateSelection();
+  setSortingEnabled(true);
+}
+
+void NogoodTableView::connectShowExpressionsButton(const QPushButton* showExpressions) {
+  connect(showExpressions, &QPushButton::clicked, this, &NogoodTableView::refreshModelRenaming);
 }
 
 void NogoodTableView::connectTextFilter(const QLineEdit* text_edit) {
@@ -138,12 +191,22 @@ void NogoodTableView::connectTextFilter(const QLineEdit* text_edit) {
   });
 }
 
+void NogoodTableView::updateLocationFilter(QLineEdit* location_edit) const {
+  QStringList locationFilterText;
+  const QModelIndexList selection = getSelection();
+  for(int i=0; i<selection.count(); i++) {
+    int64_t sid = getSidFromRow(selection.at(i).row());
+    auto reasons = getReasons(sid, _execution.getInfo());
+    for(int cid : reasons) {
+      locationFilterText << _execution.getNameMap()->getLocation(QString::number(cid)).toString();
+    }
+  }
+
+  location_edit->setText(locationFilterText.join(","));
+}
+
 void NogoodTableView::connectLocationFilter(const QLineEdit* location_edit) {
   connect(location_edit, &QLineEdit::returnPressed, [this, location_edit] () {
     nogood_proxy_model->setLocationFilter(LocationFilter::fromString(location_edit->text()));
   });
-}
-
-NogoodProxyModel* NogoodTableView::getProxyModel() {
-  return nogood_proxy_model;
 }

@@ -260,8 +260,7 @@ CmpTreeDialog::saveComparisonStatsTo(const QString& file_name) {
     out << ng.second.occurrence << ", ";
     out << ng.second.search_eliminated << ", ";
 
-    string& nogood = left_execution.getNogoodBySid(ng.first);
-
+    const string nogood = left_execution.getNogoodBySid(ng.first);
     const auto&& name_map = m_Cmp_result->left_execution().getNameMap();
 
     if (name_map) {
@@ -330,7 +329,7 @@ PentListWindow::populateNogoodTable(const std::vector<int>& nogoods) {
     auto ng_id = nogoods[i]; /// is this sid of gid???
     _nogoodTable.setItem(i, 0, new QTableWidgetItem(QString::number(ng_id)));
 
-    const string& nogood = left_execution.getNogoodBySid(ng_id);
+    const string nogood = left_execution.getNogoodBySid(ng_id);
     qDebug() << "nogood id " << ng_id << ": " << nogood.c_str();
 
     int ng_count = ng_stats.at(ng_id).occurrence;
@@ -513,11 +512,8 @@ CmpTreeDialog::showResponsibleNogoods() {
     buttons->addWidget(showExpressions);
     ng_layout->addLayout(buttons);
 
-    ng_table->connectHeatmapButton(heatmapButton,
-                                   m_Cmp_result->left_execution(),
-                                   *m_Canvas.get());
-    ng_table->connectShowExpressionsButton(showExpressions,
-                                           m_Cmp_result->left_execution());
+    ng_table->connectHeatmapButton(heatmapButton, *m_Canvas.get());
+    ng_table->connectShowExpressionsButton(showExpressions);
   }
 
   auto filter_layout = new QHBoxLayout();
@@ -534,8 +530,7 @@ CmpTreeDialog::showResponsibleNogoods() {
 
     auto locationButton = new QPushButton("Get Location");
     locationButton->setAutoDefault(false);
-    ng_table->connectLocationButton(locationButton, location_edit,
-                                    m_Cmp_result->left_execution());
+    ng_table->connectLocationButton(locationButton, location_edit);
     filter_layout->addWidget(locationButton);
   }
 

@@ -70,8 +70,8 @@ NogoodDialog::NogoodDialog(
     buttons->addWidget(showExpressions);
     layout->addLayout(buttons);
 
-    _nogoodTable->connectHeatmapButton(heatmapButton, _tc.getExecution(), _tc);
-    _nogoodTable->connectShowExpressionsButton(showExpressions, _tc.getExecution());
+    _nogoodTable->connectHeatmapButton(heatmapButton, _tc);
+    _nogoodTable->connectShowExpressionsButton(showExpressions);
   }
 
   auto filter_layout = new QHBoxLayout();
@@ -88,7 +88,7 @@ NogoodDialog::NogoodDialog(
 
     auto locationButton = new QPushButton("Get Location");
     locationButton->setAutoDefault(false);
-    _nogoodTable->connectLocationButton(locationButton, location_edit, _tc.getExecution());
+    _nogoodTable->connectLocationButton(locationButton, location_edit);
     filter_layout->addWidget(locationButton);
   }
 
@@ -99,27 +99,19 @@ NogoodDialog::~NogoodDialog() {}
 
 void NogoodDialog::populateTable(const std::vector<int>& selected_nodes) {
   int row = 0;
-  auto sid2info = _tc.getExecution().getInfo();
   const NameMap* nm = _tc.getExecution().getNameMap();
   for (auto it = selected_nodes.begin(); it != selected_nodes.end(); it++) {
     int gid = *it;
-
     int64_t sid = _tc.getExecution().getData().gid2sid(gid);
+    QString qclause = QString::fromStdString(_tc.getExecution().getNogoodBySid(sid));
+    if(!qclause.isEmpty()) {
+      QString clause = nm != nullptr ? nm->replaceNames(qclause) : qclause;
 
-    /// TODO(maxim): check if a node is a failure node
+      _model->setItem(row, 0, new QStandardItem(QString::number(sid)));
+      _model->setItem(row, 1, new QStandardItem(clause));
 
-    auto ng_item = _sid2nogood.find(sid);
-    if (ng_item == _sid2nogood.end()) {
-      continue;  /// nogood not found
+      row++;
     }
-
-    QString qclause = QString::fromStdString(ng_item->second);
-    QString clause = nm != nullptr ? nm->replaceNames(qclause) : qclause;
-
-    _model->setItem(row, 0, new QStandardItem(QString::number(sid)));
-    _model->setItem(row, 1, new QStandardItem(clause));
-
-    row++;
   }
 }
 

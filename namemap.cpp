@@ -77,7 +77,13 @@ QString Location::toString() const {
 }
 
 LocationFilter::LocationFilter() {}
-LocationFilter::LocationFilter(const QList<Location> locations) : _locations(locations) {}
+LocationFilter::LocationFilter(const QList<Location> locations) {
+  for(const Location& newLoc : locations) {
+    if(_locations.empty() || !contains(newLoc)) {
+      _locations.append(locations);
+    }
+  }
+}
 
 bool LocationFilter::contains(const Location& loc) const {
   if(_locations.empty()) return true;
@@ -256,101 +262,3 @@ const QString NameMap::getHeatMap(
 
   return highlight_url.join("");
 }
-
-namespace TableHelpers {
-void updateSelection(const QTableView& table) {
-  QItemSelection selection = table.selectionModel()->selection();
-  table.selectionModel()->select(
-        selection, QItemSelectionModel::Select | QItemSelectionModel::Rows);
-}
-
-QModelIndexList getSelection(const QTableView& table, int sid_col) {
-  QModelIndexList selection = table.selectionModel()->selectedRows();
-  if(selection.count() == 0)
-    for(int row=0; row<table.model()->rowCount(); row++)
-      selection.append(table.model()->index(row, sid_col));
-  return selection;
-}
-}
-
-void NameMap::refreshModelRenaming(
-    const std::unordered_map<int, std::string>& sid2nogood,
-    const QTableView& table,
-    QStandardItemModel& model,
-    const QSortFilterProxyModel& proxy_model,
-    int sid_col, int nogood_col,
-    bool expand_expressions) const {
-  const QModelIndexList selection = TableHelpers::getSelection(table, sid_col);
-  for(int i=0; i<selection.count(); i++) {
-    int row = selection.at(i).row();
-    QModelIndex sid_idx = proxy_model.mapToSource(proxy_model.index(row, 0, QModelIndex()));
-    int64_t sid = model.data(model.index(sid_idx.row(), sid_col)).toLongLong();
-
-    // TODO: This will break if the solver provides a restart_id!
-    auto ng_item = sid2nogood.find(static_cast<int>(sid));
-    if (ng_item == sid2nogood.end()) {
-      continue;  /// nogood not found
-    }
-
-    const QString& qclause = QString::fromStdString(ng_item->second);
-    const QString clause = replaceNames(qclause, expand_expressions);
-    QModelIndex idx = proxy_model.mapToSource(proxy_model.index(row, 0, QModelIndex()));
-    model.setData(idx.sibling(idx.row(), nogood_col), clause);
-  }
-  TableHelpers::updateSelection(table);
-}
-
-void NameMap::updateLocationFilter(
-        std::unordered_map<int64_t, std::string*>& sid2info,
-        const QTableView& table,
-        QLineEdit* location_edit,
-        int sid_col) const {
-
-  QStringList locationFilterText;
-  const QModelIndexList selection = TableHelpers::getSelection(table, sid_col);
-  for(int i=0; i<selection.count(); i++) {
-    int row = selection.at(i).row();
-    int64_t sid = table.model()->data(table.model()->index(row, sid_col)).toLongLong();
-    auto reasons = getReasons(sid, sid2info);
-    for(int cid : reasons) {
-      locationFilterText << getLocation(QString::number(cid)).toString();
-    }
-  }
-
-  location_edit->setText(locationFilterText.join(","));
-}
-
-const QString NameMap::getHeatMapFromModel(
-    std::unordered_map<int64_t, std::string*>& sid2info,
-    const QTableView& table,
-    int sid_col) const {
-
-  const QModelIndexList selection = TableHelpers::getSelection(table, sid_col);
-  QStringList label;
-  std::unordered_map<int, int> con_ids;
-
-  int max_count = 0;
-  for(int i=0; i<selection.count(); i++) {
-    int row = selection.at(i).row();
-    int64_t sid = table.model()->data(table.model()->index(row, sid_col)).toLongLong();
-
-    for(int con_id : getReasons(sid, sid2info)) {
-      int count = 0;
-      if(con_ids.find(con_id) == con_ids.end()) {
-        con_ids[con_id] = 1;
-        count = 1;
-      } else {
-        con_ids[con_id]++;
-        count = con_ids[con_id];
-      }
-      max_count = count > max_count ? count : max_count;
-    }
-
-    label << QString::number(sid);
-  }
-
-  TableHelpers::updateSelection(table);
-  return getHeatMap(con_ids, max_count, label.join(" "));
-}
-
-

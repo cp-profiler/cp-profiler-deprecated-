@@ -151,12 +151,11 @@ const std::unordered_map<int, string>& Execution::getNogoods() const {
 }
 
 static string empty_string = "";
-string& Execution::getNogoodBySid(int sid) const {
+string Execution::getNogoodBySid(int sid) const {
   const auto& ng_map = m_Data->getNogoods();
-  string& nogood = empty_string;
+  string nogood(empty_string);
 
   auto maybe_nogood = ng_map.find(sid);
-
   if (maybe_nogood != ng_map.end()){
     nogood = maybe_nogood->second;
   }
