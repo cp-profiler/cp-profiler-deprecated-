@@ -38,7 +38,26 @@ bool Location::contains(const Location& loc) const {
          ((el  > loc.el) || (el == loc.el && ec >= loc.ec));
 }
 
+bool Location::containsStart(const Location& loc) const {
+  return (((sl  < loc.sl) || (sl == loc.sl && sc <= loc.sc)) &&
+          ((el  > loc.sl) || (el == loc.sl && ec >= loc.sc)));
+}
+
+void Location::mergeEnd(const Location& loc) {
+  el = loc.el;
+  ec = loc.ec;
+}
+void Location::mergeStart(const Location& loc) {
+  sl = loc.sl;
+  sc = loc.sc;
+}
+
+bool Location::operator==(const Location& loc) const {
+  return sl == loc.sl && sc == loc.sc && el == loc.el && ec == loc.ec;
+}
+
 Location::Location() {}
+Location::Location(const Location& l) : sl(l.sl), sc(l.sc), el(l.el), ec(l.ec) {}
 Location::Location(const QString& pathHead) {
   const QStringList splitHead = pathHead.split(":");
   //path = splitHead[0];
@@ -50,12 +69,10 @@ Location::Location(const QString& pathHead) {
 Location Location::fromString(const QString& text) {
   Location loc;
   const QStringList leftRight = text.split("-");
-  {
-    const QString& start = leftRight[0];
-    QStringList slc = start.split(":");
-    loc.sl = slc[0].toInt();
-    loc.sc = slc.size() > 1 ? slc[1].toInt() : 0;
-  }
+  const QString& start = leftRight[0];
+  QStringList slc = start.split(":");
+  loc.sl = slc[0].toInt();
+  loc.sc = slc.size() > 1 ? slc[1].toInt() : 0;
 
   if(leftRight.size() > 1) {
     const QString& end = leftRight[1];
@@ -64,36 +81,64 @@ Location Location::fromString(const QString& text) {
     loc.ec = elc.size() > 1 ? elc[1].toInt() : std::numeric_limits<int>::max();
   } else {
     loc.el = loc.sl;
-    loc.ec = std::numeric_limits<int>::max();
+    loc.ec = slc.size() > 1 ? loc.sc : std::numeric_limits<int>::max();
   }
 
   return loc;
 }
 
 QString Location::toString() const {
-  return QString("%1:%2-%3:%4").arg(sl).arg(sc).arg(el).arg(ec);
-}
-
-bool Location::operator<(const Location& l2) const {
-  return ((sl  < l2.sl) || (sl == l2.sl && sc < l2.sc)) &&
-         ((el  < l2.el) || (el == l2.el && ec < l2.ec));
+  QStringList locSL;
+  locSL << QString::number(sl);
+  if(sc > 0) locSL << ":" << QString::number(sc);
+  if(sl != el) {
+    locSL << "-" << QString::number(el);
+    if(ec != std::numeric_limits<int>::max()) locSL << ":" << QString::number(ec);
+  } else if(sc != ec && ec != std::numeric_limits<int>::max()) {
+    locSL << "-" << QString::number(el);
+    if(ec != std::numeric_limits<int>::max()) locSL << ":" << QString::number(ec);
+  }
+  return locSL.join("");
 }
 
 QString LocationFilter::toString() const {
   QStringList locStrings;
-  for(const Location& loc : _locations) {
+  for(const Location& loc : _loc_filters) {
     locStrings << loc.toString();
   }
   return locStrings.join(",");
 }
 
 LocationFilter::LocationFilter() {}
-LocationFilter::LocationFilter(const QList<Location> locations) :
-  _locations(locations.begin(), locations.end()) {}
+LocationFilter::LocationFilter(QList<Location> locations) {
+  for(Location l1 : locations) {
+    if(!_loc_filters.contains(l1)) {
+      QSet<Location> temp_filters (_loc_filters);
+      for(const Location& l2 : temp_filters) {
+        if(l1.contains(l2)) {
+          _loc_filters.remove(l2);
+        } else if(l2.contains(l1)) {
+          l1 = l2;
+          break;
+        } else if(l1.containsStart(l2)) {
+          _loc_filters.remove(l2);
+          l1.mergeEnd(l2);
+        } else if(l2.containsStart(l1)) {
+          _loc_filters.remove(l2);
+          l1.mergeStart(l2);
+        }
+      }
+      _loc_filters.insert(l1);
+    }
+  }
+}
 
 bool LocationFilter::contains(const Location& loc) const {
-  if(_locations.empty()) return true;
-  return _locations.find(loc) != _locations.end();
+  if(_loc_filters.empty()) return true;
+  for(const Location& l : _loc_filters) {
+    if(l.contains(loc)) return true;
+  }
+  return false;
 }
 
 LocationFilter LocationFilter::fromString(const QString& text) {

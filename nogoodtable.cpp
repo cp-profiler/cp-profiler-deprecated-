@@ -200,11 +200,13 @@ void NogoodTableView::updateLocationFilter(QLineEdit* location_edit) const {
     locationFilterText << _execution.getNameMap()->getLocationFilterString(reasons);
   }
 
-  location_edit->setText(locationFilterText.join(","));
+  location_edit->setText(LocationFilter::fromString(locationFilterText.join(",")).toString());
 }
 
-void NogoodTableView::connectLocationFilter(const QLineEdit* location_edit) {
+void NogoodTableView::connectLocationFilter(QLineEdit* location_edit) {
   connect(location_edit, &QLineEdit::returnPressed, [this, location_edit] () {
-    nogood_proxy_model->setLocationFilter(LocationFilter::fromString(location_edit->text()));
+    LocationFilter lf = LocationFilter::fromString(location_edit->text());
+    location_edit->setText(lf.toString());
+    nogood_proxy_model->setLocationFilter(lf);
   });
 }

@@ -45,7 +45,7 @@ public:
   void connectHeatmapButton(const QPushButton* heatmapButton, const TreeCanvas& tc) const;
   void connectShowExpressionsButton(const QPushButton* showExpressions);
   void connectTextFilter(const QLineEdit* text_edit);
-  void connectLocationFilter(const QLineEdit* location_edit);
+  void connectLocationFilter(QLineEdit* location_edit);
   void connectLocationButton(const QPushButton* locationButton,
                              QLineEdit* location_edit) const;
 private:

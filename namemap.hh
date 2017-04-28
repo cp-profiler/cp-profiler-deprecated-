@@ -23,25 +23,34 @@ struct Location {
   int ec = 0;
 
   Location();
+  Location(const Location& l);
   Location(const QString& pathHead);
   bool contains(const Location& loc) const;
+  bool containsStart(const Location& loc) const;
+  void mergeStart(const Location& loc);
+  void mergeEnd(const Location& loc);
 
   static Location fromString(const QString& text);
   QString toString() const;
 
-  bool operator<(const Location& l2) const;
+  bool operator==(const Location& loc) const;
 };
+
+inline uint qHash(const Location& l) {
+  return qHash(l.sl) ^ qHash(l.sc) ^ qHash(l.el) ^ qHash(l.ec);
+}
 
 class LocationFilter {
 public:
   LocationFilter();
-  LocationFilter(const QList<Location> locations);
+  LocationFilter(QList<Location> locations);
   bool contains(const Location& loc) const;
 
   static LocationFilter fromString(const QString& text);
   QString toString() const;
+
 private:
-  std::set<Location> _locations;
+  QSet<Location> _loc_filters;
 };
 
 // This should go somewhere more sensible
