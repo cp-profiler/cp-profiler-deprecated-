@@ -280,8 +280,8 @@ GistMainWindow* ProfilerConductor::createGist(Execution& e, QString title) {
 
   connect(gist->getCanvas(), SIGNAL(showNodeInfo(std::string)),
           this, SLOT(showNodeInfoToIDE(std::string)));
-  connect(gist->getCanvas(), SIGNAL(showNogood(QString)),
-          this, SLOT(showNogoodToIDE(QString)));
+  connect(gist->getCanvas(), SIGNAL(showNogood(QString, QString)),
+          this, SLOT(showNogoodToIDE(QString, QString)));
 
   connect(&e, &Execution::doneBuilding,
           gist->getCanvas(), &TreeCanvas::finalize);
@@ -313,8 +313,8 @@ void ProfilerConductor::compareButtonClicked() {
 
   /// NOTE(maxim): the new window will delete itself when closed
   auto cmp_tree_dialog = new CmpTreeDialog(this, new Execution{}, withLabels, *ex1, *ex2);
-  connect(cmp_tree_dialog->getCanvas(), SIGNAL(showNogood(QString)),
-          this, SLOT(showNogoodToIDE(QString)));
+  connect(cmp_tree_dialog->getCanvas(), SIGNAL(showNogood(QString, QString)),
+          this, SLOT(showNogoodToIDE(QString, QString)));
 }
 
 void ProfilerConductor::autoCompareTwoExecution() {
@@ -594,6 +594,6 @@ void ProfilerConductor::showNodeInfoToIDE(std::string extra_info) {
     emit(showNodeInfo(extra_info));
 }
 
-void ProfilerConductor::showNogoodToIDE(QString extra_info) {
-    emit showNogood(extra_info);
+void ProfilerConductor::showNogoodToIDE(QString heatmap, QString text) {
+    emit showNogood(heatmap, text);
 }

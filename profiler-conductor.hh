@@ -77,11 +77,11 @@ class ProfilerConductor : public QMainWindow {
 
 Q_SIGNALS:
   void showNodeInfo(std::string extra_info);
-  void showNogood(QString heatmap);
+  void showNogood(QString heatmap, QString text);
 
  public Q_SLOTS:
   void showNodeInfoToIDE(std::string extra_info);
-  void showNogoodToIDE(QString heatmap);
+  void showNogoodToIDE(QString heatmap, QString text);
 
 };
 

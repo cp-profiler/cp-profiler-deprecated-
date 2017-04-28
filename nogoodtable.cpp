@@ -103,7 +103,7 @@ int64_t NogoodTableView::getSidFromRow(int row) const {
   return _model->data(mapped_index).toLongLong();
 }
 
-const QString NogoodTableView::getHeatMapFromModel() const {
+std::pair<QString, QString> NogoodTableView::getHeatMapFromModel() const {
   const QModelIndexList selection = getSelection();
   QStringList label;
   std::unordered_map<int, int> con_ids;
@@ -127,15 +127,15 @@ const QString NogoodTableView::getHeatMapFromModel() const {
   }
 
   updateSelection();
-  return _execution.getNameMap()->getHeatMap(con_ids, max_count, label.join(" "));
+  return std::make_pair(_execution.getNameMap()->getHeatMap(con_ids, max_count), label.join(" "));
 }
 
 void NogoodTableView::connectHeatmapButton(const QPushButton* heatmapButton,
                                            const TreeCanvas& tc) const {
   connect(heatmapButton, &QPushButton::clicked, [&tc,this](){
-    const QString heatmap = getHeatMapFromModel();
-    if(!heatmap.isEmpty())
-      tc.emitShowNogoodToIDE(heatmap);
+    std::pair<QString, QString> heatmap = getHeatMapFromModel();
+    if(!heatmap.first.isEmpty())
+      tc.emitShowNogoodToIDE(heatmap.first, heatmap.second);
   });
 }
 

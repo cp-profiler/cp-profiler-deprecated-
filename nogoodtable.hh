@@ -63,7 +63,7 @@ private:
 
 private slots:
   void refreshModelRenaming();
-  const QString getHeatMapFromModel() const;
+  std::pair<QString, QString> getHeatMapFromModel() const;
 };
 
 #endif // NOGOODTABLE_H

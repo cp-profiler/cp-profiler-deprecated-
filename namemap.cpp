@@ -290,12 +290,10 @@ QStringList NameMap::getPathHead(const QString& path, bool includeTrail = false)
 }
 
 QString NameMap::getHeatMap(
-    const std::unordered_map<int, int>& con_id_counts,
-    int max_count,
-    const QString& desc) const {
+    const std::unordered_map<int, int>& con_id_counts, int max_count) const {
   int bucket = int(ceil(255.0/double(max_count+1)));
   QStringList highlight_url;
-  highlight_url << "<a href=\"highlight://?";
+  highlight_url << "highlight://?";
   for(auto it : con_id_counts) {
     const QString con_string = QString::number(it.first);
     const QString path = getPath(con_string);
@@ -311,7 +309,6 @@ QString NameMap::getHeatMap(
       highlight_url << newLoc.join(":") << ";";
     }
   }
-  highlight_url << "\">Heatmap ("<< desc << ")</a>";
 
   return highlight_url.join("");
 }

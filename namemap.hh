@@ -75,8 +75,7 @@ public:
   const Location& getLocation(const int cid) const;
   const QString& getNiceName(const Ident& ident) const;
   QString replaceNames(const QString& text, bool expand_expressions = false) const;
-  QString getHeatMap(const std::unordered_map<int, int>& con_id_counts,
-                     int max_count, const QString& desc) const;
+  QString getHeatMap(const std::unordered_map<int, int>& con_id_counts, int max_count) const;
   QSet<Location> getLocations(const QList<int>& reasons) const;
   QString getLocationFilterString(const QList<int>& reasons) const;
 
