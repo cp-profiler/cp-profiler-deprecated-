@@ -314,10 +314,6 @@ std::unique_ptr<ComparisonResult> compare(TreeCanvas* new_tc,
         stack.push(next->getChild(na, kids - i - 1));
       }
 
-      const string* info_str = ex1.getInfo(*node1);
-      result->m_pentagonItems.emplace_back(
-          PentagonItem{0, 0, next, info_str});
-
     } else {
       /// not equal
       // qDebug() << "nodes are not equal";
