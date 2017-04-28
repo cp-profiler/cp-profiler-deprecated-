@@ -42,12 +42,12 @@ public:
                   const Execution& e,
                   int sid_col, int nogood_col);
 
-  void connectHeatmapButton(const QPushButton* heatmapButton, const TreeCanvas& tc) const;
+  void connectHeatmapButton(const QPushButton* heatmapButton, const TreeCanvas& tc);
   void connectShowExpressionsButton(const QPushButton* showExpressions);
   void connectTextFilter(const QLineEdit* text_edit);
   void connectLocationFilter(QLineEdit* location_edit);
   void connectLocationButton(const QPushButton* locationButton,
-                             QLineEdit* location_edit) const;
+                             QLineEdit* location_edit);
 private:
   QModelIndexList getSelection() const;
   int64_t getSidFromRow(int row) const;
@@ -63,7 +63,7 @@ private:
 
 private slots:
   void refreshModelRenaming();
-  std::pair<QString, QString> getHeatMapFromModel() const;
+  void getHeatmapAndEmit(const TreeCanvas& tc, bool record) const;
 };
 
 #endif // NOGOODTABLE_H

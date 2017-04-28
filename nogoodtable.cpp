@@ -103,7 +103,7 @@ int64_t NogoodTableView::getSidFromRow(int row) const {
   return _model->data(mapped_index).toLongLong();
 }
 
-std::pair<QString, QString> NogoodTableView::getHeatMapFromModel() const {
+void NogoodTableView::getHeatmapAndEmit(const TreeCanvas& tc, bool record = false) const {
   const QModelIndexList selection = getSelection();
   QStringList label;
   std::unordered_map<int, int> con_ids;
@@ -127,20 +127,23 @@ std::pair<QString, QString> NogoodTableView::getHeatMapFromModel() const {
   }
 
   updateSelection();
-  return std::make_pair(_execution.getNameMap()->getHeatMap(con_ids, max_count), label.join(" "));
+
+  QString heatMap = _execution.getNameMap()->getHeatMap(con_ids, max_count);
+  QString text = label.join(" ");
+  if(!heatMap.isEmpty())
+    tc.emitShowNogoodToIDE(heatMap, text, record);
 }
 
 void NogoodTableView::connectHeatmapButton(const QPushButton* heatmapButton,
-                                           const TreeCanvas& tc) const {
-  connect(heatmapButton, &QPushButton::clicked, [&tc,this](){
-    std::pair<QString, QString> heatmap = getHeatMapFromModel();
-    if(!heatmap.first.isEmpty())
-      tc.emitShowNogoodToIDE(heatmap.first, heatmap.second);
-  });
+                                           const TreeCanvas& tc) {
+  auto func = [&tc, this](){getHeatmapAndEmit(tc, false);};
+
+  connect(this, &NogoodTableView::clicked, func);
+  connect(heatmapButton, &QPushButton::clicked, func);
 }
 
 void NogoodTableView::connectLocationButton(const QPushButton* locationButton,
-                                            QLineEdit* location_edit) const {
+                                            QLineEdit* location_edit) {
   connect(locationButton, &QPushButton::clicked, [this,location_edit](){
     updateLocationFilter(location_edit);
   });

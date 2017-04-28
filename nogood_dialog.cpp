@@ -53,8 +53,8 @@ NogoodDialog::NogoodDialog(
   _nogoodTable->sortByColumn(SID_COL, Qt::SortOrder::AscendingOrder);
   _nogoodTable->horizontalHeader()->setStretchLastSection(true);
 
-  connect(_nogoodTable, SIGNAL(doubleClicked(const QModelIndex&)), this,
-          SLOT(selectNode(const QModelIndex&)));
+  connect(_nogoodTable, SIGNAL(doubleClicked(const QModelIndex&)),
+          this,         SLOT(selectNode(const QModelIndex&)));
 
   auto layout = new QVBoxLayout(this);
   layout->addWidget(_nogoodTable);

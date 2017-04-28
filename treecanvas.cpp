@@ -348,8 +348,8 @@ std::string boolToString(bool flag) {
 
 #endif
 
-void TreeCanvas::emitShowNogoodToIDE(const QString& heatmap, const QString& text) const {
-    emit showNogood(heatmap, text);
+void TreeCanvas::emitShowNogoodToIDE(const QString& heatmap, const QString& text, bool record) const {
+    emit showNogood(heatmap, text, record);
 }
 
 void TreeCanvas::showNodeInfo(void) {
