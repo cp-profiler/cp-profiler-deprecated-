@@ -43,7 +43,7 @@ inline uint qHash(const Location& l) {
 class LocationFilter {
 public:
   LocationFilter();
-  LocationFilter(QList<Location> locations);
+  LocationFilter(QSet<Location> locations);
   bool contains(const Location& loc) const;
 
   static LocationFilter fromString(const QString& text);
@@ -77,7 +77,7 @@ public:
   QString replaceNames(const QString& text, bool expand_expressions = false) const;
   QString getHeatMap(const std::unordered_map<int, int>& con_id_counts,
                      int max_count, const QString& desc) const;
-  QList<Location> getLocations(const QList<int>& reasons) const;
+  QSet<Location> getLocations(const QList<int>& reasons) const;
   QString getLocationFilterString(const QList<int>& reasons) const;
 
 private:

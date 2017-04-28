@@ -110,7 +110,7 @@ QString LocationFilter::toString() const {
 }
 
 LocationFilter::LocationFilter() {}
-LocationFilter::LocationFilter(QList<Location> locations) {
+LocationFilter::LocationFilter(QSet<Location> locations) {
   for(Location l1 : locations) {
     if(!_loc_filters.contains(l1)) {
       QSet<Location> temp_filters (_loc_filters);
@@ -142,9 +142,9 @@ bool LocationFilter::contains(const Location& loc) const {
 }
 
 LocationFilter LocationFilter::fromString(const QString& text) {
-  QList<Location> locs;
+  QSet<Location> locs;
   for(const QString& locString : text.split(",", QString::SkipEmptyParts)) {
-    locs.append(Location::fromString(locString));
+    locs.insert(Location::fromString(locString));
   }
   return LocationFilter(locs);
 }
@@ -316,10 +316,10 @@ QString NameMap::getHeatMap(
   return highlight_url.join("");
 }
 
-QList<Location> NameMap::getLocations(const QList<int>& reasons) const {
-  QList<Location> locations;
+QSet<Location> NameMap::getLocations(const QList<int>& reasons) const {
+  QSet<Location> locations;
   for(int cid : reasons)
-    locations.append(getLocation(cid));
+    locations.insert(getLocation(cid));
   return locations;
 }
 
