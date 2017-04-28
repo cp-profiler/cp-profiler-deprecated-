@@ -57,7 +57,6 @@ static void deleteSkippedNodes(Execution& ex) {
 
   for (auto i = 0; i < na.size(); ++i) {
     auto node = na[i];
-
     if (node->getStatus() == SKIPPED) {
       deleteNode(ex, node);
     }

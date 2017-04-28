@@ -146,6 +146,7 @@ protected:
     BOOKMARKED,
     SELECTED, // selected from a pixel tree (TODO(maxim): decide if still needed)
     HOVEREDOVER, // highlighted by hovering over on a pixel tree
+    DELETED, // (!not currently used!) if deleted (temporarily) for search logging
     SUBTREESIZE,
     SUBTREESIZE2, // reserve this bit for subtree size
     SUBTREESIZE3,  // reserve this bit for subtree size

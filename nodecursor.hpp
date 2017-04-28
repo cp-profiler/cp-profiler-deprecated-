@@ -636,8 +636,8 @@ SearchLogCursor::processCurrentNode(void) {
 
         auto child_label = _execution.getLabel(child_gid);
 
-        // ignore "skipped nodes"
-        if (child->getStatus() == SKIPPED) continue;
+        // ignore "skipped" and "white" nodes
+        if (child->getStatus() == SKIPPED || child->getStatus() == UNDETERMINED) continue;
 
         // Impossible as such nodes would have been deleted
         // assert(child_label != "");
@@ -655,6 +655,10 @@ SearchLogCursor::processCurrentNode(void) {
 
         // The child's index and its label.
         children_stream << " " << child_gid << " " << child_label.c_str();
+    }
+
+    if ((n->getStatus() == SKIPPED || n->getStatus() == UNDETERMINED)) {
+      return;
     }
 
     _out << n->getIndex(_na) << " " << nonskipped_kids;

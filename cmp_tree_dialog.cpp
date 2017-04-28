@@ -32,6 +32,7 @@
 #include "nodetree.hh"
 #include "data.hh"
 #include "nogoodtable.hh"
+#include "libs/perf_helper.hh"
 
 using std::string;
 
@@ -91,7 +92,11 @@ CmpTreeDialog::CmpTreeDialog(QWidget* parent, Execution* execution, bool with_la
 
   stw->setLayout(hbl);
 
-  m_Cmp_result = treecomparison::compare(m_Canvas.get(), ex1, ex2, with_labels);
+  perfHelper.begin("comparison");
+
+  m_Cmp_result = treecomparison::compareTrees(*m_Canvas, ex1, ex2, with_labels);
+
+  perfHelper.end();
 
   /// sort the pentagons by nodes diff:
   m_Cmp_result->sortPentagons();
@@ -236,7 +241,7 @@ CmpTreeDialog::saveComparisonStatsTo(const QString& file_name) {
 
   QTextStream out(&outputFile);
 
-  auto ng_stats = m_Cmp_result->responsible_nogood_stats();
+  auto& ng_stats = m_Cmp_result->responsible_nogood_stats();
   const Execution& left_execution = m_Cmp_result->left_execution();
 
   out << "id, occur, score, nogood, source_nogood\n";

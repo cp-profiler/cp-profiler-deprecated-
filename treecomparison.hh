@@ -48,16 +48,15 @@ struct NogoodCmpStats {
 };
 
 namespace treecomparison {
-  std::unique_ptr<ComparisonResult> compare(TreeCanvas* new_tc,
-                                            const Execution& ex1,
-                                            const Execution& ex2,
-                                            bool with_labels);
+std::unique_ptr<ComparisonResult> compareTrees(TreeCanvas& new_tc,
+                                               const Execution& ex1,
+                                               const Execution& ex2,
+                                               bool with_labels);
 }
 
-
 class ComparisonResult {
-  friend std::unique_ptr<ComparisonResult> treecomparison::compare(
-      TreeCanvas* new_tc, const Execution& ex1, const Execution& ex2,
+  friend std::unique_ptr<ComparisonResult> treecomparison::compareTrees(
+      TreeCanvas& new_tc, const Execution& ex1, const Execution& ex2,
       bool with_labels);
 
   std::vector<PentagonItem> m_pentagonItems;
@@ -91,6 +90,5 @@ class ComparisonResult {
   const Execution& left_execution() const { return _ex1; }
   const Execution& right_execution() const { return _ex2; }
 };
-
 
 #endif

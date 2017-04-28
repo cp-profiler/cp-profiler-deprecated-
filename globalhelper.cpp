@@ -92,7 +92,7 @@ GlobalParser::~GlobalParser() {}
 
 void Utils::writeToFile(const QString& str) {
   QString file_name =
-      QFileDialog::getSaveFileName(nullptr, "Save File", "", "*.txt");
+      QFileDialog::getSaveFileName(nullptr, "Save File", "");
 
   if (file_name == "") return;
 
