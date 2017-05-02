@@ -21,15 +21,7 @@
 #ifndef NOGOOD_DIALOG_HH
 #define NOGOOD_DIALOG_HH
 
-#include <QDialog>
-#include <QDebug>
-#include <QTableWidget>
-#include <unordered_map>
-#include <vector>
-#include <cassert>
-#include <cstdint>
-#include <QSortFilterProxyModel>
-
+#include <qdialog.h>
 #include "nogoodtable.hh"
 
 class TreeCanvas;
@@ -43,28 +35,19 @@ class NogoodDialog : public QDialog {
   static const int DEFAULT_HEIGHT;
 
   TreeCanvas& _tc;
-
-  // QTableWidget* _nogoodTable;
   NogoodTableView* _nogoodTable;
-  const std::unordered_map<int, std::string>& _sid2nogood;
-
   QStandardItemModel* _model;
-  NogoodProxyModel* _proxy_model;
 
  private:
   void populateTable(const std::vector<int>& selected_gids);
 
-  void updateNogood(int row, QString newNogood);
-
  private Q_SLOTS:
-
   void selectNode(const QModelIndex& index);
 
  public:
   /// Create a nogood dialog with nogoods for selected nodes
   NogoodDialog(QWidget* parent, TreeCanvas& tc,
-               const std::vector<int>& selected,
-               const std::unordered_map<int, std::string>& sid2nogood);
+               const std::vector<int>& selected);
 
   ~NogoodDialog();
 };

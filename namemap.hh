@@ -1,20 +1,11 @@
 #ifndef NAMEMAP_HH
 #define NAMEMAP_HH
 
-#include <unordered_map>
-#include <utility>
-#include <regex>
 #include <qstring.h>
-#include <qfile.h>
-#include <qtextstream.h>
-
-#include <iostream>
-#include <qsortfilterproxymodel.h>
-#include <qstandarditemmodel.h>
-#include <qtableview.h>
-
-#include <set>
-
+#include <qset.h>
+#include <unordered_map>
+#include <vector>
+#include<iostream>
 struct Location {
   //QString path = "";
   int sl = 0;
@@ -36,9 +27,7 @@ struct Location {
   bool operator==(const Location& loc) const;
 };
 
-inline uint qHash(const Location& l) {
-  return qHash(l.sl) ^ qHash(l.sc) ^ qHash(l.el) ^ qHash(l.ec);
-}
+uint qHash(const Location& l);
 
 class LocationFilter {
 public:
@@ -58,31 +47,38 @@ QList<int> getReasons(const int64_t sid,
                       const std::unordered_map<int64_t, std::string*>& sid2info);
 
 class NameMap {
+private:
+struct SymbolRecord {
+  QString niceName;
+  QString path;
+  Location location;
+
+  SymbolRecord();
+  SymbolRecord(const QString&, const QString&, const Location&);
+};
+
 public:
-  using Path = QString;
-  using NiceName = QString;
-  using Ident = QString;
-  using Expression = QString;
-  using SymbolTable = QHash<Ident, std::tuple<NiceName, Path, Location> >;
-  using ExpressionTable = QHash<Ident, Expression>;
+  using SymbolTable = QHash<QString, SymbolRecord >;
+  using ExpressionTable = QHash<QString, QString>;
 
   NameMap() {}
   NameMap(QString& path_filename, QString& model_filename);
   NameMap(SymbolTable& st);
 
-  const QString& getPath(const Ident& ident) const;
-  const Location& getLocation(const Ident& ident) const;
+  const QString& getPath(const QString& ident) const;
+  const Location& getLocation(const QString& ident) const;
   const Location& getLocation(const int cid) const;
-  const QString& getNiceName(const Ident& ident) const;
+  const QString& getNiceName(const QString& ident) const;
   QString replaceNames(const QString& text, bool expand_expressions = false) const;
   QString getHeatMap(const std::unordered_map<int, int>& con_id_counts, int max_count) const;
   QSet<Location> getLocations(const QList<int>& reasons) const;
   QString getLocationFilterString(const QList<int>& reasons) const;
 
 private:
-  QStringList getPathHead(const Path& path, bool includeTrail) const;
+  QStringList getPathHead(const QString& path, bool includeTrail) const;
   QString replaceAssignments(const QString& path, const QString& expression) const;
-  void addIdExpressionToMap(const Ident& ident, const std::vector<QString>& modelText);
+
+  void addIdExpressionToMap(const QString& ident, const std::vector<QString>& modelText);
 
   static QRegExp var_name_regex;
   static QRegExp assignment_regex;

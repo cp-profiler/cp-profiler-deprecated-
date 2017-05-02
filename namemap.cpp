@@ -1,12 +1,8 @@
-#include "namemap.hh"
-
 #include <qstringlist.h>
-#include <qtextedit.h>
-#include <math.h>
 #include <qtextstream.h>
-#include <qvector.h>
-#include <qlineedit.h>
+#include <qfile.h>
 
+#include "namemap.hh"
 #include "third-party/json.hpp"
 
 #define reg_mzn_ident "[A-Za-z][A-Za-z0-9_]*"
@@ -39,8 +35,8 @@ bool Location::contains(const Location& loc) const {
 }
 
 bool Location::containsStart(const Location& loc) const {
-  return (((sl  < loc.sl) || (sl == loc.sl && sc <= loc.sc)) &&
-          ((el  > loc.sl) || (el == loc.sl && ec >= loc.sc)));
+  return ((sl  < loc.sl) || (sl == loc.sl && sc <= loc.sc)) &&
+         ((el  > loc.sl) || (el == loc.sl && ec >= loc.sc));
 }
 
 void Location::mergeEnd(const Location& loc) {
@@ -101,6 +97,10 @@ QString Location::toString() const {
   return locSL.join("");
 }
 
+uint qHash(const Location& l) {
+  return 32*(32*(32*(32 + static_cast<uint>(l.sl))+static_cast<uint>(l.sc))+static_cast<uint>(l.el))+static_cast<uint>(l.ec);
+}
+
 QString LocationFilter::toString() const {
   QStringList locStrings;
   for(const Location& loc : _loc_filters) {
@@ -149,6 +149,11 @@ LocationFilter LocationFilter::fromString(const QString& text) {
   return LocationFilter(locs);
 }
 
+NameMap::SymbolRecord::SymbolRecord()
+    : niceName(""), path(""), location() {};
+NameMap::SymbolRecord::SymbolRecord(const QString& nn, const QString& p, const Location& l)
+    : niceName(nn), path(p), location(l) {};
+
 NameMap::NameMap(SymbolTable& st) : _nameMap(st) {};
 
 NameMap::NameMap(QString& path_filename, QString& model_filename) {
@@ -171,7 +176,7 @@ NameMap::NameMap(QString& path_filename, QString& model_filename) {
       line = in.readLine();
       QStringList s = line.split("\t");
       Location loc(getPathHead(s[2], false).last());
-      _nameMap[s[0]] = std::make_tuple(s[1], s[2], loc);
+      _nameMap[s[0]] = SymbolRecord(s[1], s[2], loc);
       if(s[1].left(12) == "X_INTRODUCED") {
         addIdExpressionToMap(s[0], modelText);
       }
@@ -183,7 +188,7 @@ static const QString empty_string;
 const QString& NameMap::getNiceName(const QString& ident) const {
   auto it = _nameMap.find(ident);
   if(it != _nameMap.end()) {
-    return std::get<0>(it.value());
+    return it.value().niceName;
   }
   return empty_string;
 }
@@ -191,7 +196,7 @@ const QString& NameMap::getNiceName(const QString& ident) const {
 const QString& NameMap::getPath(const QString& ident) const {
   auto it = _nameMap.find(ident);
   if(it != _nameMap.end()) {
-    return std::get<1>(it.value());
+    return it.value().path;
   }
   return empty_string;
 }
@@ -203,7 +208,7 @@ const Location& NameMap::getLocation(const int cid) const {
 const Location& NameMap::getLocation(const QString& ident) const {
   auto it = _nameMap.find(ident);
   if(it != _nameMap.end()) {
-    return std::get<2>(it.value());
+    return it.value().location;
   }
   return empty_location;
 }
@@ -218,7 +223,7 @@ QString NameMap::replaceNames(const QString& text, bool expand_expressions) cons
   int prev = 0;
   while((pos = var_name_regex.indexIn(text, prev)) != -1) {
     ss += text.mid(prev, pos-prev);
-    const Ident& id = text.mid(pos, var_name_regex.matchedLength());
+    const QString& id = text.mid(pos, var_name_regex.matchedLength());
     QString name = getNiceName(id);
     if(expand_expressions && name.left(12) == "X_INTRODUCED") {
       auto eit = _expressionMap.find(name);
@@ -242,7 +247,7 @@ QString NameMap::replaceAssignments(const QString& path, const QString& expressi
   while ((pos = assignment_regex.indexIn(path, pos)) != -1) {
     const QString& assign =  assignment_regex.cap(0);
     const QStringList leftright = assign.split("=");
-    st[leftright[0]] = std::make_tuple(leftright[1], "", empty_location);
+    st[leftright[0]] = SymbolRecord(leftright[1], "", empty_location);
     pos += assignment_regex.matchedLength();
   }
 
@@ -250,7 +255,7 @@ QString NameMap::replaceAssignments(const QString& path, const QString& expressi
   return nm.replaceNames(expression);
 }
 
-void NameMap::addIdExpressionToMap(const Ident& ident, const std::vector<QString>& modelText) {
+void NameMap::addIdExpressionToMap(const QString& ident, const std::vector<QString>& modelText) {
   if(modelText.size() == 0) return;
 
   const Location& loc = getLocation(ident);
@@ -295,8 +300,7 @@ QString NameMap::getHeatMap(
   QStringList highlight_url;
   highlight_url << "highlight://?";
   for(auto it : con_id_counts) {
-    const QString con_string = QString::number(it.first);
-    const QString path = getPath(con_string);
+    const QString path = getPath(QString::number(it.first));
     const QString path_head = getPathHead(path, false)[0];
     QStringList location_etc = path_head.split(":");
     int count = it.second;

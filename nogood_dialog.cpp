@@ -23,19 +23,15 @@
 #include "treecanvas.hh"
 #include "data.hh"
 #include "execution.hh"
-#include <QDebug>
 #include <QHBoxLayout>
 #include <QStandardItemModel>
-
-#include "third-party/json.hpp"
 
 const int NogoodDialog::DEFAULT_WIDTH = 600;
 const int NogoodDialog::DEFAULT_HEIGHT = 400;
 
 NogoodDialog::NogoodDialog(
-    QWidget* parent, TreeCanvas& tc, const std::vector<int>& selected_nodes,
-    const std::unordered_map<int, std::string>& sid2nogood)
-  : QDialog(parent), _tc(tc), _sid2nogood(sid2nogood) {
+    QWidget* parent, TreeCanvas& tc, const std::vector<int>& selected_nodes)
+  : QDialog(parent), _tc(tc) {
   enum NCols {SID_COL=0, NOGOOD_COL};
   resize(DEFAULT_WIDTH, DEFAULT_HEIGHT);
 

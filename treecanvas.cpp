@@ -317,7 +317,7 @@ void TreeCanvas::showNogoods(void) {
   PreorderNodeVisitor<GetIndexesCursor>(gic).run();
 
   NogoodDialog* ngdialog =
-      new NogoodDialog(this, *this, selected_gids, execution.getNogoods());
+      new NogoodDialog(this, *this, selected_gids);
 
   ngdialog->show();
 }

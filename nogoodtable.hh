@@ -3,11 +3,12 @@
 
 #include <QTableView>
 #include <qsortfilterproxymodel.h>
-#include <qboxlayout.h>
-#include <qpushbutton.h>
+#include <QStandardItemModel>
+#include "namemap.hh"
 
-#include "execution.hh"
-#include "treecanvas.hh"
+class Execution;
+class TreeCanvas;
+class PushButton;
 
 class NogoodProxyModel : public QSortFilterProxyModel {
 public:

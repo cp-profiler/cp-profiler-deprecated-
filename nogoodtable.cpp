@@ -3,11 +3,11 @@
 #include <qlabel.h>
 #include <qlineedit.h>
 #include <qpushbutton.h>
-#include <QDialog>
-#include <qobject.h>
+#include <qdialog.h>
 
 #include "nogoodtable.hh"
 #include "treecanvas.hh"
+#include "execution.hh"
 
 NogoodProxyModel::NogoodProxyModel(QWidget* parent,
                                    const Execution& e,
@@ -136,10 +136,10 @@ void NogoodTableView::getHeatmapAndEmit(const TreeCanvas& tc, bool record = fals
 
 void NogoodTableView::connectHeatmapButton(const QPushButton* heatmapButton,
                                            const TreeCanvas& tc) {
-  auto func = [&tc, this](){getHeatmapAndEmit(tc, false);};
-
-  connect(this, &NogoodTableView::clicked, func);
-  connect(heatmapButton, &QPushButton::clicked, func);
+  connect(this, &NogoodTableView::clicked,
+          [&tc, this](){getHeatmapAndEmit(tc, false);});
+  connect(heatmapButton, &QPushButton::clicked,
+          [&tc, this](){getHeatmapAndEmit(tc, true);});
 }
 
 void NogoodTableView::connectLocationButton(const QPushButton* locationButton,
