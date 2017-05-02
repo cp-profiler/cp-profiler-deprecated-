@@ -313,8 +313,8 @@ void ProfilerConductor::compareButtonClicked() {
 
   /// NOTE(maxim): the new window will delete itself when closed
   auto cmp_tree_dialog = new CmpTreeDialog(this, new Execution{}, withLabels, *ex1, *ex2);
-  connect(cmp_tree_dialog->getCanvas(), SIGNAL(showNogood(QString, QString)),
-          this, SLOT(showNogoodToIDE(QString, QString)));
+  connect(cmp_tree_dialog->getCanvas(), SIGNAL(showNogood(QString, QString, bool)),
+          this, SLOT(showNogoodToIDE(QString, QString, bool)));
 }
 
 void ProfilerConductor::autoCompareTwoExecution() {
