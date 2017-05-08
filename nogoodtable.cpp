@@ -187,6 +187,99 @@ void NogoodTableView::connectShowExpressionsButton(const QPushButton* showExpres
   connect(showExpressions, &QPushButton::clicked, this, &NogoodTableView::refreshModelRenaming);
 }
 
+inline
+bool isSubset(const QList<int>& a, const QList<int>& b) {
+  if(a.size() > b.size()) return false;
+  int i=0;
+  for(int j : b) {
+    if(a[i] < j) {
+      return false;
+    } else if(a[i] == j) {
+      i++;
+      if(i == a.size()) return true;
+    }
+  }
+  return false;
+}
+
+void NogoodTableView::renameSubsumption() {
+  setSortingEnabled(false);
+
+  QHash<int64_t, QList<int> > sid2clause;
+  std::map<int, QList<int64_t> > ordered_sids;
+
+  QHash<QString, int> lit2id;
+  QHash<int, QString> id2lit;
+
+  // Translate to sets
+  for(int row=0; row<nogood_proxy_model->rowCount(); row++) {
+    int64_t sid = getSidFromRow(row);
+    const QString& qclause = QString::fromStdString(_execution.getNogoodBySid(sid));
+    if(!qclause.isEmpty()) {
+      QList<int>& clause = sid2clause[sid];
+      const QStringList lits = qclause.split(" ", QString::SplitBehavior::SkipEmptyParts);
+      for(const QString& lit : lits) {
+        int id;
+        auto id_it = lit2id.find(lit);
+        if(id_it == lit2id.end()) {
+          id = lit2id.size();
+          lit2id[lit] = id;
+          id2lit[id] = lit;
+        } else {
+          id = *id_it;
+        }
+        clause.append(id);
+      }
+      std::sort(clause.begin(), clause.end());
+
+      ordered_sids[clause.size()].append(sid);
+    }
+  }
+
+  // Simplify the selected clauses
+  const QModelIndexList selection = getSelection();
+  for(int i=0; i<selection.count(); i++) {
+    int64_t isid = getSidFromRow(selection.at(i).row());
+    const QList<int>& iclause = sid2clause[isid];
+    for(const auto& size_sids : ordered_sids) {
+      for(int64_t jsid : size_sids.second) {
+        if(jsid != isid) {
+          const QList<int>& jclause = sid2clause[jsid];
+          if (isSubset(jclause, iclause)) {
+            sid2clause[isid] = jclause;
+            goto replacement_found;
+          }
+        }
+      }
+    }
+replacement_found:;
+  }
+
+  // Write the clauses back
+  for(int i=0; i<selection.count(); i++) {
+    int row = selection.at(i).row();
+    int64_t sid = getSidFromRow(row);
+
+    const QList<int>& clause = sid2clause[sid];
+    QStringList clause_string;
+    for(int lid : clause)
+      clause_string << id2lit[lid];
+    QString finalString = clause_string.join(" ");
+    const NameMap* nm = _execution.getNameMap();
+    if(nm)
+      finalString = _execution.getNameMap()->replaceNames(finalString, expand_expressions);
+
+    QModelIndex idx = nogood_proxy_model->mapToSource(nogood_proxy_model->index(row, 0, QModelIndex()));
+    _model->setData(idx.sibling(idx.row(), _nogood_col), finalString);
+  }
+  updateSelection();
+  setSortingEnabled(true);
+}
+
+void NogoodTableView::connectSubsumButton(const QPushButton* subsumButton) {
+  connect(subsumButton, &QPushButton::clicked, this, &NogoodTableView::renameSubsumption);
+}
+
 QString convertToFlatZinc(const QString& clause) {
 
   QRegExp op_rx("(<=)|(>=)|(==)|(!=)|(=)|(<)|(>)");

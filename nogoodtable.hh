@@ -51,6 +51,8 @@ public:
   void connectLocationFilter(QLineEdit* location_edit);
   void connectLocationButton(const QPushButton* locationButton,
                              QLineEdit* location_edit);
+  void connectSubsumButton(const QPushButton* subsumButton);
+
 private:
   QModelIndexList getSelection() const;
   int64_t getSidFromRow(int row) const;
@@ -67,6 +69,7 @@ private:
 private slots:
   void showFlatZinc();
   void refreshModelRenaming();
+  void renameSubsumption();
   void getHeatmapAndEmit(const TreeCanvas& tc, bool record) const;
 };
 

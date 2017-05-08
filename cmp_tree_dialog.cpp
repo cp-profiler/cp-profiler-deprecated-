@@ -540,6 +540,14 @@ CmpTreeDialog::showResponsibleNogoods() {
   }
 
   ng_layout->addLayout(filter_layout);
+
+  auto subsumlayout = new QHBoxLayout();
+  auto subsumbutton = new QPushButton("Simplify nogoods");
+  subsumbutton->setAutoDefault(false);
+  ng_table->connectSubsumButton(subsumbutton);
+  subsumlayout->addWidget(subsumbutton);
+
+  ng_layout->addLayout(subsumlayout);
 }
 
 TreeCanvas* CmpTreeDialog::getCanvas() {

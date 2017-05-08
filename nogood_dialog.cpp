@@ -92,8 +92,15 @@ NogoodDialog::NogoodDialog(
     _nogoodTable->connectLocationButton(locationButton, location_edit);
     filter_layout->addWidget(locationButton);
   }
-
   layout->addLayout(filter_layout);
+
+  auto subsumlayout = new QHBoxLayout();
+  auto subsumbutton = new QPushButton("Simplify nogoods");
+  subsumbutton->setAutoDefault(false);
+  _nogoodTable->connectSubsumButton(subsumbutton);
+  subsumlayout->addWidget(subsumbutton);
+
+  layout->addLayout(subsumlayout);
 }
 
 NogoodDialog::~NogoodDialog() {}
