@@ -513,12 +513,17 @@ CmpTreeDialog::showResponsibleNogoods() {
     heatmapButton->setAutoDefault(false);
     auto showExpressions = new QPushButton("Show/Hide Expressions");
     showExpressions->setAutoDefault(false);
+    auto getFlatZinc = new QPushButton("Get FlatZinc");
+    getFlatZinc->setAutoDefault(false);
+
     buttons->addWidget(heatmapButton);
     buttons->addWidget(showExpressions);
+    buttons->addWidget(getFlatZinc);
     ng_layout->addLayout(buttons);
 
     ng_table->connectHeatmapButton(heatmapButton, *m_Canvas.get());
     ng_table->connectShowExpressionsButton(showExpressions);
+    ng_table->connectFlatZincButton(getFlatZinc);
   }
 
   auto filter_layout = new QHBoxLayout();
