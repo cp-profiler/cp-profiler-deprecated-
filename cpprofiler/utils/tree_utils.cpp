@@ -264,4 +264,23 @@ std::string compareDomains(const Execution& ex, const VisualNode& lhs,
 }
 
 
+void unhideFromNodeToRoot(NodeTree& nt, VisualNode& n) {
+  QMutexLocker lock(&nt.getMutex());
+
+  auto root = nt.getRoot();
+
+  auto cur_node = &n;
+
+  /// NOTE(maxim): assuming n belongs to nt
+  while (cur_node != root) {
+
+    /// TODO(maxim): should stop when cur_node is visible (different from isHidded())
+
+      cur_node->setHidden(false);
+      cur_node = cur_node->getParent(nt.getNA());
+  }
+
+}
+
+
 }

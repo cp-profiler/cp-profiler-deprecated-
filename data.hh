@@ -140,7 +140,7 @@ public:
     std::unordered_map<int64_t, std::string*> sid2info;
 
     /// synchronise access to data entries
-    QMutex dataMutex;
+    mutable QMutex dataMutex;
 
 private:
 
@@ -159,7 +159,7 @@ public:
     std::string getLabel(int gid);
 
     /// return solver id by gid (Gist ID)
-    int64_t gid2sid(int gid);
+    int64_t gid2sid(int gid) const;
 
     void connectNodeToEntry(int gid, DbEntry* const entry);
 
@@ -177,6 +177,7 @@ public:
     unsigned long long getTotalTime(void); /// time in microseconds
 
     unsigned getGidBySid(int64_t sid) { return nodes_arr[sid2aid[sid]]->gid; }
+    /// NOTE(maxim): this only works for a merged tree now?
     DbEntry* getEntry(int gid) const;
 
 
@@ -201,6 +202,13 @@ void Data::connectNodeToEntry(int gid, DbEntry* const entry) {
 
 inline
 DbEntry* Data::getEntry(int gid) const {
+
+    auto sid = gid2sid(gid);
+
+    if (nodes_arr.size() > sid) {
+        return nodes_arr[sid];
+    }
+
     auto it = gid2entry.find(gid);
     if (it != gid2entry.end()) {
         return it->second;

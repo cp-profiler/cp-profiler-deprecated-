@@ -56,7 +56,7 @@ void SubtreeCanvas::paintEvent(QPaintEvent* event) {
   QRect clip{origClip.x() - xtrans + xoff, origClip.y() + yoff,
              origClip.width(), origClip.height()};
 
-  DrawingCursor dc{cur_node, m_NodeTree.getNA(), painter, clip, false};
+  DrawingCursor dc{cur_node, m_NodeTree.getNA(), painter, clip};
   PreorderNodeVisitor<DrawingCursor>(dc).run();
 }
 

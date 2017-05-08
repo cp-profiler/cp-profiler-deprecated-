@@ -194,22 +194,24 @@ inline void VisualNode::setChildrenLayoutDone(bool d) {
 }
 
 inline bool VisualNode::isMarked(void) const { return getFlag(MARKED); }
-
 inline void VisualNode::setMarked(bool m) { setFlag(MARKED, m); }
 
 inline bool VisualNode::isSelected(void) const { return getFlag(SELECTED); }
-
 inline void VisualNode::setSelected(bool m) { setFlag(SELECTED, m); }
 
 inline bool VisualNode::isHovered(void) const { return getFlag(HOVEREDOVER); }
-
 inline void VisualNode::setHovered(bool m) { setFlag(HOVEREDOVER, m); }
 
 inline bool VisualNode::isBookmarked(void) const { return getFlag(BOOKMARKED); }
-
 inline void VisualNode::setBookmarked(bool m) { setFlag(BOOKMARKED, m); }
 
 inline bool VisualNode::isHighlighted(void) const { return getFlag(HIGHLIGHTED); }
+
+inline bool VisualNode::isInvisible(void) const { return getFlag(INVISIBLE); }
+inline void VisualNode::setInvisible(bool m) { setFlag(INVISIBLE, m); }
+
+inline bool VisualNode::isDeleted(void) const { return getFlag(DELETED); }
+inline void VisualNode::setDeleted(bool m) { setFlag(DELETED, m); }
 
 inline void VisualNode::setHighlighted(bool m) { setFlag(HIGHLIGHTED, m); }
 

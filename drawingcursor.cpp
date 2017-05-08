@@ -21,24 +21,7 @@
 
 #include "drawingcursor.hh"
 
-const QColor DrawingCursor::gold(252, 209, 22);
-/// Red color for failed nodes
-const QColor DrawingCursor::red(218, 37, 29);
-/// Green color for solved nodes
-const QColor DrawingCursor::green(11, 118, 70);
-/// Blue color for choice nodes
-const QColor DrawingCursor::blue(0, 92, 161);
-/// Orange color for best solutions
-const QColor DrawingCursor::orange(235, 137, 27);
-/// White color
-const QColor DrawingCursor::white(255,255,255);
-
-/// Red color for expanded failed nodes
-const QColor DrawingCursor::lightRed(218, 37, 29, 120);
-/// Green color for expanded solved nodes
-const QColor DrawingCursor::lightGreen(11, 118, 70, 120);
-/// Blue color for expanded choice nodes
-const QColor DrawingCursor::lightBlue(0, 92, 161, 120);
+using namespace cpprofiler::colors;
 
 constexpr double NODE_WIDTH = 20.0;
 constexpr double HALF_NODE_WIDTH = NODE_WIDTH / 2.0;
@@ -63,11 +46,9 @@ static void drawSizedTriangle(QPainter& painter, int myx, int myy, int subtreeSi
 DrawingCursor::DrawingCursor(VisualNode* root,
                              const NodeAllocator& na,
                              QPainter& painter0,
-                             const QRect& clippingRect0,
-                             bool showHidden)
+                             const QRect& clippingRect0)
     : NodeCursor(root,na), painter(painter0),
-      clippingRect(clippingRect0), x(0.0), y(0.0),
-      _showHidden(showHidden)
+      clippingRect(clippingRect0), x(0.0), y(0.0)
 {
     QPen pen = painter.pen();
     pen.setWidth(1);
@@ -138,6 +119,8 @@ DrawingCursor::processCurrentNode(void) {
       drawShape(painter, myx, myy, n);
     }
 
+    if (n->isInvisible()) return;
+
     // draw as currently selected
     if (n->isMarked()) {
         painter.setBrush(Qt::gray);
@@ -185,7 +168,7 @@ DrawingCursor::processCurrentNode(void) {
         painter.setPen(Qt::SolidLine);
     }
 
-    if (n->isHidden() && ~_showHidden) {
+    if (n->isHidden()) {
 
         if (n->getStatus() == MERGING) {
             if (n->isMarked()) {
@@ -196,19 +179,19 @@ DrawingCursor::processCurrentNode(void) {
             drawPentagon(painter, myx, myy, false);
         } else {
             if (n->hasOpenChildren()) {
-            QLinearGradient gradient(myx - NODE_WIDTH, myy,
-                myx + NODE_WIDTH * 1.3, myy + HIDDEN_DEPTH * 1.3);
-            if (n->hasSolvedChildren()) {
-                gradient.setColorAt(0, white);
-                gradient.setColorAt(1, green);
-            } else if (n->hasFailedChildren()) {
-                gradient.setColorAt(0, white);
-                gradient.setColorAt(1, red);
-            } else {
-                gradient.setColorAt(0, white);
-                gradient.setColorAt(1, QColor(0, 0, 0));
-            }
-            painter.setBrush(gradient);
+                QLinearGradient gradient(myx - NODE_WIDTH, myy,
+                    myx + NODE_WIDTH * 1.3, myy + HIDDEN_DEPTH * 1.3);
+                if (n->hasSolvedChildren()) {
+                    gradient.setColorAt(0, white);
+                    gradient.setColorAt(1, green);
+                } else if (n->hasFailedChildren()) {
+                    gradient.setColorAt(0, white);
+                    gradient.setColorAt(1, red);
+                } else {
+                    gradient.setColorAt(0, white);
+                    gradient.setColorAt(1, QColor(0, 0, 0));
+                }
+                painter.setBrush(gradient);
             } else {
                 if (n->hasSolvedChildren())
                     painter.setBrush(QBrush(green));

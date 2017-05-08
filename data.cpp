@@ -180,7 +180,7 @@ std::string Data::getLabel(int gid) {
 
 }
 
-int64_t Data::gid2sid(int gid) {
+int64_t Data::gid2sid(int gid) const {
     QMutexLocker locker(&dataMutex);
 
     /// not for any gid there is entry (TODO: there should be a 'default' one)

@@ -356,6 +356,11 @@ void TreeCanvas::showNodeInfo(void) {
   auto info = execution.getInfo(*currentNode);
   const NameMap* nm = execution.getNameMap();
 
+  if (!info) {
+    qDebug() << "(!) no info for this node";
+    return;
+  }
+
   QString qextra_info = QString::fromStdString(*info);
   std::string extra_info;
   if (info)
@@ -1369,10 +1374,12 @@ void TreeCanvas::highlightFailedByNogoods() {
   updateCanvas();
 }
 
-void TreeCanvas::deleteNode(Node* n) {
+void TreeCanvas::deleteNode(VisualNode* n) {
   auto parent = n->getParent(na);
   if (!parent) return;
+  parent->closeChild(na, true, false);
   parent->removeChild(n->getIndex(na), na);
+
   parent->dirtyUp(na);
 }
 

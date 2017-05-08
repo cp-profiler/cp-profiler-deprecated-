@@ -41,22 +41,23 @@
 #include "drawingcursor.hh"
 #include "cpprofiler/utils/tree_utils.hh"
 
+using namespace cpprofiler;
 
 NodeStatInspector::NodeStatInspector(QWidget* parent, const NodeTree& nt)
     : QWidget(parent), nt(nt) {
     setWindowFlags(Qt::Tool);
     QGraphicsScene* scene = new QGraphicsScene(parent);
 
-    scene->addEllipse(70,10,16,16,QPen(),QBrush(DrawingCursor::white));
-    scene->addEllipse(70,60,16,16,QPen(),QBrush(DrawingCursor::blue));
-    scene->addRect(32,100,12,12,QPen(),QBrush(DrawingCursor::red));
+    scene->addEllipse(70,10,16,16,QPen(),QBrush(colors::white));
+    scene->addEllipse(70,60,16,16,QPen(),QBrush(colors::blue));
+    scene->addRect(32,100,12,12,QPen(),QBrush(colors::red));
 
     QPolygonF poly;
     poly << QPointF(78,100) << QPointF(78+8,100+8)
          << QPointF(78,100+16) << QPointF(78-8,100+8);
-    scene->addPolygon(poly,QPen(),QBrush(DrawingCursor::green));
+    scene->addPolygon(poly,QPen(),QBrush(colors::green));
 
-    scene->addEllipse(110,100,16,16,QPen(),QBrush(DrawingCursor::white));
+    scene->addEllipse(110,100,16,16,QPen(),QBrush(colors::white));
 
     QPen pen;
     pen.setStyle(Qt::DotLine);

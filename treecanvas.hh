@@ -236,7 +236,7 @@ public Q_SLOTS:
 
   /// Delete the node and all its descendants
   /// not sure if memory is properly released here
-  void deleteNode(Node* n);
+  void deleteNode(VisualNode* n);
 
   /// Delete the node and its left child, while reparenting its (alt) child
   void deleteMiddleNode(Node* n, int alt);

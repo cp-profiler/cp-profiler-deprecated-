@@ -116,8 +116,6 @@ bool TreeBuilder::processNode(DbEntry& dbEntry, bool is_delayed) {
   int nalt = dbEntry.numberOfKids;   /// number of kids in current node
   char status = dbEntry.status;
 
-  Statistics& stats = execution.getStatistics();
-
   const auto& sid2aid = _data.sid2aid;
   
   /// find out if node exists
@@ -145,7 +143,7 @@ bool TreeBuilder::processNode(DbEntry& dbEntry, bool is_delayed) {
     return false;
   }
 
-  VisualNode& parent = *(_na)[parent_gid];
+  auto& parent = *(_na)[parent_gid];
 
   assert(parent_gid >= 0);
   if (parent_gid < 0) {
@@ -153,10 +151,11 @@ bool TreeBuilder::processNode(DbEntry& dbEntry, bool is_delayed) {
     return false;
   }
 
-  VisualNode& node = *parent.getChild(_na, alt);
+  auto& node = *parent.getChild(_na, alt);
+
+  auto& stats = execution.getStatistics();
 
   /// Normal behaviour: insert into Undetermined
-
   if (node.getStatus() == UNDETERMINED) {
     stats.undetermined--;
 

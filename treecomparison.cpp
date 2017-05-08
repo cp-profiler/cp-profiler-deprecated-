@@ -26,6 +26,7 @@
 #include "node.hh"
 #include "data.hh"
 #include "nodetree.hh"
+#include "cpprofiler/utils/tree_utils.hh"
 
 using std::string;
 
@@ -133,13 +134,20 @@ static bool compareLabels(std::string lhs, std::string rhs) {
     return true;
 }
 
-/// Returns true/false depending on whether n1 ~ n2
+/// Returns true if n1 ~ n2
 static bool copmareNodes(const VisualNode* n1, const Execution& ex1,
                   const VisualNode* n2, const Execution& ex2,
                   bool with_labels) {
+
+  /// if one is a nullptr -> not equal
+  if (!n1 || !n2) return false;
+
+  // Two nodes are euqal if:
+  //    have the same status
+  //    have the same labels
+
   const auto kids1 = n1->getNumberOfChildren();
   const auto kids2 = n2->getNumberOfChildren();
-  if (kids1 != kids2) return false;
 
   if (n1->getStatus() != n2->getStatus()) return false;
 
@@ -147,8 +155,8 @@ static bool copmareNodes(const VisualNode* n1, const Execution& ex1,
   if (with_labels) {
     for (auto i = 0u; i < kids1; i++) {
 
-      auto label1 = ex1.getLabel(*n1);
-      auto label2 = ex2.getLabel(*n2);
+      const auto& label1 = ex1.getLabel(*n1);
+      const auto& label2 = ex2.getLabel(*n2);
 
       if (!compareLabels(label1, label2)) return false;
 
@@ -185,170 +193,187 @@ void ComparisonResult::analyseNogoods(const string& info, int search_reduction) 
 
 namespace treecomparison {
 
+static const VisualNode* skip_implied(const Execution& ex, const VisualNode* node) {
 
-std::unique_ptr<ComparisonResult> compare(TreeCanvas* new_tc,
-                                          const Execution& ex1,
-                                          const Execution& ex2,
-                                          bool with_labels) {
+  if (!node) return node;
+
+  const auto& na = ex.nodeTree().getNA();
+
+  int implied_child;
+
+  do {
+    implied_child = -1;
+
+    const auto kids = node->getNumberOfChildren();
+    for (auto i = 0u; i < kids; i++) {
+      const auto& label = ex.getLabel(node->getChild(i));
+
+      /// check if label starts with "[i]"
+      if (label.compare(0, 3, "[i]") == 0) {
+        implied_child = i;
+        break;
+      }
+    }
+
+    /// if implied found, skip this node
+    if (implied_child != -1) {
+      node = node->getChild(na, implied_child);
+    }
+  } while (implied_child != -1);
+
+  return node;
+}
+
+
+/// do whatever it means for a `target` node to represent `source`
+static void copy_into(const Execution& s_ex, const VisualNode* source,
+                      const Execution& t_ex, VisualNode* target) {
+  /// copy status and various flags (not sure if all needed)
+  target->nstatus = source->nstatus;
+
+  auto& s_na = s_ex.nodeTree().getNA();
+  auto& t_na = t_ex.nodeTree().getNA();
+
+  auto s_idx = source->getIndex(s_na);
+  auto t_idx = target->getIndex(t_na);
+
+  auto entry = s_ex.getEntry(s_idx);
+  t_ex.getData().connectNodeToEntry(t_idx, entry);
+
+}
+
+static std::pair<int,int> create_pentagon(Execution& t_ex, VisualNode* target,
+                            const Execution& ex1, const VisualNode* n1,
+                            const Execution& ex2, const VisualNode* n2) {
+
+  auto& t_na = t_ex.nodeTree().getNA();
+
+  target->setStatus(MERGING);
+
+  utils::unhideFromNodeToRoot(t_ex.nodeTree(), *target);
+  target->setNumberOfChildren(2, t_na);
+
+  auto left = target->getChild(t_na, 0);
+  auto right = target->getChild(t_na, 1);
+
+  int left_size;
+  int right_size;
+
+  if (n1) {
+    left_size = copyTree(left, t_ex, n1, ex1, 1);
+
+    /// check if need to hide n1:
+    auto& na_1 = ex1.nodeTree().getNA();
+    if (n1->getNumberOfChildren() > 0 && !n1->isNodeVisible(na_1)) {
+      left->setHidden(true);
+    }
+
+  } else {
+    left->setInvisible(true);
+  }
+
+  if (n2) {
+    right_size = copyTree(right, t_ex, n2, ex2, 2);
+
+    /// check if need to hide n1:
+    auto& na_2 = ex2.nodeTree().getNA();
+    if (n2->getNumberOfChildren() > 0 && !n2->isNodeVisible(na_2)) {
+      right->setHidden(true);
+    }
+
+  } else {
+    right->setInvisible(true);
+  }
+
+  return std::make_pair(left_size, right_size);
+
+}
+
+std::unique_ptr<ComparisonResult> compareTrees(TreeCanvas& new_tc,
+                                               const Execution& ex1,
+                                               const Execution& ex2,
+                                               bool with_labels) {
+
+  /// For source trees
+  QStack<const VisualNode*> stack1, stack2;
+
+  /// The stack used for building new_tc
+  QStack<VisualNode*> stack;
+
+  auto root1 = ex1.nodeTree().getRoot();
+  auto root2 = ex2.nodeTree().getRoot();
+
   auto& na1 = ex1.nodeTree().getNA();
   auto& na2 = ex2.nodeTree().getNA();
 
+  stack1.push(root1); stack2.push(root2);
+
+  auto& ex = new_tc.getExecution();
+  auto& nt = ex.nodeTree();
+  auto& na = nt.getNA();
+
+  stack.push(nt.getRoot());
+
   std::unique_ptr<ComparisonResult> result(new ComparisonResult{ex1, ex2});
 
-  /// For source trees
-  QStack<const VisualNode*> stack1;
-  QStack<const VisualNode*> stack2;
-  /// The stack used while building new_tc
-  QStack<VisualNode*> stack;
-
-  const VisualNode* root1 = ex1.nodeTree().getRoot();
-  const VisualNode* root2 = ex2.nodeTree().getRoot();
-
-  VisualNode* next;
-
-  stack1.push(root1);
-  stack2.push(root2);
-
-  Execution& execution = new_tc->getExecution();
-
-  VisualNode* root = execution.nodeTree().getRoot();
-  stack.push(root);
-
-  bool rootBuilt = false;
-
-  NodeAllocator& na = execution.nodeTree().getNA();
-
   while (stack1.size() > 0) {
+
     auto node1 = stack1.pop();
     auto node2 = stack2.pop();
 
-    /// ---------- Skipping implied ---------------
-
-    int implied_child;
-
-    /// check if any children of node 1 are implied
-    /// if so, skip this node (stack1.pop())
-
-    do {
-      implied_child = -1;
-
-      auto kids = node1->getNumberOfChildren();
-      for (auto i = 0u; i < kids; i++) {
-        std::string label = ex1.getLabel(node1->getChild(i));
-
-        /// check if label starts with "[i]"
-
-        if (label.compare(0, 3, "[i]") == 0) {
-          implied_child = i;
-          break;
-          qDebug() << "found implied: " << label.c_str();
-        }
-      }
-
-      /// if implied not found -> continue,
-      /// otherwise skip this node
-      if (implied_child != -1) {
-        node1 = node1->getChild(na1, implied_child);
-      }
-    } while (implied_child != -1);
-
-    /// the same for node 2
-
-    do {
-      implied_child = -1;
-
-      auto kids = node2->getNumberOfChildren();
-      for (auto i = 0u; i < kids; i++) {
-        std::string label = ex2.getLabel(node2->getChild(i));
-
-        /// check if label starts with "[i]"
-
-        if (label.compare(0, 3, "[i]") == 0) {
-          implied_child = i;
-          break;
-          qDebug() << "found implied: " << label.c_str();
-        }
-      }
-
-      /// if implied not found -> continue,
-      /// otherwise skip this node
-      if (implied_child != -1) {
-        node2 = node2->getChild(na2, implied_child);
-      }
-    } while (implied_child != -1);
-
-    /// ----------------------------------------------------
+    /// TODO: check if implied
 
     bool equal = copmareNodes(node1, ex1, node2, ex2, with_labels);
 
+    auto target = stack.pop();
+
     if (equal) {
-      auto kids = node1->getNumberOfChildren();
-      for (auto i = 0u; i < kids; ++i) {
-        stack1.push(node1->getChild(na1, kids - i - 1));
-        stack2.push(node2->getChild(na2, kids - i - 1));
+      /// turn current node into one of node1/node2
+
+      auto kids1 = (int)node1->getNumberOfChildren();
+      auto kids2 = (int)node2->getNumberOfChildren();
+
+      auto min_kids = std::min(kids1, kids2);
+      auto diff_kids = std::abs(kids1 - kids2);
+
+      target->setNumberOfChildren(min_kids + diff_kids, na);
+
+      copy_into(ex1, node1, ex, target);
+
+      for (auto i = 0u; i < min_kids; i++) {
+        stack1.push(node1->getChild(na1, min_kids - i - 1));
+        stack2.push(node2->getChild(na2, min_kids - i - 1));
+        stack.push(target->getChild(na, min_kids - i - 1));
       }
 
-      /// if roots are equal
-      if (!rootBuilt) {
-        next = na[0];
-        rootBuilt = true;
-      } else {
-        next = stack.pop();
+      for (auto i = min_kids; i < min_kids + diff_kids; i++) {
+        auto child = target->getChild(na, i);
+
+        if (kids1 > kids2) {
+          auto node = node1->getChild(na1, i);
+
+          if (node->getStatus() == UNDETERMINED || node->getStatus() == SKIPPED) {
+            continue;
+          }
+          auto ignored = create_pentagon(ex, child, ex1, node, ex2, nullptr);
+        } else {
+          auto node = node2->getChild(na2, i);
+
+          if (node->getStatus() == UNDETERMINED  || node->getStatus() == SKIPPED) {
+            continue;
+          }
+          auto ignored = create_pentagon(ex, child, ex1, nullptr, ex2, node);
+        }
       }
 
-      /// new node is built
-
-      next->setNumberOfChildren(kids, na);
-      next->nstatus = node1->nstatus;
-      next->_tid = 0;
-
-      /// point to the source node
-
-      auto source_index = node2->getIndex(na2);
-      auto target_index = next->getIndex(na);
-
-      auto entry = ex2.getEntry(source_index);
-      execution.getData().connectNodeToEntry(target_index, entry);
-
-      for (auto i = 0u; i < kids; ++i) {
-        stack.push(next->getChild(na, kids - i - 1));
-      }
+      /// TODO: crate pentagons here as well
 
     } else {
-      /// not equal
-      // qDebug() << "nodes are not equal";
-      next = stack.pop();
-      next->setNumberOfChildren(2, na);
-      next->setStatus(MERGING);
-      if (!next->isRoot()) next->getParent(na)->setHidden(false);
-      next->setHidden(true);
-      next->_tid = 0;
-
-      new_tc->unhideNode(next);  /// unhide pentagons if hidden
-
-      stack.push(next->getChild(na, 1));
-      stack.push(next->getChild(na, 0));
-
-      int left_size =
-          copyTree(stack.pop(), new_tc->getExecution(), node1, ex1, 1);
-      int right_size =
-          copyTree(stack.pop(), new_tc->getExecution(), node2, ex2, 2);
-
-      /// hide the nodes one level below a pentagon
-      /// if they are hidden on the original tree
-      assert(next->getNumberOfChildren() == 2);
-
-      if (node1->getNumberOfChildren() > 0 &&
-          !node1->isNodeVisible(ex1.nodeTree().getNA())) {
-        next->getChild(na, 0)->setHidden(true);
-      }
-
-      if (node2->getNumberOfChildren() > 2 &&
-          !node2->isNodeVisible(ex2.nodeTree().getNA())) {
-        next->getChild(na, 1)->setHidden(true);
-      }
+      int left_size, right_size;
+      std::tie(left_size, right_size) = create_pentagon(ex, target, ex1, node1, ex2, node2);
 
       const string* info_str = nullptr;
+
       /// if node1 is FAILED -> check nogoods // TODO(maxim): branch node?
       if (node1->getStatus() == FAILED) {
         info_str = ex1.getInfo(*node1);
@@ -361,13 +386,13 @@ std::unique_ptr<ComparisonResult> compare(TreeCanvas* new_tc,
       }
 
       result->m_pentagonItems.emplace_back(
-          PentagonItem{left_size, right_size, next, info_str});
+        PentagonItem{left_size, right_size, target, info_str});
     }
 
-    // qDebug() << "comparison na: " << (void*)(&na);
+    target->dirtyUp(na);
 
-    next->dirtyUp(na);
-    new_tc->updateCanvas();
+    new_tc.updateCanvas();
+
   }
 
   return result;

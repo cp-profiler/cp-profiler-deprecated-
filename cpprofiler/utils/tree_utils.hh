@@ -43,6 +43,8 @@ int calculateHeight(const NodeTree& nt, const VisualNode& n);
 
 int calculateMaxDepth(const NodeTree& nt);
 
+void unhideFromNodeToRoot(NodeTree& nt, VisualNode& n);
+
 Statistics gatherNodeStats(NodeTree& nt);
 
 std::string compareDomains(const Execution& ex, const VisualNode& lhs,

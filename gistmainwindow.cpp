@@ -559,7 +559,7 @@ void GistMainWindow::addActions() {
   connect(labelPath, SIGNAL(triggered()), canvas, SLOT(labelPath()));
   // labelPath->setShortcutContext(Qt::ApplicationShortcut);
 
-  analyzeSimilarSubtrees = new QAction("Symilar Subtree Analysis", this);
+  analyzeSimilarSubtrees = new QAction("Similar Subtree Analysis", this);
   addAction(analyzeSimilarSubtrees);
   analyzeSimilarSubtrees->setShortcut(QKeySequence("Shift+s"));
   connect(analyzeSimilarSubtrees, SIGNAL(triggered()), canvas, SLOT(analyzeSimilarSubtrees()));

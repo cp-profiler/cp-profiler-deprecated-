@@ -147,6 +147,7 @@ protected:
     SELECTED, // selected from a pixel tree (TODO(maxim): decide if still needed)
     HOVEREDOVER, // highlighted by hovering over on a pixel tree
     DELETED, // (!not currently used!) if deleted (temporarily) for search logging
+    INVISIBLE, // used for comparison for a dummy node
     SUBTREESIZE,
     SUBTREESIZE2, // reserve this bit for subtree size
     SUBTREESIZE3,  // reserve this bit for subtree size
@@ -222,6 +223,12 @@ public:
   void setSubtreeSize(int size);
   /// Get the subtree size (-1 if unknown)
   int getSubtreeSize(void);
+
+  bool isInvisible(void) const;
+  void setInvisible(bool);
+
+  bool isDeleted(void) const;
+  void setDeleted(bool);
 
   /// Toggle whether this node is hidden
   void toggleHidden(const NodeAllocator& na);

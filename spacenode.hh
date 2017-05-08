@@ -103,13 +103,13 @@ protected:
    *
    * Anatomy of nstatus
    *
-   *              Subtree
-   *               Size |
-   *   Node             |     flags
-   *   Status           | /-----------\
-   *                    | DHSBHOMHCDHHH
-   *   /--\            /-\EOEMINRILRSFO
-   *   SSSS            SSSLVLKGPKDDTCCC
+   *             Subtree
+   *              Size |
+   *   Node            |      flags
+   *   Status          | /------------\
+   *                   | IDHSBHOMHCDHHH
+   *   /--\           /-\VEOEMINRILRSFO
+   *   SSSS           SSSNLVLKGPKDDTCCC
    *   ********************************
    *    3         2         1         0
    *   10987654321098765432109876543210
@@ -154,11 +154,12 @@ private:
   /// Set whether the subtree of this node is known to contain solutions
   void setHasSolvedChildren(bool b);
 
+
+public:
+  unsigned int nstatus;
   /// Book-keeping of open children
   void closeChild(const NodeAllocator& na,
                   bool hadFailures, bool hadSolutions);
-public:
-  unsigned int nstatus;
   /// Set status to \a s
   void setStatus(NodeStatus s);
 

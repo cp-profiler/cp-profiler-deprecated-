@@ -26,6 +26,30 @@
 #include "layoutcursor.hh"
 #include <QtGui>
 
+namespace cpprofiler {
+namespace colors {
+    /// The color for selected nodes
+    static QColor gold(252, 209, 22);
+    /// Red color for failed nodes
+    static QColor red(218, 37, 29);
+    /// Green color for solved nodes
+    static QColor green(11, 118, 70);
+    /// Blue color for choice nodes
+    static QColor blue(0, 92, 161);
+    /// Orange color for best solutions
+    static QColor orange(235, 137, 27);
+    /// White color
+    static QColor white(255,255,255);
+
+    /// Red color for expanded failed nodes
+    static QColor lightRed(218, 37, 29, 120);
+    /// Green color for expanded solved nodes
+    static QColor lightGreen(11, 118, 70, 120);
+    /// Blue color for expanded choice nodes
+    static QColor lightBlue(0, 92, 161, 120);
+}
+}
+
 /// \brief A cursor that draws a tree on a QWidget
 class DrawingCursor : public NodeCursor {
 private:
@@ -36,24 +60,9 @@ private:
     /// The current coordinates
     double x, y;
 
-    bool _showHidden;
-
     /// Test if current node is clipped
     bool isClipped(void);
 public:
-    /// The color for selected nodes
-    static const QColor gold;
-    /// The color for failed nodes
-    static const QColor red;
-    /// The color for solved nodes
-    static const QColor green;
-    /// The color for choice nodes
-    static const QColor blue;
-    /// The color for the best solution
-    static const QColor orange;
-    /// White color
-    static const QColor white;
-
     /// The color for expanded failed nodes
     static const QColor lightRed;
     /// The color for expanded solved nodes
@@ -65,8 +74,7 @@ public:
     DrawingCursor(VisualNode* root,
                   const NodeAllocator& na,
                   QPainter& painter0,
-                  const QRect& clippingRect0,
-                  bool showHidden = false);
+                  const QRect& clippingRect0);
 
     ///\name Cursor interface
     //@{

@@ -38,6 +38,8 @@
 #include "nodewidget.hh"
 #include "drawingcursor.hh"
 
+using namespace cpprofiler;
+
 const double NODE_WIDTH = 20.0;
 const double HALF_NODE_WIDTH = NODE_WIDTH / 2.0;
 const double THIRD_NODE_WIDTH = NODE_WIDTH / 3.0;
@@ -60,19 +62,19 @@ void NodeWidget::paintEvent(QPaintEvent*) {
                             QPoint(myx,myy+16),
                             QPoint(myx-8,myy+8)
                            };
-        painter.setBrush(QBrush(DrawingCursor::green));
+        painter.setBrush(QBrush(colors::green));
         painter.drawConvexPolygon(points, 4);
     }
         break;
     case FAILED:
     {
-        painter.setBrush(QBrush(DrawingCursor::red));
+        painter.setBrush(QBrush(colors::red));
         painter.drawRect(myx-6, myy+2, 12, 12);
     }
         break;
     case BRANCH:
     {
-        painter.setBrush(QBrush(DrawingCursor::blue));
+        painter.setBrush(QBrush(colors::blue));
         painter.drawEllipse(myx-8, myy, 16, 16);
     }
         break;
@@ -84,7 +86,7 @@ void NodeWidget::paintEvent(QPaintEvent*) {
         break;
     case MERGING: {
 
-        painter.setBrush(DrawingCursor::orange);
+        painter.setBrush(colors::orange);
 
         QPointF points[5] = { QPointF(myx, myy),
             QPointF(myx + HALF_NODE_WIDTH, myy + THIRD_NODE_WIDTH),
