@@ -187,6 +187,72 @@ void NogoodTableView::connectShowExpressionsButton(const QPushButton* showExpres
   connect(showExpressions, &QPushButton::clicked, this, &NogoodTableView::refreshModelRenaming);
 }
 
+QString convertToFlatZinc(const QString& clause) {
+
+  QRegExp op_rx("(<=)|(>=)|(==)|(!=)|(=)|(<)|(>)");
+  QHash<QString, QString> neg
+  {
+      {"<=", ">"},
+      {">=", "<"},
+      {"==", "!="},
+      {"=", "!="},
+      {"!=", "=="},
+      {"<", ">="},
+      {">", "<="}
+  };
+  QStringList fzn;
+
+  const QStringList literals = clause.split(" ");
+  for(const QString& lit : literals) {
+    if(!lit.isEmpty()) {
+      int pos = lit.indexOf(op_rx);
+      QString left = lit.left(pos);
+      QString op = lit.mid(pos, op_rx.matchedLength());
+      QString right = lit.right(lit.size() - (pos + op_rx.matchedLength()));
+      std::cerr << "left: " << left.toStdString() << " op: " << op.toStdString() << " right: " << right.toStdString() << "\n";
+      if(op == "==" || op == "=") {
+        op = "int_eq";
+      } else if (op == "!=") {
+        op = "int_ne";
+      } else if (op == "<=") {
+        op = "int_le";
+      } else if (op == "<") {
+        op = "int_lt";
+      } else if (op == ">=") {
+        op = "int_ge";
+      } else if (op == ">") {
+        op = "int_gt";
+      }
+
+      fzn << QString("constraint %0(%1,%2);").arg(op).arg(left).arg(right);
+    }
+  }
+
+  return fzn.join("\n");
+}
+
+void NogoodTableView::showFlatZinc() {
+  setSortingEnabled(false);
+  const QModelIndexList selection = getSelection();
+  for(int i=0; i<selection.count(); i++) {
+    int row = selection.at(i).row();
+    int64_t sid = getSidFromRow(row);
+
+    const QString& qclause = QString::fromStdString(_execution.getNogoodBySid(sid));
+    if(!qclause.isEmpty()) {
+      const QString clause = convertToFlatZinc(qclause);
+      QModelIndex idx = nogood_proxy_model->mapToSource(nogood_proxy_model->index(row, 0, QModelIndex()));
+      _model->setData(idx.sibling(idx.row(), _nogood_col), clause);
+    }
+  }
+  updateSelection();
+  setSortingEnabled(true);
+}
+
+void NogoodTableView::connectFlatZincButton(const QPushButton* getFlatZinc) {
+  connect(getFlatZinc, &QPushButton::clicked, this, &NogoodTableView::showFlatZinc);
+}
+
 void NogoodTableView::connectTextFilter(const QLineEdit* text_edit) {
   connect(text_edit, &QLineEdit::returnPressed, [this, text_edit] () {
     const QStringList splitFilter = text_edit->text().split(",");

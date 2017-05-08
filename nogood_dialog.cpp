@@ -60,14 +60,19 @@ NogoodDialog::NogoodDialog(
     auto buttons = new QHBoxLayout(this);
     auto heatmapButton = new QPushButton("Heatmap");
     heatmapButton->setAutoDefault(false);
-    buttons->addWidget(heatmapButton);
     auto showExpressions = new QPushButton("Show/Hide Expressions");
     showExpressions->setAutoDefault(false);
+    auto getFlatZinc = new QPushButton("Get FlatZinc");
+    getFlatZinc->setAutoDefault(false);
+
+    buttons->addWidget(heatmapButton);
     buttons->addWidget(showExpressions);
+    buttons->addWidget(getFlatZinc);
     layout->addLayout(buttons);
 
     _nogoodTable->connectHeatmapButton(heatmapButton, _tc);
     _nogoodTable->connectShowExpressionsButton(showExpressions);
+    _nogoodTable->connectFlatZincButton(getFlatZinc);
   }
 
   auto filter_layout = new QHBoxLayout();

@@ -4,6 +4,7 @@
 #include <QTableView>
 #include <qsortfilterproxymodel.h>
 #include <QStandardItemModel>
+#include "qpushbutton.h"
 #include "namemap.hh"
 
 class Execution;
@@ -45,6 +46,7 @@ public:
 
   void connectHeatmapButton(const QPushButton* heatmapButton, const TreeCanvas& tc);
   void connectShowExpressionsButton(const QPushButton* showExpressions);
+  void connectFlatZincButton(const QPushButton* getFlatZinc);
   void connectTextFilter(const QLineEdit* text_edit);
   void connectLocationFilter(QLineEdit* location_edit);
   void connectLocationButton(const QPushButton* locationButton,
@@ -63,6 +65,7 @@ private:
   bool expand_expressions;
 
 private slots:
+  void showFlatZinc();
   void refreshModelRenaming();
   void getHeatmapAndEmit(const TreeCanvas& tc, bool record) const;
 };
