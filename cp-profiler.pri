@@ -30,6 +30,8 @@ SOURCES += \
     $$PWD/execution.cpp \
     $$PWD/cpprofiler\utils\tree_utils.cpp \
     $$PWD/cpprofiler\utils\utils.cpp \
+    $$PWD/cpprofiler\utils\literals.cpp \
+    $$PWD/cpprofiler\tests\tests.cpp \
     $$PWD/cpprofiler\analysis\shape_aggregation.cpp \
     $$PWD/cpprofiler\analysis\backjumps.cpp \
     $$PWD/cpprofiler\pixeltree\pixel_tree_dialog.cpp \
@@ -92,6 +94,9 @@ HEADERS  += \
     $$PWD/ml-stats.hh \
     $$PWD/third-party\json.hpp \
     $$PWD/cpprofiler\utils\utils.hh \
+    $$PWD/cpprofiler/utils/literals.hh \
+    $$PWD/cpprofiler/utils/nogood_subsumption.hh
+    $$PWD/cpprofiler\tests\tests.hh \
     $$PWD/cpprofiler/analysis/backjumps.hh \
     $$PWD/cpprofiler/pixeltree/pixel_data.hh \
     $$PWD/cpprofiler/pixeltree/pixel_tree_dialog.hh \
@@ -110,8 +115,6 @@ HEADERS  += \
     $$PWD/webscript.hh \
     $$PWD/namemap.hh \
     $$PWD/nogoodtable.hh \
-    $$PWD/cpprofiler/utils/nogood_subsumption.hh
-    
 
 FORMS    +=
 

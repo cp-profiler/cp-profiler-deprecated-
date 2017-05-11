@@ -36,6 +36,9 @@ QCommandLineOption GlobalParser::version_option{clParser.addVersionOption()};
 QCommandLineOption GlobalParser::test_option{
     "test", "Terminates right after getting DONE RECEIVING"};
 
+QCommandLineOption GlobalParser::unit_test{
+    "unit_test", "Run unit tests"};
+
 QCommandLineOption GlobalParser::port_option{
     {"p", "port"}, "Send nodes via port <port>.", "port"};
 
@@ -67,6 +70,7 @@ GlobalParser::GlobalParser() {
   port_option.setDefaultValue("6565");
 
   clParser.addOption(test_option);
+  clParser.addOption(unit_test);
   clParser.addOption(port_option);
   clParser.addOption(load_option);
   clParser.addOption(mzn_option);

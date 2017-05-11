@@ -19,6 +19,7 @@
  */
 
 #include "globalhelper.hh"
+#include "cpprofiler/tests/tests.hh"
 #include "profiler-conductor.hh"
 #include <QApplication>
 
@@ -40,6 +41,11 @@ int main(int argc, char *argv[]) {
 
   if (GlobalParser::isSet(GlobalParser::version_option) ||
       GlobalParser::isSet(GlobalParser::help_option)) {
+    return 0;
+  }
+
+  if (GlobalParser::isSet(GlobalParser::unit_test)) {
+    cpprofiler::unit_tests::run();
     return 0;
   }
 
