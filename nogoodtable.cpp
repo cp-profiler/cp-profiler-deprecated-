@@ -5,13 +5,17 @@
 #include <qpushbutton.h>
 #include <qdialog.h>
 
+#include "cpprofiler/utils/nogood_subsumption.hh"
 #include "nogoodtable.hh"
 #include "treecanvas.hh"
 #include "execution.hh"
 
+
+// NogoodProxyModel
+// =============================================================
 NogoodProxyModel::NogoodProxyModel(QWidget* parent,
                                    const Execution& e,
-                                   const QList<Sorter>& sorters)
+                                   const QVector<Sorter>& sorters)
     : QSortFilterProxyModel(parent), _sorters(sorters),
       _sid2info(e.getInfo()), _nm(e.getNameMap()) {
   _sid_col = sorters.indexOf(NogoodProxyModel::SORTER_SID);
@@ -23,12 +27,10 @@ void NogoodProxyModel::setLocationFilter(const LocationFilter& locationFilter) {
   invalidateFilter();
 }
 
-void NogoodProxyModel::emptyTextFilterStrings() {
-  _text_filter.clear();
-}
-
-void NogoodProxyModel::setTextFilterStrings(const QStringList& textFilterStrings) {
-  _text_filter = textFilterStrings;
+void NogoodProxyModel::setTextFilterStrings(const QStringList& includeTextFilter,
+                                            const QStringList& rejectTextFilter) {
+  _include_text_filter = includeTextFilter;
+  _reject_text_filter = rejectTextFilter;
   invalidateFilter();
 }
 
@@ -58,7 +60,10 @@ bool NogoodProxyModel::filterAcceptsRow(int source_row, const QModelIndex&) cons
               sourceModel()->index(source_row, _nogood_col)).toString();
 
   bool text_matches = std::all_of(
-              _text_filter.begin(), _text_filter.end(),
+              _include_text_filter.begin(), _include_text_filter.end(),
+              [&nogood](const QString& tf) { return nogood.contains(tf); });
+  text_matches &= std::none_of(
+              _reject_text_filter.begin(), _reject_text_filter.end(),
               [&nogood](const QString& tf) { return nogood.contains(tf); });
 
   const int sid = sourceModel()->data(sourceModel()->index(source_row, _sid_col)).toInt();
@@ -75,9 +80,12 @@ bool NogoodProxyModel::filterAcceptsRow(int source_row, const QModelIndex&) cons
   return text_matches && loc_matches;
 }
 
+// NogoodTableView
+// =============================================================
+
 NogoodTableView::NogoodTableView(QWidget* parent,
                                  QStandardItemModel* model,
-                                 QList<NogoodProxyModel::Sorter> sorters,
+                                 QVector<NogoodProxyModel::Sorter> sorters,
                                  const Execution& e,
                                  int sid_col, int nogood_col)
   : QTableView(parent), _execution(e), _model(model),
@@ -187,84 +195,40 @@ void NogoodTableView::connectShowExpressionsButton(const QPushButton* showExpres
   connect(showExpressions, &QPushButton::clicked, this, &NogoodTableView::refreshModelRenaming);
 }
 
-inline
-bool isSubset(const QList<int>& a, const QList<int>& b) {
-  if(a.size() > b.size()) return false;
-  int i=0;
-  for(int j : b) {
-    if(a[i] < j) {
-      return false;
-    } else if(a[i] == j) {
-      i++;
-      if(i == a.size()) return true;
-    }
-  }
-  return false;
+
+QString negateLit(const QString& lit) {
+  static QRegExp op_rx("(<=)|(>=)|(==)|(!=)|(=)|(<)|(>)");
+  static const QHash<QString, QString> neg
+  {
+      {"<=", ">"},
+      {">=", "<"},
+      {"==", "!="},
+      {"=", "!="},
+      {"!=", "=="},
+      {"<", ">="},
+      {">", "<="}
+  };
+
+  long pos = op_rx.indexIn(lit);
+  QString negLit = lit.left(pos) + lit.mid(pos, op_rx.matchedLength()) + lit.right(lit.size()-op_rx.matchedLength());
+  return negLit;
 }
 
-void NogoodTableView::renameSubsumption() {
+void NogoodTableView::renameSubsumedSelection() {
   setSortingEnabled(false);
 
-  QHash<int64_t, QList<int> > sid2clause;
-  std::map<int, QList<int64_t> > ordered_sids;
+  std::vector<int64_t> pool;
+  for(int row=0; row<nogood_proxy_model->rowCount(); row++)
+    pool.push_back(getSidFromRow(row));
+  Utils::SubsumptionFinder sf(_execution, pool);
 
-  QHash<QString, int> lit2id;
-  QHash<int, QString> id2lit;
-
-  // Translate to sets
-  for(int row=0; row<nogood_proxy_model->rowCount(); row++) {
-    int64_t sid = getSidFromRow(row);
-    const QString& qclause = QString::fromStdString(_execution.getNogoodBySid(sid));
-    if(!qclause.isEmpty()) {
-      QList<int>& clause = sid2clause[sid];
-      const QStringList lits = qclause.split(" ", QString::SplitBehavior::SkipEmptyParts);
-      for(const QString& lit : lits) {
-        int id;
-        auto id_it = lit2id.find(lit);
-        if(id_it == lit2id.end()) {
-          id = lit2id.size();
-          lit2id[lit] = id;
-          id2lit[id] = lit;
-        } else {
-          id = *id_it;
-        }
-        clause.append(id);
-      }
-      std::sort(clause.begin(), clause.end());
-
-      ordered_sids[clause.size()].append(sid);
-    }
-  }
-
-  // Simplify the selected clauses
+  QVector<int64_t> sids;
   const QModelIndexList selection = getSelection();
   for(int i=0; i<selection.count(); i++) {
-    int64_t isid = getSidFromRow(selection.at(i).row());
-    const QList<int>& iclause = sid2clause[isid];
-    for(const auto& size_sids : ordered_sids) {
-      for(int64_t jsid : size_sids.second) {
-        if(jsid != isid) {
-          const QList<int>& jclause = sid2clause[jsid];
-          if (isSubset(jclause, iclause)) {
-            sid2clause[isid] = jclause;
-            goto replacement_found;
-          }
-        }
-      }
-    }
-replacement_found:;
-  }
-
-  // Write the clauses back
-  for(int i=0; i<selection.count(); i++) {
     int row = selection.at(i).row();
-    int64_t sid = getSidFromRow(row);
+    int64_t isid = getSidFromRow(row);
 
-    const QList<int>& clause = sid2clause[sid];
-    QStringList clause_string;
-    for(int lid : clause)
-      clause_string << id2lit[lid];
-    QString finalString = clause_string.join(" ");
+    QString finalString = sf.getSubsumingClauseString(isid);
     const NameMap* nm = _execution.getNameMap();
     if(nm)
       finalString = _execution.getNameMap()->replaceNames(finalString, expand_expressions);
@@ -272,12 +236,16 @@ replacement_found:;
     QModelIndex idx = nogood_proxy_model->mapToSource(nogood_proxy_model->index(row, 0, QModelIndex()));
     _model->setData(idx.sibling(idx.row(), _nogood_col), finalString);
   }
+
   updateSelection();
   setSortingEnabled(true);
 }
 
 void NogoodTableView::connectSubsumButton(const QPushButton* subsumButton) {
-  connect(subsumButton, &QPushButton::clicked, this, &NogoodTableView::renameSubsumption);
+  connect(subsumButton, &QPushButton::clicked,
+         this, &NogoodTableView::renameSubsumedSelection);
+  //connect(subsumButton, &QPushButton::clicked,
+  //        this, &NogoodTableView::renameResolvingSubsumption);
 }
 
 QString convertToFlatZinc(const QString& clause) {
@@ -302,7 +270,7 @@ QString convertToFlatZinc(const QString& clause) {
       QString left = lit.left(pos);
       QString op = lit.mid(pos, op_rx.matchedLength());
       QString right = lit.right(lit.size() - (pos + op_rx.matchedLength()));
-      std::cerr << "left: " << left.toStdString() << " op: " << op.toStdString() << " right: " << right.toStdString() << "\n";
+      //std::cerr << "left: " << left.toStdString() << " op: " << op.toStdString() << " right: " << right.toStdString() << "\n";
       if(op == "==" || op == "=") {
         op = "int_eq";
       } else if (op == "!=") {
@@ -346,11 +314,15 @@ void NogoodTableView::connectFlatZincButton(const QPushButton* getFlatZinc) {
   connect(getFlatZinc, &QPushButton::clicked, this, &NogoodTableView::showFlatZinc);
 }
 
-void NogoodTableView::connectTextFilter(const QLineEdit* text_edit) {
-  connect(text_edit, &QLineEdit::returnPressed, [this, text_edit] () {
-    const QStringList splitFilter = text_edit->text().split(",");
-    nogood_proxy_model->setTextFilterStrings(splitFilter);
-  });
+void NogoodTableView::connectTextFilter(const QLineEdit* include_edit,
+                                        const QLineEdit* reject_edit) {
+  auto setFilters = [this, include_edit, reject_edit] () {
+    const QStringList includeSplitFilter = include_edit->text().split(",");
+    const QStringList rejectSplitFilter = reject_edit->text().split(",");
+    nogood_proxy_model->setTextFilterStrings(includeSplitFilter, rejectSplitFilter);
+  };
+  connect(include_edit, &QLineEdit::returnPressed, setFilters);
+  connect(reject_edit, &QLineEdit::returnPressed, setFilters);
 }
 
 void NogoodTableView::updateLocationFilter(QLineEdit* location_edit) const {

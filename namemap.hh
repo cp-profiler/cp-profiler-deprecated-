@@ -2,10 +2,11 @@
 #define NAMEMAP_HH
 
 #include <qstring.h>
+#include <qvector.h>
 #include <qset.h>
 #include <unordered_map>
 #include <vector>
-#include<iostream>
+
 struct Location {
   //QString path = "";
   int sl = 0;
@@ -32,7 +33,7 @@ uint qHash(const Location& l);
 class LocationFilter {
 public:
   LocationFilter();
-  LocationFilter(QSet<Location> locations);
+  LocationFilter(const QSet<Location>& locations);
   bool contains(const Location& loc) const;
 
   static LocationFilter fromString(const QString& text);
@@ -43,7 +44,7 @@ private:
 };
 
 // This should go somewhere more sensible
-QList<int> getReasons(const int64_t sid,
+QVector<int> getReasons(const int64_t sid,
                       const std::unordered_map<int64_t, std::string*>& sid2info);
 
 class NameMap {
@@ -71,8 +72,8 @@ public:
   const QString& getNiceName(const QString& ident) const;
   QString replaceNames(const QString& text, bool expand_expressions = false) const;
   QString getHeatMap(const std::unordered_map<int, int>& con_id_counts, int max_count) const;
-  QSet<Location> getLocations(const QList<int>& reasons) const;
-  QString getLocationFilterString(const QList<int>& reasons) const;
+  QSet<Location> getLocations(const QVector<int>& reasons) const;
+  QString getLocationFilterString(const QVector<int>& reasons) const;
 
 private:
   QStringList getPathHead(const QString& path, bool includeTrail) const;

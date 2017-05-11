@@ -16,10 +16,10 @@ public:
   enum Sorter {SORTER_SID = 0, SORTER_INT, SORTER_NOGOOD};
   explicit NogoodProxyModel(QWidget* parent,
                             const Execution& e,
-                            const QList<Sorter>& sorters);
+                            const QVector<Sorter>& sorters);
 
-  void setTextFilterStrings(const QStringList& textFilterStrings);
-  void emptyTextFilterStrings();
+  void setTextFilterStrings(const QStringList& includeTextFilter,
+                            const QStringList& rejectTextFilter);
   void setLocationFilter(const LocationFilter& locationFilter);
 
 protected:
@@ -27,8 +27,9 @@ protected:
   bool filterAcceptsRow(int source_row, const QModelIndex&) const;
 
 private:
-  QList<Sorter> _sorters;
-  QStringList _text_filter;
+  QVector<Sorter> _sorters;
+  QStringList _include_text_filter;
+  QStringList _reject_text_filter;
   LocationFilter _loc_filter;
   const std::unordered_map<int64_t, std::string*>& _sid2info;
   const NameMap* _nm;
@@ -40,37 +41,52 @@ class NogoodTableView : public QTableView {
 public:
   NogoodTableView(QWidget* parent,
                   QStandardItemModel* model,
-                  QList<NogoodProxyModel::Sorter> sorters,
+                  QVector<NogoodProxyModel::Sorter> sorters,
                   const Execution& e,
                   int sid_col, int nogood_col);
 
+  // Connect buttons and text filters to their respective functionality
   void connectHeatmapButton(const QPushButton* heatmapButton, const TreeCanvas& tc);
   void connectShowExpressionsButton(const QPushButton* showExpressions);
   void connectFlatZincButton(const QPushButton* getFlatZinc);
-  void connectTextFilter(const QLineEdit* text_edit);
+  void connectTextFilter(const QLineEdit* include_edit,
+                         const QLineEdit* reject_edit);
   void connectLocationFilter(QLineEdit* location_edit);
   void connectLocationButton(const QPushButton* locationButton,
                              QLineEdit* location_edit);
   void connectSubsumButton(const QPushButton* subsumButton);
 
 private:
+  // Find which parts of the table are selected
   QModelIndexList getSelection() const;
+
+  // Read _sid_col of the row (handles mapping)
   int64_t getSidFromRow(int row) const;
+  // Re-select the correct rows (sorting might move rows)
   void updateSelection() const;
+  // Set location filter based on selected nodes
   void updateLocationFilter(QLineEdit* location_edit) const;
 
+private slots:
+  // Replace selected nogoods with equivalent FlatZinc
+  void showFlatZinc();
+  // Update the renaming of nogoods, replacing X_INTRODUCED_
+  //   with expressions depending on expand_expressions
+  void refreshModelRenaming();
+  // Replace subsumed clauses with their subsuming clause
+  void renameSubsumedSelection();
+  // Use self-subsuming resolution
+  void renameResolvingSubsumption();
+  // Get heatmap url for the MiniZincIDE and emit signal
+  void getHeatmapAndEmit(const TreeCanvas& tc, bool record) const;
+
+private:
   const Execution& _execution;
   QStandardItemModel* _model;
   NogoodProxyModel* nogood_proxy_model;
   int _sid_col;
   int _nogood_col;
   bool expand_expressions;
-
-private slots:
-  void showFlatZinc();
-  void refreshModelRenaming();
-  void renameSubsumption();
-  void getHeatmapAndEmit(const TreeCanvas& tc, bool record) const;
 };
 
 #endif // NOGOODTABLE_H

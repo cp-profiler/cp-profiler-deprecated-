@@ -41,7 +41,7 @@ NogoodDialog::NogoodDialog(
 
   populateTable(selected_nodes);
 
-  QList<NogoodProxyModel::Sorter> sorters {
+  QVector<NogoodProxyModel::Sorter> sorters {
       NogoodProxyModel::SORTER_SID, NogoodProxyModel::SORTER_NOGOOD};
   _nogoodTable = new NogoodTableView(this, _model, sorters,
                                      _tc.getExecution(),
@@ -76,10 +76,13 @@ NogoodDialog::NogoodDialog(
   }
 
   auto filter_layout = new QHBoxLayout();
-  filter_layout->addWidget(new QLabel{"Text Filters:"});
-  auto text_edit = new QLineEdit("");
-  _nogoodTable->connectTextFilter(text_edit);
-  filter_layout->addWidget(text_edit);
+  filter_layout->addWidget(new QLabel{"Text Include:"});
+  auto include_edit = new QLineEdit("");
+  filter_layout->addWidget(include_edit);
+  filter_layout->addWidget(new QLabel{"Omit:"});
+  auto reject_edit = new QLineEdit("");
+  filter_layout->addWidget(reject_edit);
+  _nogoodTable->connectTextFilter(include_edit, reject_edit);
 
   if(nm) {
     filter_layout->addWidget(new QLabel{"Location Filter:"});

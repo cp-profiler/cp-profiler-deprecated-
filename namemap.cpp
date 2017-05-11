@@ -11,9 +11,9 @@
 QRegExp NameMap::var_name_regex(reg_mzn_ident);
 QRegExp NameMap::assignment_regex(reg_mzn_ident "=" reg_number);
 
-QList<int> getReasons(const int64_t sid,
-                      const std::unordered_map<int64_t, std::string*>& sid2info) {
-  QList<int> reason_list;
+QVector<int> getReasons(const int64_t sid,
+                        const std::unordered_map<int64_t, std::string*>& sid2info) {
+  QVector<int> reason_list;
   auto info_item = sid2info.find(sid);
   if(info_item != sid2info.end()) {
     auto info_json = nlohmann::json::parse(*info_item->second);
@@ -110,7 +110,7 @@ QString LocationFilter::toString() const {
 }
 
 LocationFilter::LocationFilter() {}
-LocationFilter::LocationFilter(QSet<Location> locations) {
+LocationFilter::LocationFilter(const QSet<Location>& locations) {
   for(Location l1 : locations) {
     if(!_loc_filters.contains(l1)) {
       QSet<Location> temp_filters (_loc_filters);
@@ -317,13 +317,13 @@ QString NameMap::getHeatMap(
   return highlight_url.join("");
 }
 
-QSet<Location> NameMap::getLocations(const QList<int>& reasons) const {
+QSet<Location> NameMap::getLocations(const QVector<int>& reasons) const {
   QSet<Location> locations;
   for(int cid : reasons)
     locations.insert(getLocation(cid));
   return locations;
 }
 
-QString NameMap::getLocationFilterString(const QList<int>& reasons) const {
+QString NameMap::getLocationFilterString(const QVector<int>& reasons) const {
   return LocationFilter(getLocations(reasons)).toString();
 }
