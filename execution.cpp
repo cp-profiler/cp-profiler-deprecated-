@@ -205,5 +205,10 @@ void Execution::compareDomains() {
 
 }
 
+const NameMap* Execution::getNameMap() const { return m_Data->getNameMap(); }
+void Execution::setNameMap(NameMap* names) {
+  m_Data->setNameMap(names);
+}
+
 QMutex& Execution::getMutex() { return m_NodeTree->getMutex(); }
 QMutex& Execution::getLayoutMutex() { return m_NodeTree->getLayoutMutex(); }

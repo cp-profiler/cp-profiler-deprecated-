@@ -49,9 +49,6 @@ class ReceiverThread : public QThread {
   void doneReceiving(void);
   void executionIdReady(Execution* execution);
 
- private slots:
-  void emitExecutionIdReady(void);
-
  private:
   void run(void) override;
 
@@ -78,6 +75,8 @@ class ReceiverWorker : public QObject {
   QByteArray buffer;
   int size;
   QTcpSocket* tcpSocket;
+
+  bool did_I_wait = false;
  public slots:
   void doRead();
 };

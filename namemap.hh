@@ -6,6 +6,7 @@
 #include <qset.h>
 #include <unordered_map>
 #include <vector>
+#include <iostream>
 
 struct Location {
   //QString path = "";

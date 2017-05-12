@@ -18,6 +18,7 @@
  *  WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 #include "data.hh"
+#include "namemap.hh"
 #include "cpprofiler/utils/utils.hh"
 
 #include <iostream>
@@ -144,7 +145,16 @@ int Data::handleNodeCallback(message::Node& node) {
     pushInstance(entry);
 
     if (node.has_nogood() && node.nogood().length() > 0) {
-        sid2nogood[entry->full_sid] = node.nogood();
+
+        /// simplify nogood here
+        auto ng = node.nogood();
+
+        if (nameMap) {
+            auto q_ng = QString::fromStdString(ng);
+            ng = nameMap->replaceNames(q_ng, true).toStdString();
+        }
+
+        sid2nogood[entry->full_sid] = ng;
     }
 
     _prev_node_timestamp = node.time();
@@ -231,6 +241,9 @@ void Data::pushInstance(DbEntry* entry) {
     sid2aid[full_sid] = nodes_arr.size() - 1;
 }
 
+void Data::setNameMap(NameMap* names) {
+    nameMap = names;
+}
 
 #ifdef MAXIM_DEBUG
 

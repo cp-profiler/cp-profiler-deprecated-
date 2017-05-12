@@ -40,6 +40,8 @@ namespace message {
     class Node;
 }
 
+class NameMap;
+
 enum MsgType {
   NODE_DATA = 1,
   DONE_SENDING = 2,
@@ -124,6 +126,8 @@ Q_OBJECT
     /// Map solver Id to no-good string (rid = 0 always for chuffed)
     std::unordered_map<int, std::string> sid2nogood;
 
+    NameMap* nameMap{nullptr};
+
 public:
 
     /// Mapping from solver Id to array Id (nodes_arr)
@@ -179,6 +183,9 @@ public:
     unsigned getGidBySid(int64_t sid) { return nodes_arr[sid2aid[sid]]->gid; }
     /// NOTE(maxim): this only works for a merged tree now?
     DbEntry* getEntry(int gid) const;
+
+    const NameMap* getNameMap() const { return nameMap; }
+    void setNameMap(NameMap* names);
 
 
 /// ****************************

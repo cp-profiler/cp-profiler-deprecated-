@@ -214,6 +214,7 @@ const Location& NameMap::getLocation(const QString& ident) const {
 }
 
 QString NameMap::replaceNames(const QString& text, bool expand_expressions) const {
+
   if (_nameMap.size() == 0) {
     return text;
   }

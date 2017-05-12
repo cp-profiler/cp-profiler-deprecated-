@@ -27,6 +27,8 @@
 #include "execution.hh"
 #include <third-party/json.hpp>
 
+#include <mutex>
+
 // This is a bit wrong.  We have both a separate thread and
 // asynchronous reading from the socket.  One or the other would
 // suffice.
@@ -54,7 +56,10 @@ ReceiverThread::run(void) {
 
     connect(worker, SIGNAL(doneReceiving(void)), this, SIGNAL(doneReceiving(void)));
     connect(worker, SIGNAL(doneReceiving(void)), this, SLOT(quit(void)));
-    connect(worker, SIGNAL(executionIdReady(void)), this, SLOT(emitExecutionIdReady(void)));
+    connect(worker, &ReceiverWorker::executionIdReady, [this](){
+        std::cout << "ReceiverThread::executionIdReady\n";
+        emit executionIdReady(execution);
+    });
 
     connect(tcpSocket, SIGNAL(disconnected(void)), this, SLOT(quit(void)));
     connect(tcpSocket, SIGNAL(disconnected(void)), this, SIGNAL(doneReceiving(void)));
@@ -67,10 +72,6 @@ ReceiverThread::run(void) {
 static quint32 ArrayToInt(const QByteArray& ba) {
   const char* p = ba.data();
   return *(reinterpret_cast<const quint32*>(p));
-}
-
-void ReceiverThread::emitExecutionIdReady(void) {
-  emit executionIdReady(execution);
 }
 
 // This function is called whenever there is new data available to be
@@ -117,6 +118,7 @@ ReceiverWorker::doRead()
 
                             auto execution_id = info_json.find("execution_id");
                             if(execution_id != info_json.end()) {
+                                std::cerr << "execution id known\n";
                                 execution->setExecutionId(*execution_id);
                                 emit executionIdReady();
                             }
@@ -138,6 +140,16 @@ ReceiverWorker::doRead()
                     bool is_restarts = (msg1.restart_id() != -1);
 
                     execution->start(msg1.label(), is_restarts);
+
+
+                    /// Wait for condition variable
+                    if (!did_I_wait) {
+                        std::mutex m;
+                        std::unique_lock<std::mutex> lk(m);
+                        execution->has_execution_id.wait(lk);
+                        did_I_wait = true;
+                    } 
+
                 }
                 break;
                 case message::Node::DONE:

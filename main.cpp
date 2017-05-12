@@ -49,9 +49,9 @@ int main(int argc, char *argv[]) {
     return 0;
   }
 
-  ProfilerConductor w;
+  ProfilerConductor conductor;
 
-  w.show();
+  conductor.show();
 
   QString mzn_name;
   if (GlobalParser::isSet(GlobalParser::mzn_option)) {
@@ -62,14 +62,14 @@ int main(int argc, char *argv[]) {
   if (GlobalParser::isSet(GlobalParser::paths_option)) {
     auto file_name = GlobalParser::value(GlobalParser::paths_option);
     qDebug() << "loading paths file: " << file_name;
-    w.getNextExecutionId(file_name.toStdString(), NameMap(file_name, mzn_name));
+    conductor.getNextExecId(NameMap(file_name, mzn_name));
   }
 
   /// NOTE(maxim): only can load 1 execution for now
   if (GlobalParser::isSet(GlobalParser::load_option)) {
     auto file_name = GlobalParser::value(GlobalParser::load_option);
     qDebug() << "loading execuiton: " << file_name;
-    w.loadExecution(file_name.toStdString());
+    conductor.loadExecution(file_name.toStdString());
   }
 
   return a.exec();

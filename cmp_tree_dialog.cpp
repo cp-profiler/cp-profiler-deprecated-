@@ -270,8 +270,8 @@ CmpTreeDialog::saveComparisonStatsTo(const QString& file_name) {
 
     if (name_map) {
       const bool to_expressions = true;
-      auto clause = name_map->replaceNames(nogood.c_str(), to_expressions);
-      out << clause << ", ";
+      auto clause = name_map->replaceNames(nogood.c_str(), to_expressions).toStdString();
+      out << clause.c_str() << ", ";
       out << nogood.c_str() << "\n";
     } else {
       out << nogood.c_str() << "\n";

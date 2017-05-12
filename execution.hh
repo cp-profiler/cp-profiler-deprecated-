@@ -7,10 +7,11 @@
 #include <ctime>
 #include <memory>
 // #include "nodetree.hh"
-#include "namemap.hh"
 #include <unordered_map>
+#include <condition_variable>
 
 class Data;
+class NameMap;
 class DbEntry;
 class NodeAllocator;
 class NodeTree;
@@ -48,9 +49,6 @@ public:
         execution_id = eid;
     }
 
-    void setNameMap(NameMap* names) {
-        nameMap = names;
-    }
 
     std::string getTitle() const { return _title; }
     void setTitle(std::string title) { _title = title; }
@@ -96,11 +94,11 @@ public:
         return variableListString;
     }
 
-    const NameMap* getNameMap() const {
-        return nameMap;
-    }
+    void setNameMap(NameMap* names);
+    const NameMap* getNameMap() const;
 
     bool finished{false};
+    std::condition_variable has_execution_id;
 
 public slots:
     void handleNewNode(message::Node& node);
@@ -118,14 +116,12 @@ private:
     std::unique_ptr<NodeTree> m_NodeTree;
     std::unique_ptr<Data> m_Data;
     std::unique_ptr<TreeBuilder> m_Builder;
-    NameMap* nameMap{nullptr};
+
     int execution_id;
     bool _is_restarts;
     // Name of the FlatZinc model
     std::string _title = "";
     std::string variableListString;
-
-
 };
 
 #endif
