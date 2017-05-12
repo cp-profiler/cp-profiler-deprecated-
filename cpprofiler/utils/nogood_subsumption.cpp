@@ -47,7 +47,7 @@ bool isSubset(const QVector<int>& a, const QVector<int>& b, int i_lit=-1) {
   return false;
 }
 
-const QVector<int>& SubsumptionFinder::findSubsumingClause(const QVector<int>& iclause) {
+const QVector<int>& SubsumptionFinder::findSubsumingClause(const QVector<int>& iclause) const {
   for(const auto& size_sids : ordered_sids) {
     if(size_sids.first >= iclause.size()) break;
     for(int64_t jsid : size_sids.second) {
@@ -60,14 +60,14 @@ const QVector<int>& SubsumptionFinder::findSubsumingClause(const QVector<int>& i
 }
 
 inline
-QString SubsumptionFinder::clauseToString(const QVector<int>& clause) {
+QString SubsumptionFinder::clauseToString(const QVector<int>& clause) const {
   QStringList clause_string;
   for(int lid : clause)
     clause_string << id2lit[lid];
   return clause_string.join(" ");
 }
 
-QString SubsumptionFinder::getSubsumingClauseString(int64_t sid) {
+QString SubsumptionFinder::getSubsumingClauseString(int64_t sid) const {
   const QVector<int>& iclause = sid2clause[sid];
   const QVector<int>& subsuming_clause = findSubsumingClause(iclause);
   return clauseToString(subsuming_clause);

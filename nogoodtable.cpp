@@ -195,25 +195,6 @@ void NogoodTableView::connectShowExpressionsButton(const QPushButton* showExpres
   connect(showExpressions, &QPushButton::clicked, this, &NogoodTableView::refreshModelRenaming);
 }
 
-
-QString negateLit(const QString& lit) {
-  static QRegExp op_rx("(<=)|(>=)|(==)|(!=)|(=)|(<)|(>)");
-  static const QHash<QString, QString> neg
-  {
-      {"<=", ">"},
-      {">=", "<"},
-      {"==", "!="},
-      {"=", "!="},
-      {"!=", "=="},
-      {"<", ">="},
-      {">", "<="}
-  };
-
-  long pos = op_rx.indexIn(lit);
-  QString negLit = lit.left(pos) + lit.mid(pos, op_rx.matchedLength()) + lit.right(lit.size()-op_rx.matchedLength());
-  return negLit;
-}
-
 void NogoodTableView::renameSubsumedSelection() {
   setSortingEnabled(false);
 
@@ -243,9 +224,7 @@ void NogoodTableView::renameSubsumedSelection() {
 
 void NogoodTableView::connectSubsumButton(const QPushButton* subsumButton) {
   connect(subsumButton, &QPushButton::clicked,
-         this, &NogoodTableView::renameSubsumedSelection);
-  //connect(subsumButton, &QPushButton::clicked,
-  //        this, &NogoodTableView::renameResolvingSubsumption);
+          this, &NogoodTableView::renameSubsumedSelection);
 }
 
 QString convertToFlatZinc(const QString& clause) {
