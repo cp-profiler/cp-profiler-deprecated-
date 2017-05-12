@@ -21,12 +21,6 @@ namespace utils { namespace lits {
   static void test_parse_lit();
   static void test_simplify_ng();
 
-  struct Lit {
-    std::string var;
-    std::string op;
-    int val;
-    bool is_bool;
-  };
 
   ostream& operator<<(ostream& os, const Lit& l) {
     return os << l.var << l.op << l.val << " is_bool:" << l.is_bool;
@@ -61,7 +55,7 @@ namespace utils { namespace lits {
     return (lhs.var == rhs.var) && (lhs.op == rhs.op) && (lhs.val == rhs.val);
   }
 
-  static Lit parse_lit(const string& lit) {
+  Lit parse_lit(const string& lit) {
 
     for (auto& op : ops) {
       auto pos = lit.find(op);
