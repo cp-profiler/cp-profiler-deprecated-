@@ -1,15 +1,21 @@
 #ifndef NOGOOD_SUBSUMPTION_HH
 #define NOGOOD_SUBSUMPTION_HH
 
-#include <qvector.h>
+#include <QHash>
+#include <QVector>
+
 #include <vector>
 #include <cinttypes>
-#include <qhash.h>
 #include <map>
 #include <unordered_map>
 
+#include "cpprofiler/utils/literals.hh"
+
+using Lit = utils::lits::Lit;
+using Clause = QVector<const Lit*>;
+
 class Execution;
-namespace Utils {
+namespace utils {
 class SubsumptionFinder {
 public:
   SubsumptionFinder(const std::unordered_map<int, std::string>& sid2nogood,
@@ -17,15 +23,16 @@ public:
   QString getSubsumingClauseString(int64_t sid) const;
 
 private:
-  QString clauseToString(const QVector<int>& clause) const;
-  const QVector<int>* findSubsumingClause(const QVector<int>& iclause) const;
+  QString clauseToString(const Clause& clause) const;
+  const Clause* findSubsumingClause(const Clause& iclause) const;
 
-  QVector<QVector<int> > clauses;
-  QHash<int64_t, QVector<int>* > sid2clause;
+  QVector<Clause> clauses;
+  QHash<int64_t, Clause*> sid2clause;
   std::map<int, QVector<int64_t> > ordered_sids;
 
-  QHash<QString, int> lit2id;
-  QHash<int, QString> id2lit;
+  QVector<Lit> literals;
+  QHash<QString, const Lit*> lit2id;
+  QHash<const Lit*, QString> id2lit;
 };
 }
 

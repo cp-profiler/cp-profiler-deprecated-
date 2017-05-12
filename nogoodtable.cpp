@@ -64,7 +64,7 @@ bool NogoodProxyModel::filterAcceptsRow(int source_row, const QModelIndex&) cons
               [&nogood](const QString& tf) { return nogood.contains(tf); });
   text_matches &= std::none_of(
               _reject_text_filter.begin(), _reject_text_filter.end(),
-              [&nogood](const QString& tf) { return nogood.contains(tf); });
+              [&nogood](const QString& tf) { return !tf.isEmpty() && nogood.contains(tf); });
 
   const int sid = sourceModel()->data(sourceModel()->index(source_row, _sid_col)).toInt();
   auto reasons = getReasons(sid, _sid2info);
@@ -201,7 +201,7 @@ void NogoodTableView::renameSubsumedSelection() {
   std::vector<int64_t> pool;
   for(int row=0; row<nogood_proxy_model->rowCount(); row++)
     pool.push_back(getSidFromRow(row));
-  Utils::SubsumptionFinder sf(_execution.getNogoods(), pool);
+  utils::SubsumptionFinder sf(_execution.getNogoods(), pool);
 
   QVector<int64_t> sids;
   const QModelIndexList selection = getSelection();

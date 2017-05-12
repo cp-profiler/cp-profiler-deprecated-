@@ -47,8 +47,7 @@ SOURCES += \
     $$PWD/cpprofiler\analysis\similar_shape_algorithm.cpp \
     $$PWD/cpprofiler\analysis\shape_rect.cpp \
     $$PWD/namemap.cpp \
-    $$PWD/nogoodtable.cpp \
-    $$PWD/cpprofiler/utils/literals.cpp
+    $$PWD/nogoodtable.cpp
 
 HEADERS  += \
     $$PWD/globalhelper.hh \
