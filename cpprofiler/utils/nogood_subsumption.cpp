@@ -1,11 +1,11 @@
 #include "cpprofiler/utils/nogood_subsumption.hh"
-#include "execution.hh"
 
 namespace Utils {
 
-SubsumptionFinder::SubsumptionFinder(const Execution& e, const std::vector<int64_t>& pool) : _execution(e) {
+SubsumptionFinder::SubsumptionFinder(const std::unordered_map<int, std::string>& sid2nogood,
+                                     const std::vector<int64_t>& pool) {
   for(int64_t jsid : pool) {
-    const QString qclause = QString::fromStdString(_execution.getNogoodBySid(jsid));
+    const QString qclause = QString::fromStdString(sid2nogood.at(jsid));
     if(!qclause.isEmpty()) {
       QVector<int>& clause = sid2clause[jsid];
       const QStringList lits = qclause.split(" ", QString::SplitBehavior::SkipEmptyParts);

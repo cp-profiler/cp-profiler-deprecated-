@@ -220,7 +220,7 @@ void NogoodTableView::renameSubsumedSelection() {
   std::vector<int64_t> pool;
   for(int row=0; row<nogood_proxy_model->rowCount(); row++)
     pool.push_back(getSidFromRow(row));
-  Utils::SubsumptionFinder sf(_execution, pool);
+  Utils::SubsumptionFinder sf(_execution.getNogoods(), pool);
 
   QVector<int64_t> sids;
   const QModelIndexList selection = getSelection();
