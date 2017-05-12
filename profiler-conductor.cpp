@@ -586,12 +586,11 @@ void ProfilerConductor::createExecution(unique_ptr<NodeTree> nt,
 }
 
 void ProfilerConductor::executionIdReady(Execution* e) {
-  std::cerr << "conductor::executionIdReady\n";
   int eid = e->getExecutionId();
   if (eid != -1 && eid < nameMaps.size()) {
     e->setNameMap(&nameMaps[eid]);
   }
-  e->has_execution_id.notify_one();
+  e->Qhas_execution_id.wakeOne();
 }
 
 void ProfilerConductor::showNodeInfoToIDE(std::string extra_info) {

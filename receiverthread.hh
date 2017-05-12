@@ -76,7 +76,7 @@ class ReceiverWorker : public QObject {
   int size;
   QTcpSocket* tcpSocket;
 
-  bool did_I_wait = false;
+  bool execution_id_communicated = false;
  public slots:
   void doRead();
 };

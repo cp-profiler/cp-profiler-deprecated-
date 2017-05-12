@@ -8,7 +8,7 @@
 #include <memory>
 // #include "nodetree.hh"
 #include <unordered_map>
-#include <condition_variable>
+#include <QWaitCondition>
 
 class Data;
 class NameMap;
@@ -98,7 +98,7 @@ public:
     const NameMap* getNameMap() const;
 
     bool finished{false};
-    std::condition_variable has_execution_id;
+    QWaitCondition Qhas_execution_id;
 
 public slots:
     void handleNewNode(message::Node& node);

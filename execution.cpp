@@ -98,11 +98,8 @@ void Execution::start(std::string label, bool isRestarts) {
 
     connect(this, SIGNAL(doneReceiving(void)), m_Data.get(), SLOT(setDoneReceiving(void)));
 
-    std::cerr << "Execution::start on " << this << "\n";
-
     connect(m_Builder.get(), &TreeBuilder::addedNode, this, &Execution::newNode);
     connect(m_Builder.get(), &TreeBuilder::addedRoot, this, &Execution::newRoot);
-    // connect(m_Builder.get(), &TreeBuilder::doneBuilding, this, &Execution::doneBuilding);
 
     connect(m_Builder.get(), &TreeBuilder::doneBuilding, [this]() {
 

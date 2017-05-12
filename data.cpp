@@ -20,6 +20,7 @@
 #include "data.hh"
 #include "namemap.hh"
 #include "cpprofiler/utils/utils.hh"
+#include "cpprofiler/utils/literals.hh"
 
 #include <iostream>
 #include <qdebug.h>
@@ -152,6 +153,7 @@ int Data::handleNodeCallback(message::Node& node) {
         if (nameMap) {
             auto q_ng = QString::fromStdString(ng);
             ng = nameMap->replaceNames(q_ng, true).toStdString();
+            // ng = utils::lits::simplify_ng(ng);
         }
 
         sid2nogood[entry->full_sid] = ng;

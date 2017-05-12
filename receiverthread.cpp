@@ -24,10 +24,9 @@
 #include "message.pb.hh"
 
 #include <QTcpSocket>
+#include <QMutex>
 #include "execution.hh"
 #include <third-party/json.hpp>
-
-#include <mutex>
 
 // This is a bit wrong.  We have both a separate thread and
 // asynchronous reading from the socket.  One or the other would
@@ -57,7 +56,6 @@ ReceiverThread::run(void) {
     connect(worker, SIGNAL(doneReceiving(void)), this, SIGNAL(doneReceiving(void)));
     connect(worker, SIGNAL(doneReceiving(void)), this, SLOT(quit(void)));
     connect(worker, &ReceiverWorker::executionIdReady, [this](){
-        std::cout << "ReceiverThread::executionIdReady\n";
         emit executionIdReady(execution);
     });
 
@@ -118,9 +116,11 @@ ReceiverWorker::doRead()
 
                             auto execution_id = info_json.find("execution_id");
                             if(execution_id != info_json.end()) {
-                                std::cerr << "execution id known\n";
-                                execution->setExecutionId(*execution_id);
-                                emit executionIdReady();
+
+                                if (!execution_id_communicated) {
+                                    execution->setExecutionId(*execution_id);
+                                    emit executionIdReady();
+                                }
                             }
 
                             auto variableListString = info_json.find("variable_list");
@@ -141,13 +141,13 @@ ReceiverWorker::doRead()
 
                     execution->start(msg1.label(), is_restarts);
 
-
                     /// Wait for condition variable
-                    if (!did_I_wait) {
-                        std::mutex m;
-                        std::unique_lock<std::mutex> lk(m);
-                        execution->has_execution_id.wait(lk);
-                        did_I_wait = true;
+                    if (!execution_id_communicated) {
+                        QMutex m;
+                        m.lock();
+                        execution->Qhas_execution_id.wait(&m);
+                        execution_id_communicated = true;
+                        m.unlock();
                     } 
 
                 }
