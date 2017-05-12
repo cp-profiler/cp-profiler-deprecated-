@@ -8,6 +8,7 @@
 #include <functional>
 #include <iostream>
 #include <climits>
+#include <stdexcept>
 
 #include "libs/perf_helper.hh"
 
@@ -58,7 +59,7 @@ namespace utils { namespace lits {
   Lit parse_lit(const string& lit) {
 
     for (auto& op : ops) {
-      auto pos = lit.find(op);
+      auto pos = lit.rfind(op);
       if (pos != string::npos) {
 
         auto var = lit.substr(0, pos);
@@ -71,7 +72,12 @@ namespace utils { namespace lits {
         } else if (str_val == "true") {
           val = 1; is_bool = true;
         } else {
-          val = std::stoi(str_val);
+
+          try {
+            val = std::stoi(str_val);
+          } catch (std::invalid_argument& e) {
+            val = INT_MAX;
+          }
         }
 
         return {std::move(var), op, std::move(val), is_bool};
@@ -274,18 +280,42 @@ namespace utils { namespace lits {
     return result;
   }
 
+  static bool should_negate(const Lit& l) {
+    if (l.val == 0) {
+      if (l.op == "<=" || l.op == "=") return true;
+      return false;
+    }
+
+    if (l.val == 1 && l.op == "<") return true;
+    return false;
+  }
+
+  static bool should_keep_as_is(const Lit& l) {
+    if (l.val == 1) {
+      if (l.op == "=" || l.op == ">=") return true;
+      return false;
+    }
+
+    if (l.val == 0 && l.op == ">") return true;
+    return false;
+  }
+
   static Lit simplify_expr_lit(const Lit& l) {
 
-    if (l.val == 0 && l.op == "<=") {
-      return negate_lit(l);
+    if (should_negate(l)) {
+      auto inner_lit = l.var.substr(1, l.var.size() - 2);
+      auto negated = negate_lit(parse_lit(inner_lit));
+      return negated;
     }
 
-    if (l.val == 1 && l.op == ">=") {
+    if (should_keep_as_is(l)) {
 
       auto inner_lit = l.var.substr(1, l.var.size() - 2);
-
-      return parse_lit(inner_lit);
+      auto mod = parse_lit(inner_lit);
+      return mod;
     }
+
+    std::cout << "can't simplify: " << l << endl;
 
     return l;
 
@@ -348,11 +378,11 @@ namespace utils { namespace lits {
 
     /// try to simplify the exression
 
-    // std::cout << "from: " << lits.size();
-
     const auto vars = map<Lit, string>(lits, [] (const Lit& l) { return l.var; });
 
     const auto uniq_vars = uniq(vars);
+
+    // std::cout << "lits before: " << lits.size << endl;
 
     std::for_each(uniq_vars.begin(), uniq_vars.end(), [&lits](const string& var) {
 
@@ -362,7 +392,6 @@ namespace utils { namespace lits {
 
     std::sort(lits.begin(), lits.end(), [] (const Lit& lhs, const Lit& rhs) { return lhs.var < rhs.var; });
 
-    // std::cout << " to: " << lits.size() << endl;
 
     return stringify_lits(lits);
 
