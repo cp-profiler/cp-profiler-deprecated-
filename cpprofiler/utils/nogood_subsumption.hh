@@ -18,9 +18,10 @@ public:
 
 private:
   QString clauseToString(const QVector<int>& clause) const;
-  const QVector<int>& findSubsumingClause(const QVector<int>& iclause) const;
+  const QVector<int>* findSubsumingClause(const QVector<int>& iclause) const;
 
-  QHash<int64_t, QVector<int> > sid2clause;
+  QVector<QVector<int> > clauses;
+  QHash<int64_t, QVector<int>* > sid2clause;
   std::map<int, QVector<int64_t> > ordered_sids;
 
   QHash<QString, int> lit2id;
