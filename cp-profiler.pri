@@ -31,6 +31,7 @@ SOURCES += \
     $$PWD/cpprofiler\utils\tree_utils.cpp \
     $$PWD/cpprofiler\utils\utils.cpp \
     $$PWD/cpprofiler\utils\literals.cpp \
+    $$PWD/cpprofiler/utils/nogood_subsumption.cpp \
     $$PWD/cpprofiler\tests\tests.cpp \
     $$PWD/cpprofiler\analysis\shape_aggregation.cpp \
     $$PWD/cpprofiler\analysis\backjumps.cpp \
@@ -47,7 +48,6 @@ SOURCES += \
     $$PWD/cpprofiler\analysis\shape_rect.cpp \
     $$PWD/namemap.cpp \
     $$PWD/nogoodtable.cpp \
-    $$PWD/cpprofiler/utils/nogood_subsumption.cpp
 
 HEADERS  += \
     $$PWD/globalhelper.hh \
@@ -95,7 +95,7 @@ HEADERS  += \
     $$PWD/third-party\json.hpp \
     $$PWD/cpprofiler\utils\utils.hh \
     $$PWD/cpprofiler/utils/literals.hh \
-    $$PWD/cpprofiler/utils/nogood_subsumption.hh
+    $$PWD/cpprofiler/utils/nogood_subsumption.hh \
     $$PWD/cpprofiler\tests\tests.hh \
     $$PWD/cpprofiler/analysis/backjumps.hh \
     $$PWD/cpprofiler/pixeltree/pixel_data.hh \
