@@ -55,16 +55,21 @@ bool NogoodProxyModel::lessThan(const QModelIndex& left, const QModelIndex& righ
   return false;  /// should not reach here; to prevent a warning
 }
 
-bool NogoodProxyModel::filterAcceptsRow(int source_row, const QModelIndex&) const {
-  const QString& nogood = sourceModel()->data(
-              sourceModel()->index(source_row, _nogood_col)).toString();
-
+bool NogoodProxyModel::filterAcceptsText(const QString& nogood) const {
   bool text_matches = std::all_of(
               _include_text_filter.begin(), _include_text_filter.end(),
               [&nogood](const QString& tf) { return nogood.contains(tf); });
   text_matches &= std::none_of(
               _reject_text_filter.begin(), _reject_text_filter.end(),
               [&nogood](const QString& tf) { return !tf.isEmpty() && nogood.contains(tf); });
+  return text_matches;
+}
+
+bool NogoodProxyModel::filterAcceptsRow(int source_row, const QModelIndex&) const {
+  const QString& nogood = sourceModel()->data(
+              sourceModel()->index(source_row, _nogood_col)).toString();
+
+  bool text_matches = filterAcceptsText(nogood);
 
   const int sid = sourceModel()->data(sourceModel()->index(source_row, _sid_col)).toInt();
   auto reasons = getReasons(sid, _sid2info);
@@ -195,16 +200,32 @@ void NogoodTableView::connectShowExpressionsButton(const QPushButton* showExpres
   connect(showExpressions, &QPushButton::clicked, this, &NogoodTableView::refreshModelRenaming);
 }
 
-void NogoodTableView::renameSubsumedSelection() {
+void NogoodTableView::renameSubsumedSelection(const QCheckBox* useAll,
+                                              const QCheckBox* applyFilter) {
   setSortingEnabled(false);
 
-  //std::vector<int64_t> pool;
-  //for(int row=0; row<nogood_proxy_model->rowCount(); row++)
-  //  pool.push_back(getSidFromRow(row));
-  //utils::SubsumptionFinder sf(_execution.getNogoods(), pool);
-  utils::SubsumptionFinder sf(_execution.getNogoods());
+  std::vector<int64_t> pool;
+  if(useAll->isChecked()) {
+    auto sid2nogood = _execution.getNogoods();
+    for(auto& sidNogood : sid2nogood) {
+      int64_t sid = sidNogood.first;
+      if(!sidNogood.second.empty()) {
+        const QString nogood = QString::fromStdString(sidNogood.second);
+        if(applyFilter->isChecked()) {
+          if(nogood_proxy_model->filterAcceptsText(nogood))
+            pool.push_back(sid);
+        } else {
+          pool.push_back(sid);
+        }
+      }
+    }
+  } else {
+    for(int row=0; row<nogood_proxy_model->rowCount(); row++)
+      pool.push_back(getSidFromRow(row));
+  }
 
-  QVector<int64_t> sids;
+  utils::SubsumptionFinder sf(_execution.getNogoods(), pool);
+
   const QModelIndexList selection = getSelection();
   for(int i=0; i<selection.count(); i++) {
     int row = selection.at(i).row();
@@ -223,9 +244,13 @@ void NogoodTableView::renameSubsumedSelection() {
   setSortingEnabled(true);
 }
 
-void NogoodTableView::connectSubsumButton(const QPushButton* subsumButton) {
+void NogoodTableView::connectSubsumButtons(const QPushButton* subsumButton,
+                                           const QCheckBox* useAll,
+                                           const QCheckBox* applyFilter) {
   connect(subsumButton, &QPushButton::clicked,
-          this, &NogoodTableView::renameSubsumedSelection);
+          this, [subsumButton, useAll, applyFilter, this](){
+      NogoodTableView::renameSubsumedSelection(useAll, applyFilter);
+  });
 }
 
 QString convertToFlatZinc(const QString& clause) {

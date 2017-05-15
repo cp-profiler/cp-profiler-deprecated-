@@ -12,7 +12,7 @@
 #include "cpprofiler/utils/literals.hh"
 
 using Lit = utils::lits::Lit;
-using Clause = QVector<const Lit*>;
+using Clause = QVector<Lit>;
 
 class Execution;
 namespace utils {
@@ -33,10 +33,6 @@ private:
   QVector<Clause> clauses;
   QHash<int64_t, Clause*> sid2clause;
   std::map<int, QVector<int64_t> > ordered_sids;
-
-  QVector<Lit> literals;
-  QHash<QString, const Lit*> lit2id;
-  QHash<const Lit*, QString> id2lit;
 };
 }
 

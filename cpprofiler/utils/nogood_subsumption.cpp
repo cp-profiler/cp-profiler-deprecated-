@@ -4,27 +4,16 @@ namespace utils {
 
 void SubsumptionFinder::populateClauses(const std::unordered_map<int, std::string>& sid2nogood,
                                         const std::vector<int64_t>& pool) {
-  clauses.reserve(static_cast<int>(pool.size()));
+  clauses.resize(static_cast<int>(pool.size()));
+  int top = 0;
   for(int64_t jsid : pool) {
     const QString qclause = QString::fromStdString(sid2nogood.at(static_cast<int>(jsid)));
     if(!qclause.isEmpty()) {
-      clauses.push_back(Clause());
-      Clause* clause = &clauses.back();
+      Clause* clause = &clauses[top++];
       sid2clause[jsid] = clause;
       const QStringList lits = qclause.split(" ", QString::SplitBehavior::SkipEmptyParts);
-      for(const QString& lit : lits) {
-        const Lit* id;
-        auto id_it = lit2id.find(lit);
-        if(id_it == lit2id.end()) {
-          literals.push_back(lits::parse_lit(lit.toStdString()));
-          id = &literals.back();
-          lit2id[lit] = id;
-          id2lit[id] = lit;
-        } else {
-          id = *id_it;
-        }
-        clause->append(id);
-      }
+      for(const QString& lit : lits)
+        clause->append(lits::parse_lit(lit.toStdString()));
       std::sort(clause->begin(), clause->end());
 
       ordered_sids[clause->size()].append(jsid);
@@ -47,17 +36,21 @@ SubsumptionFinder::SubsumptionFinder(const std::unordered_map<int, std::string>&
 }
 
 inline
-bool isSubset(const Clause& a, const Clause& b, const Lit* i_lit=nullptr) {
-  if(a.size() - (i_lit!=nullptr) > b.size()) return false;
+bool subsumes(const Lit& a, const Lit& b) {
+  if(a.var == b.var) {
+    const std::vector<Lit> lits {a, b};
+    const std::vector<Lit> result = apply_rules_same_var(a.var, lits);
+    return result.size() == 1 && result[0] == a;
+  }
+  return false;
+}
+
+inline
+bool isSubset(const Clause& a, const Clause& b) {
+  if(a.size() > b.size()) return false;
   int i=0;
-  for(const Lit* j : b) {
-    if(a[i] == i_lit) {
-      i++;
-      if(i == a.size()) return true;
-    }
-    if(a[i] < j) {
-      return false;
-    } else if(a[i] == j) {
+  for(const Lit& lj : b) {
+    if(subsumes(a[i], lj)) {
       i++;
       if(i == a.size()) return true;
     }
@@ -70,7 +63,7 @@ const Clause* SubsumptionFinder::findSubsumingClause(const Clause& iclause) cons
     if(size_sids.first >= iclause.size()) break;
     for(int64_t jsid : size_sids.second) {
       const Clause* jclause = sid2clause[jsid];
-      if (isSubset(*jclause, iclause))
+      if(isSubset(*jclause, iclause))
         return jclause;
     }
   }
@@ -80,15 +73,24 @@ const Clause* SubsumptionFinder::findSubsumingClause(const Clause& iclause) cons
 inline
 QString SubsumptionFinder::clauseToString(const Clause& clause) const {
   QStringList clause_string;
-  for(const Lit* lid : clause)
-    clause_string << id2lit[lid];
+  for(const Lit& lid : clause)
+    clause_string << QString::fromStdString(lid.var) +
+                     QString::fromStdString(lid.op) +
+                     QString::number(lid.val);
   clause_string.sort();
   return clause_string.join(" ");
 }
 
+
 QString SubsumptionFinder::getSubsumingClauseString(int64_t sid) const {
   const Clause* iclause = sid2clause[sid];
   const Clause* subsuming_clause = findSubsumingClause(*iclause);
+
+  //if(iclause != subsuming_clause)
+  //  std::cerr << "Changing: " << clauseToString(*iclause).toStdString()
+  //            << " => "       << clauseToString(*subsuming_clause).toStdString()
+  //            << "\n";
+
   return clauseToString(*subsuming_clause);
 }
 

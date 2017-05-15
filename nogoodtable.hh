@@ -2,9 +2,11 @@
 #define NOGOODTABLE_H
 
 #include <QTableView>
-#include <qsortfilterproxymodel.h>
+#include <QSortFilterProxyModel>
 #include <QStandardItemModel>
-#include "qpushbutton.h"
+#include <QPushButton>
+#include <QCheckBox>
+
 #include "namemap.hh"
 
 class Execution;
@@ -21,6 +23,7 @@ public:
   void setTextFilterStrings(const QStringList& includeTextFilter,
                             const QStringList& rejectTextFilter);
   void setLocationFilter(const LocationFilter& locationFilter);
+  bool filterAcceptsText(const QString& nogood) const;
 
 protected:
   bool lessThan(const QModelIndex& left, const QModelIndex& right) const;
@@ -54,7 +57,9 @@ public:
   void connectLocationFilter(QLineEdit* location_edit);
   void connectLocationButton(const QPushButton* locationButton,
                              QLineEdit* location_edit);
-  void connectSubsumButton(const QPushButton* subsumButton);
+  void connectSubsumButtons(const QPushButton* subsumButton,
+                            const QCheckBox* useAll,
+                            const QCheckBox* applyFilter);
 
 private:
   // Find which parts of the table are selected
@@ -74,7 +79,8 @@ private slots:
   //   with expressions depending on expand_expressions
   void refreshModelRenaming();
   // Replace subsumed clauses with their subsuming clause
-  void renameSubsumedSelection();
+  void renameSubsumedSelection(const QCheckBox* useAll,
+                               const QCheckBox* applyFilter);
   // Use self-subsuming resolution
   void renameResolvingSubsumption();
   // Get heatmap url for the MiniZincIDE and emit signal

@@ -100,8 +100,16 @@ NogoodDialog::NogoodDialog(
   auto subsumlayout = new QHBoxLayout();
   auto subsumbutton = new QPushButton("Simplify nogoods");
   subsumbutton->setAutoDefault(false);
-  _nogoodTable->connectSubsumButton(subsumbutton);
+  auto subsumUseAllNogoods = new QCheckBox("Use all nogoods");
+  auto subsumUseAllNogoodsApplyFilter = new QCheckBox("Apply filters");
+  _nogoodTable->connectSubsumButtons(subsumbutton,
+                                     subsumUseAllNogoods,
+                                     subsumUseAllNogoodsApplyFilter);
   subsumlayout->addWidget(subsumbutton);
+  subsumlayout->addWidget(subsumUseAllNogoods);
+  subsumlayout->addWidget(subsumUseAllNogoodsApplyFilter);
+
+  subsumlayout->setStretchFactor(subsumbutton, 2);
 
   layout->addLayout(subsumlayout);
 }

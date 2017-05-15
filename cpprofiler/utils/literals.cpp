@@ -27,6 +27,20 @@ namespace utils { namespace lits {
     return os << l.var << l.op << l.val << " is_bool:" << l.is_bool;
   }
 
+  bool operator<(const Lit& lhs, const Lit& rhs) {
+    if(lhs.var < rhs.var) return true;
+    if(lhs.var == rhs.var) {
+      if(lhs.op < rhs.op) return true;
+      if(lhs.op == rhs.op) {
+        if(lhs.val < rhs.val) return true;
+        if(lhs.val == rhs.val) {
+          return lhs.is_bool < rhs.is_bool;
+        }
+      }
+    }
+    return false;
+  }
+
   template<typename T>
   ostream& operator<<(ostream& os, const vector<T>& v) {
     for (auto& e : v) {
@@ -254,7 +268,7 @@ namespace utils { namespace lits {
     return lits;
   }
 
-  static vector<Lit> apply_rules_same_var(const string& var, const vector<Lit>& lits) {
+  vector<Lit> apply_rules_same_var(const string& var, const vector<Lit>& lits) {
 
     vector<Lit> selected_var; vector<Lit> result;
     std::tie(selected_var, result) = disect(lits, [&var] (const Lit& l) { return l.var == var; });

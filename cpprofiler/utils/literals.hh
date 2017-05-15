@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <vector>
 
 namespace utils { namespace lits {
 
@@ -16,6 +17,7 @@ namespace utils { namespace lits {
   Lit parse_lit(const std::string& lit);
 
   std::string simplify_ng(const std::string& ng);
-
-
+  std::vector<Lit> apply_rules_same_var(const std::string& var, const std::vector<Lit>& lits);
+  bool operator==(const Lit& lhs, const Lit& rhs);
+  bool operator<(const Lit& lhs, const Lit& rhs);
 }}
