@@ -20,11 +20,15 @@ class SubsumptionFinder {
 public:
   SubsumptionFinder(const std::unordered_map<int, std::string>& sid2nogood,
                     const std::vector<int64_t>& pool);
+  SubsumptionFinder(const std::unordered_map<int, std::string>& sid2nogood);
   QString getSubsumingClauseString(int64_t sid) const;
 
 private:
   QString clauseToString(const Clause& clause) const;
   const Clause* findSubsumingClause(const Clause& iclause) const;
+
+  void populateClauses(const std::unordered_map<int, std::string>& sid2nogood,
+                       const std::vector<int64_t>& pool);
 
   QVector<Clause> clauses;
   QHash<int64_t, Clause*> sid2clause;

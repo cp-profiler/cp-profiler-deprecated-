@@ -2,11 +2,11 @@
 
 namespace utils {
 
-SubsumptionFinder::SubsumptionFinder(const std::unordered_map<int, std::string>& sid2nogood,
-                                     const std::vector<int64_t>& pool) {
-  clauses.reserve(pool.size());
+void SubsumptionFinder::populateClauses(const std::unordered_map<int, std::string>& sid2nogood,
+                                        const std::vector<int64_t>& pool) {
+  clauses.reserve(static_cast<int>(pool.size()));
   for(int64_t jsid : pool) {
-    const QString qclause = QString::fromStdString(sid2nogood.at(jsid));
+    const QString qclause = QString::fromStdString(sid2nogood.at(static_cast<int>(jsid)));
     if(!qclause.isEmpty()) {
       clauses.push_back(Clause());
       Clause* clause = &clauses.back();
@@ -30,6 +30,20 @@ SubsumptionFinder::SubsumptionFinder(const std::unordered_map<int, std::string>&
       ordered_sids[clause->size()].append(jsid);
     }
   }
+}
+
+SubsumptionFinder::SubsumptionFinder(const std::unordered_map<int, std::string>& sid2nogood,
+                                     const std::vector<int64_t>& pool) {
+  populateClauses(sid2nogood, pool);
+}
+
+SubsumptionFinder::SubsumptionFinder(const std::unordered_map<int, std::string>& sid2nogood) {
+  std::vector<int64_t> all;
+  for(auto& sidNogood : sid2nogood) {
+    if(!sidNogood.second.empty())
+      all.push_back(sidNogood.first);
+  }
+  populateClauses(sid2nogood, all);
 }
 
 inline

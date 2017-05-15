@@ -5,10 +5,10 @@
 #include <qpushbutton.h>
 #include <qdialog.h>
 
-#include "cpprofiler/utils/nogood_subsumption.hh"
 #include "nogoodtable.hh"
 #include "treecanvas.hh"
 #include "execution.hh"
+#include "cpprofiler/utils/nogood_subsumption.hh"
 
 
 // NogoodProxyModel
@@ -198,10 +198,11 @@ void NogoodTableView::connectShowExpressionsButton(const QPushButton* showExpres
 void NogoodTableView::renameSubsumedSelection() {
   setSortingEnabled(false);
 
-  std::vector<int64_t> pool;
-  for(int row=0; row<nogood_proxy_model->rowCount(); row++)
-    pool.push_back(getSidFromRow(row));
-  utils::SubsumptionFinder sf(_execution.getNogoods(), pool);
+  //std::vector<int64_t> pool;
+  //for(int row=0; row<nogood_proxy_model->rowCount(); row++)
+  //  pool.push_back(getSidFromRow(row));
+  //utils::SubsumptionFinder sf(_execution.getNogoods(), pool);
+  utils::SubsumptionFinder sf(_execution.getNogoods());
 
   QVector<int64_t> sids;
   const QModelIndexList selection = getSelection();
