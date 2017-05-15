@@ -191,6 +191,7 @@ namespace utils { namespace lits {
   }
 
   /// assumes the same var
+  /// a>=1 \/ a>=3  ->  a>=1
   static vector<Lit> apply_ge_rule(const vector<Lit>& lits) {
     vector<Lit> ge_lits, rest_op;
     std::tie(ge_lits, rest_op) = disect(lits, [] (const Lit& l) { return l.op == ">="; });
@@ -206,6 +207,7 @@ namespace utils { namespace lits {
   }
 
   /// assumes the same var
+  /// a<=1 \/ a<=3  ->  a>=3
   static vector<Lit> apply_le_rule(const vector<Lit>& lits) {
     vector<Lit> le_lits, rest_op;
     std::tie(le_lits, rest_op) = disect(lits, [] (const Lit& l) { return l.op == "<="; });
@@ -221,6 +223,7 @@ namespace utils { namespace lits {
   }
 
   /// assumes the same var
+  /// a!=1 \/ a<=3  ->  a!=3
   static vector<Lit> apply_ne_rule(const vector<Lit>& lits) {
 
     const auto ne_lits = filter(lits, [] (const Lit& l) { return l.op == "!="; });
@@ -230,7 +233,27 @@ namespace utils { namespace lits {
     return {ne_lits[0]};
   }
 
-  /// a>=1 \/ a>=3  ->  a>=1
+  /// assumes the same var
+  /// a>=3 a<=1  ->  a!=2
+  static vector<Lit> apply_exclusion_rule(const vector<Lit>& lits) {
+
+    const vector<Lit> le_lits = filter(lits, [] (const Lit& l) { return l.op == "<="; });
+    const vector<Lit> ge_lits = filter(lits, [] (const Lit& l) { return l.op == ">="; });
+
+    /// TODO(maxim): can also apply ne and ge rules here!
+
+    if (le_lits.size() == 0 || ge_lits.size() == 0) return lits;
+
+    const auto max_le = with_max_val(le_lits).val;
+    const auto min_ge = with_min_val(ge_lits).val;
+
+    if (min_ge - max_le == 2) {
+      return {{le_lits[0].var, "!=", min_ge - 1, false}};
+    }
+
+    return lits;
+  }
+
   static vector<Lit> apply_rules_same_var(const string& var, const vector<Lit>& lits) {
 
     vector<Lit> selected_var; vector<Lit> result;
@@ -239,8 +262,9 @@ namespace utils { namespace lits {
     auto result_1 = apply_ne_rule(selected_var);
     auto result_2 = apply_ge_rule(result_1);
     auto result_3 = apply_le_rule(result_2);
+    auto final = apply_exclusion_rule(result_3);
 
-    result.insert(result.begin(), result_3.begin(), result_3.end());
+    result.insert(result.begin(), final.begin(), final.end());
 
     return result;
   }
@@ -470,7 +494,8 @@ namespace utils { namespace lits {
       {"x>=7 x>=8 x<=2", "x>=7 x<=2"},
       {"z!=2 y>=8 y>=5 z>=4", "y>=5 z!=2"},
       {"how[4]<=2 'how[2] = -3'>=1", "how[2]=-3 how[4]<=2"},
-      {"a=false b!=1 b<=0", "a=false b!=1"}
+      {"a=false b!=1 b<=0", "a=false b!=1"},
+      {"a>=3 a<=1", "a!=2"},
       // {"how[4]!=3 how[4]<=2 'how[2] = -3'>=1 'how[3] = -3'>=1 'how[4] = -3'>=1 'how[1] = -3'>=1"}
     };
 
