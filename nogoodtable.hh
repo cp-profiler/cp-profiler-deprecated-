@@ -1,17 +1,17 @@
 #ifndef NOGOODTABLE_H
 #define NOGOODTABLE_H
 
+#include "namemap.hh"
+
 #include <QTableView>
 #include <QSortFilterProxyModel>
-#include <QStandardItemModel>
-#include <QPushButton>
-#include <QCheckBox>
-
-#include "namemap.hh"
 
 class Execution;
 class TreeCanvas;
-class PushButton;
+class QPushButton;
+class QCheckBox;
+class QStandardItemModel;
+class NameMap;
 
 class NogoodProxyModel : public QSortFilterProxyModel {
 public:

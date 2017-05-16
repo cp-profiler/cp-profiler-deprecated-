@@ -1,12 +1,10 @@
 #ifndef NAMEMAP_HH
 #define NAMEMAP_HH
 
-#include <qstring.h>
-#include <qvector.h>
-#include <qset.h>
+#include <QString>
+#include <QSet>
 #include <unordered_map>
 #include <vector>
-#include <iostream>
 
 struct Location {
   //QString path = "";
@@ -45,8 +43,8 @@ private:
 };
 
 // This should go somewhere more sensible
-QVector<int> getReasons(const int64_t sid,
-                      const std::unordered_map<int64_t, std::string*>& sid2info);
+std::vector<int> getReasons(const int64_t sid,
+                            const std::unordered_map<int64_t, std::string*>& sid2info);
 
 class NameMap {
 private:
@@ -60,7 +58,7 @@ struct SymbolRecord {
 };
 
 public:
-  using SymbolTable = QHash<QString, SymbolRecord >;
+  using SymbolTable = QHash<QString, SymbolRecord>;
   using ExpressionTable = QHash<QString, QString>;
 
   NameMap() {}
@@ -73,8 +71,8 @@ public:
   const QString& getNiceName(const QString& ident) const;
   QString replaceNames(const QString& text, bool expand_expressions = false) const;
   QString getHeatMap(const std::unordered_map<int, int>& con_id_counts, int max_count) const;
-  QSet<Location> getLocations(const QVector<int>& reasons) const;
-  QString getLocationFilterString(const QVector<int>& reasons) const;
+  QSet<Location> getLocations(const std::vector<int>& reasons) const;
+  QString getLocationFilterString(const std::vector<int>& reasons) const;
 
 private:
   QStringList getPathHead(const QString& path, bool includeTrail) const;

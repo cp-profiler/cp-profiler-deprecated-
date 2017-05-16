@@ -1,15 +1,10 @@
 
-#include <cassert>
-#include <qlabel.h>
-#include <qlineedit.h>
-#include <qpushbutton.h>
-#include <qdialog.h>
-
 #include "nogoodtable.hh"
 #include "treecanvas.hh"
 #include "execution.hh"
 #include "cpprofiler/utils/nogood_subsumption.hh"
 
+#include <cassert>
 
 // NogoodProxyModel
 // =============================================================
@@ -231,7 +226,7 @@ void NogoodTableView::renameSubsumedSelection(const QCheckBox* useAll,
     int row = selection.at(i).row();
     int64_t isid = getSidFromRow(row);
 
-    QString finalString = sf.getSubsumingClauseString(isid);
+    QString finalString = QString::fromStdString(sf.getSubsumingClauseString(isid));
     const NameMap* nm = _execution.getNameMap();
     if(nm)
       finalString = _execution.getNameMap()->replaceNames(finalString, expand_expressions);

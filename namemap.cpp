@@ -1,9 +1,9 @@
-#include <qstringlist.h>
-#include <qtextstream.h>
-#include <qfile.h>
-
 #include "namemap.hh"
 #include "third-party/json.hpp"
+
+#include <QStringList>
+#include <QTextStream>
+#include <QFile>
 
 #define reg_mzn_ident "[A-Za-z][A-Za-z0-9_]*"
 #define reg_number "[0-9]*"
@@ -11,9 +11,11 @@
 QRegExp NameMap::var_name_regex(reg_mzn_ident);
 QRegExp NameMap::assignment_regex(reg_mzn_ident "=" reg_number);
 
-QVector<int> getReasons(const int64_t sid,
+using std::vector;
+
+vector<int> getReasons(const int64_t sid,
                         const std::unordered_map<int64_t, std::string*>& sid2info) {
-  QVector<int> reason_list;
+  vector<int> reason_list;
   auto info_item = sid2info.find(sid);
   if(info_item != sid2info.end()) {
     auto info_json = nlohmann::json::parse(*info_item->second);
@@ -21,7 +23,7 @@ QVector<int> getReasons(const int64_t sid,
     if(reasonIt != info_json.end()) {
       auto reasons = *reasonIt;
       for(int con_id : reasons) {
-        reason_list.append(con_id);
+        reason_list.push_back(con_id);
       }
     }
   }
@@ -157,7 +159,7 @@ NameMap::SymbolRecord::SymbolRecord(const QString& nn, const QString& p, const L
 NameMap::NameMap(SymbolTable& st) : _nameMap(st) {};
 
 NameMap::NameMap(QString& path_filename, QString& model_filename) {
-  std::vector<QString> modelText;
+  vector<QString> modelText;
   QFile model_file(model_filename);
   if(model_file.open(QIODevice::ReadOnly | QIODevice::Text)) {
     QString line;
@@ -256,7 +258,7 @@ QString NameMap::replaceAssignments(const QString& path, const QString& expressi
   return nm.replaceNames(expression);
 }
 
-void NameMap::addIdExpressionToMap(const QString& ident, const std::vector<QString>& modelText) {
+void NameMap::addIdExpressionToMap(const QString& ident, const vector<QString>& modelText) {
   if(modelText.size() == 0) return;
 
   const Location& loc = getLocation(ident);
@@ -318,13 +320,13 @@ QString NameMap::getHeatMap(
   return highlight_url.join("");
 }
 
-QSet<Location> NameMap::getLocations(const QVector<int>& reasons) const {
+QSet<Location> NameMap::getLocations(const vector<int>& reasons) const {
   QSet<Location> locations;
   for(int cid : reasons)
     locations.insert(getLocation(cid));
   return locations;
 }
 
-QString NameMap::getLocationFilterString(const QVector<int>& reasons) const {
+QString NameMap::getLocationFilterString(const vector<int>& reasons) const {
   return LocationFilter(getLocations(reasons)).toString();
 }
