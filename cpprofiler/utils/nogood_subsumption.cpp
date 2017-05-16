@@ -9,6 +9,9 @@ using std::string;
 
 namespace utils {
 
+using Lit = utils::lits::Lit;
+using Clause = std::vector<Lit>;
+
 inline string clauseToString(const Clause& clause) {
   QStringList clause_string;
   for(const Lit& lid : clause)

@@ -201,22 +201,24 @@ void NogoodTableView::renameSubsumedSelection(const QCheckBox* useAll,
 
   std::vector<int64_t> pool;
   if(useAll->isChecked()) {
-    auto sid2nogood = _execution.getNogoods();
+
+    auto& sid2nogood = _execution.getNogoods();
     for(auto& sidNogood : sid2nogood) {
+
+      if(sidNogood.second.empty()) continue;
+
       int64_t sid = sidNogood.first;
-      if(!sidNogood.second.empty()) {
-        const QString nogood = QString::fromStdString(sidNogood.second);
-        if(applyFilter->isChecked()) {
-          if(nogood_proxy_model->filterAcceptsText(nogood))
-            pool.push_back(sid);
-        } else {
-          pool.push_back(sid);
-        }
+      const auto nogood = QString::fromStdString(sidNogood.second);
+
+      if(!applyFilter->isChecked() || nogood_proxy_model->filterAcceptsText(nogood)) {
+        pool.push_back(sid);
       }
+
     }
   } else {
-    for(int row=0; row<nogood_proxy_model->rowCount(); row++)
+    for(int row=0; row<nogood_proxy_model->rowCount(); row++) {
       pool.push_back(getSidFromRow(row));
+    }
   }
 
   utils::SubsumptionFinder sf(_execution.getNogoods(), pool);
@@ -228,8 +230,9 @@ void NogoodTableView::renameSubsumedSelection(const QCheckBox* useAll,
 
     QString finalString = QString::fromStdString(sf.getSubsumingClauseString(isid));
     const NameMap* nm = _execution.getNameMap();
-    if(nm)
+    if(nm) {
       finalString = _execution.getNameMap()->replaceNames(finalString, expand_expressions);
+    }
 
     QModelIndex idx = nogood_proxy_model->mapToSource(nogood_proxy_model->index(row, 0, QModelIndex()));
     _model->setData(idx.sibling(idx.row(), _nogood_col), finalString);

@@ -33,6 +33,7 @@
 #include "data.hh"
 #include "nogoodtable.hh"
 #include "libs/perf_helper.hh"
+#include "cpprofiler/utils/nogood_subsumption.hh"
 
 using std::string;
 
@@ -259,24 +260,19 @@ CmpTreeDialog::saveComparisonStatsTo(const QString& file_name) {
       return lhs.second.search_eliminated > rhs.second.search_eliminated;
   });
 
+  utils::SubsumptionFinder sf{left_execution.getNogoods()};
+
   for (auto& ng : ng_stats_vector) {
 
     out << ng.first << ", ";
     out << ng.second.occurrence << ", ";
     out << ng.second.search_eliminated << ", ";
 
-    const string nogood = left_execution.getNogoodBySid(ng.first);
-    const auto&& name_map = m_Cmp_result->left_execution().getNameMap();
+    bool to_subsume = false;
+    const string nogood = to_subsume ? sf.getSubsumingClauseString(ng.first) :
+                                 left_execution.getNogoodBySid(ng.first);
 
-    if (name_map) {
-      const bool to_expressions = true;
-      auto clause = name_map->replaceNames(nogood.c_str(), to_expressions).toStdString();
-      out << clause.c_str() << "\n";
-    } else {
-      out << nogood.c_str() << "\n";
-    }
-
-
+    out << nogood.c_str() << "\n";
   }
 
   qDebug() << "writing comp stats to the file: " << file_name;

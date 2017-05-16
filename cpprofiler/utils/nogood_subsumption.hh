@@ -12,13 +12,14 @@ class Execution;
 
 namespace utils {
 
-using Lit = utils::lits::Lit;
-using Clause = std::vector<Lit>;
-
 class SubsumptionFinder {
+  using Lit = utils::lits::Lit;
+  using Clause = std::vector<Lit>;
 public:
   SubsumptionFinder(const std::unordered_map<int, std::string>& sid2nogood,
                     const std::vector<int64_t>& pool);
+
+  /// Use all nogoods for 'pool'
   SubsumptionFinder(const std::unordered_map<int, std::string>& sid2nogood);
   std::string getSubsumingClauseString(int64_t sid) const;
 

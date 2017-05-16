@@ -159,7 +159,7 @@ namespace utils { namespace lits {
   }
 
   template<typename T, typename Fun>
-  pair<vector<T>, vector<T>> disect(const vector<T>& v, Fun f) {
+  pair<vector<T>, vector<T>> bisect(const vector<T>& v, Fun f) {
 
     vector<T> sel; vector<T> rest;
 
@@ -208,7 +208,7 @@ namespace utils { namespace lits {
   /// a>=1 \/ a>=3  ->  a>=1
   static vector<Lit> apply_ge_rule(const vector<Lit>& lits) {
     vector<Lit> ge_lits, rest_op;
-    std::tie(ge_lits, rest_op) = disect(lits, [] (const Lit& l) { return l.op == ">="; });
+    std::tie(ge_lits, rest_op) = bisect(lits, [] (const Lit& l) { return l.op == ">="; });
 
     if (ge_lits.size() == 0) return lits;
 
@@ -224,7 +224,7 @@ namespace utils { namespace lits {
   /// a<=1 \/ a<=3  ->  a>=3
   static vector<Lit> apply_le_rule(const vector<Lit>& lits) {
     vector<Lit> le_lits, rest_op;
-    std::tie(le_lits, rest_op) = disect(lits, [] (const Lit& l) { return l.op == "<="; });
+    std::tie(le_lits, rest_op) = bisect(lits, [] (const Lit& l) { return l.op == "<="; });
 
     if (le_lits.size() == 0) return lits;
 
@@ -271,7 +271,7 @@ namespace utils { namespace lits {
   vector<Lit> apply_rules_same_var(const string& var, const vector<Lit>& lits) {
 
     vector<Lit> selected_var; vector<Lit> result;
-    std::tie(selected_var, result) = disect(lits, [&var] (const Lit& l) { return l.var == var; });
+    std::tie(selected_var, result) = bisect(lits, [&var] (const Lit& l) { return l.var == var; });
 
     auto result_1 = apply_ne_rule(selected_var);
     auto result_2 = apply_ge_rule(result_1);
