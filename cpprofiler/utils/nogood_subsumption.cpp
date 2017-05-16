@@ -1,4 +1,5 @@
 #include "cpprofiler/utils/nogood_subsumption.hh"
+#include "cpprofiler/utils/string_utils.hh"
 
 #include <algorithm>
 
@@ -15,7 +16,7 @@ inline string clauseToString(const Clause& clause) {
   for(const Lit& lid : clause)
     clause_string.push_back(lid.var + lid.op + std::to_string(lid.val));
   std::sort(clause_string.begin(), clause_string.end());
-  return lits::join(clause_string, ' ');
+  return join(clause_string, ' ');
 }
 
 void SubsumptionFinder::populateClauses(const std::unordered_map<int, string>& sid2nogood,
@@ -27,7 +28,7 @@ void SubsumptionFinder::populateClauses(const std::unordered_map<int, string>& s
     if(!qclause.empty()) {
       Clause* clause = &clauses[top++];
       sid2clause[jsid] = clause;
-      const vector<string> lits = lits::split(qclause, ' ');
+      const vector<string> lits = utils::split(qclause, ' ');
       for(const string& lit : lits)
         clause->push_back(lits::parse_lit(lit));
       std::sort(clause->begin(), clause->end());

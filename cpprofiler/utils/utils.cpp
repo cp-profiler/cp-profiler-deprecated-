@@ -1,8 +1,8 @@
 #include "utils.hh"
 
 #include <sstream>
-
 namespace utils {
+/*
 
 std::vector<std::string> split(const std::string &s, char delim) {
     std::stringstream ss;
@@ -16,5 +16,5 @@ std::vector<std::string> split(const std::string &s, char delim) {
 
     return result;
 }
-
+*/
 }

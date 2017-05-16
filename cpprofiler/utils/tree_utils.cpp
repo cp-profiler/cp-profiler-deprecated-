@@ -6,7 +6,7 @@
 
 #include "nodecursor.hh"
 #include "nodevisitor.hh"
-#include "utils.hh"
+#include "string_utils.hh"
 
 namespace utils {
 

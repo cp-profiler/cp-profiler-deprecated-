@@ -11,6 +11,7 @@
 #include <stdexcept>
 
 #include "libs/perf_helper.hh"
+#include "cpprofiler/utils/string_utils.hh"
 
 using std::string; using std::vector;
 using std::pair;
@@ -21,7 +22,6 @@ namespace utils { namespace lits {
 
   static void test_parse_lit();
   static void test_simplify_ng();
-
 
   ostream& operator<<(ostream& os, const Lit& l) {
     return os << l.var << l.op << l.val << " is_bool:" << l.is_bool;
@@ -106,32 +106,6 @@ namespace utils { namespace lits {
     auto pos_r = str.find_last_not_of(" \t");
 
     str = str.substr(pos_l, pos_r - pos_l + 1);
-  }
-
-  vector<string> split(const string& str, char delim) {
-
-    std::stringstream ss;
-    ss.str(str);
-    std::string item;
-
-    vector<string> result;
-
-    auto inserter = std::back_inserter(result);
-
-    while (std::getline(ss, item, delim)) {
-        *(inserter++) = item;
-    }
-
-    return result;
-  }
-
-  string join(const vector<string>& strs, char sep) {
-    std::stringstream ss;
-    for(size_t i=0; i<strs.size(); i++) {
-      if(i) ss << sep;
-      ss << strs[i];
-    }
-    return ss.str();
   }
 
   template<typename T, typename R, typename Fun>
