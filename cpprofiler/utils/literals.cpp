@@ -242,7 +242,7 @@ namespace utils { namespace lits {
 
     const auto ne_lits = filter(lits, [] (const Lit& l) { return l.op == "!="; });
 
-    if (ne_lits.size() == 0) return lits;
+    if (ne_lits.size() != 1) return lits;
 
     return {ne_lits[0]};
   }

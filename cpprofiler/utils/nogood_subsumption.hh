@@ -23,7 +23,6 @@ public:
   std::string getSubsumingClauseString(int64_t sid) const;
 
 private:
-  std::string clauseToString(const Clause& clause) const;
   const Clause* findSubsumingClause(const Clause& iclause) const;
 
   void populateClauses(const std::unordered_map<int, std::string>& sid2nogood,

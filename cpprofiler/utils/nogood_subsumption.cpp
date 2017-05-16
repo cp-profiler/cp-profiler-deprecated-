@@ -3,9 +3,23 @@
 #include <QString>
 #include <QStringList>
 
+#include <iostream>
+
+using std::string;
+
 namespace utils {
 
-void SubsumptionFinder::populateClauses(const std::unordered_map<int, std::string>& sid2nogood,
+inline string clauseToString(const Clause& clause) {
+  QStringList clause_string;
+  for(const Lit& lid : clause)
+    clause_string << QString::fromStdString(lid.var) +
+                     QString::fromStdString(lid.op) +
+                     QString::number(lid.val);
+  clause_string.sort();
+  return clause_string.join(" ").toStdString();
+}
+
+void SubsumptionFinder::populateClauses(const std::unordered_map<int, string>& sid2nogood,
                                         const std::vector<int64_t>& pool) {
   clauses.resize(pool.size());
   size_t top = 0;
@@ -24,12 +38,12 @@ void SubsumptionFinder::populateClauses(const std::unordered_map<int, std::strin
   }
 }
 
-SubsumptionFinder::SubsumptionFinder(const std::unordered_map<int, std::string>& sid2nogood,
+SubsumptionFinder::SubsumptionFinder(const std::unordered_map<int, string>& sid2nogood,
                                      const std::vector<int64_t>& pool) {
   populateClauses(sid2nogood, pool);
 }
 
-SubsumptionFinder::SubsumptionFinder(const std::unordered_map<int, std::string>& sid2nogood) {
+SubsumptionFinder::SubsumptionFinder(const std::unordered_map<int, string>& sid2nogood) {
   std::vector<int64_t> all;
   for(auto& sidNogood : sid2nogood) {
     if(!sidNogood.second.empty())
@@ -73,18 +87,7 @@ const Clause* SubsumptionFinder::findSubsumingClause(const Clause& iclause) cons
   return &iclause;
 }
 
-inline
-std::string SubsumptionFinder::clauseToString(const Clause& clause) const {
-  QStringList clause_string;
-  for(const Lit& lid : clause)
-    clause_string << QString::fromStdString(lid.var) +
-                     QString::fromStdString(lid.op) +
-                     QString::number(lid.val);
-  clause_string.sort();
-  return clause_string.join(" ").toStdString();
-}
-
-std::string SubsumptionFinder::getSubsumingClauseString(int64_t sid) const {
+string SubsumptionFinder::getSubsumingClauseString(int64_t sid) const {
   const Clause* iclause = sid2clause.at(sid);
   const Clause* subsuming_clause = findSubsumingClause(*iclause);
   return clauseToString(*subsuming_clause);
