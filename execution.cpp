@@ -104,8 +104,6 @@ void Execution::start(std::string label, bool isRestarts) {
     connect(m_Builder.get(), &TreeBuilder::doneBuilding, [this]() {
 
       if (GlobalParser::isSet(GlobalParser::save_log)) {
-        deleteSkippedNodes(*this);
-        deleteWhiteNodes(*this);
         printSearchLog(*this);
       }
 

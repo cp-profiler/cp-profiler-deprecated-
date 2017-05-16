@@ -244,7 +244,7 @@ CmpTreeDialog::saveComparisonStatsTo(const QString& file_name) {
   auto& ng_stats = m_Cmp_result->responsible_nogood_stats();
   const Execution& left_execution = m_Cmp_result->left_execution();
 
-  out << "id, occur, score, nogood, source_nogood\n";
+  out << "id, occur, score, nogood\n";
 
   std::vector<std::pair<int, NogoodCmpStats> > ng_stats_vector;
   ng_stats_vector.reserve(ng_stats.size());
@@ -271,8 +271,7 @@ CmpTreeDialog::saveComparisonStatsTo(const QString& file_name) {
     if (name_map) {
       const bool to_expressions = true;
       auto clause = name_map->replaceNames(nogood.c_str(), to_expressions).toStdString();
-      out << clause.c_str() << ", ";
-      out << nogood.c_str() << "\n";
+      out << clause.c_str() << "\n";
     } else {
       out << nogood.c_str() << "\n";
     }

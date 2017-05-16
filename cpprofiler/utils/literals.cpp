@@ -353,7 +353,7 @@ namespace utils { namespace lits {
       return mod;
     }
 
-    std::cout << "can't simplify: " << l << endl;
+    std::cerr << "can't simplify: " << l << endl;
 
     return l;
 
@@ -430,8 +430,9 @@ namespace utils { namespace lits {
 
     std::sort(lits.begin(), lits.end(), [] (const Lit& lhs, const Lit& rhs) { return lhs.var < rhs.var; });
 
+    auto res = stringify_lits(lits);
 
-    return stringify_lits(lits);
+    return res;
 
   }
 
@@ -510,6 +511,9 @@ namespace utils { namespace lits {
       {"how[4]<=2 'how[2] = -3'>=1", "how[2]=-3 how[4]<=2"},
       {"a=false b!=1 b<=0", "a=false b!=1"},
       {"a>=3 a<=1", "a!=2"},
+      {"how[1]>0 how[1]=-3 how[1]=-4 how[2]!=-2 how[3]>0 how[3]=-3 how[4]!=-1 how[6]>=4 how[7]=2 how[7]>=4 objective>=340 used[4]=0",
+       "how[1]>0 how[1]=-3 how[1]=-4 how[2]!=-2 how[3]>0 how[3]=-3 how[4]!=-1 how[6]>=4 how[7]=2 how[7]>=4 objective>=340 used[4]=false"
+      },
       // {"how[4]!=3 how[4]<=2 'how[2] = -3'>=1 'how[3] = -3'>=1 'how[4] = -3'>=1 'how[1] = -3'>=1"}
     };
 
