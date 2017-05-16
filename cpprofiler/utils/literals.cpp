@@ -108,7 +108,7 @@ namespace utils { namespace lits {
     str = str.substr(pos_l, pos_r - pos_l + 1);
   }
 
-  static vector<string> split(const string& str, char delim) {
+  vector<string> split(const string& str, char delim) {
 
     std::stringstream ss;
     ss.str(str);
@@ -123,6 +123,15 @@ namespace utils { namespace lits {
     }
 
     return result;
+  }
+
+  string join(const vector<string>& strs, char sep) {
+    std::stringstream ss;
+    for(size_t i=0; i<strs.size(); i++) {
+      if(i) ss << sep;
+      ss << strs[i];
+    }
+    return ss.str();
   }
 
   template<typename T, typename R, typename Fun>

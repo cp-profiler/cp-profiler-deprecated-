@@ -4,7 +4,7 @@
 #include "execution.hh"
 #include "cpprofiler/utils/nogood_subsumption.hh"
 
-#include <cassert>
+using std::string;
 
 // NogoodProxyModel
 // =============================================================
@@ -46,7 +46,6 @@ bool NogoodProxyModel::lessThan(const QModelIndex& left, const QModelIndex& righ
     return (lhs.size() < rhs.size()) || (lhs < rhs);
   }
   }
-  assert(false);
   return false;  /// should not reach here; to prevent a warning
 }
 
@@ -179,12 +178,10 @@ void NogoodTableView::refreshModelRenaming() {
     int row = selection.at(i).row();
     int64_t sid = getSidFromRow(row);
 
-    const QString& qclause = QString::fromStdString(_execution.getNogoodBySid(sid));
-    const NameMap* nm = _execution.getNameMap();
-    if(!qclause.isEmpty() && nm) {
-      const QString clause = nm->replaceNames(qclause, expand_expressions);
+    const string& qclause = _execution.getNogoodBySid(static_cast<int>(sid));
+    if(!qclause.empty()) {
       QModelIndex idx = nogood_proxy_model->mapToSource(nogood_proxy_model->index(row, 0, QModelIndex()));
-      _model->setData(idx.sibling(idx.row(), _nogood_col), clause);
+      _model->setData(idx.sibling(idx.row(), _nogood_col), QString::fromStdString(qclause));
     }
   }
   updateSelection();
@@ -228,14 +225,9 @@ void NogoodTableView::renameSubsumedSelection(const QCheckBox* useAll,
     int row = selection.at(i).row();
     int64_t isid = getSidFromRow(row);
 
-    QString finalString = QString::fromStdString(sf.getSubsumingClauseString(isid));
-    const NameMap* nm = _execution.getNameMap();
-    if(nm) {
-      finalString = _execution.getNameMap()->replaceNames(finalString, expand_expressions);
-    }
-
+    const string finalString = sf.getSubsumingClauseString(isid);
     QModelIndex idx = nogood_proxy_model->mapToSource(nogood_proxy_model->index(row, 0, QModelIndex()));
-    _model->setData(idx.sibling(idx.row(), _nogood_col), finalString);
+    _model->setData(idx.sibling(idx.row(), _nogood_col), QString::fromStdString(finalString));
   }
 
   updateSelection();
@@ -251,7 +243,7 @@ void NogoodTableView::connectSubsumButtons(const QPushButton* subsumButton,
   });
 }
 
-QString convertToFlatZinc(const QString& clause) {
+string convertToFlatZinc(const string& clause) {
 
   QRegExp op_rx("(<=)|(>=)|(==)|(!=)|(=)|(<)|(>)");
   QHash<QString, QString> neg
@@ -266,7 +258,7 @@ QString convertToFlatZinc(const QString& clause) {
   };
   QStringList fzn;
 
-  const QStringList literals = clause.split(" ");
+  const QStringList literals = QString::fromStdString(clause).split(" ");
   for(const QString& lit : literals) {
     if(!lit.isEmpty()) {
       int pos = lit.indexOf(op_rx);
@@ -292,7 +284,7 @@ QString convertToFlatZinc(const QString& clause) {
     }
   }
 
-  return fzn.join("\n");
+  return fzn.join("\n").toStdString();
 }
 
 void NogoodTableView::showFlatZinc() {
@@ -302,11 +294,11 @@ void NogoodTableView::showFlatZinc() {
     int row = selection.at(i).row();
     int64_t sid = getSidFromRow(row);
 
-    const QString& qclause = QString::fromStdString(_execution.getNogoodBySid(sid));
-    if(!qclause.isEmpty()) {
-      const QString clause = convertToFlatZinc(qclause);
+    const string clause = _execution.getNogoodBySid(static_cast<int>(sid));
+    if(!clause.empty()) {
+      const string fzn = convertToFlatZinc(clause);
       QModelIndex idx = nogood_proxy_model->mapToSource(nogood_proxy_model->index(row, 0, QModelIndex()));
-      _model->setData(idx.sibling(idx.row(), _nogood_col), clause);
+      _model->setData(idx.sibling(idx.row(), _nogood_col), QString::fromStdString(fzn));
     }
   }
   updateSelection();
