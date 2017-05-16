@@ -269,8 +269,8 @@ CmpTreeDialog::saveComparisonStatsTo(const QString& file_name) {
     out << ng.second.search_eliminated << ", ";
 
     bool to_subsume = false;
-    const string nogood = to_subsume ? sf.getSubsumingClauseString(ng.first) :
-                                 left_execution.getNogoodBySid(ng.first);
+    const string nogood = to_subsume ? sf.getSubsumingClauseString(ng.first)
+                                     : left_execution.getNogoodBySid(ng.first);
 
     out << nogood.c_str() << "\n";
   }

@@ -126,7 +126,6 @@ namespace utils { namespace lits {
   }
 
   template<typename T, typename R, typename Fun>
-  // vector<R> map(const vector<T>& v, std::function<R(const T&)>& f) {
   vector<R> map(const vector<T>& v, const Fun& f) {
 
     vector<R> result;
@@ -297,16 +296,30 @@ namespace utils { namespace lits {
 
   }
 
+  static string stringify_lit(const Lit& lit) {
+    std::ostringstream ss;
+
+    ss << lit.var << lit.op;
+
+    if (lit.is_bool) {
+      ss << (lit.val == 0 ? "false" : "true");
+    } else {
+      ss << lit.val;
+    }
+
+    return ss.str();
+  }
+
   static string stringify_lits(const vector<Lit>& lits) {
 
     if (lits.size() == 0) return "";
 
     std::ostringstream ss;
 
-    ss << lits[0].var << lits[0].op << lits[0].val;
+    ss << stringify_lit(lits[0]);
 
     for (auto i = 1u; i < lits.size(); ++i) {
-      ss << " " << lits[i].var << lits[i].op << lits[i].val;
+      ss << " " << stringify_lit(lits[i]);
     }
 
     return ss.str();
@@ -455,20 +468,6 @@ namespace utils { namespace lits {
       "X_INTRODUCED_1_>=3 X_INTRODUCED_1_<=1 X_INTRODUCED_97_>=1 X_INTRODUCED_95_>=1 X_INTRODUCED_98_>=1 X_INTRODUCED_101_>=1 X_INTRODUCED_96_>=1 X_INTRODUCED_94_>=1 X_INTRODUCED_93_>=1"
     };
 
-    /// false/true replaced with 0/1
-    // const std::vector<string> lits {
-    //   "X_INTRODUCED_60_=0 X_INTRODUCED_3_!=1 X_INTRODUCED_3_<=0",
-    //   "X_INTRODUCED_3_<=0 X_INTRODUCED_72_>=1 X_INTRODUCED_74_>=1 X_INTRODUCED_75_>=1 X_INTRODUCED_3_>=2 X_INTRODUCED_603_=0",
-    //   "X_INTRODUCED_61_=0 X_INTRODUCED_71_>=1 X_INTRODUCED_185_>=1 X_INTRODUCED_4_>=5 X_INTRODUCED_4_<=2 X_INTRODUCED_164_>=1 X_INTRODUCED_162_>=1 X_INTRODUCED_163_>=1 X_INTRODUCED_389_>=1 X_INTRODUCED_390_>=1 X_INTRODUCED_388_>=1 X_INTRODUCED_359_=1 X_INTRODUCED_352_=1 X_INTRODUCED_119_>=1 X_INTRODUCED_120_>=1 X_INTRODUCED_117_>=1 X_INTRODUCED_118_>=1 X_INTRODUCED_116_>=1 X_INTRODUCED_115_>=1 X_INTRODUCED_123_>=1 X_INTRODUCED_96_>=1 X_INTRODUCED_94_>=1 X_INTRODUCED_93_>=1 X_INTRODUCED_95_>=1 X_INTRODUCED_97_>=1 X_INTRODUCED_98_>=1 X_INTRODUCED_296_<=0 X_INTRODUCED_353_=1 X_INTRODUCED_249_>=1 X_INTRODUCED_250_>=1 X_INTRODUCED_251_>=1 X_INTRODUCED_252_>=1 X_INTRODUCED_204_>=1 X_INTRODUCED_206_>=1 X_INTRODUCED_207_>=1 objective>=210 X_INTRODUCED_75_>=1 X_INTRODUCED_2_>=3 X_INTRODUCED_74_>=1 X_INTRODUCED_3_>=5 objective>=220 X_INTRODUCED_4_<=0 X_INTRODUCED_184_>=1 X_INTRODUCED_5_>=5 X_INTRODUCED_73_>=1 X_INTRODUCED_5_>=4",
-    //   "X_INTRODUCED_2_<=0 X_INTRODUCED_117_>=1 X_INTRODUCED_97_>=1 X_INTRODUCED_120_>=1 X_INTRODUCED_98_>=1 X_INTRODUCED_669_=0 X_INTRODUCED_119_>=1 X_INTRODUCED_5_>=5 X_INTRODUCED_95_>=1 X_INTRODUCED_94_>=1 X_INTRODUCED_71_>=1 X_INTRODUCED_74_>=1 X_INTRODUCED_75_>=1 X_INTRODUCED_5_<=0",
-    //   "X_INTRODUCED_5_>=3 X_INTRODUCED_97_>=1 X_INTRODUCED_95_>=1 X_INTRODUCED_5_<=1 X_INTRODUCED_98_>=1 X_INTRODUCED_94_>=1 X_INTRODUCED_669_=0",
-    //   "X_INTRODUCED_2_<=5 X_INTRODUCED_44_<=0 X_INTRODUCED_187_>=1 objective>=320 X_INTRODUCED_183_>=1 X_INTRODUCED_2_>=7",
-    //   "X_INTRODUCED_2_>=2 X_INTRODUCED_75_>=1 X_INTRODUCED_74_>=1 X_INTRODUCED_2_<=0 X_INTRODUCED_72_>=1",
-    //   "X_INTRODUCED_5_>=2 X_INTRODUCED_617_=0 X_INTRODUCED_71_>=1 X_INTRODUCED_74_>=1 X_INTRODUCED_75_>=1 X_INTRODUCED_669_=0 X_INTRODUCED_5_<=0",
-    //   "X_INTRODUCED_5_>=2 X_INTRODUCED_72_>=1 X_INTRODUCED_669_=0 X_INTRODUCED_71_>=1 X_INTRODUCED_74_>=1 X_INTRODUCED_75_>=1 X_INTRODUCED_5_<=0",
-    //   "X_INTRODUCED_1_>=3 X_INTRODUCED_1_<=1 X_INTRODUCED_97_>=1 X_INTRODUCED_95_>=1 X_INTRODUCED_98_>=1 X_INTRODUCED_101_>=1 X_INTRODUCED_96_>=1 X_INTRODUCED_94_>=1 X_INTRODUCED_93_>=1"
-    // };
-
     for (auto i = 0u; i<10000u; ++i) {
       for (auto& l : lits) {
         simplify_ng(l);
@@ -490,19 +489,6 @@ namespace utils { namespace lits {
 
   }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
   static void test_simplify_ng() {
 
     const std::vector<pair<string, string>> samples {
@@ -511,10 +497,8 @@ namespace utils { namespace lits {
       {"how[4]<=2 'how[2] = -3'>=1", "how[2]=-3 how[4]<=2"},
       {"a=false b!=1 b<=0", "a=false b!=1"},
       {"a>=3 a<=1", "a!=2"},
-      {"how[1]>0 how[1]=-3 how[1]=-4 how[2]!=-2 how[3]>0 how[3]=-3 how[4]!=-1 how[6]>=4 how[7]=2 how[7]>=4 objective>=340 used[4]=0",
-       "how[1]>0 how[1]=-3 how[1]=-4 how[2]!=-2 how[3]>0 how[3]=-3 how[4]!=-1 how[6]>=4 how[7]=2 how[7]>=4 objective>=340 used[4]=false"
-      },
-      // {"how[4]!=3 how[4]<=2 'how[2] = -3'>=1 'how[3] = -3'>=1 'how[4] = -3'>=1 'how[1] = -3'>=1"}
+      {"how[4]!=3 how[4]<=2 'how[2] = -3'>=1 'how[3] = -3'>=1 'how[4] = -3'>=1 'how[1] = -3'>=1",
+       "how[1]=-3 how[2]=-3 how[3]=-3 how[4]!=3"}
     };
 
     for (auto& s: samples) {

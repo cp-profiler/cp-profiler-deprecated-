@@ -31,7 +31,7 @@ private:
 
   std::vector<Clause> clauses;
   std::unordered_map<int64_t, Clause*> sid2clause;
-  std::map<int, std::vector<int64_t> > ordered_sids;
+  std::map<int, std::vector<int64_t>> ordered_sids;
 };
 
 }
