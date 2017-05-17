@@ -590,7 +590,8 @@ void ProfilerConductor::executionIdReady(Execution* e) {
   if (eid != -1 && eid < nameMaps.size()) {
     e->setNameMap(&nameMaps[eid]);
   }
-  e->Qhas_execution_id.wakeOne();
+  e->has_exec_id = true;
+  e->has_exec_id_cond.wakeOne();
 }
 
 void ProfilerConductor::showNodeInfoToIDE(std::string extra_info) {

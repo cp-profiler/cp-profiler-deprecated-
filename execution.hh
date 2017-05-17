@@ -98,7 +98,10 @@ public:
     const NameMap* getNameMap() const;
 
     bool finished{false};
-    QWaitCondition Qhas_execution_id;
+
+    /// these two go together
+    bool has_exec_id{false};
+    QWaitCondition has_exec_id_cond;
 
 public slots:
     void handleNewNode(message::Node& node);

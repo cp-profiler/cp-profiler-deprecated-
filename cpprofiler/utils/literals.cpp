@@ -451,7 +451,7 @@ namespace utils { namespace lits {
       "X_INTRODUCED_1_>=3 X_INTRODUCED_1_<=1 X_INTRODUCED_97_>=1 X_INTRODUCED_95_>=1 X_INTRODUCED_98_>=1 X_INTRODUCED_101_>=1 X_INTRODUCED_96_>=1 X_INTRODUCED_94_>=1 X_INTRODUCED_93_>=1"
     };
 
-    for (auto i = 0u; i<10000u; ++i) {
+    for (auto i = 0u; i<1000u; ++i) {
       for (auto& l : lits) {
         simplify_ng(l);
       }
@@ -465,9 +465,8 @@ namespace utils { namespace lits {
   void test_module() {
 
     test_simplify_ng();
-    // test_parse_lit();
 
-    // performance_test();
+    performance_test();
 
 
   }

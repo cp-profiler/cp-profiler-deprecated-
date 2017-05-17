@@ -145,7 +145,9 @@ ReceiverWorker::doRead()
                     if (!execution_id_communicated) {
                         QMutex m;
                         m.lock();
-                        execution->Qhas_execution_id.wait(&m);
+                        while (!execution->has_exec_id) {
+                            execution->has_exec_id_cond.wait(&m);
+                        }
                         execution_id_communicated = true;
                         m.unlock();
                     } 
