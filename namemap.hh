@@ -1,7 +1,7 @@
 #ifndef NAMEMAP_HH
 #define NAMEMAP_HH
 
-#include <set>
+#include <unordered_set>
 #include <unordered_map>
 #include <vector>
 #include <regex>
@@ -27,18 +27,23 @@ struct Location {
   bool operator==(const Location& loc) const;
   bool operator<(const Location& loc) const;
 };
+namespace std {
+  template<> struct hash<Location> {
+    size_t operator()(Location const& l) const;
+  };
+}
 
 class LocationFilter {
 public:
   LocationFilter();
-  LocationFilter(const std::set<Location>& locations);
+  LocationFilter(const std::unordered_set<Location>& locations);
   bool contains(const Location& loc) const;
 
   static LocationFilter fromString(const std::string& text);
   std::string toString() const;
 
 private:
-  std::set<Location> _loc_filters;
+  std::unordered_set<Location> _loc_filters;
 };
 
 // This should go somewhere more sensible
@@ -70,7 +75,7 @@ public:
   const std::string& getNiceName(const std::string& ident) const;
   std::string replaceNames(const std::string& text, bool expand_expressions = false) const;
   std::string getHeatMap(const std::unordered_map<int, int>& con_id_counts, int max_count) const;
-  std::set<Location> getLocations(const std::vector<int>& reasons) const;
+  std::unordered_set<Location> getLocations(const std::vector<int>& reasons) const;
   std::string getLocationFilterString(const std::vector<int>& reasons) const;
 
 private:

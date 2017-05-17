@@ -15,7 +15,7 @@ std::regex NameMap::assignment_regex(reg_mzn_ident "=" reg_number);
 
 using std::string;
 using std::vector;
-using std::set;
+using std::unordered_set;
 
 vector<int> getReasons(const int64_t sid,
                         const std::unordered_map<int64_t, std::string*>& sid2info) {
@@ -123,11 +123,20 @@ string LocationFilter::toString() const {
   return utils::join(locStrings, ',');
 }
 
+size_t std::hash<Location>::operator()(Location const& l) const {
+  return 32*(32*(32*(32
+                     +std::hash<int>()(l.sl))
+                 +std::hash<int>()(l.sc))
+             +std::hash<int>()(l.el))
+          +std::hash<int>()(l.ec);
+}
+
 LocationFilter::LocationFilter() {}
-LocationFilter::LocationFilter(const set<Location>& locations) {
-  for(Location l1 : locations) {
+LocationFilter::LocationFilter(const unordered_set<Location>& locations) {
+  for(const Location& cl1 : locations) {
+    Location l1 = cl1;
     if(_loc_filters.find(l1) == _loc_filters.end()) {
-      set<Location> temp_filters (_loc_filters);
+      unordered_set<Location> temp_filters (_loc_filters);
       for(const Location& l2 : temp_filters) {
         if(l1.contains(l2)) {
           _loc_filters.erase(l2);
@@ -156,7 +165,7 @@ bool LocationFilter::contains(const Location& loc) const {
 }
 
 LocationFilter LocationFilter::fromString(const string& text) {
-  set<Location> locs;
+  unordered_set<Location> locs;
   for(const string& locString : utils::split(text, ','))
     locs.insert(Location::fromString(locString));
   return LocationFilter(locs);
@@ -335,8 +344,8 @@ string NameMap::getHeatMap(
   return highlight_url.str();
 }
 
-set<Location> NameMap::getLocations(const vector<int>& reasons) const {
-  set<Location> locations;
+unordered_set<Location> NameMap::getLocations(const vector<int>& reasons) const {
+  unordered_set<Location> locations;
   for(int cid : reasons)
     locations.insert(getLocation(cid));
   return locations;
