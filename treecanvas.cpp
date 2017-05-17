@@ -361,10 +361,9 @@ void TreeCanvas::showNodeInfo(void) {
     return;
   }
 
-  QString qextra_info = QString::fromStdString(*info);
-  std::string extra_info;
+  std::string extra_info = *info;
   if (info)
-      extra_info = (nm != nullptr ? nm->replaceNames(qextra_info) : qextra_info).toStdString();
+      extra_info = nm != nullptr ? nm->replaceNames(*info) : *info;
   extra_info += "\n";
 
   auto id = currentNode->getIndex(na);
@@ -1492,8 +1491,8 @@ static void copyTree(VisualNode* target, NodeTree& tree_target,
 std::string TreeCanvas::getLabel(int gid) {
     std::string origLabel = execution.getLabel(gid);
     const NameMap* nm = execution.getNameMap();
-    QString qorigLabel = QString::fromStdString(origLabel);
-    origLabel = (nm != nullptr ? nm->replaceNames(qorigLabel) : qorigLabel).toStdString();
+    if(nm)
+      origLabel = nm->replaceNames(origLabel);
     return origLabel;
 }
 

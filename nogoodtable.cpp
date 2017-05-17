@@ -3,8 +3,10 @@
 #include "treecanvas.hh"
 #include "execution.hh"
 #include "cpprofiler/utils/nogood_subsumption.hh"
+#include "cpprofiler/utils/string_utils.hh"
 
 using std::string;
+using std::vector;
 
 // NogoodProxyModel
 // =============================================================
@@ -72,7 +74,7 @@ bool NogoodProxyModel::filterAcceptsRow(int source_row, const QModelIndex&) cons
     loc_matches = std::all_of(reasons.begin(),
                               reasons.end(),
                               [this](const int cid) {
-      return _loc_filter.contains(_nm->getLocation(QString::number(cid)));
+      return _loc_filter.contains(_nm->getLocation(std::to_string(cid)));
     });
   }
 
@@ -112,7 +114,7 @@ int64_t NogoodTableView::getSidFromRow(int row) const {
 
 void NogoodTableView::getHeatmapAndEmit(const TreeCanvas& tc, bool record = false) const {
   const QModelIndexList selection = getSelection();
-  QStringList label;
+  vector<string> label;
   std::unordered_map<int, int> con_ids;
 
   int max_count = 0;
@@ -130,15 +132,17 @@ void NogoodTableView::getHeatmapAndEmit(const TreeCanvas& tc, bool record = fals
       max_count = count > max_count ? count : max_count;
     }
 
-    label << QString::number(sid);
+    label.push_back(std::to_string(sid));
   }
 
   updateSelection();
 
-  QString heatMap = _execution.getNameMap()->getHeatMap(con_ids, max_count);
-  QString text = label.join(" ");
-  if(!heatMap.isEmpty())
-    tc.emitShowNogoodToIDE(heatMap, text, record);
+  std::string heatMap = _execution.getNameMap()->getHeatMap(con_ids, max_count);
+  std::string text = utils::join(label, ' ');
+  if(!heatMap.empty())
+    tc.emitShowNogoodToIDE(QString::fromStdString(heatMap),
+                           QString::fromStdString(text),
+                           record);
 }
 
 void NogoodTableView::connectHeatmapButton(const QPushButton* heatmapButton,
@@ -321,21 +325,22 @@ void NogoodTableView::connectTextFilter(const QLineEdit* include_edit,
 }
 
 void NogoodTableView::updateLocationFilter(QLineEdit* location_edit) const {
-  QStringList locationFilterText;
+  vector<string> locationFilterText;
   const QModelIndexList selection = getSelection();
   for(int i=0; i<selection.count(); i++) {
     int64_t sid = getSidFromRow(selection.at(i).row());
     auto reasons = getReasons(sid, _execution.getInfo());
-    locationFilterText << _execution.getNameMap()->getLocationFilterString(reasons);
+    locationFilterText.push_back(_execution.getNameMap()->getLocationFilterString(reasons));
   }
 
-  location_edit->setText(LocationFilter::fromString(locationFilterText.join(",")).toString());
+  location_edit->setText(QString::fromStdString(
+                             LocationFilter::fromString(utils::join(locationFilterText, ',')).toString()));
 }
 
 void NogoodTableView::connectLocationFilter(QLineEdit* location_edit) {
   connect(location_edit, &QLineEdit::returnPressed, [this, location_edit] () {
-    LocationFilter lf = LocationFilter::fromString(location_edit->text());
-    location_edit->setText(lf.toString());
+    LocationFilter lf = LocationFilter::fromString(location_edit->text().toStdString());
+    location_edit->setText(QString::fromStdString(lf.toString()));
     nogood_proxy_model->setLocationFilter(lf);
   });
 }

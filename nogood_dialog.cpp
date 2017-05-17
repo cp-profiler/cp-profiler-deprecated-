@@ -118,16 +118,13 @@ NogoodDialog::~NogoodDialog() {}
 
 void NogoodDialog::populateTable(const std::vector<int>& selected_nodes) {
   int row = 0;
-  const NameMap* nm = _tc.getExecution().getNameMap();
   for (auto it = selected_nodes.begin(); it != selected_nodes.end(); it++) {
     int gid = *it;
     int64_t sid = _tc.getExecution().getData().gid2sid(gid);
-    QString qclause = QString::fromStdString(_tc.getExecution().getNogoodBySid(sid));
-    if(!qclause.isEmpty()) {
-      QString clause = nm != nullptr ? nm->replaceNames(qclause) : qclause;
-
+    const std::string& clause = _tc.getExecution().getNogoodBySid(static_cast<int>(sid));
+    if(!clause.empty()) {
       _model->setItem(row, 0, new QStandardItem(QString::number(sid)));
-      _model->setItem(row, 1, new QStandardItem(clause));
+      _model->setItem(row, 1, new QStandardItem(QString::fromStdString(clause)));
 
       row++;
     }

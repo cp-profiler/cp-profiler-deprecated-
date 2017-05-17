@@ -1,10 +1,10 @@
 #ifndef NAMEMAP_HH
 #define NAMEMAP_HH
 
-#include <QString>
-#include <QSet>
+#include <set>
 #include <unordered_map>
 #include <vector>
+#include <regex>
 
 struct Location {
   //QString path = "";
@@ -15,31 +15,30 @@ struct Location {
 
   Location();
   Location(const Location& l);
-  Location(const QString& pathHead);
+  Location(const std::string& pathHead);
   bool contains(const Location& loc) const;
   bool containsStart(const Location& loc) const;
   void mergeStart(const Location& loc);
   void mergeEnd(const Location& loc);
 
-  static Location fromString(const QString& text);
-  QString toString() const;
+  static Location fromString(const std::string& text);
+  std::string toString() const;
 
   bool operator==(const Location& loc) const;
+  bool operator<(const Location& loc) const;
 };
-
-uint qHash(const Location& l);
 
 class LocationFilter {
 public:
   LocationFilter();
-  LocationFilter(const QSet<Location>& locations);
+  LocationFilter(const std::set<Location>& locations);
   bool contains(const Location& loc) const;
 
-  static LocationFilter fromString(const QString& text);
-  QString toString() const;
+  static LocationFilter fromString(const std::string& text);
+  std::string toString() const;
 
 private:
-  QSet<Location> _loc_filters;
+  std::set<Location> _loc_filters;
 };
 
 // This should go somewhere more sensible
@@ -49,39 +48,39 @@ std::vector<int> getReasons(const int64_t sid,
 class NameMap {
 private:
 struct SymbolRecord {
-  QString niceName;
-  QString path;
+  std::string niceName;
+  std::string path;
   Location location;
 
   SymbolRecord();
-  SymbolRecord(const QString&, const QString&, const Location&);
+  SymbolRecord(const std::string&, const std::string&, const Location&);
 };
 
 public:
-  using SymbolTable = QHash<QString, SymbolRecord>;
-  using ExpressionTable = QHash<QString, QString>;
+  using SymbolTable = std::unordered_map<std::string, SymbolRecord>;
+  using ExpressionTable = std::unordered_map<std::string, std::string>;
 
   NameMap() {}
-  NameMap(QString& path_filename, QString& model_filename);
+  NameMap(std::string& path_filename, std::string& model_filename);
   NameMap(SymbolTable& st);
 
-  const QString& getPath(const QString& ident) const;
-  const Location& getLocation(const QString& ident) const;
+  const std::string& getPath(const std::string& ident) const;
+  const Location& getLocation(const std::string& ident) const;
   const Location& getLocation(const int cid) const;
-  const QString& getNiceName(const QString& ident) const;
-  QString replaceNames(const QString& text, bool expand_expressions = false) const;
-  QString getHeatMap(const std::unordered_map<int, int>& con_id_counts, int max_count) const;
-  QSet<Location> getLocations(const std::vector<int>& reasons) const;
-  QString getLocationFilterString(const std::vector<int>& reasons) const;
+  const std::string& getNiceName(const std::string& ident) const;
+  std::string replaceNames(const std::string& text, bool expand_expressions = false) const;
+  std::string getHeatMap(const std::unordered_map<int, int>& con_id_counts, int max_count) const;
+  std::set<Location> getLocations(const std::vector<int>& reasons) const;
+  std::string getLocationFilterString(const std::vector<int>& reasons) const;
 
 private:
-  QStringList getPathHead(const QString& path, bool includeTrail) const;
-  QString replaceAssignments(const QString& path, const QString& expression) const;
+  std::vector<std::string> getPathHead(const std::string& path, bool includeTrail) const;
+  std::string replaceAssignments(const std::string& path, const std::string& expression) const;
 
-  void addIdExpressionToMap(const QString& ident, const std::vector<QString>& modelText);
+  void addIdExpressionToMap(const std::string& ident, const std::vector<std::string>& modelText);
 
-  static QRegExp var_name_regex;
-  static QRegExp assignment_regex;
+  static std::regex var_name_regex;
+  static std::regex assignment_regex;
   SymbolTable _nameMap;
   ExpressionTable _expressionMap;
 };

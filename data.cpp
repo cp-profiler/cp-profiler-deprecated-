@@ -151,8 +151,7 @@ int Data::handleNodeCallback(message::Node& node) {
         auto ng = node.nogood();
 
         if (nameMap) {
-            auto q_ng = QString::fromStdString(ng);
-            ng = nameMap->replaceNames(q_ng, true).toStdString();
+            ng = nameMap->replaceNames(ng, true);
             ng = utils::lits::simplify_ng(ng);
         }
 

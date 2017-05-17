@@ -53,15 +53,15 @@ int main(int argc, char *argv[]) {
 
   conductor.show();
 
-  QString mzn_name;
+  std::string mzn_name;
   if (GlobalParser::isSet(GlobalParser::mzn_option)) {
-    mzn_name = GlobalParser::value(GlobalParser::mzn_option);
-    qDebug() << "loading mzn file: " << mzn_name;
+    mzn_name = GlobalParser::value(GlobalParser::mzn_option).toStdString();
+    qDebug() << "loading mzn file: " << QString::fromStdString(mzn_name);
   }
 
   if (GlobalParser::isSet(GlobalParser::paths_option)) {
-    auto file_name = GlobalParser::value(GlobalParser::paths_option);
-    qDebug() << "loading paths file: " << file_name;
+    std::string file_name = GlobalParser::value(GlobalParser::paths_option).toStdString();
+    qDebug() << "loading paths file: " << QString::fromStdString(file_name);
     conductor.getNextExecId(NameMap(file_name, mzn_name));
   }
 
