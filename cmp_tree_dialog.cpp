@@ -553,6 +553,15 @@ CmpTreeDialog::showResponsibleNogoods() {
                                  subsumUseAllNogoods,
                                  subsumUseAllNogoodsApplyFilter,
                                  subsumUseOnlyEarlier);
+
+  subsumUseOnlyEarlier->setChecked(true);
+  subsumUseAllNogoodsApplyFilter->setEnabled(false);
+  subsumUseAllNogoodsApplyFilter->setChecked(true);
+  connect(subsumUseAllNogoods, &QCheckBox::clicked,
+          [subsumUseAllNogoods, subsumUseAllNogoodsApplyFilter](){
+      subsumUseAllNogoodsApplyFilter->setEnabled(subsumUseAllNogoods->isChecked());
+  });
+
   subsumlayout->addWidget(subsumbutton);
   subsumlayout->addWidget(subsumUseOnlyEarlier);
   subsumlayout->addWidget(subsumUseAllNogoods);

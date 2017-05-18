@@ -108,7 +108,9 @@ NogoodDialog::NogoodDialog(
                                      subsumUseAllNogoodsApplyFilter,
                                      subsumUseOnlyEarlier);
 
+  subsumUseOnlyEarlier->setChecked(true);
   subsumUseAllNogoodsApplyFilter->setEnabled(false);
+  subsumUseAllNogoodsApplyFilter->setChecked(true);
   connect(subsumUseAllNogoods, &QCheckBox::clicked,
           [subsumUseAllNogoods, subsumUseAllNogoodsApplyFilter](){
       subsumUseAllNogoodsApplyFilter->setEnabled(subsumUseAllNogoods->isChecked());

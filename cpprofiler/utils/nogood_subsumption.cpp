@@ -77,25 +77,15 @@ bool isSubset(const Clause& a, const Clause& b) {
 }
 
 string SubsumptionFinder::getSubsumingClauseString(int64_t sid, bool filter_only_earlier_sids) const {
-  map<int, vector<int64_t>>* new_ordered_sids = nullptr;
-  if(filter_only_earlier_sids) {
-    new_ordered_sids = new map<int, vector<int64_t>>;
-    for(const auto& size_sids : ordered_sids) {
-      vector<int64_t> filtered_sids;
-      std::copy_if(size_sids.second.begin(), size_sids.second.end(), std::back_inserter(filtered_sids),
-                   [sid](int64_t jsid) {return jsid < sid;});
-      if(filtered_sids.size() > 0)
-        new_ordered_sids->insert(make_pair(size_sids.first, filtered_sids));
-    }
-  }
-
   const Clause* iclause = sid2clause.at(sid);
-  for(const auto& size_sids : filter_only_earlier_sids ? *new_ordered_sids : ordered_sids) {
+  for(const auto& size_sids :ordered_sids) {
     if(static_cast<size_t>(size_sids.first) >= iclause->size()) break;
     for(int64_t jsid : size_sids.second) {
-      const Clause* jclause = sid2clause.at(jsid);
-      if(isSubset(*jclause, *iclause))
-        return clauseToString(*jclause);
+      if(!filter_only_earlier_sids || jsid < sid) {
+        const Clause* jclause = sid2clause.at(jsid);
+        if(isSubset(*jclause, *iclause))
+          return clauseToString(*jclause);
+      }
     }
   }
   return clauseToString(*iclause);
