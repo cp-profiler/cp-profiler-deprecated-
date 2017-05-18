@@ -196,12 +196,13 @@ void NogoodTableView::connectShowExpressionsButton(const QPushButton* showExpres
   connect(showExpressions, &QPushButton::clicked, this, &NogoodTableView::refreshModelRenaming);
 }
 
-void NogoodTableView::renameSubsumedSelection(const QCheckBox* useAll,
-                                              const QCheckBox* applyFilter) {
+void NogoodTableView::renameSubsumedSelection(const QCheckBox* use_all,
+                                              const QCheckBox* apply_filter,
+                                              const QCheckBox* only_earlier_sids) {
   setSortingEnabled(false);
 
   std::vector<int64_t> pool;
-  if(useAll->isChecked()) {
+  if(use_all->isChecked()) {
 
     auto& sid2nogood = _execution.getNogoods();
     for(auto& sidNogood : sid2nogood) {
@@ -211,7 +212,7 @@ void NogoodTableView::renameSubsumedSelection(const QCheckBox* useAll,
       int64_t sid = sidNogood.first;
       const auto nogood = QString::fromStdString(sidNogood.second);
 
-      if(!applyFilter->isChecked() || nogood_proxy_model->filterAcceptsText(nogood)) {
+      if(!apply_filter->isChecked() || nogood_proxy_model->filterAcceptsText(nogood)) {
         pool.push_back(sid);
       }
 
@@ -229,7 +230,7 @@ void NogoodTableView::renameSubsumedSelection(const QCheckBox* useAll,
     int row = selection.at(i).row();
     int64_t isid = getSidFromRow(row);
 
-    const string finalString = sf.getSubsumingClauseString(isid);
+    const string finalString = sf.getSubsumingClauseString(isid, only_earlier_sids->isChecked());
     QModelIndex idx = nogood_proxy_model->mapToSource(nogood_proxy_model->index(row, 0, QModelIndex()));
     _model->setData(idx.sibling(idx.row(), _nogood_col), QString::fromStdString(finalString));
   }
@@ -239,11 +240,12 @@ void NogoodTableView::renameSubsumedSelection(const QCheckBox* useAll,
 }
 
 void NogoodTableView::connectSubsumButtons(const QPushButton* subsumButton,
-                                           const QCheckBox* useAll,
-                                           const QCheckBox* applyFilter) {
+                                           const QCheckBox* use_all,
+                                           const QCheckBox* apply_filter,
+                                           const QCheckBox* only_earlier_sids) {
   connect(subsumButton, &QPushButton::clicked,
-          this, [subsumButton, useAll, applyFilter, this](){
-      NogoodTableView::renameSubsumedSelection(useAll, applyFilter);
+          this, [subsumButton, use_all, apply_filter, only_earlier_sids, this](){
+      NogoodTableView::renameSubsumedSelection(use_all, apply_filter,only_earlier_sids);
   });
 }
 

@@ -102,10 +102,13 @@ NogoodDialog::NogoodDialog(
   subsumbutton->setAutoDefault(false);
   auto subsumUseAllNogoods = new QCheckBox("Use all nogoods");
   auto subsumUseAllNogoodsApplyFilter = new QCheckBox("Apply filters");
+  auto subsumUseOnlyEarlier = new QCheckBox("Preceding nogoods");
   _nogoodTable->connectSubsumButtons(subsumbutton,
                                      subsumUseAllNogoods,
-                                     subsumUseAllNogoodsApplyFilter);
+                                     subsumUseAllNogoodsApplyFilter,
+                                     subsumUseOnlyEarlier);
   subsumlayout->addWidget(subsumbutton);
+  subsumlayout->addWidget(subsumUseOnlyEarlier);
   subsumlayout->addWidget(subsumUseAllNogoods);
   subsumlayout->addWidget(subsumUseAllNogoodsApplyFilter);
 
@@ -125,7 +128,6 @@ void NogoodDialog::populateTable(const std::vector<int>& selected_nodes) {
     if(!clause.empty()) {
       _model->setItem(row, 0, new QStandardItem(QString::number(sid)));
       _model->setItem(row, 1, new QStandardItem(QString::fromStdString(clause)));
-
       row++;
     }
   }

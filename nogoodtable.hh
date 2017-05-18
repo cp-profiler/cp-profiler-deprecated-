@@ -58,8 +58,9 @@ public:
   void connectLocationButton(const QPushButton* locationButton,
                              QLineEdit* location_edit);
   void connectSubsumButtons(const QPushButton* subsumButton,
-                            const QCheckBox* useAll,
-                            const QCheckBox* applyFilter);
+                            const QCheckBox* use_all,
+                            const QCheckBox* apply_filter,
+                            const QCheckBox* only_earlier_sids);
 
 private:
   // Find which parts of the table are selected
@@ -79,8 +80,9 @@ private slots:
   //   with expressions depending on expand_expressions
   void refreshModelRenaming();
   // Replace subsumed clauses with their subsuming clause
-  void renameSubsumedSelection(const QCheckBox* useAll,
-                               const QCheckBox* applyFilter);
+  void renameSubsumedSelection(const QCheckBox* use_all,
+                               const QCheckBox* apply_filter,
+                               const QCheckBox* only_earlier_sids);
   // Use self-subsuming resolution
   void renameResolvingSubsumption();
   // Get heatmap url for the MiniZincIDE and emit signal

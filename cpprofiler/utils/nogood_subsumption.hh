@@ -21,10 +21,10 @@ public:
 
   /// Use all nogoods for 'pool'
   SubsumptionFinder(const std::unordered_map<int, std::string>& sid2nogood);
-  std::string getSubsumingClauseString(int64_t sid) const;
+  std::string getSubsumingClauseString(int64_t sid, bool filter_only_earlier_sids = false) const;
 
 private:
-  const Clause* findSubsumingClause(const Clause& iclause) const;
+  const Clause* findSubsumingClause(const Clause& iclause, bool filter_only_earlier_sids) const;
 
   void populateClauses(const std::unordered_map<int, std::string>& sid2nogood,
                        const std::vector<int64_t>& pool);
