@@ -107,6 +107,13 @@ NogoodDialog::NogoodDialog(
                                      subsumUseAllNogoods,
                                      subsumUseAllNogoodsApplyFilter,
                                      subsumUseOnlyEarlier);
+
+  subsumUseAllNogoodsApplyFilter->setEnabled(false);
+  connect(subsumUseAllNogoods, &QCheckBox::clicked,
+          [subsumUseAllNogoods, subsumUseAllNogoodsApplyFilter](){
+      subsumUseAllNogoodsApplyFilter->setEnabled(subsumUseAllNogoods->isChecked());
+  });
+
   subsumlayout->addWidget(subsumbutton);
   subsumlayout->addWidget(subsumUseOnlyEarlier);
   subsumlayout->addWidget(subsumUseAllNogoods);
