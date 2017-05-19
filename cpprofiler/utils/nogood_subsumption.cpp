@@ -55,10 +55,23 @@ SubsumptionFinder::SubsumptionFinder(const std::unordered_map<int, string>& sid2
 
 inline
 bool subsumes(const Lit& a, const Lit& b) {
+  if(a==b) return true;
   if(a.var == b.var) {
-    const std::vector<Lit> lits {a, b};
-    const std::vector<Lit> result = apply_rules_same_var(a.var, lits);
-    return result.size() == 1 && result[0] == a;
+    if(a.op == b.op) {
+      if(a.op != "!=" || a.op[0] != '=') {
+        int aval = a.val;
+        int bval = b.val;
+        if(a.op[0] == '<') {
+          if(a.op.size() == 1) aval--;
+          if(b.op.size() == 1) bval--;
+          return aval > bval;
+        } else if(a.op[0] == '>') {
+          if(a.op.size() == 1) aval++;
+          if(b.op.size() == 1) bval++;
+          return aval < bval;
+        }
+      }
+    }
   }
   return false;
 }
