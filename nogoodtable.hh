@@ -95,6 +95,8 @@ private:
   int _sid_col;
   int _nogood_col;
   bool expand_expressions;
+
+  std::unordered_map<std::string, QColor> _colors;
 };
 
 #endif // NOGOODTABLE_H

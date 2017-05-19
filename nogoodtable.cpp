@@ -8,6 +8,64 @@
 using std::string;
 using std::vector;
 
+QString lit2string(utils::lits::Lit l) {
+    QStringList sl;
+    sl << QString::fromStdString(l.var)
+       << QString::fromStdString(l.op)
+       << QString::number(l.val);
+    return sl.join("");
+}
+
+// NogoodDelegate
+// =============================================================
+class NogoodDelegate : public QStyledItemDelegate {
+public:
+    NogoodDelegate(std::unordered_map<std::string, QColor>& colors,
+                   int nogood_col) : _colors(colors), _nogood_col(nogood_col) {}
+
+protected:
+  void paint(QPainter* painter, const QStyleOptionViewItem& item, const QModelIndex& index) const {
+    QStyleOptionViewItem itemCpy = item;
+    initStyleOption(&itemCpy, index);
+
+    QStyle *style = itemCpy.widget? itemCpy.widget->style() : QApplication::style();
+
+    QTextDocument doc;
+
+    if(index.column() == _nogood_col && itemCpy.text.left(10) != "constraint") {
+      QStringList litsHtml;
+      const QString& clause = itemCpy.text;
+      for(QString& ls : clause.split(" ", QString::SplitBehavior::SkipEmptyParts)) {
+        utils::lits::Lit lit = utils::lits::parse_lit(ls.toStdString());
+        QStringList litstring;
+        QColor c = _colors.at(lit.var);
+        litstring << "<span style=\"color:" << c.name()  << ";\">" << lit2string(lit).toHtmlEscaped() << "</span>";
+        litsHtml.append(litstring.join(""));
+      }
+      doc.setHtml(litsHtml.join(" "));
+    } else {
+      QStringList newText;
+      for(QString& s : itemCpy.text.split(";", QString::SplitBehavior::SkipEmptyParts))
+        newText << (s + ";").toHtmlEscaped();
+      doc.setHtml(newText.join("<br/>"));
+    }
+
+    // Painting item without text
+    itemCpy.text = QString();
+    style->drawControl(QStyle::CE_ItemViewItem, &itemCpy, painter);
+
+    QRect textRect = style->subElementRect(QStyle::SE_ItemViewItemText, &itemCpy);
+    painter->save();
+    painter->translate(textRect.topLeft());
+    painter->setClipRect(textRect.translated(-textRect.topLeft()));
+    doc.documentLayout()->draw(painter, QAbstractTextDocumentLayout::PaintContext());
+    painter->restore();
+  }
+private:
+  std::unordered_map<std::string, QColor>& _colors;
+  int _nogood_col;
+};
+
 // NogoodProxyModel
 // =============================================================
 NogoodProxyModel::NogoodProxyModel(QWidget* parent,
@@ -104,6 +162,24 @@ NogoodTableView::NogoodTableView(QWidget* parent,
 
   setModel(nogood_proxy_model);
   setSortingEnabled(true);
+
+  auto& sid2nogood = _execution.getNogoods();
+  for(auto& sidNogood : sid2nogood) {
+     vector<string> clause = utils::split(sidNogood.second, ' ');
+     for(string s : clause) {
+         utils::lits::Lit l = utils::lits::parse_lit(s);
+         if(_colors.find(l.var) == _colors.end()) {
+             int r=255,g=255,b=255;
+             while(r>200 && g>200 && b>200) {
+                 r = rand()%255;
+                 g = rand()%255;
+                 b = rand()%255;
+             }
+             _colors[l.var] = QColor(r,g,b);
+         }
+     }
+  }
+  setItemDelegate(new NogoodDelegate(_colors, _nogood_col));
 }
 
 int64_t NogoodTableView::getSidFromRow(int row) const {
