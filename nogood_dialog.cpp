@@ -99,11 +99,18 @@ NogoodDialog::NogoodDialog(
 
   auto subsumlayout = new QHBoxLayout();
   auto subsumbutton = new QPushButton("Simplify nogoods");
+  subsumbutton->setToolTip("Replace subsumed nogoods.");
   subsumbutton->setAutoDefault(false);
   auto subsumUseAllNogoods = new QCheckBox("Use all nogoods");
+  subsumUseAllNogoods->setToolTip("Use nogoods that are not presented in the table in the subsumption check.");
   auto subsumUseAllNogoodsApplyFilter = new QCheckBox("Apply filters");
+  subsumUseAllNogoodsApplyFilter->setToolTip("Apply filter to 'all nogoods'.");
   auto subsumUseOnlyEarlier = new QCheckBox("Preceding nogoods");
+  subsumUseOnlyEarlier->setToolTip("Only allow subsumption by earlier nogoods (that the solver should have known about)");
+  auto subsumResolution = new QCheckBox("Resolution");
+  subsumResolution->setToolTip("Use self-subsuming resolution to remove lits from nogoods (very slow).");
   _nogoodTable->connectSubsumButtons(subsumbutton,
+                                     subsumResolution,
                                      subsumUseAllNogoods,
                                      subsumUseAllNogoodsApplyFilter,
                                      subsumUseOnlyEarlier);
@@ -117,6 +124,7 @@ NogoodDialog::NogoodDialog(
   });
 
   subsumlayout->addWidget(subsumbutton);
+  subsumlayout->addWidget(subsumResolution);
   subsumlayout->addWidget(subsumUseOnlyEarlier);
   subsumlayout->addWidget(subsumUseAllNogoods);
   subsumlayout->addWidget(subsumUseAllNogoodsApplyFilter);

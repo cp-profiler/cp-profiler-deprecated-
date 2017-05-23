@@ -20,4 +20,6 @@ namespace utils { namespace lits {
   std::vector<Lit> apply_rules_same_var(const std::string& var, const std::vector<Lit>& lits);
   bool operator==(const Lit& lhs, const Lit& rhs);
   bool operator<(const Lit& lhs, const Lit& rhs);
+  std::string stringify_lits(const std::vector<Lit>& lits);
+  Lit negate_lit(const Lit& l);
 }}

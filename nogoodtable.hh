@@ -58,6 +58,7 @@ public:
   void connectLocationButton(const QPushButton* locationButton,
                              QLineEdit* location_edit);
   void connectSubsumButtons(const QPushButton* subsumButton,
+                            const QCheckBox* resolution,
                             const QCheckBox* use_all,
                             const QCheckBox* apply_filter,
                             const QCheckBox* only_earlier_sids);
@@ -80,7 +81,8 @@ private slots:
   //   with expressions depending on expand_expressions
   void refreshModelRenaming();
   // Replace subsumed clauses with their subsuming clause
-  void renameSubsumedSelection(const QCheckBox* use_all,
+  void renameSubsumedSelection(const QCheckBox* resolution,
+                               const QCheckBox* use_all,
                                const QCheckBox* apply_filter,
                                const QCheckBox* only_earlier_sids);
   // Use self-subsuming resolution

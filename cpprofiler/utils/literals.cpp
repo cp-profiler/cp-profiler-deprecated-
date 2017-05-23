@@ -293,7 +293,7 @@ namespace utils { namespace lits {
     return ss.str();
   }
 
-  static string stringify_lits(const vector<Lit>& lits) {
+  string stringify_lits(const vector<Lit>& lits) {
 
     if (lits.size() == 0) return "";
 
@@ -308,7 +308,7 @@ namespace utils { namespace lits {
     return ss.str();
   }
 
-  static Lit negate_lit(const Lit& l) {
+  Lit negate_lit(const Lit& l) {
     auto result = l;
     result.op = negate_op(l.op);
     return result;

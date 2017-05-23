@@ -10,7 +10,9 @@
 
 class Execution;
 
-namespace utils {
+namespace utils { namespace subsum {
+
+void test_module();
 
 class SubsumptionFinder {
   using Lit = utils::lits::Lit;
@@ -21,7 +23,10 @@ public:
 
   /// Use all nogoods for 'pool'
   SubsumptionFinder(const std::unordered_map<int, std::string>& sid2nogood);
-  std::string getSubsumingClauseString(int64_t sid, bool filter_only_earlier_sids = true) const;
+  std::string getSubsumingClauseString(int64_t sid,
+                                       bool filter_only_earlier_sids = true) const;
+  std::string getSelfSubsumingResolutionString(int64_t sid,
+                                       bool filter_only_earlier_sids = true) const;
 
 private:
   const Clause* findSubsumingClause(const Clause& iclause, bool filter_only_earlier_sids) const;
@@ -34,6 +39,6 @@ private:
   std::map<int, std::vector<int64_t>> ordered_sids;
 };
 
-}
+}}
 
 #endif // NOGOOD_SUBSUMPTION_HH
