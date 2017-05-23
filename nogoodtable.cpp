@@ -163,20 +163,18 @@ NogoodTableView::NogoodTableView(QWidget* parent,
   setModel(nogood_proxy_model);
   setSortingEnabled(true);
 
+  int curr_color = 0;
+  int step = 67;
+  std::unordered_set<string> vars;
   auto& sid2nogood = _execution.getNogoods();
   for(auto& sidNogood : sid2nogood) {
      vector<string> clause = utils::split(sidNogood.second, ' ');
      for(string s : clause) {
-         utils::lits::Lit l = utils::lits::parse_lit(s);
-         if(_colors.find(l.var) == _colors.end()) {
-             int r=255,g=255,b=255;
-             while(r>200 && g>200 && b>200) {
-                 r = rand()%255;
-                 g = rand()%255;
-                 b = rand()%255;
-             }
-             _colors[l.var] = QColor(r,g,b);
-         }
+       utils::lits::Lit lit = utils::lits::parse_lit(s);
+       if(vars.find(lit.var) == vars.end()) {
+         curr_color = (curr_color + step) % 360;
+         _colors[lit.var] = QColor::fromHsv(curr_color, 255, 128);
+       }
      }
   }
   setItemDelegate(new NogoodDelegate(_colors, _nogood_col));
