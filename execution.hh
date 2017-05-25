@@ -10,6 +10,8 @@
 #include <unordered_map>
 #include <QWaitCondition>
 
+#include "nogood_representation.h"
+
 class Data;
 class NameMap;
 class DbEntry;
@@ -39,7 +41,7 @@ public:
 
     ~Execution();
 
-    const std::string* getNogood(const Node& node) const;
+    const NogoodViews* getNogood(const Node& node) const;
     const std::string* getInfo(const Node& node) const;
 
     int getExecutionId() const {
@@ -65,8 +67,8 @@ public:
 
     NodeTree& nodeTree() { return *m_NodeTree.get(); }
 
-    const std::unordered_map<int, std::string>& getNogoods() const;
-    std::string getNogoodBySid(int sid) const;
+    const Sid2Nogood& getNogoods() const;
+    const std::string& getNogoodBySid(int64_t sid, bool renamed, bool simplified) const;
     std::unordered_map<int64_t, std::string*>& getInfo(void) const;
     unsigned getGidBySid(int64_t sid);
 

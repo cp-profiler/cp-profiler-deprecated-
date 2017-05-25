@@ -116,7 +116,8 @@ HEADERS  += \
     $$PWD/webscript.hh \
     $$PWD/namemap.hh \
     $$PWD/nogoodtable.hh \
-    $$PWD/cpprofiler/utils/string_utils.hh
+    $$PWD/cpprofiler/utils/string_utils.hh \
+    $$PWD/nogood_representation.h
 
 FORMS    +=
 

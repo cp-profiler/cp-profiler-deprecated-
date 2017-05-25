@@ -16,6 +16,7 @@ namespace utils { namespace lits {
 
   Lit parse_lit(const std::string& lit);
 
+  std::string remove_redundant_wspaces(const std::string& ng);
   std::string simplify_ng(const std::string& ng);
   std::vector<Lit> apply_rules_same_var(const std::string& var, const std::vector<Lit>& lits);
   bool operator==(const Lit& lhs, const Lit& rhs);

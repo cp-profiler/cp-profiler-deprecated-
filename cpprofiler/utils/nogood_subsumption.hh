@@ -7,6 +7,7 @@
 #include <map>
 #include <unordered_map>
 #include <cinttypes>
+#include <nogood_representation.h>
 
 class Execution;
 
@@ -18,11 +19,15 @@ class SubsumptionFinder {
   using Lit = utils::lits::Lit;
   using Clause = std::vector<Lit>;
 public:
-  SubsumptionFinder(const std::unordered_map<int, std::string>& sid2nogood,
-                    const std::vector<int64_t>& pool);
+  SubsumptionFinder(const Sid2Nogood& sid2nogood,
+                    const std::vector<int64_t>& pool,
+                    bool renamed,
+                    bool simplified);
 
   /// Use all nogoods for 'pool'
-  SubsumptionFinder(const std::unordered_map<int, std::string>& sid2nogood);
+  SubsumptionFinder(const Sid2Nogood& sid2nogood,
+                    bool renamed,
+                    bool simplified);
   std::string getSubsumingClauseString(int64_t sid,
                                        bool filter_only_earlier_sids = true) const;
   std::string getSelfSubsumingResolutionString(int64_t sid,
@@ -31,12 +36,15 @@ public:
 private:
   const Clause* findSubsumingClause(const Clause& iclause, bool filter_only_earlier_sids) const;
 
-  void populateClauses(const std::unordered_map<int, std::string>& sid2nogood,
-                       const std::vector<int64_t>& pool);
+  void populateClauses(const Sid2Nogood& sid2nogood,
+                       const std::vector<int64_t>& pool,
+                       bool renamed, bool simplified);
 
   std::vector<Clause> clauses;
   std::unordered_map<int64_t, Clause*> sid2clause;
   std::map<int, std::vector<int64_t>> ordered_sids;
+  bool _renamed {false};
+  bool _simplified {false};
 };
 
 }}

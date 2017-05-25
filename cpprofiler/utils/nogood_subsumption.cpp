@@ -4,6 +4,7 @@
 #include <QDebug>
 #include <iostream>
 #include <algorithm>
+#include <nogood_representation.h>
 
 using std::string;
 using std::vector;
@@ -14,16 +15,23 @@ namespace utils { namespace subsum {
 using Lit = utils::lits::Lit;
 using Clause = std::vector<Lit>;
 
-void SubsumptionFinder::populateClauses(const std::unordered_map<int, string>& sid2nogood,
-                                        const std::vector<int64_t>& pool) {
+void SubsumptionFinder::populateClauses(const Sid2Nogood& sid2nogood,
+                                        const std::vector<int64_t>& pool,
+                                        bool renamed, bool simplified) {
   clauses.resize(pool.size());
   size_t top = 0;
   for(int64_t jsid : pool) {
-    const string qclause = sid2nogood.at(static_cast<int>(jsid));
-    if(!qclause.empty()) {
+    auto& ng = sid2nogood.at(static_cast<int>(jsid));
+    const string* sclause;
+    if(renamed) {
+      sclause = simplified ? &ng.simplified : &ng.renamed;
+    } else {
+      sclause = &ng.original;
+    }
+    if(!sclause->empty()) {
       Clause* clause = &clauses[top++];
       sid2clause[jsid] = clause;
-      const vector<string> lits = utils::split(qclause, ' ');
+      const vector<string> lits = utils::split(*sclause, ' ');
       for(const string& lit : lits)
         clause->push_back(lits::parse_lit(lit));
       std::sort(clause->begin(), clause->end());
@@ -33,18 +41,20 @@ void SubsumptionFinder::populateClauses(const std::unordered_map<int, string>& s
   }
 }
 
-SubsumptionFinder::SubsumptionFinder(const std::unordered_map<int, string>& sid2nogood,
-                                     const std::vector<int64_t>& pool) {
-  populateClauses(sid2nogood, pool);
+SubsumptionFinder::SubsumptionFinder(const Sid2Nogood& sid2nogood,
+                                     const std::vector<int64_t>& pool,
+                                     bool renamed, bool simplified) {
+  populateClauses(sid2nogood, pool, renamed, simplified);
 }
 
-SubsumptionFinder::SubsumptionFinder(const std::unordered_map<int, string>& sid2nogood) {
+SubsumptionFinder::SubsumptionFinder(const Sid2Nogood& sid2nogood,
+                                     bool renamed, bool simplified) {
   std::vector<int64_t> all;
   for(auto& sidNogood : sid2nogood) {
-    if(!sidNogood.second.empty())
+    if(!sidNogood.second.original.empty())
       all.push_back(sidNogood.first);
   }
-  populateClauses(sid2nogood, all);
+  populateClauses(sid2nogood, all, renamed, simplified);
 }
 
 inline
@@ -143,34 +153,34 @@ void test_module() {
 }
 
 static void test_subsumption() {
-  vector<std::pair<int, string> > testNogoods {
-    std::make_pair(1, "b<=2 c<=3"),
-    std::make_pair(2, "a<=1 b<=2 c<=3"),
+  vector<std::pair<int64_t, NogoodViews> > testNogoods {
+    std::make_pair(1, NogoodViews("b<=2 c<=3")),
+    std::make_pair(2, NogoodViews("a<=1 b<=2 c<=3")),
   };
 
-  std::unordered_map<int, string> sid2nogood;
+  Sid2Nogood sid2nogood;
   sid2nogood.insert(testNogoods.begin(), testNogoods.end());
 
-  utils::subsum::SubsumptionFinder sf(sid2nogood);
+  utils::subsum::SubsumptionFinder sf(sid2nogood, false, false);
 
   int count=0;
   for(auto& sn : testNogoods)
-    if(sf.getSubsumingClauseString(sn.first) == testNogoods[0].second)
+    if(sf.getSubsumingClauseString(sn.first) == testNogoods[0].second.original)
       count++;
 
   qDebug() << count << "/" << testNogoods.size() << " Subsumption tests passed";
 }
 
 static void test_resolution() {
-  vector<std::pair<int, string> > testNogoods {
-    std::make_pair(1, "b>2 c<=3"),
-    std::make_pair(2, "a<=1 b<=2 c<=3"),
+  vector<std::pair<int, NogoodViews> > testNogoods {
+    std::make_pair(1, NogoodViews("b>2 c<=3")),
+    std::make_pair(2, NogoodViews("a<=1 b<=2 c<=3")),
   };
 
-  std::unordered_map<int, string> sid2nogood;
+  Sid2Nogood sid2nogood;
   sid2nogood.insert(testNogoods.begin(), testNogoods.end());
 
-  utils::subsum::SubsumptionFinder sf(sid2nogood);
+  utils::subsum::SubsumptionFinder sf(sid2nogood, false, false);
 
   int count=0;
   if(sf.getSelfSubsumingResolutionString(1) == "b>2 c<=3")

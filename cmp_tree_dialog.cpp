@@ -34,6 +34,7 @@
 #include "nogoodtable.hh"
 #include "libs/perf_helper.hh"
 #include "cpprofiler/utils/nogood_subsumption.hh"
+#include "nogood_representation.h"
 
 using std::string;
 
@@ -260,7 +261,7 @@ CmpTreeDialog::saveComparisonStatsTo(const QString& file_name) {
       return lhs.second.search_eliminated > rhs.second.search_eliminated;
   });
 
-  utils::subsum::SubsumptionFinder sf{left_execution.getNogoods()};
+  utils::subsum::SubsumptionFinder sf(left_execution.getNogoods(), true, true);
 
   for (auto& ng : ng_stats_vector) {
 
@@ -270,7 +271,7 @@ CmpTreeDialog::saveComparisonStatsTo(const QString& file_name) {
 
     bool to_subsume = false;
     const string nogood = to_subsume ? sf.getSubsumingClauseString(ng.first)
-                                     : left_execution.getNogoodBySid(ng.first);
+                                     : left_execution.getNogoodBySid(ng.first, true, true);
 
     out << nogood.c_str() << "\n";
   }
@@ -329,7 +330,7 @@ PentListWindow::populateNogoodTable(const std::vector<int>& nogoods) {
     auto ng_id = nogoods[i]; /// is this sid of gid???
     _nogoodTable.setItem(i, 0, new QTableWidgetItem(QString::number(ng_id)));
 
-    const string nogood = left_execution.getNogoodBySid(ng_id);
+    const string& nogood = left_execution.getNogoodBySid(ng_id, false, false);
     qDebug() << "nogood id " << ng_id << ": " << nogood.c_str();
 
     int ng_count = ng_stats.at(ng_id).occurrence;
@@ -471,7 +472,7 @@ CmpTreeDialog::showResponsibleNogoods() {
     _model->setItem(row, 0, new QStandardItem(QString::number(ng.first)));
     _model->setItem(row, 1, new QStandardItem(QString::number(ng.second.occurrence)));
 
-    const string& nogood = left_execution.getNogoodBySid(static_cast<int>(ng.first));
+    const string& nogood = left_execution.getNogoodBySid(static_cast<int>(ng.first), false, false);
 
     _model->setItem(row, 2, new QStandardItem(QString::number(ng.second.search_eliminated)));
     _model->setItem(row, 3, new QStandardItem(QString::fromStdString(nogood)));
@@ -505,18 +506,21 @@ CmpTreeDialog::showResponsibleNogoods() {
     auto buttons = new QHBoxLayout(this);
     auto heatmapButton = new QPushButton("Heatmap");
     heatmapButton->setAutoDefault(false);
-    auto showExpressions = new QPushButton("Show/Hide Expressions");
-    showExpressions->setAutoDefault(false);
+    auto changeRepresentation = new QCheckBox("Rename vars");
+    changeRepresentation->setChecked(true);
+    auto showSimplified = new QCheckBox("Simplify Nogoods");
+    showSimplified->setChecked(true);
     auto getFlatZinc = new QPushButton("Get FlatZinc");
     getFlatZinc->setAutoDefault(false);
 
     buttons->addWidget(heatmapButton);
-    buttons->addWidget(showExpressions);
+    buttons->addWidget(changeRepresentation);
+    buttons->addWidget(showSimplified);
     buttons->addWidget(getFlatZinc);
     ng_layout->addLayout(buttons);
 
     ng_table->connectHeatmapButton(heatmapButton, *m_Canvas.get());
-    ng_table->connectShowExpressionsButton(showExpressions);
+    ng_table->connectNogoodRepresentationCheckBoxes(changeRepresentation, showSimplified);
     ng_table->connectFlatZincButton(getFlatZinc);
   }
 

@@ -50,8 +50,9 @@ public:
 
   // Connect buttons and text filters to their respective functionality
   void connectHeatmapButton(const QPushButton* heatmapButton, const TreeCanvas& tc);
-  void connectShowExpressionsButton(const QPushButton* showExpressions);
   void connectFlatZincButton(const QPushButton* getFlatZinc);
+  void connectNogoodRepresentationCheckBoxes(const QCheckBox* changeRep,
+                                                   QCheckBox* showSimplified);
   void connectTextFilter(const QLineEdit* include_edit,
                          const QLineEdit* reject_edit);
   void connectLocationFilter(QLineEdit* location_edit);
@@ -73,6 +74,8 @@ private:
   void updateSelection() const;
   // Set location filter based on selected nodes
   void updateLocationFilter(QLineEdit* location_edit) const;
+  // Update _colors
+  void updateColors(void);
 
 private slots:
   // Replace selected nogoods with equivalent FlatZinc
@@ -96,7 +99,8 @@ private:
   NogoodProxyModel* nogood_proxy_model;
   int _sid_col;
   int _nogood_col;
-  bool expand_expressions;
+  bool _show_renamed_literals {true};
+  bool _show_simplified_nogoods {false};
 
   std::unordered_map<std::string, QColor> _colors;
 };

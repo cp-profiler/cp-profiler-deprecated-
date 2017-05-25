@@ -148,11 +148,12 @@ int Data::handleNodeCallback(message::Node& node) {
     if (node.has_nogood() && node.nogood().length() > 0) {
 
         /// simplify nogood here
-        auto ng = node.nogood();
+        NogoodViews ng(node.nogood());
 
         if (nameMap) {
-            ng = nameMap->replaceNames(ng, true);
-            ng = utils::lits::simplify_ng(ng);
+            string renamed = nameMap->replaceNames(ng.original, true);
+            ng.renamed = utils::lits::remove_redundant_wspaces(renamed);
+            ng.simplified = utils::lits::simplify_ng(ng.renamed);
         }
 
         sid2nogood[entry->full_sid] = ng;

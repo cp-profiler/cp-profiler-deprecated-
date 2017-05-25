@@ -513,7 +513,7 @@ void ProfilerConductor::saveExecutionClicked() {
     node.set_domain_size(entry->domain);
     //            node.set_solution(entry->);
     auto ngit = data.getNogoods().find(entry->s_node_id);
-    if (ngit != data.getNogoods().end()) node.set_nogood(ngit->second);
+    if (ngit != data.getNogoods().end()) node.set_nogood(ngit->second.original);
     auto infoit = data.sid2info.find(entry->s_node_id);
     if (infoit != data.sid2info.end()) node.set_info(*infoit->second);
     writeDelimitedTo(node, &raw_output);

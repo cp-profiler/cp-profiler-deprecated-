@@ -335,10 +335,10 @@ void PixelTreeCanvas::gatherNogoodData() {
       // qDebug() << "nogood: " << nogood.c_str();
       /// work out var length
       auto count = 0;
-      auto pos = nogood.find(' ');
+      auto pos = nogood.original.find(' ');
       while (pos != std::string::npos) {
         count++;
-        pos = nogood.find(' ', pos + 1);
+        pos = nogood.original.find(' ', pos + 1);
       }
       count -= 1;  /// because in chuffed nogoods start "out_learnt
                    /// (interpreted): ..."

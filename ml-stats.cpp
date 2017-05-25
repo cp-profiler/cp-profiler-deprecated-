@@ -136,7 +136,7 @@ public:
     int getNogoodStringLength(int sid) {
         const auto it = execution->getNogoods().find(sid);
         if (it != execution->getNogoods().end()) {
-            return it->second.length();
+            return it->second.original.length();
         } else {
             return 0;
         }
@@ -145,7 +145,7 @@ public:
     string getNogoodString(int sid) {
         const auto it = execution->getNogoods().find(sid);
         if (it != execution->getNogoods().end()) {
-            return it->second;
+            return it->second.original;
         } else {
             return "";
         }

@@ -148,7 +148,7 @@ NogoodTableView::NogoodTableView(QWidget* parent,
                                  const Execution& e,
                                  int sid_col, int nogood_col)
   : QTableView(parent), _execution(e), _model(model),
-    _sid_col(sid_col), _nogood_col(nogood_col), expand_expressions(false) {
+    _sid_col(sid_col), _nogood_col(nogood_col) {
   horizontalHeader()->setStretchLastSection(true);
   setEditTriggers(QAbstractItemView::NoEditTriggers);
   setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
@@ -163,21 +163,28 @@ NogoodTableView::NogoodTableView(QWidget* parent,
   setModel(nogood_proxy_model);
   setSortingEnabled(true);
 
+  updateColors();
+  setItemDelegate(new NogoodDelegate(_colors, _nogood_col));
+}
+
+void NogoodTableView::updateColors(void) {
   int curr_color = 0;
   int step = 67;
   std::unordered_set<string> vars;
   auto& sid2nogood = _execution.getNogoods();
   for(auto& sidNogood : sid2nogood) {
-     vector<string> clause = utils::split(sidNogood.second, ' ');
-     for(string s : clause) {
-       utils::lits::Lit lit = utils::lits::parse_lit(s);
-       if(vars.find(lit.var) == vars.end()) {
-         curr_color = (curr_color + step) % 360;
-         _colors[lit.var] = QColor::fromHsv(curr_color, 255, 128);
-       }
-     }
+    const string& sclause = _execution.getNogoodBySid(sidNogood.first,
+                                                      _show_renamed_literals,
+                                                      _show_simplified_nogoods);
+    vector<string> oclause = utils::split(sclause, ' ');
+    for(string s : oclause) {
+      utils::lits::Lit lit = utils::lits::parse_lit(s);
+      if(vars.find(lit.var) == vars.end()) {
+        curr_color = (curr_color + step) % 360;
+        _colors[lit.var] = QColor::fromHsv(curr_color, 255, 128);
+      }
+    }
   }
-  setItemDelegate(new NogoodDelegate(_colors, _nogood_col));
 }
 
 int64_t NogoodTableView::getSidFromRow(int row) const {
@@ -249,14 +256,15 @@ void NogoodTableView::updateSelection() const {
 }
 
 void NogoodTableView::refreshModelRenaming() {
-  expand_expressions ^= true;
   setSortingEnabled(false);
   const QModelIndexList selection = getSelection();
   for(int i=0; i<selection.count(); i++) {
     int row = selection.at(i).row();
     int64_t sid = getSidFromRow(row);
 
-    const string& qclause = _execution.getNogoodBySid(static_cast<int>(sid));
+    const string& qclause = _execution.getNogoodBySid(static_cast<int>(sid),
+                                                      _show_renamed_literals,
+                                                      _show_simplified_nogoods);
     if(!qclause.empty()) {
       QModelIndex idx = nogood_proxy_model->mapToSource(nogood_proxy_model->index(row, 0, QModelIndex()));
       _model->setData(idx.sibling(idx.row(), _nogood_col), QString::fromStdString(qclause));
@@ -266,8 +274,22 @@ void NogoodTableView::refreshModelRenaming() {
   setSortingEnabled(true);
 }
 
-void NogoodTableView::connectShowExpressionsButton(const QPushButton* showExpressions) {
-  connect(showExpressions, &QPushButton::clicked, this, &NogoodTableView::refreshModelRenaming);
+void NogoodTableView::connectNogoodRepresentationCheckBoxes(const QCheckBox* changeRep,
+                                                            QCheckBox* showSimplified) {
+  auto refreshRenaming = [this, changeRep, showSimplified]() {
+    showSimplified->setEnabled(changeRep->isChecked());
+
+    _show_renamed_literals = changeRep->isChecked();
+    _show_simplified_nogoods = showSimplified->isChecked();
+
+    updateColors();
+    refreshModelRenaming();
+  };
+
+  connect(changeRep, &QCheckBox::clicked, refreshRenaming);
+  connect(showSimplified, &QCheckBox::clicked, refreshRenaming);
+
+  refreshRenaming();
 }
 
 void NogoodTableView::renameSubsumedSelection(const QCheckBox* resolution,
@@ -282,10 +304,10 @@ void NogoodTableView::renameSubsumedSelection(const QCheckBox* resolution,
     auto& sid2nogood = _execution.getNogoods();
     for(auto& sidNogood : sid2nogood) {
 
-      if(sidNogood.second.empty()) continue;
+      if(sidNogood.second.original.empty()) continue;
 
       int64_t sid = sidNogood.first;
-      const auto nogood = QString::fromStdString(sidNogood.second);
+      const auto nogood = QString::fromStdString(sidNogood.second.original);
 
       if(!apply_filter->isChecked() || nogood_proxy_model->filterAcceptsText(nogood)) {
         pool.push_back(sid);
@@ -298,7 +320,9 @@ void NogoodTableView::renameSubsumedSelection(const QCheckBox* resolution,
     }
   }
 
-  utils::subsum::SubsumptionFinder sf(_execution.getNogoods(), pool);
+  utils::subsum::SubsumptionFinder sf(_execution.getNogoods(), pool,
+                                      _show_renamed_literals,
+                                      _show_simplified_nogoods);
 
   const QModelIndexList selection = getSelection();
   for(int i=0; i<selection.count(); i++) {
@@ -382,7 +406,7 @@ void NogoodTableView::showFlatZinc() {
     int row = selection.at(i).row();
     int64_t sid = getSidFromRow(row);
 
-    const string clause = _execution.getNogoodBySid(static_cast<int>(sid));
+    const string& clause = _execution.getNogoodBySid(static_cast<int>(sid), false, false);
     if(!clause.empty()) {
       const string fzn = convertToFlatZinc(clause);
       QModelIndex idx = nogood_proxy_model->mapToSource(nogood_proxy_model->index(row, 0, QModelIndex()));

@@ -60,18 +60,22 @@ NogoodDialog::NogoodDialog(
     auto buttons = new QHBoxLayout(this);
     auto heatmapButton = new QPushButton("Heatmap");
     heatmapButton->setAutoDefault(false);
-    auto showExpressions = new QPushButton("Show/Hide Expressions");
-    showExpressions->setAutoDefault(false);
+    auto changeRepresentation = new QCheckBox("Rename vars");
+    changeRepresentation->setChecked(true);
+    auto showSimplified = new QCheckBox("Simplify Nogoods");
+    showSimplified->setChecked(true);
+
     auto getFlatZinc = new QPushButton("Get FlatZinc");
     getFlatZinc->setAutoDefault(false);
 
     buttons->addWidget(heatmapButton);
-    buttons->addWidget(showExpressions);
+    buttons->addWidget(changeRepresentation);
+    buttons->addWidget(showSimplified);
     buttons->addWidget(getFlatZinc);
     layout->addLayout(buttons);
 
     _nogoodTable->connectHeatmapButton(heatmapButton, _tc);
-    _nogoodTable->connectShowExpressionsButton(showExpressions);
+    _nogoodTable->connectNogoodRepresentationCheckBoxes(changeRepresentation, showSimplified);
     _nogoodTable->connectFlatZincButton(getFlatZinc);
   }
 
@@ -141,7 +145,7 @@ void NogoodDialog::populateTable(const std::vector<int>& selected_nodes) {
   for (auto it = selected_nodes.begin(); it != selected_nodes.end(); it++) {
     int gid = *it;
     int64_t sid = _tc.getExecution().getData().gid2sid(gid);
-    const std::string& clause = _tc.getExecution().getNogoodBySid(static_cast<int>(sid));
+    const std::string& clause = _tc.getExecution().getNogoodBySid(static_cast<int>(sid), false, false);
     if(!clause.empty()) {
       _model->setItem(row, 0, new QStandardItem(QString::number(sid)));
       _model->setItem(row, 1, new QStandardItem(QString::fromStdString(clause)));
@@ -151,6 +155,6 @@ void NogoodDialog::populateTable(const std::vector<int>& selected_nodes) {
 }
 
 void NogoodDialog::selectNode(const QModelIndex& index) {
-  int gid = _tc.getExecution().getData().getGidBySid(index.sibling(index.row(), 0).data().toInt());
-  _tc.navigateToNodeById(gid);
+  unsigned int gid = _tc.getExecution().getData().getGidBySid(index.sibling(index.row(), 0).data().toInt());
+  _tc.navigateToNodeById(static_cast<int>(gid));
 }

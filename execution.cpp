@@ -116,7 +116,7 @@ void Execution::start(std::string label, bool isRestarts) {
     emit titleKnown();
 }
 
-const std::string* Execution::getNogood(const Node& node) const {
+const NogoodViews* Execution::getNogood(const Node& node) const {
     auto entry = getEntry(node);
     if (!entry) return nullptr;
     auto nogood = m_Data->getNogoods().find(entry->s_node_id);
@@ -140,21 +140,24 @@ void Execution::handleNewNode(message::Node& node) {
     m_Data->handleNodeCallback(node);
 }
 
-const std::unordered_map<int, string>& Execution::getNogoods() const {
+const Sid2Nogood& Execution::getNogoods() const {
   return m_Data->getNogoods();
 }
 
-static string empty_string = "";
-string Execution::getNogoodBySid(int sid) const {
+static std::string empty_string;
+const std::string& Execution::getNogoodBySid(int64_t sid, bool renamed, bool simplified) const {
   const auto& ng_map = m_Data->getNogoods();
-  string nogood(empty_string);
-
   auto maybe_nogood = ng_map.find(sid);
   if (maybe_nogood != ng_map.end()){
-    nogood = maybe_nogood->second;
+    const NogoodViews& ng = maybe_nogood->second;
+    if(renamed) {
+      return simplified ? ng.simplified : ng.renamed;
+    } else {
+      return ng.original;
+    }
   }
 
-  return nogood;
+  return empty_string;
 }
 
 std::unordered_map<int64_t, string*>& Execution::getInfo(void) const {

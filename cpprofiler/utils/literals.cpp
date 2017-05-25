@@ -372,7 +372,7 @@ namespace utils { namespace lits {
 
   }
 
-  static string remove_redundant_wspaces(const string& ng) {
+  string remove_redundant_wspaces(const string& ng) {
 
     auto parts = split(ng, ' ');
 
