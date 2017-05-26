@@ -89,6 +89,7 @@ ProfilerConductor::ProfilerConductor() : QMainWindow(), listen_port(6565) {
   executionList.setSelectionMode(QAbstractItemView::MultiSelection);
   compareWithLabelsCB.setText("with labels");
   compareWithLabelsCB.setEnabled(false);
+  compareWithLabelsCB.setChecked(true);
 
   auto centralWidget = new QWidget(this);
   setCentralWidget(centralWidget);
@@ -314,7 +315,9 @@ void ProfilerConductor::compareButtonClicked() {
   const bool withLabels = compareWithLabelsCB.isChecked();
 
   /// NOTE(maxim): the new window will delete itself when closed
-  auto cmp_tree_dialog = new CmpTreeDialog(this, new Execution{}, withLabels, *ex1, *ex2);
+  Execution* exec = new Execution{};
+  exec->setNameMap(const_cast<NameMap*>(ex1->getNameMap()));
+  auto cmp_tree_dialog = new CmpTreeDialog(this, exec, withLabels, *ex1, *ex2);
   connect(cmp_tree_dialog->getCanvas(), SIGNAL(showNogood(QString, QString, bool)),
           this, SLOT(showNogoodToIDE(QString, QString, bool)));
 }
@@ -332,7 +335,9 @@ void ProfilerConductor::autoCompareTwoExecution() {
 
   bool withLabels = true;
 
-  auto cmp_dialog = new CmpTreeDialog(nullptr, new Execution{}, withLabels, *ex1, *ex2);
+  Execution* exec = new Execution{};
+  exec->setNameMap(const_cast<NameMap*>(ex1->getNameMap()));
+  auto cmp_dialog = new CmpTreeDialog(nullptr, exec, withLabels, *ex1, *ex2);
 
   cmp_dialog->showResponsibleNogoods();
 }
