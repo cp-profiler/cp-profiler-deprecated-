@@ -34,7 +34,7 @@
 #include "nogoodtable.hh"
 #include "libs/perf_helper.hh"
 #include "cpprofiler/utils/nogood_subsumption.hh"
-#include "nogood_representation.h"
+#include "nogood_representation.hh"
 
 using std::string;
 

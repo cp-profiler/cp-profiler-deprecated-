@@ -117,7 +117,7 @@ HEADERS  += \
     $$PWD/namemap.hh \
     $$PWD/nogoodtable.hh \
     $$PWD/cpprofiler/utils/string_utils.hh \
-    $$PWD/nogood_representation.h
+    $$PWD/nogood_representation.hh
 
 FORMS    +=
 

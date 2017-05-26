@@ -36,7 +36,7 @@
 #include <cstdint>
 #include <cassert>
 
-#include "nogood_representation.h"
+#include "nogood_representation.hh"
 
 namespace message {
     class Node;

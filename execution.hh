@@ -10,7 +10,7 @@
 #include <unordered_map>
 #include <QWaitCondition>
 
-#include "nogood_representation.h"
+#include "nogood_representation.hh"
 
 class Data;
 class NameMap;

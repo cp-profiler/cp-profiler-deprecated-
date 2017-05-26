@@ -4,7 +4,7 @@
 #include <QDebug>
 #include <iostream>
 #include <algorithm>
-#include <nogood_representation.h>
+#include <nogood_representation.hh>
 
 using std::string;
 using std::vector;

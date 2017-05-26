@@ -7,7 +7,7 @@
 #include <map>
 #include <unordered_map>
 #include <cinttypes>
-#include <nogood_representation.h>
+#include <nogood_representation.hh>
 
 class Execution;
 
