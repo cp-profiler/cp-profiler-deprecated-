@@ -22,8 +22,8 @@ class VisualNode;
 class Statistics;
 class QMutex;
 
-namespace message {
-    class Node;
+namespace cpprofiler {
+    class Message;
 }
 
 class TreeBuilder;
@@ -106,7 +106,7 @@ public:
     QWaitCondition has_exec_id_cond;
 
 public slots:
-    void handleNewNode(message::Node& node);
+    void handleNewNode(const cpprofiler::Message& node);
     /// Compare domains of two nodes (highlighted)
     void compareDomains();
 

@@ -119,7 +119,7 @@ void Execution::start(std::string label, bool isRestarts) {
 const NogoodViews* Execution::getNogood(const Node& node) const {
     auto entry = getEntry(node);
     if (!entry) return nullptr;
-    auto nogood = m_Data->getNogoods().find(entry->s_node_id);
+    auto nogood = m_Data->getNogoods().find(entry->full_sid);
     if (nogood == m_Data->getNogoods().end()) return nullptr;
     return &nogood->second;
 }
@@ -136,8 +136,8 @@ Statistics& Execution::getStatistics() {
         return m_NodeTree->getStatistics();
 }
 
-void Execution::handleNewNode(message::Node& node) {
-    m_Data->handleNodeCallback(node);
+void Execution::handleNewNode(const cpprofiler::Message& msg) {
+    m_Data->handleNodeCallback(msg);
 }
 
 const Sid2Nogood& Execution::getNogoods() const {

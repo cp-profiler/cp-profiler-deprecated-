@@ -65,7 +65,7 @@ void NogoodDialog::populateTable(const std::vector<int>& selected_nodes) {
   for (auto it = selected_nodes.begin(); it != selected_nodes.end(); it++) {
     int gid = *it;
     int64_t sid = _tc.getExecution().getData().gid2sid(gid);
-    const std::string& clause = _tc.getExecution().getNogoodBySid(static_cast<int>(sid), false, false);
+    const std::string& clause = _tc.getExecution().getNogoodBySid(sid, false, false);
     if(!clause.empty()) {
       _model->setItem(row, 0, new QStandardItem(QString::number(sid)));
       _model->setItem(row, 1, new QStandardItem(QString::fromStdString(clause)));

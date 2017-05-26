@@ -21,7 +21,7 @@
 
 #include "receiverthread.hh"
 #include "globalhelper.hh"
-#include "message.pb.hh"
+#include "message.hh"
 
 #include <QTcpSocket>
 #include <QMutex>
@@ -67,9 +67,79 @@ ReceiverThread::run(void) {
     // std::cerr << "Receiver thread " << this << " terminating\n";
 }
 
-static quint32 ArrayToInt(const QByteArray& ba) {
+static int32_t ArrayToInt(const QByteArray& ba) {
+
   const char* p = ba.data();
   return *(reinterpret_cast<const quint32*>(p));
+}
+
+using cpprofiler::Message;
+
+void ReceiverWorker::handleMessage(const Message& msg) {
+
+
+    switch (msg.type()) {
+        case cpprofiler::MsgType::NODE:
+            execution->handleNewNode(msg);
+        break;
+        case cpprofiler::MsgType::START:
+            std::cerr << "START\n";
+
+            if (msg.has_info()) {
+
+                try {
+                    std::string s = msg.info();
+
+                    auto info_json = nlohmann::json::parse(msg.info());
+
+                    auto execution_id = info_json.find("execution_id");
+                    if(execution_id != info_json.end()) {
+
+                        if (!execution_id_communicated) {
+                            execution->setExecutionId(*execution_id);
+                            emit executionIdReady();
+                        }
+                    }
+
+                    auto variableListString = info_json.find("variable_list");
+                    if(variableListString != info_json.end()) {
+                        execution->setVariableListString(*variableListString);
+                    }
+                } catch (std::exception& e) {
+                    std::cerr << "Can't parse json in info: " << e.what() << "\n";
+                }
+            }
+
+            /// NOTE(maxim): not sure why break is here
+            if (msg.restart_id() != -1 && msg.restart_id() != 0) {
+                break;
+            }
+
+            {
+                bool is_restarts = (msg.restart_id() != -1);
+                execution->start(msg.label(), is_restarts);
+            }
+
+            /// Wait for condition variable
+            if (!execution_id_communicated) {
+                QMutex m;
+                m.lock();
+                while (!execution->has_exec_id) {
+                    execution->has_exec_id_cond.wait(&m);
+                }
+                execution_id_communicated = true;
+                m.unlock();
+            }
+
+        break;
+        case cpprofiler::MsgType::DONE:
+            emit doneReceiving();
+            std::cerr << "DONE\n";
+        break;
+        default:
+            std::cerr << "unknown type\n";
+    }
+
 }
 
 // This function is called whenever there is new data available to be
@@ -77,91 +147,42 @@ static quint32 ArrayToInt(const QByteArray& ba) {
 void
 ReceiverWorker::doRead()
 {
-    QByteArray data;
+    MessageMarshalling marshalling;
+
     while (tcpSocket->bytesAvailable() > 0) {
-        // Read all data on the socket into a local buffer.
+
         buffer.append(tcpSocket->readAll());
 
-        // This counts how far into "buffer" we are.
-        int bytes_read = 0;
+        if (!size_read) {
 
-        // While we have enough data in the buffer to process the next
-        // header or body
-        while ( (size == 0 && buffer.size() >= bytes_read + 4)
-             || (size > 0  && buffer.size() >= bytes_read + size)) {
-            // Read the header (which contains the size of the body)
-            if (size == 0 && buffer.size() >= bytes_read + 4) {
-                size = ArrayToInt(buffer.mid(bytes_read, 4));
-                bytes_read += 4;
-            }
-            // Read the body
-            if (size > 0 && buffer.size() >= bytes_read + size) {
-                message::Node msg1;
-                msg1.ParseFromArray(buffer.data() + bytes_read, size);
-                bytes_read += size;
+            if (buffer.size() < bytes_read + 4) continue;
 
-                size = 0;
+            msg_size = ArrayToInt(buffer.mid(bytes_read, 4));
 
-                switch (msg1.type()) {
-                case message::Node::NODE:
-                    execution->handleNewNode(msg1);
-                    break;
-                case message::Node::START:
-                {
-                    if (msg1.has_info()) {
+            bytes_read += 4;
+            size_read = true;
 
-                        try {
-                            std::string s = msg1.info();
-                            auto info_json = nlohmann::json::parse(msg1.info());
+        } else {
 
-                            auto execution_id = info_json.find("execution_id");
-                            if(execution_id != info_json.end()) {
+            if (buffer.size() < bytes_read + msg_size) continue;
 
-                                if (!execution_id_communicated) {
-                                    execution->setExecutionId(*execution_id);
-                                    emit executionIdReady();
-                                }
-                            }
+            marshalling.deserialize(buffer.data() + bytes_read, msg_size);
 
-                            auto variableListString = info_json.find("variable_list");
-                            if(variableListString != info_json.end()) {
-                                execution->setVariableListString(*variableListString);
-                            }
-                        } catch (std::exception& e) {
-                            std::cerr << "Can't parse json in info: " << e.what() << "\n";
-                        }
-                    }
+            auto msg = marshalling.get_msg();
 
-                    if (msg1.restart_id() != -1 && msg1.restart_id() != 0) {
-                        // qDebug() << ">>> restart and continue";
-                        break;
-                    }
+            handleMessage(msg);
 
-                    bool is_restarts = (msg1.restart_id() != -1);
+            bytes_read += msg_size;
+            size_read = false;
+            msg_processed++;
 
-                    execution->start(msg1.label(), is_restarts);
-
-                    /// Wait for condition variable
-                    if (!execution_id_communicated) {
-                        QMutex m;
-                        m.lock();
-                        while (!execution->has_exec_id) {
-                            execution->has_exec_id_cond.wait(&m);
-                        }
-                        execution_id_communicated = true;
-                        m.unlock();
-                    } 
-
-                }
-                break;
-                case message::Node::DONE:
-                    emit doneReceiving();
-                    break;
-                }
+            /// reset the buffer every MSG_PER_BUFFER messages
+            if (msg_processed == MSG_PER_BUFFER) {
+                msg_processed = 0;
+                buffer.remove(0, bytes_read);
+                bytes_read = 0;
             }
         }
-
-        // Discard from the buffer the part we have read.
-        buffer.remove(0, bytes_read);
     }
+
 }

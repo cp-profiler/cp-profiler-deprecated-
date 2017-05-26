@@ -30,6 +30,7 @@
 
 #include <iostream>
 #include <string>
+#include <memory>
 
 #include <QDebug>
 
@@ -38,8 +39,8 @@
 
 #include "nogood_representation.hh"
 
-namespace message {
-    class Node;
+namespace cpprofiler {
+    class Message;
 }
 
 class NameMap;
@@ -66,10 +67,19 @@ public:
     {
     }
 
-    DbEntry() {}
+    DbEntry(int id, int64_t parent_sid, int alt, int kids, int status)
+        : s_node_id(id),
+          restart_id(0),
+          parent_sid(parent_sid),
+          alt(alt),
+          numberOfKids(kids),
+          status(status) {}
+
+    DbEntry() = default;
 
     friend std::ostream& operator<<(std::ostream& s, const DbEntry& e);
 
+    /// thread id and node id are stored in one variable (for hashing)
     union {
         struct {
             int32_t s_node_id; // solver node id
@@ -83,7 +93,7 @@ public:
     int numberOfKids;
     char status;
     std::string label;
-    int thread_id; 
+    int thread_id{-1};
     int depth;
     uint64_t time_stamp;
     uint64_t node_time;
@@ -94,34 +104,20 @@ public:
     int decision_level;
 };
 
+class NodeTimer;
+
 class Data : public QObject {
 Q_OBJECT
 
-    using system_clock = std::chrono::system_clock;
-
-/// step for node rate counter (in microseconds)
-    static constexpr int NODE_RATE_STEP = 1000;
+    std::unique_ptr<NodeTimer> search_timer;
 
     std::vector<DbEntry*> nodes_arr;
 
     // Whether received DONE_SENDING message
-    bool _isDone;
-
-    // Total solver time in microseconds
-    uint64_t _total_time;
-
-    uint64_t _prev_node_timestamp;
+    bool _isDone{false};
 
     /// How many nodes received within each NODE_RATE_STEP interval
     std::vector<float> node_rate;
-
-    /// derived properties
-    int _time_per_node;
-
-    /// for node rate
-    system_clock::time_point begin_time;
-    system_clock::time_point last_interval_time;
-    system_clock::time_point current_time;
 
     int last_interval_nc;
 
@@ -130,13 +126,14 @@ Q_OBJECT
 
     NameMap* nameMap{nullptr};
 
+    /// node rate intervals
+    std::vector<int> nr_intervals;
+
 public:
 
     /// Mapping from solver Id to array Id (nodes_arr)
     /// can't use vector because sid is too big with threads
     std::unordered_map<int64_t, int> sid2aid;
-    /// On which node each interval starts
-    std::vector<int> nr_intervals;
 
     /// Maps gist Id to dbEntry (possibly in the other Data instance);
     /// i.e. needed for a merged tree to show labels etc.
@@ -158,7 +155,7 @@ public:
     Data();
     ~Data(void);
 
-    int handleNodeCallback(message::Node& node);
+    int handleNodeCallback(const cpprofiler::Message& node);
 
     /// TODO(maxim): Do I want a reference here?
     /// return label by gid (Gist ID)
@@ -180,7 +177,7 @@ public:
     inline const Sid2Nogood& getNogoods(void) { return sid2nogood; }
     inline std::unordered_map<int64_t, std::string*>& getInfo(void) { return sid2info; }
 
-    unsigned long long getTotalTime(void); /// time in microseconds
+    uint64_t getTotalTime();
 
     unsigned getGidBySid(int64_t sid) { return nodes_arr[sid2aid[sid]]->gid; }
     /// NOTE(maxim): this only works for a merged tree now?
@@ -188,6 +185,8 @@ public:
 
     const NameMap* getNameMap() const { return nameMap; }
     void setNameMap(NameMap* names);
+
+    const std::vector<int>& node_rate_intervals() const { return nr_intervals; }
 
 
 /// ****************************

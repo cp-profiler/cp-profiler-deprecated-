@@ -1,20 +1,21 @@
 #include "utils.hh"
 
 #include <sstream>
+#include <random>
+
 namespace utils {
-/*
 
-std::vector<std::string> split(const std::string &s, char delim) {
-    std::stringstream ss;
-    ss.str(s);
-    std::string item;
-    std::vector<std::string> result;
+  int randInt(int low, int high) {
+    static std::random_device rdev;
+    static std::default_random_engine re(rdev());
+    std::uniform_int_distribution<int> uniform_dist{low, high};
+    int value = uniform_dist(re);
+    return value;
+  }
 
-    while (std::getline(ss, item, delim)) {
-        result.push_back(item);
-    }
+  bool randBool() {
+    int value = randInt(0, 1);
+    return static_cast<bool>(value);
+  }
 
-    return result;
-}
-*/
 }

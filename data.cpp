@@ -30,7 +30,8 @@
 #include <ctime>
 
 #include "visualnode.hh"
-#include "message.pb.hh"
+
+#include "message.hh"
 
 using namespace std;
 using namespace std::chrono;
@@ -48,99 +49,123 @@ ostream& operator<<(ostream& s, const DbEntry& e) {
     return s;
 }
 
+using TP = system_clock::time_point;
 
-Data::Data() {
-    _isDone = false;
-    _prev_node_timestamp = 0;
-    _time_per_node = -1; // unassigned
+static uint64_t milliseconds_passed(TP begin, TP end) {
+  return static_cast<uint64_t>(
+      duration_cast<microseconds>(end - begin).count());
+}
 
+class NodeTimer {
+  /// step for node rate counter (in microseconds)
+  static constexpr int NODE_RATE_STEP = 1000;
+
+  using system_clock = std::chrono::system_clock;
+
+  TP begin_time;
+  TP last_interval_time;
+  TP current_time;
+
+  // Total solver time in microseconds
+  uint64_t m_total_time;
+
+  bool finished{false};
+
+ public:
+  void start() {
     begin_time = system_clock::now();
     current_time = begin_time;
-    last_interval_time = begin_time;
-    last_interval_nc = 0;
+  }
+
+  void end() {
+    m_total_time = milliseconds_passed(begin_time, current_time);
+    finished = true;
+  }
+
+  void on_node() {
+    current_time = system_clock::now();
+
+    auto time_passed = milliseconds_passed(last_interval_time, current_time);
+
+    // if (static_cast<long>(time_passed) > NODE_RATE_STEP) {
+    //     float nr = (nodes_arr.size() - last_interval_nc) * (float)NODE_RATE_STEP / time_passed;
+    //     node_rate.push_back(nr);
+    //     nr_intervals.push_back(last_interval_nc);
+    //     qDebug() << "node rate: " << nr << " at node: " << last_interval_nc;
+    //     last_interval_time = current_time;
+    //     last_interval_nc = nodes_arr.size();
+    // }
+
+  }
+
+  uint64_t total_time() { return finished ? m_total_time : 0; }
+};
+
+Data::Data() : search_timer{new NodeTimer} {
+
+  // last_interval_time = begin_time;
+  // last_interval_nc = 0;
 }
 
 void Data::setDoneReceiving(void) {
-
-    qDebug() << "done receiving";
     QMutexLocker locker(&dataMutex);
 
-    // _total_nodes = nodes_arr.size();
-    _total_time = nodes_arr.back()->time_stamp;
-
-    if (_total_time != 0) {
-        _time_per_node = _total_time / _total_time;
-    } else {
-        qDebug() << "(!) _total_time cannot be 0";
-    }
+    search_timer->end();
+    qDebug() << "done receiving";
 
     /// *** Flush_node_rate ***
 
-    current_time = system_clock::now();
-    long long time_passed = static_cast<long long>(
-        duration_cast<microseconds>(current_time - last_interval_time).count());
+    // current_time = system_clock::now();
+    // auto time_passed = static_cast<uint64_t>(
+    //     duration_cast<microseconds>(current_time - last_interval_time).count());
 
-    float nr = (nodes_arr.size() - last_interval_nc) * (float)NODE_RATE_STEP / time_passed;
-    node_rate.push_back(nr);
-    nr_intervals.push_back(last_interval_nc);
-    nr_intervals.push_back(nodes_arr.size());
+    // float nr = (nodes_arr.size() - last_interval_nc) * (float)NODE_RATE_STEP / time_passed;
+    // node_rate.push_back(nr);
+    // nr_intervals.push_back(last_interval_nc);
+    // nr_intervals.push_back(nodes_arr.size());
 
     _isDone = true;
 
 }
 
 
-int Data::handleNodeCallback(message::Node& node) {
+int Data::handleNodeCallback(const cpprofiler::Message& node) {
 
-    auto prev_node_time = current_time;
-    current_time = system_clock::now();
+    search_timer->on_node();
 
-    auto node_time = duration_cast<microseconds>(current_time - prev_node_time).count();
-
-    if (nodes_arr.size() == 0) node_time = 0; /// ignore the first node
-
-    int sid = node.sid();
+    int sid = node.id();
     int pid = node.pid();
     int alt = node.alt();
     int kids = node.kids();
     int status = node.status();
+
     int restart_id = node.restart_id();
     int tid = node.thread_id();
-    float domain = node.domain_size();
-    int nogood_bld = node.nogood_bld();
-    bool usesAssumptions = node.uses_assumptions();
-    int backjump_distance = node.backjump_distance();
-    int decision_level = node.decision_level();
+    // float domain = node.domain_size();
+    // int nogood_bld = node.nogood_bld();
+    // bool usesAssumptions = node.uses_assumptions();
+    // int backjump_distance = node.backjump_distance();
+    // int decision_level = node.decision_level();
 
-    /// thread id and node id are stored in one variable (for hashing)
     int64_t real_pid = -1;
     if (pid != -1) {
         real_pid = (pid | ((int64_t)restart_id << 32));
     }
 
-    const std::string& label = node.label();
+    auto entry = new DbEntry(sid, real_pid, alt, kids, status);
 
+    if (node.has_restart_id()) {
+        entry->restart_id = node.restart_id();
+    }
 
-    auto entry = new DbEntry(sid,
-                    restart_id,
-                    real_pid,
-                    alt,
-                    kids,
-                    label,
-                    tid,
-                    status,
-                    node.time(),
-                    node_time,
-                    domain,
-                    nogood_bld,
-                    usesAssumptions,
-                    backjump_distance,
-                    decision_level);
-
-    /// TODO(maxim): do sid2info and sid2nogood need to be protected by a mutex?
+    entry->label = node.has_label() ? node.label() : "";
 
     if (node.has_info() && node.info().length() > 0) {
         sid2info[entry->full_sid] = new std::string(node.info());
+    }
+
+    if (node.has_thread_id()) {
+        entry->thread_id = node.thread_id();
     }
 
     pushInstance(entry);
@@ -156,28 +181,10 @@ int Data::handleNodeCallback(message::Node& node) {
             ng.simplified = utils::lits::simplify_ng(ng.renamed);
         }
 
+        qDebug() << "add nogood: " << entry->full_sid << " " << ng.original.c_str(); 
+
         sid2nogood[entry->full_sid] = ng;
     }
-
-    _prev_node_timestamp = node.time();
-
-    // handle node rate
-
-    long long time_passed = static_cast<long long>(duration_cast<microseconds>(current_time - last_interval_time).count());
-
-    // qDebug() << "time passed: " << time_passed;
-    if (static_cast<long>(time_passed) > NODE_RATE_STEP) {
-        float nr = (nodes_arr.size() - last_interval_nc) * (float)NODE_RATE_STEP / time_passed;
-        node_rate.push_back(nr);
-        nr_intervals.push_back(last_interval_nc);
-        // qDebug() << "node rate: " << nr << " at node: " << last_interval_nc;
-        last_interval_time = current_time;
-        last_interval_nc = nodes_arr.size();
-    }
-
-    // system_clock::time_point after_tp = system_clock::now();
-    // qDebug () << "receiving node takes: " <<
-    //     duration_cast<nanoseconds>(after_tp - current_time).count() << "ns";
 
     return 0;
 }
@@ -203,13 +210,8 @@ int64_t Data::gid2sid(int gid) const {
 
 }
 
-unsigned long long Data::getTotalTime(void) {
-
-    if (nodes_arr.size() == 0) return 0;
-
-    if (_isDone)
-        return _total_time;
-    return nodes_arr.back()->time_stamp;
+uint64_t Data::getTotalTime() {
+    return search_timer->total_time();
 }
 
 
@@ -282,7 +284,7 @@ const std::string Data::getDebugInfo() const {
     os << "---sid2nogood---" << '\n';
     for (auto it = sid2nogood.cbegin(); it != sid2nogood.end();
          it++) {
-      os << it->first << " -> " << it->second << "\n";
+      os << it->first << " -> " << it->second.original << "\n";
     }
     os << "---------------" << '\n';
 

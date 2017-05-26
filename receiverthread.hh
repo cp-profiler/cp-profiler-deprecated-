@@ -29,9 +29,11 @@
 #include <QDebug>
 #include <iostream>
 
-#include "message.pb.hh"
-
 class Execution;
+
+namespace cpprofiler {
+  class Message;
+}
 
 class ReceiverThread : public QThread {
   Q_OBJECT
@@ -63,7 +65,6 @@ class ReceiverWorker : public QObject {
  public:
   ReceiverWorker(QTcpSocket* socket, Execution* execution)
       : execution(execution), tcpSocket(socket) {
-    size = 0;
   }
 
  signals:
@@ -73,12 +74,25 @@ class ReceiverWorker : public QObject {
  private:
   Execution* execution;
   QByteArray buffer;
-  int size;
+  bool size_read = false;
+
+  // size of the following message in bytes
+  int msg_size = 0;
+  /// messages processed since last buffer reset
+  int msg_processed = 0;
+  /// where to read next from
+  int bytes_read = 0;
+
+  /// if false -> next to read is size, otherwise -- message itself
+  /// number of messages per buffer reset
+  static constexpr int MSG_PER_BUFFER = 100;
+
   QTcpSocket* tcpSocket;
 
   bool execution_id_communicated = false;
  public slots:
   void doRead();
+  void handleMessage(const cpprofiler::Message& msg);
 };
 
 #endif

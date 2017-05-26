@@ -436,7 +436,7 @@ CountSolvedCursor::processCurrentNode(void) {
 inline
 GetIndexesCursor::GetIndexesCursor(VisualNode* startNode,
   const NodeAllocator& na, std::vector<int>& node_gids)
-: NodeCursor(startNode, na), _na(na), _node_gids(node_gids){
+: NodeCursor(startNode, na), _na(na), _node_gids(node_gids) {
 
 }
 

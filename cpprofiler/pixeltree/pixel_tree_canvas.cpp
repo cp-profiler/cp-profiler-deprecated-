@@ -705,7 +705,7 @@ void PixelTreeCanvas::drawHistogram(const vector<float>& data, int color) {
 
 void PixelTreeCanvas::drawNodeRate(unsigned l_vline, unsigned r_vline) {
   // std::vector<float>& node_rate = _data.node_rate;
-  std::vector<int>& nr_intervals = _data.nr_intervals;
+  const std::vector<int>& nr_intervals = _data.node_rate_intervals();
 
   // int start_x = 0;
 

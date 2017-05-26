@@ -13,7 +13,7 @@
 #include <google/protobuf/io/zero_copy_stream_impl.h>
 #include <google/protobuf/io/coded_stream.h>
 
-#include "message.pb.hh"
+// #include "message.pb.hh"
 
 #include "ml-stats.hh"
 //#include "webscript.hh"
@@ -31,58 +31,33 @@
 
 #include "subtree_comparison.hpp";
 
-bool readDelimitedFrom(google::protobuf::io::ZeroCopyInputStream* rawInput,
-                       google::protobuf::MessageLite* message) {
-  // We create a new coded stream for each message.  Don't worry, this is fast,
-  // and it makes sure the 64MB total size limit is imposed per-message rather
-  // than on the whole stream.  (See the CodedInputStream interface for more
-  // info on this limit.)
-  google::protobuf::io::CodedInputStream input(rawInput);
-
-  // Read the size.
-  uint32_t size;
-  if (!input.ReadVarint32(&size)) return false;
-
-  // Tell the stream not to read beyond that size.
-  google::protobuf::io::CodedInputStream::Limit limit = input.PushLimit(size);
-
-  // Parse the message.
-  if (!message->ParseFromCodedStream(&input)) return false;
-  if (!input.ConsumedEntireMessage()) return false;
-
-  // Release the limit.
-  input.PopLimit(limit);
-
-  return true;
-}
-
 using google::protobuf::io::IstreamInputStream;
 
-Execution* loadSaved(Execution* e, std::string path) {
-  std::ifstream inputFile(path, std::ios::in | std::ios::binary);
-  IstreamInputStream raw_input(&inputFile);
-  while (true) {
-    message::Node msg;
-    bool ok = readDelimitedFrom(&raw_input, &msg);
-    if (!ok) break;
-    switch (msg.type()) {
-      case message::Node::NODE: {
-          e->handleNewNode(msg);
-          break;
-      }
-      case message::Node::START: {
-        bool is_restarts = (msg.restart_id() == 0);
-        e->start("loaded from " + path, is_restarts);
-        if (msg.has_info()) {
-            e->setVariableListString(msg.info());
-        }
-        break;
-      }
-    }
-  }
-  e->doneReceiving();
-  return e;
-}
+// Execution* loadSaved(Execution* e, std::string path) {
+//   std::ifstream inputFile(path, std::ios::in | std::ios::binary);
+//   IstreamInputStream raw_input(&inputFile);
+//   while (true) {
+//     message::Node msg;
+//     bool ok = readDelimitedFrom(&raw_input, &msg);
+//     if (!ok) break;
+//     switch (msg.type()) {
+//       case message::Node::NODE: {
+//           e->handleNewNode(msg);
+//           break;
+//       }
+//       case message::Node::START: {
+//         bool is_restarts = (msg.restart_id() == 0);
+//         e->start("loaded from " + path, is_restarts);
+//         if (msg.has_info()) {
+//             e->setVariableListString(msg.info());
+//         }
+//         break;
+//       }
+//     }
+//   }
+//   e->doneReceiving();
+//   return e;
+// }
 
 ProfilerConductor::ProfilerConductor() : QMainWindow(), listen_port(6565) {
 
@@ -369,30 +344,30 @@ class StatsHelper {
   StatsHelper(QString filename_) : filename(filename_) {}
 };
 
-using google::protobuf::io::OstreamOutputStream;
+// using google::protobuf::io::OstreamOutputStream;
 
-bool writeDelimitedTo(const google::protobuf::MessageLite& message,
-                      google::protobuf::io::ZeroCopyOutputStream* rawOutput) {
-  // We create a new coded stream for each message.  Don't worry, this is fast.
-  google::protobuf::io::CodedOutputStream output(rawOutput);
+// bool writeDelimitedTo(const google::protobuf::MessageLite& message,
+//                       google::protobuf::io::ZeroCopyOutputStream* rawOutput) {
+//   // We create a new coded stream for each message.  Don't worry, this is fast.
+//   google::protobuf::io::CodedOutputStream output(rawOutput);
 
-  // Write the size.
-  const int size = message.ByteSize();
-  output.WriteVarint32(size);
+//   // Write the size.
+//   const int size = message.ByteSize();
+//   output.WriteVarint32(size);
 
-  uint8_t* buffer = output.GetDirectBufferForNBytesAndAdvance(size);
-  if (buffer != nullptr) {
-    // Optimization:  The message fits in one buffer, so use the faster
-    // direct-to-array serialization path.
-    message.SerializeWithCachedSizesToArray(buffer);
-  } else {
-    // Slightly-slower path when the message is multiple buffers.
-    message.SerializeWithCachedSizes(&output);
-    if (output.HadError()) return false;
-  }
+//   uint8_t* buffer = output.GetDirectBufferForNBytesAndAdvance(size);
+//   if (buffer != nullptr) {
+//     // Optimization:  The message fits in one buffer, so use the faster
+//     // direct-to-array serialization path.
+//     message.SerializeWithCachedSizesToArray(buffer);
+//   } else {
+//     // Slightly-slower path when the message is multiple buffers.
+//     message.SerializeWithCachedSizes(&output);
+//     if (output.HadError()) return false;
+//   }
 
-  return true;
-}
+//   return true;
+// }
 
 void ProfilerConductor::gatherStatisticsClicked() {
   QList<QListWidgetItem*> selected = executionList.selectedItems();
@@ -477,52 +452,54 @@ void ProfilerConductor::tellVisualisationsSelectManyNodes(Execution* execution, 
 }
 
 void ProfilerConductor::saveExecutionClicked() {
-  QList<QListWidgetItem*> selected = executionList.selectedItems();
-  if (selected.size() != 1) return;
-  auto item = static_cast<ExecutionListItem*>(selected[0]);
 
-  QString filename =
-      QFileDialog::getSaveFileName(this, "Save execution", QDir::currentPath());
+  // QList<QListWidgetItem*> selected = executionList.selectedItems();
+  // if (selected.size() != 1) return;
+  // auto item = static_cast<ExecutionListItem*>(selected[0]);
 
-  std::ofstream outputFile(filename.toStdString(),
-                           std::ios::out | std::ios::binary);
-  OstreamOutputStream raw_output(&outputFile);
-  auto& data = item->execution_.getData();
+  // QString filename =
+  //     QFileDialog::getSaveFileName(this, "Save execution", QDir::currentPath());
 
-  message::Node start_node;
-  start_node.set_type(message::Node::START);
+  // std::ofstream outputFile(filename.toStdString(),
+  //                          std::ios::out | std::ios::binary);
+  // OstreamOutputStream raw_output(&outputFile);
+  // auto& data = item->execution_.getData();
 
-  if (item->execution_.isRestarts()) {
-    start_node.set_restart_id(0);
-  } else {
-    start_node.set_restart_id(-1);
-  }
+  // message::Node start_node;
+  // start_node.set_type(message::Node::START);
 
-  start_node.set_info("{\"execution_id\": " + std::to_string(item->execution_.getExecutionId()) + "}");
+  // if (item->execution_.isRestarts()) {
+  //   start_node.set_restart_id(0);
+  // } else {
+  //   start_node.set_restart_id(-1);
+  // }
 
-  start_node.set_info(item->execution_.getVariableListString());
-  writeDelimitedTo(start_node, &raw_output);
+  // start_node.set_info("{\"execution_id\": " + std::to_string(item->execution_.getExecutionId()) + "}");
 
-  for (auto* entry : data.getEntries()) {
-    message::Node node;
-    node.set_type(message::Node::NODE);
-    node.set_sid(entry->s_node_id);
-    node.set_pid(entry->parent_sid);
-    node.set_alt(entry->alt);
-    node.set_kids(entry->numberOfKids);
-    node.set_status(static_cast<message::Node::NodeStatus>(entry->status));
-    //            node.set_restart_id
-    node.set_time(entry->time_stamp);
-    node.set_thread_id(entry->thread_id);
-    node.set_label(entry->label);
-    node.set_domain_size(entry->domain);
-    //            node.set_solution(entry->);
-    auto ngit = data.getNogoods().find(entry->s_node_id);
-    if (ngit != data.getNogoods().end()) node.set_nogood(ngit->second.original);
-    auto infoit = data.sid2info.find(entry->s_node_id);
-    if (infoit != data.sid2info.end()) node.set_info(*infoit->second);
-    writeDelimitedTo(node, &raw_output);
-  }
+  // start_node.set_info(item->execution_.getVariableListString());
+  // writeDelimitedTo(start_node, &raw_output);
+
+  // for (auto* entry : data.getEntries()) {
+  //   message::Node node;
+  //   node.set_type(message::Node::NODE);
+  //   node.set_sid(entry->s_node_id);
+  //   node.set_pid(entry->parent_sid);
+  //   node.set_alt(entry->alt);
+  //   node.set_kids(entry->numberOfKids);
+  //   node.set_status(static_cast<message::Node::NodeStatus>(entry->status));
+  //   //            node.set_restart_id
+  //   node.set_time(entry->time_stamp);
+  //   node.set_thread_id(entry->thread_id);
+  //   node.set_label(entry->label);
+  //   node.set_domain_size(entry->domain);
+  //   //            node.set_solution(entry->);
+  //   auto ngit = data.getNogoods().find(entry->s_node_id);
+  //   if (ngit != data.getNogoods().end()) node.set_nogood(ngit->second.original);
+  //   auto infoit = data.sid2info.find(entry->s_node_id);
+  //   if (infoit != data.sid2info.end()) node.set_info(*infoit->second);
+  //   writeDelimitedTo(node, &raw_output);
+  // }
+
 }
 
 void ProfilerConductor::loadExecutionClicked() {
@@ -537,7 +514,7 @@ void ProfilerConductor::loadExecutionClicked() {
 void ProfilerConductor::loadExecution(std::string filename) {
   auto e = new Execution();
   addExecution(*e);
-  loadSaved(e, filename);
+  // loadSaved(e, filename);
 }
 
 void ProfilerConductor::deleteExecutionClicked() {

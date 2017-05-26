@@ -6,7 +6,9 @@
 
 namespace utils {
 
-//  std::vector<std::string> split(const std::string &s, char delim);
+  int randInt(int low, int high);
+
+  bool randBool();
 
 }
 

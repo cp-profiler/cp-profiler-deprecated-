@@ -23,7 +23,7 @@ SOURCES += \
     $$PWD/node_info_dialog.cpp \
     $$PWD/cpprofiler\pixeltree\pixelImage.cpp \
     $$PWD/maybeCaller.cpp \
-    $$PWD/message.pb.cpp \
+    $$PWD/message.cpp \
     $$PWD/profiler-conductor.cpp \
     $$PWD/profiler-tcp-server.cpp \
     $$PWD/ml-stats.cpp \
@@ -84,7 +84,7 @@ HEADERS  += \
     $$PWD/treecomparison.hh \
     $$PWD/nogood_dialog.hh \
     $$PWD/node_info_dialog.hh \
-    $$PWD/message.pb.hh \
+    $$PWD/message.hh \
     $$PWD/profiler-conductor.hh \
     $$PWD/profiler-tcp-server.hh \
     $$PWD/execution.hh \
@@ -119,59 +119,3 @@ HEADERS  += \
     $$PWD/nogood_representation.hh
 
 FORMS    +=
-
-own_protobuf {
-  SOURCES += \
-    $$PWD/protobuf/google/protobuf/stubs/atomicops_internals_x86_gcc.cc         \
-    $$PWD/protobuf/google/protobuf/stubs/atomicops_internals_x86_msvc.cc        \
-    $$PWD/protobuf/google/protobuf/stubs/common.cc                              \
-    $$PWD/protobuf/google/protobuf/stubs/once.cc                                \
-    $$PWD/protobuf/google/protobuf/stubs/stringprintf.cc                        \
-    $$PWD/protobuf/google/protobuf/extension_set.cc                             \
-    $$PWD/protobuf/google/protobuf/generated_message_util.cc                    \
-    $$PWD/protobuf/google/protobuf/message_lite.cc                              \
-    $$PWD/protobuf/google/protobuf/repeated_field.cc                            \
-    $$PWD/protobuf/google/protobuf/wire_format_lite.cc                          \
-    $$PWD/protobuf/google/protobuf/io/coded_stream.cc                           \
-    $$PWD/protobuf/google/protobuf/io/zero_copy_stream.cc                       \
-    $$PWD/protobuf/google/protobuf/io/zero_copy_stream_impl_lite.cc             \
-    $$PWD/protobuf/google/protobuf/stubs/strutil.cc                             \
-    $$PWD/protobuf/google/protobuf/stubs/substitute.cc                          \
-    $$PWD/protobuf/google/protobuf/stubs/structurally_valid.cc                  \
-    $$PWD/protobuf/google/protobuf/descriptor.cc                                \
-    $$PWD/protobuf/google/protobuf/descriptor.pb.cc                             \
-    $$PWD/protobuf/google/protobuf/descriptor_database.cc                       \
-    $$PWD/protobuf/google/protobuf/dynamic_message.cc                           \
-    $$PWD/protobuf/google/protobuf/extension_set_heavy.cc                       \
-    $$PWD/protobuf/google/protobuf/generated_message_reflection.cc              \
-    $$PWD/protobuf/google/protobuf/message.cc                                   \
-    $$PWD/protobuf/google/protobuf/reflection_ops.cc                            \
-    $$PWD/protobuf/google/protobuf/service.cc                                   \
-    $$PWD/protobuf/google/protobuf/text_format.cc                               \
-    $$PWD/protobuf/google/protobuf/unknown_field_set.cc                         \
-    $$PWD/protobuf/google/protobuf/wire_format.cc                               \
-    $$PWD/protobuf/google/protobuf/io/gzip_stream.cc                            \
-    $$PWD/protobuf/google/protobuf/io/printer.cc                                \
-    $$PWD/protobuf/google/protobuf/io/strtod.cc                                 \
-    $$PWD/protobuf/google/protobuf/io/tokenizer.cc                              \
-    $$PWD/protobuf/google/protobuf/io/zero_copy_stream_impl.cc                  \
-    $$PWD/protobuf/google/protobuf/compiler/importer.cc                         \
-    $$PWD/protobuf/google/protobuf/compiler/parser.cc
-  
-  HEADERS += \
-    $$PWD/protobuf/google/protobuf/stubs/hash.h                                 \
-    $$PWD/protobuf/google/protobuf/stubs/map_util.h                             \
-    $$PWD/protobuf/google/protobuf/stubs/shared_ptr.h                           \
-    $$PWD/protobuf/google/protobuf/stubs/stringprintf.h                         \
-    $$PWD/protobuf/google/protobuf/io/coded_stream_inl.h                        \
-    $$PWD/protobuf/google/protobuf/stubs/strutil.h                              \
-    $$PWD/protobuf/google/protobuf/stubs/substitute.h
- 
-  INCLUDEPATH += $$PWD/protobuf 
-}
-
-!own_protobuf {
-  INCLUDEPATH += /usr/local/include
-
-  LIBS += `pkg-config --cflags --libs protobuf` -lprotobuf
-}

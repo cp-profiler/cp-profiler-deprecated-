@@ -1688,19 +1688,6 @@ void TreeCanvas::addChildren() {
   updateCanvas();
 }
 
-static int randInt(int low, int high) {
-  static std::random_device rdev;
-  static std::default_random_engine re(rdev());
-  std::uniform_int_distribution<int> uniform_dist{low, high};
-  int value = uniform_dist(re);
-  return value;
-}
-
-static bool randBool() {
-  int value = randInt(0, 1);
-  return static_cast<bool>(value);
-}
-
 void TreeCanvas::createRandomTree() {
 
   auto no_kids = currentNode->getNumberOfChildren();
@@ -1716,7 +1703,7 @@ void TreeCanvas::createRandomTree() {
   while(!kids_stack.empty()) {
 
     /// pick a node at random
-    auto idx = randInt(0, kids_stack.size() - 1);
+    auto idx = utils::randInt(0, kids_stack.size() - 1);
     auto node = kids_stack[idx];
 
     auto it_remove = begin(kids_stack); std::advance(it_remove, idx);
@@ -1726,12 +1713,12 @@ void TreeCanvas::createRandomTree() {
 
     if (stats.allNodes() >= node_limit) break;
 
-      if (randBool()) {
-        if (randBool() || true) { kids_stack.push_back(node->getChild(na, 0)); } 
-        if (randBool() || true) { kids_stack.push_back(node->getChild(na, 1)); }
+      if (utils::randBool()) {
+        if (utils::randBool() || true) { kids_stack.push_back(node->getChild(na, 0)); }
+        if (utils::randBool() || true) { kids_stack.push_back(node->getChild(na, 1)); }
       } else {
-        if (randBool() || true) { kids_stack.push_back(node->getChild(na, 1)); }
-        if (randBool() || true) { kids_stack.push_back(node->getChild(na, 0)); }
+        if (utils::randBool() || true) { kids_stack.push_back(node->getChild(na, 1)); }
+        if (utils::randBool() || true) { kids_stack.push_back(node->getChild(na, 0)); }
       }
   }
 

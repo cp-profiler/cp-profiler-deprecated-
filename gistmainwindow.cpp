@@ -294,7 +294,7 @@ GistMainWindow::finishStatsBar() {
   /// a quick hack for now
   if (execution.getData().isDone()) {
 
-    unsigned long long totalTime = execution.getData().getTotalTime();
+    auto totalTime = execution.getData().getTotalTime();
     float seconds = totalTime / 1000000.0;
 
     statusBar()->showMessage("Done in " + QString::number(seconds) + "s");
