@@ -26,9 +26,10 @@
 #include "nodetree.hh"
 #include <cassert>
 
+#ifndef Q_OS_WIN
+#include <sys/time.h>
+#else
 #include <time.h>
-//#include <sys/time.h>
-
 int gettimeofday(struct timeval * tp, struct timezone * tzp)
 {
     // Note: some broken versions only have 8 trailing zero's, the correct epoch has 9 trailing zero's
@@ -49,6 +50,7 @@ int gettimeofday(struct timeval * tp, struct timezone * tzp)
     tp->tv_usec = (long) (system_time.wMilliseconds * 1000);
     return 0;
 }
+#endif
 
 double get_wall_time() {
   struct timeval time;
