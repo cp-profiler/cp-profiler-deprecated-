@@ -16,7 +16,7 @@
 #include "message.pb.hh"
 
 #include "ml-stats.hh"
-#include "webscript.hh"
+//#include "webscript.hh"
 
 #include "cpprofiler/utils/tree_utils.hh"
 
@@ -114,10 +114,10 @@ ProfilerConductor::ProfilerConductor() : QMainWindow(), listen_port(6565) {
   connect(gatherStatisticsButton, SIGNAL(clicked()), this,
           SLOT(gatherStatisticsClicked()));
 
-  auto webscriptButton = new QPushButton("webscript view");
-  webscriptButton->setEnabled(false);
-  connect(webscriptButton, SIGNAL(clicked()), this,
-          SLOT(webscriptClicked()));
+  // auto webscriptButton = new QPushButton("webscript view");
+  // webscriptButton->setEnabled(false);
+  // connect(webscriptButton, SIGNAL(clicked()), this,
+  //         SLOT(webscriptClicked()));
 
   auto saveExecutionButton = new QPushButton("save execution");
   saveExecutionButton->setEnabled(false);
@@ -149,7 +149,7 @@ ProfilerConductor::ProfilerConductor() : QMainWindow(), listen_port(6565) {
       compareSubtrees->setEnabled       (nselected == 2);
       compareWithLabelsCB.setEnabled    (nselected == 2);
       gatherStatisticsButton->setEnabled(nselected > 0);
-      webscriptButton->setEnabled       (nselected > 0);
+      // webscriptButton->setEnabled       (nselected > 0);
       saveExecutionButton->setEnabled   (nselected == 1);
       loadExecutionButton->setEnabled   (true);
       deleteExecutionButton->setEnabled (nselected > 0);
@@ -167,7 +167,7 @@ ProfilerConductor::ProfilerConductor() : QMainWindow(), listen_port(6565) {
 
   layout->addWidget(compareSubtrees,        3, 0, 1, 2);
   layout->addWidget(gatherStatisticsButton, 4, 0, 1, 2);
-  layout->addWidget(webscriptButton,        5, 0, 1, 2);
+  // layout->addWidget(webscriptButton,        5, 0, 1, 2);
   layout->addWidget(saveExecutionButton,    6, 0, 1, 2);
   layout->addWidget(loadExecutionButton,    7, 0, 1, 2);
   layout->addWidget(cloneExecutionButton,   8, 0, 1, 2);
@@ -421,59 +421,59 @@ void ProfilerConductor::gatherStatisticsClicked() {
 }
 
 void ProfilerConductor::webscriptClicked() {
-    QList<QListWidgetItem*> selected = executionList.selectedItems();
-    for (int i = 0; i < selected.size(); i++) {
-        ExecutionListItem* item = static_cast<ExecutionListItem*>(selected[i]);
-        Execution& execution = item->execution_;
+    // QList<QListWidgetItem*> selected = executionList.selectedItems();
+    // for (int i = 0; i < selected.size(); i++) {
+    //     ExecutionListItem* item = static_cast<ExecutionListItem*>(selected[i]);
+    //     Execution& execution = item->execution_;
 
-        const char* paths[] = { "webscripts/sunburst.html", "webscripts/icicle.html", "webscripts/variables.html" };
-        const char* ids[] = { "sunburst", "icicle", "variables" };
-        std::stringstream ss;
-        ::collectMLStats(execution.nodeTree().getRoot(), execution.nodeTree().getNA(), &execution, ss);
+    //     const char* paths[] = { "webscripts/sunburst.html", "webscripts/icicle.html", "webscripts/variables.html" };
+    //     const char* ids[] = { "sunburst", "icicle", "variables" };
+    //     std::stringstream ss;
+    //     ::collectMLStats(execution.nodeTree().getRoot(), execution.nodeTree().getNA(), &execution, ss);
 
-        for (int i = 0 ; i < 3 ; i++) {
-            if (getWebscriptView(&execution, ids[i]) == NULL) {
-                QDialog* dialog = new QDialog(this);
-                WebscriptView* web = new WebscriptView(dialog, paths[i], &execution, ss.str());
-                registerWebscriptView(&execution, ids[i], web);
+    //     for (int i = 0 ; i < 3 ; i++) {
+    //         if (getWebscriptView(&execution, ids[i]) == NULL) {
+    //             QDialog* dialog = new QDialog(this);
+    //             WebscriptView* web = new WebscriptView(dialog, paths[i], &execution, ss.str());
+    //             registerWebscriptView(&execution, ids[i], web);
             
-                QHBoxLayout* layout = new QHBoxLayout;
-                layout->addWidget(web);
-                dialog->setLayout(layout);
+    //             QHBoxLayout* layout = new QHBoxLayout;
+    //             layout->addWidget(web);
+    //             dialog->setLayout(layout);
 
-                connect(web, &WebscriptView::announceSelectNode,
-                        this, [this, &execution](int gid){this->tellVisualisationsSelectNode(&execution, gid);});
-                connect(web, &WebscriptView::announceSelectManyNodes,
-                        this, [this, &execution](QList<QVariant> gids){
-                            this->tellVisualisationsSelectManyNodes(&execution, gids);
-                        });
+    //             connect(web, &WebscriptView::announceSelectNode,
+    //                     this, [this, &execution](int gid){this->tellVisualisationsSelectNode(&execution, gid);});
+    //             connect(web, &WebscriptView::announceSelectManyNodes,
+    //                     this, [this, &execution](QList<QVariant> gids){
+    //                         this->tellVisualisationsSelectManyNodes(&execution, gids);
+    //                     });
             
-                dialog->show();
-            }
+    //             dialog->show();
+    //         }
 
-            // We get the parent widget here because we want to show()
-            // the containing QDialog, not the inner WebEngineView.
-            getWebscriptView(&execution, ids[i])->parentWidget()->show();
-        }
-    }
+    //         // We get the parent widget here because we want to show()
+    //         // the containing QDialog, not the inner WebEngineView.
+    //         getWebscriptView(&execution, ids[i])->parentWidget()->show();
+    //     }
+    // }
 }
 
 void ProfilerConductor::tellVisualisationsSelectNode(Execution* execution, int gid) {
-    WebscriptView* p;
-    p = executionInfoHash[execution]->sunburstView;  if (p) p->select(gid);
-    p = executionInfoHash[execution]->icicleView;    if (p) p->select(gid);
-    p = executionInfoHash[execution]->variablesView; if (p) p->select(gid);
-    GistMainWindow* g;
-    g = executionInfoHash[execution]->gistWindow;    if (g) g->selectNode(gid);
+    // WebscriptView* p;
+    // p = executionInfoHash[execution]->sunburstView;  if (p) p->select(gid);
+    // p = executionInfoHash[execution]->icicleView;    if (p) p->select(gid);
+    // p = executionInfoHash[execution]->variablesView; if (p) p->select(gid);
+    // GistMainWindow* g;
+    // g = executionInfoHash[execution]->gistWindow;    if (g) g->selectNode(gid);
 }
 
 void ProfilerConductor::tellVisualisationsSelectManyNodes(Execution* execution, QList<QVariant> gids) {
-    WebscriptView* p;
-    p = executionInfoHash[execution]->sunburstView;  if (p) p->selectMany(gids);
-    p = executionInfoHash[execution]->icicleView;    if (p) p->selectMany(gids);
-    p = executionInfoHash[execution]->variablesView; if (p) p->selectMany(gids);
-    GistMainWindow* g;
-    g = executionInfoHash[execution]->gistWindow;    if (g) g->selectManyNodes(gids);
+    // WebscriptView* p;
+    // p = executionInfoHash[execution]->sunburstView;  if (p) p->selectMany(gids);
+    // p = executionInfoHash[execution]->icicleView;    if (p) p->selectMany(gids);
+    // p = executionInfoHash[execution]->variablesView; if (p) p->selectMany(gids);
+    // GistMainWindow* g;
+    // g = executionInfoHash[execution]->gistWindow;    if (g) g->selectManyNodes(gids);
 }
 
 void ProfilerConductor::saveExecutionClicked() {
@@ -556,16 +556,16 @@ void ProfilerConductor::deleteExecutionClicked() {
 
 WebscriptView*
 ProfilerConductor::getWebscriptView(Execution* execution, std::string id) {
-    if      (id == "sunburst")  return executionInfoHash[execution]->sunburstView;
-    else if (id == "icicle")    return executionInfoHash[execution]->icicleView;
-    else if (id == "variables") return executionInfoHash[execution]->variablesView;
+    // if      (id == "sunburst")  return executionInfoHash[execution]->sunburstView;
+    // else if (id == "icicle")    return executionInfoHash[execution]->icicleView;
+    // else if (id == "variables") return executionInfoHash[execution]->variablesView;
     return NULL;
 }
 
 void ProfilerConductor::registerWebscriptView(Execution* execution, std::string id, WebscriptView* webView) {
-    if      (id == "sunburst")  executionInfoHash[execution]->sunburstView = webView;
-    else if (id == "icicle")    executionInfoHash[execution]->icicleView = webView;
-    else if (id == "variables") executionInfoHash[execution]->variablesView = webView;
+    // if      (id == "sunburst")  executionInfoHash[execution]->sunburstView = webView;
+    // else if (id == "icicle")    executionInfoHash[execution]->icicleView = webView;
+    // else if (id == "variables") executionInfoHash[execution]->variablesView = webView;
 }
 
 void ProfilerConductor::createDebugExecution() {

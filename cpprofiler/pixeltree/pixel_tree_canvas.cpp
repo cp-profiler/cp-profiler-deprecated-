@@ -525,7 +525,7 @@ void PixelTreeCanvas::drawPixelTree(const PixelData& pixel_data) {
   }
 
   pixel_image.drawHorizontalLine(tree_depth - yoff,
-                                 PixelImage::PIXEL_COLOR::LIGTH_GRAY);
+                                 PixelImage::LIGTH_GRAY);
 
   current_image_height += tree_depth + MARGIN + 1;
 }
@@ -590,9 +590,9 @@ void PixelTreeCanvas::drawVarData() {
 
   hisogramDesc.var_end = zero_level;
   pixel_image.drawHorizontalLine(current_image_height - yoff,
-                                 PixelImage::PIXEL_COLOR::LIGTH_GRAY);
+                                 PixelImage::LIGTH_GRAY);
   pixel_image.drawHorizontalLine(zero_level,
-                                 PixelImage::PIXEL_COLOR::LIGTH_GRAY);
+                                 PixelImage::LIGTH_GRAY);
 
   for (auto vline = 0u; vline < var_decisions_compressed.size(); ++vline) {
     for (auto i = 0u; i < var_decisions_compressed.at(vline).size(); ++i) {
@@ -627,9 +627,9 @@ void PixelTreeCanvas::drawNogoodData() {
 
   const int zero_level = current_image_height + max_value - yoff;
   pixel_image.drawHorizontalLine(current_image_height - yoff,
-                                 PixelImage::PIXEL_COLOR::LIGTH_GRAY);
+                                 PixelImage::LIGTH_GRAY);
   pixel_image.drawHorizontalLine(zero_level,
-                                 PixelImage::PIXEL_COLOR::LIGTH_GRAY);
+                                 PixelImage::LIGTH_GRAY);
 
   for (auto vline = 0u; vline < nogood_counts_compressed.size(); vline++) {
     const auto value = nogood_counts_compressed[vline];
@@ -679,12 +679,12 @@ void PixelTreeCanvas::drawHistogram(const vector<float>& data, int color) {
   float coeff = static_cast<float>(HIST_HEIGHT) / (max_value + 1);
 
   pixel_image.drawHorizontalLine(current_image_height - yoff,
-                                 PixelImage::PIXEL_COLOR::LIGTH_GRAY);
+                                 PixelImage::LIGTH_GRAY);
 
   auto zero_level = current_image_height + (float)HIST_HEIGHT - yoff;
 
   pixel_image.drawHorizontalLine(zero_level,
-                                 PixelImage::PIXEL_COLOR::LIGTH_GRAY);
+                                 PixelImage::LIGTH_GRAY);
 
   for (unsigned vline = 0; vline < data.size(); vline++) {
     auto val = floor(data[vline] * coeff);
@@ -717,7 +717,7 @@ void PixelTreeCanvas::drawNodeRate(unsigned l_vline, unsigned r_vline) {
   int zero_level = tree_depth + HIST_HEIGHT;
 
   pixel_image.drawHorizontalLine(zero_level,
-                                 PixelImage::PIXEL_COLOR::LIGTH_GRAY);
+                                 PixelImage::LIGTH_GRAY);
 
   for (unsigned i = 1; i < nr_intervals.size(); i++) {
     // float value = node_rate[i - 1] * coeff;
@@ -766,9 +766,9 @@ void PixelTreeCanvas::drawBjData() {
   int zero_level = current_image_height + coeff * (max_value + 1) - yoff;
 
   pixel_image.drawHorizontalLine(current_image_height - yoff,
-                                 PixelImage::PIXEL_COLOR::LIGTH_GRAY);
+                                 PixelImage::LIGTH_GRAY);
   pixel_image.drawHorizontalLine(zero_level,
-                                 PixelImage::PIXEL_COLOR::LIGTH_GRAY);
+                                 PixelImage::LIGTH_GRAY);
 
   const auto compr = pixel_data.compression();
   const auto end = std::ceil((float)_nodeCount / compr);
@@ -857,9 +857,9 @@ void PixelTreeCanvas::drawDepthAnalysisData() {
   const int zero_level = current_image_height + HIST_HEIGHT - yoff;
 
   pixel_image.drawHorizontalLine(current_image_height - yoff - 1,
-                                 PixelImage::PIXEL_COLOR::LIGTH_GRAY);
+                                 PixelImage::LIGTH_GRAY);
   pixel_image.drawHorizontalLine(zero_level - 1,
-                                 PixelImage::PIXEL_COLOR::LIGTH_GRAY);
+                                 PixelImage::LIGTH_GRAY);
   /// *** Actual Data ***
   /// for each depth level:
   for (auto depth = 0; depth < int(da_data_compressed.size()); depth++) {
@@ -914,9 +914,9 @@ void PixelTreeCanvas::drawDepthAnalysisData2() {
   int zero_level = current_image_height + max_depth - yoff;
 
   pixel_image.drawHorizontalLine(current_image_height - 1 - yoff,
-                                 PixelImage::PIXEL_COLOR::LIGTH_GRAY);
+                                 PixelImage::LIGTH_GRAY);
   pixel_image.drawHorizontalLine(zero_level - 1,
-                                 PixelImage::PIXEL_COLOR::LIGTH_GRAY);
+                                 PixelImage::LIGTH_GRAY);
   /// *** Actual Data ***
   /// for each depth level:
   for (auto depth = 0; depth < max_depth; depth++) {

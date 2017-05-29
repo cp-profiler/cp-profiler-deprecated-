@@ -104,6 +104,11 @@ std::unique_ptr<T> make_unique(Args&&... args) {
    return make_unique_helper<T>(std::is_array<T>(), std::forward<Args>(args)...);
 }
 
+template <typename T>
+std::unique_ptr<T> make_unique() {
+  return std::unique_ptr<T>(new T);
+}
+
 /// Helper function for the one below
 template<typename T>
 static size_t findAnyOf(const std::string& str, T el) {

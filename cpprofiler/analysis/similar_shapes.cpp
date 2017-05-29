@@ -227,7 +227,7 @@ void SimilarShapesWindow::initInterface() {
     connect(labels_comp, &QComboBox::currentTextChanged, [this, label_options](const QString& str) {
 
       if (str == label_options[0]) {
-        settings.label_opt = LabelOption::IGNORE;
+        settings.label_opt = LabelOption::IGNORE_LABEL;
       } else if (str == label_options[1]) {
         settings.label_opt = LabelOption::VARS;
       } else if (str == label_options[2]) {

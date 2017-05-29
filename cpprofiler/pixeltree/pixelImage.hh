@@ -97,15 +97,15 @@ class PixelImage {
   int pixel_height() const { return pixel_height_; };
   int pixel_width() const { return pixel_width_; };
 
-  enum PIXEL_COLOR {
-    BLACK = qRgb(0, 0, 0),
-    // YELLOW = qRgb(255, 255, 255),
-    DARK_GRAY = qRgb(150, 150, 150),
-    LIGTH_GRAY = qRgb(200, 2000, 200),
-    BLACK_ALPHA = qRgba(255, 0, 0, 50),
-    GRID = qRgb(230, 230, 230),
-    WHITE = qRgb(255, 255, 255)
-  };
+  typedef unsigned int PIXEL_COLOR;
+  static PIXEL_COLOR BLACK;
+  static PIXEL_COLOR YELLOW;
+  static PIXEL_COLOR DARK_GRAY;
+  static PIXEL_COLOR LIGTH_GRAY;
+  static PIXEL_COLOR BLACK_ALPHA;
+  static PIXEL_COLOR GRID;
+  static PIXEL_COLOR WHITE;
+
 };
 
 #endif

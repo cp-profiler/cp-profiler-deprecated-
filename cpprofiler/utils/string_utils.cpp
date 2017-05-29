@@ -1,5 +1,7 @@
-#include <sstream>
 #include "cpprofiler/utils/string_utils.hh"
+
+#include <sstream>
+#include <iterator>
 
 using std::vector;
 using std::string;

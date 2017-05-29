@@ -9,6 +9,7 @@
 #include <iostream>
 #include <climits>
 #include <stdexcept>
+#include <array>
 
 #include "libs/perf_helper.hh"
 #include "cpprofiler/utils/string_utils.hh"

@@ -22,14 +22,14 @@ namespace analysis {
 class SubtreeCanvas;
 struct SubtreeInfo;
 struct ShapeInfo;
-
+  
 enum class LabelOption {
-    IGNORE, VARS, FULL
+    IGNORE_LABEL, VARS, FULL
 };
 
 struct HistogramSettings {
 
-    LabelOption label_opt = LabelOption::IGNORE;
+    LabelOption label_opt = LabelOption::IGNORE_LABEL;
     bool hideNotHighlighted = true;
     bool keepSubsumed = false;
 };

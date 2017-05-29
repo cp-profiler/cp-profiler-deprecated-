@@ -113,7 +113,6 @@ HEADERS  += \
     $$PWD/cpprofiler\analysis\subtree_analysis.hh \
     $$PWD/cpprofiler\analysis\similar_shape_algorithm.hh \
     $$PWD/cpprofiler\analysis\shape_rect.hh \
-    $$PWD/webscript.hh \
     $$PWD/namemap.hh \
     $$PWD/nogoodtable.hh \
     $$PWD/cpprofiler/utils/string_utils.hh \

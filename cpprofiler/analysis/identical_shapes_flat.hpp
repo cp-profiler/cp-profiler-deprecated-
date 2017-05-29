@@ -174,7 +174,9 @@ static void updateGroups(const std::vector<ChildInfo>& subtrees,
 
 
     /// create a new spearator based on new_mark
-    Separator new_sep({s.new_mark, s.new_mark});
+    Separator new_sep;
+    new_sep.mark = s.new_mark;
+    new_sep.new_mark = s.new_mark;
 
     /// reset the current group
     s.new_mark = s.mark;

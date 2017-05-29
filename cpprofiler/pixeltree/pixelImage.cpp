@@ -27,6 +27,14 @@
 
 using namespace std::chrono;
 
+PixelImage::PIXEL_COLOR PixelImage::BLACK = qRgb(0, 0, 0);
+PixelImage::PIXEL_COLOR PixelImage::YELLOW = qRgb(255, 255, 255);
+PixelImage::PIXEL_COLOR PixelImage::DARK_GRAY = qRgb(150, 150, 150);
+PixelImage::PIXEL_COLOR PixelImage::LIGTH_GRAY = qRgb(200, 2000, 200);
+PixelImage::PIXEL_COLOR PixelImage::BLACK_ALPHA = qRgba(255, 0, 0, 50);
+PixelImage::PIXEL_COLOR PixelImage::GRID = qRgb(230, 230, 230);
+PixelImage::PIXEL_COLOR PixelImage::WHITE = qRgb(255, 255, 255);
+
 PixelImage::PixelImage() : image_(nullptr), width_(0), height_(0) {}
 
 void PixelImage::resize(int width, int height) {
@@ -87,8 +95,8 @@ void PixelImage::drawRect(int x, int width, int y, QRgb color) {
     auto y_lowest = y_begin;
     auto y_highest = y_end - 1;
 
-    setPixel(buffer_, x, y_lowest, PIXEL_COLOR::BLACK);
-    setPixel(buffer_, x, y_highest, PIXEL_COLOR::BLACK);
+    setPixel(buffer_, x, y_lowest, BLACK);
+    setPixel(buffer_, x, y_highest, BLACK);
   }
 
   /// vertical lines
@@ -98,8 +106,8 @@ void PixelImage::drawRect(int x, int width, int y, QRgb color) {
     auto x_rightmost = x_end - 1;
     // assert((int)x_end - 1 >= 0);
 
-    setPixel(buffer_, x_leftmost, y, PIXEL_COLOR::BLACK);
-    setPixel(buffer_, x_rightmost, y, PIXEL_COLOR::BLACK);
+    setPixel(buffer_, x_leftmost, y, BLACK);
+    setPixel(buffer_, x_rightmost, y, BLACK);
   }
 
   /// fill the rect
@@ -185,10 +193,10 @@ void PixelImage::drawVerticalLine(std::vector<uint32>& buffer, int x,
 void PixelImage::drawMouseGuidelines(uint32 x, uint32 y) {
   std::fill(guidlines_buffer_.begin(), guidlines_buffer_.end(), 0xFFFFFF);
 
-  drawHorizontalLine(guidlines_buffer_, y - 1, PIXEL_COLOR::DARK_GRAY);
-  drawHorizontalLine(guidlines_buffer_, y, PIXEL_COLOR::DARK_GRAY);
-  drawVerticalLine(guidlines_buffer_, x - 1, PIXEL_COLOR::DARK_GRAY);
-  drawVerticalLine(guidlines_buffer_, x, PIXEL_COLOR::DARK_GRAY);
+  drawHorizontalLine(guidlines_buffer_, y - 1, DARK_GRAY);
+  drawHorizontalLine(guidlines_buffer_, y, DARK_GRAY);
+  drawVerticalLine(guidlines_buffer_, x - 1, DARK_GRAY);
+  drawVerticalLine(guidlines_buffer_, x, DARK_GRAY);
 }
 
 /// TODO: drawGrid only when resized / rescaled
@@ -205,7 +213,7 @@ void PixelImage::drawGrid() {
     /// one line
     for (int i = 0; i < width_ - pixel_size; ++i) {
       for (int k = 0; k < pixel_size; ++k)
-        setPixel(background_buffer_, i + k, j, PixelImage::PIXEL_COLOR::GRID);
+        setPixel(background_buffer_, i + k, j, PixelImage::GRID);
     }
   }
 
@@ -214,7 +222,7 @@ void PixelImage::drawGrid() {
     /// one line
     for (int j = 0; j < height_ - pixel_size; ++j) {
       for (int k = 0; k < pixel_size; ++k)
-        setPixel(background_buffer_, i, j + k, PixelImage::PIXEL_COLOR::GRID);
+        setPixel(background_buffer_, i, j + k, PixelImage::GRID);
     }
   }
 }

@@ -10,7 +10,7 @@ DEFINES += CP_PROFILER_DEVELOPMENT
 
 QT       += core gui network
 
-QT += webkitwidgets
+# QT += webkitwidgets
 # QT += webenginewidgets webchannel
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets printsupport

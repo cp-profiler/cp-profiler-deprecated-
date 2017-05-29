@@ -297,7 +297,7 @@ static GroupsOfNodes_t groupByLabels(Execution& ex, bool vars_only = false) {
 
 }
 
-GroupsOfNodes_t findIdentical(Execution& ex, LabelOption label_opt = LabelOption::IGNORE) {
+GroupsOfNodes_t findIdentical(Execution& ex, LabelOption label_opt = LabelOption::IGNORE_LABEL) {
 
   auto& nt = ex.nodeTree();
 
