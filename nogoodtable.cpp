@@ -20,8 +20,10 @@ QString lit2string(utils::lits::Lit l) {
 // =============================================================
 class NogoodDelegate : public QStyledItemDelegate {
 public:
-    NogoodDelegate(std::unordered_map<std::string, QColor>& colors,
-                   int nogood_col) : _colors(colors), _nogood_col(nogood_col) {}
+    NogoodDelegate(NogoodTableView* nogoodTable,
+                   std::unordered_map<std::string, QColor>& colors,
+                   int nogood_col) : _nogoodTable(nogoodTable),
+      _colors(colors), _nogood_col(nogood_col) {}
 
 protected:
   void paint(QPainter* painter, const QStyleOptionViewItem& item, const QModelIndex& index) const {
@@ -38,6 +40,9 @@ protected:
       for(QString& ls : clause.split(" ", QString::SplitBehavior::SkipEmptyParts)) {
         utils::lits::Lit lit = utils::lits::parse_lit(ls.toStdString());
         QStringList litstring;
+        if(_colors.find(lit.var) == _colors.end())
+          _nogoodTable->updateColors();
+
         QColor c = _colors.at(lit.var);
         litstring << "<span style=\"color:" << c.name()  << ";\">" << lit2string(lit).toHtmlEscaped() << "</span>";
         litsHtml.append(litstring.join(""));
@@ -62,6 +67,7 @@ protected:
     painter->restore();
   }
 private:
+  NogoodTableView* _nogoodTable;
   std::unordered_map<std::string, QColor>& _colors;
   int _nogood_col;
 };
@@ -163,8 +169,7 @@ NogoodTableView::NogoodTableView(QWidget* parent,
   setModel(nogood_proxy_model);
   setSortingEnabled(true);
 
-  updateColors();
-  setItemDelegate(new NogoodDelegate(_colors, _nogood_col));
+  setItemDelegate(new NogoodDelegate(this, _colors, _nogood_col));
 }
 
 void NogoodTableView::updateColors(void) {
@@ -282,7 +287,6 @@ void NogoodTableView::connectNogoodRepresentationCheckBoxes(const QCheckBox* cha
     _show_renamed_literals = changeRep->isChecked();
     _show_simplified_nogoods = showSimplified->isChecked();
 
-    updateColors();
     refreshModelRenaming();
   };
 

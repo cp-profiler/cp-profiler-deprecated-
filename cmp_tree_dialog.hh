@@ -25,6 +25,8 @@
 #include <QDialog>
 #include <memory>
 
+#include "nogoodtable.hh"
+
 struct PentagonItem;
 class Gist;
 class ComparisonResult;
@@ -44,14 +46,14 @@ Q_OBJECT
 private:
 
   QTableWidget _pentagonTable;
-  QTableWidget _nogoodTable;
+  NogoodTableView* _nogoodTable;
 
   const ComparisonResult& cmp_result;
   const std::vector<PentagonItem>& _items;
 
 private:
   
-  void populateNogoodTable(const std::vector<int>& nogoods);
+  void populateNogoodTable(QStandardItemModel* model, const std::vector<int>& nogoods);
 
 public:
   PentListWindow(CmpTreeDialog* parent, const ComparisonResult& items);

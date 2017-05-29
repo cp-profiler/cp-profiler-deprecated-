@@ -31,7 +31,6 @@
 #include "execution.hh"
 #include "nodetree.hh"
 #include "data.hh"
-#include "nogoodtable.hh"
 #include "libs/perf_helper.hh"
 #include "cpprofiler/utils/nogood_subsumption.hh"
 #include "nogood_representation.hh"
@@ -287,19 +286,6 @@ CmpTreeDialog::saveComparisonStats() {
 
 /// *************** Pentagon List Window ****************
 
-
-static void initNogoodTable(QTableWidget& ng_table) {
-  ng_table.setEditTriggers(QAbstractItemView::NoEditTriggers);
-
-  ng_table.setColumnCount(3);
-
-  QStringList table_header;
-  table_header << "Id" << "Occurrence" << "Literals";
-  ng_table.setHorizontalHeaderLabels(table_header);
-  ng_table.setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
-  ng_table.setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
-}
-
 std::vector<int>
 infoToNogoodVector(const string& info) {
 
@@ -318,30 +304,29 @@ infoToNogoodVector(const string& info) {
 }
 
 void
-PentListWindow::populateNogoodTable(const std::vector<int>& nogoods) {
+PentListWindow::populateNogoodTable(QStandardItemModel* model,
+                                    const std::vector<int>& nogoods) {
 
   auto ng_stats = cmp_result.responsible_nogood_stats();
   const Execution& left_execution = cmp_result.left_execution();
 
-  _nogoodTable.setRowCount(nogoods.size());
-
-  for (auto i = 0u; i < nogoods.size(); i++) {
+  for (size_t i = 0; i < nogoods.size(); i++) {
 
     auto ng_id = nogoods[i]; /// is this sid of gid???
-    _nogoodTable.setItem(i, 0, new QTableWidgetItem(QString::number(ng_id)));
+    model->setItem(static_cast<int>(i), 0, new QStandardItem(QString::number(ng_id)));
 
-    const string& nogood = left_execution.getNogoodBySid(ng_id, false, false);
-    qDebug() << "nogood id " << ng_id << ": " << nogood.c_str();
+    const string& nogood = left_execution.getNogoodBySid(ng_id, true, true);
+    //qDebug() << "nogood id " << ng_id << ": " << nogood.c_str();
 
     int ng_count = ng_stats.at(ng_id).occurrence;
 
-    _nogoodTable.setItem(i, 1, new QTableWidgetItem(QString::number(ng_count)));
+    model->setItem(static_cast<int>(i), 1, new QStandardItem(QString::number(ng_count)));
 
-    _nogoodTable.setItem(i, 2, new QTableWidgetItem(nogood.c_str()));
+    model->setItem(static_cast<int>(i), 2, new QStandardItem(nogood.c_str()));
 
   }
 
-  _nogoodTable.resizeColumnsToContents();
+  _nogoodTable->resizeColumnsToContents();
 
 }
 
@@ -356,18 +341,32 @@ PentListWindow::PentListWindow(CmpTreeDialog* parent,
 
   setAttribute( Qt::WA_DeleteOnClose );
 
-  connect(&_pentagonTable, &QTableWidget::cellDoubleClicked, [this, parent](int row, int) {
+
+  auto _model = new QStandardItemModel(0, 2, this);
+  _model->setHorizontalHeaderLabels({"Id", "Occurrence", "Literals"});
+  _model->setColumnCount(3);
+
+  enum RNCols {SID_COL = 0, OCCURRENCE_COL, NOGOOD_COL};
+  QVector<NogoodProxyModel::Sorter> sorters{
+    NogoodProxyModel::SORTER_SID , NogoodProxyModel::SORTER_INT, NogoodProxyModel::SORTER_NOGOOD
+  };
+
+  _nogoodTable = new NogoodTableView(this, _model, sorters,
+                                      result.left_execution(),
+                                      SID_COL, NOGOOD_COL);
+
+  connect(&_pentagonTable, &QTableWidget::cellDoubleClicked, [this, parent, _model](int row, int) {
     static_cast<CmpTreeDialog*>(parent)->selectPentagon(row);
 
-    auto maybe_info = _items[row].info;
+    auto maybe_info = _items[static_cast<size_t>(row)].info;
 
     /// clear nogood view
-    _nogoodTable.clearContents();
+    _model->clear();
 
     if (maybe_info) {
       auto nogoods = infoToNogoodVector(*maybe_info);
 
-      populateNogoodTable(nogoods);
+      populateNogoodTable(_model, nogoods);
     }
   });
 
@@ -376,10 +375,91 @@ PentListWindow::PentListWindow(CmpTreeDialog* parent,
   _pentagonTable.setEditTriggers(QAbstractItemView::NoEditTriggers);
   _pentagonTable.setSelectionBehavior(QAbstractItemView::SelectRows);
 
-  initNogoodTable(_nogoodTable);
-
   layout->addWidget(&_pentagonTable);
-  layout->addWidget(&_nogoodTable);
+  layout->addWidget(_nogoodTable);
+
+  const NameMap* nm = result.left_execution().getNameMap();
+  if(nm != nullptr) {
+    auto buttons = new QHBoxLayout(this);
+    auto heatmapButton = new QPushButton("Heatmap");
+    heatmapButton->setAutoDefault(false);
+    auto changeRepresentation = new QCheckBox("Rename vars");
+    changeRepresentation->setChecked(true);
+    auto showSimplified = new QCheckBox("Simplify Nogoods");
+    showSimplified->setChecked(true);
+    auto getFlatZinc = new QPushButton("Get FlatZinc");
+    getFlatZinc->setAutoDefault(false);
+
+    buttons->addWidget(heatmapButton);
+    buttons->addWidget(changeRepresentation);
+    buttons->addWidget(showSimplified);
+    buttons->addWidget(getFlatZinc);
+    layout->addLayout(buttons);
+
+    _nogoodTable->connectHeatmapButton(heatmapButton, *parent->getCanvas());
+    _nogoodTable->connectNogoodRepresentationCheckBoxes(changeRepresentation, showSimplified);
+    _nogoodTable->connectFlatZincButton(getFlatZinc);
+  }
+
+  auto filter_layout = new QHBoxLayout();
+  filter_layout->addWidget(new QLabel{"Text Include:"});
+  auto include_edit = new QLineEdit("");
+  filter_layout->addWidget(include_edit);
+  filter_layout->addWidget(new QLabel{"Omit:"});
+  auto reject_edit = new QLineEdit("");
+  filter_layout->addWidget(reject_edit);
+  _nogoodTable->connectTextFilter(include_edit, reject_edit);
+
+  if(nm) {
+    filter_layout->addWidget(new QLabel{"Location Filter:"});
+    auto location_edit = new QLineEdit("");
+    _nogoodTable->connectLocationFilter(location_edit);
+    filter_layout->addWidget(location_edit);
+
+    auto locationButton = new QPushButton("Get Location");
+    locationButton->setAutoDefault(false);
+    _nogoodTable->connectLocationButton(locationButton, location_edit);
+    filter_layout->addWidget(locationButton);
+  }
+
+  layout->addLayout(filter_layout);
+
+  auto subsumlayout = new QHBoxLayout();
+  auto subsumbutton = new QPushButton("Simplify nogoods");
+  subsumbutton->setToolTip("Replace subsumed nogoods.");
+  subsumbutton->setAutoDefault(false);
+  auto subsumUseAllNogoods = new QCheckBox("Use all nogoods");
+  subsumUseAllNogoods->setToolTip("Use nogoods that are not presented in the table in the subsumption check.");
+  auto subsumUseAllNogoodsApplyFilter = new QCheckBox("Apply filters");
+  subsumUseAllNogoodsApplyFilter->setToolTip("Apply filter to 'all nogoods'.");
+  auto subsumUseOnlyEarlier = new QCheckBox("Preceding nogoods");
+  subsumUseOnlyEarlier->setToolTip("Only allow subsumption by earlier nogoods (that the solver should have known about)");
+  auto subsumResolution = new QCheckBox("Resolution");
+  subsumResolution->setToolTip("Use self-subsuming resolution to remove lits from nogoods (very slow).");
+  _nogoodTable->connectSubsumButtons(subsumbutton,
+                                 subsumResolution,
+                                 subsumUseAllNogoods,
+                                 subsumUseAllNogoodsApplyFilter,
+                                 subsumUseOnlyEarlier);
+
+  subsumUseOnlyEarlier->setChecked(true);
+  subsumUseAllNogoodsApplyFilter->setEnabled(false);
+  subsumUseAllNogoodsApplyFilter->setChecked(true);
+  connect(subsumUseAllNogoods, &QCheckBox::clicked,
+          [subsumUseAllNogoods, subsumUseAllNogoodsApplyFilter](){
+      subsumUseAllNogoodsApplyFilter->setEnabled(subsumUseAllNogoods->isChecked());
+  });
+
+  subsumlayout->addWidget(subsumbutton);
+  subsumlayout->addWidget(subsumResolution);
+  subsumlayout->addWidget(subsumUseOnlyEarlier);
+  subsumlayout->addWidget(subsumUseAllNogoods);
+  subsumlayout->addWidget(subsumUseAllNogoodsApplyFilter);
+
+  subsumlayout->setStretchFactor(subsumbutton, 2);
+
+  layout->addLayout(subsumlayout);
+
 }
 
 static QString infoToNogoodStr(const string& info) {
@@ -402,10 +482,8 @@ static QString infoToNogoodStr(const string& info) {
 void
 PentListWindow::createList()
 {
-
-
   _pentagonTable.setColumnCount(3);
-  _pentagonTable.setRowCount(_items.size());
+  _pentagonTable.setRowCount(static_cast<int>(_items.size()));
 
   QStringList table_header;
   table_header << "Left" << "Right" << "Nogoods involved";
@@ -414,16 +492,16 @@ PentListWindow::createList()
   _pentagonTable.setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
 
 
-  for (unsigned int i = 0; i < _items.size(); i++) {
-    _pentagonTable.setItem(i, 0, new QTableWidgetItem(QString::number(_items[i].l_size)));
-    _pentagonTable.setItem(i, 1, new QTableWidgetItem(QString::number(_items[i].r_size)));
+  for (size_t i = 0; i < _items.size(); i++) {
+    _pentagonTable.setItem(static_cast<int>(i), 0, new QTableWidgetItem(QString::number(_items[i].l_size)));
+    _pentagonTable.setItem(static_cast<int>(i), 1, new QTableWidgetItem(QString::number(_items[i].r_size)));
 
     auto maybe_info = _items[i].info;
     if (maybe_info) {
 
      QString nogood_str = infoToNogoodStr(*maybe_info);
 
-      _pentagonTable.setItem(i, 2, new QTableWidgetItem(nogood_str));
+      _pentagonTable.setItem(static_cast<int>(i), 2, new QTableWidgetItem(nogood_str));
     }
   }
   _pentagonTable.resizeColumnsToContents();
@@ -434,7 +512,7 @@ void
 CmpTreeDialog::selectPentagon(int row) {
   const auto items = m_Cmp_result->pentagon_items();
 
-  auto node = items[row].node;
+  auto node = items[static_cast<size_t>(row)].node;
 
   //TODO(maxim): this should unhide all nodes above
   // m_Canvas->unhideNode(node); // <- does not work correctly
@@ -461,7 +539,6 @@ CmpTreeDialog::showResponsibleNogoods() {
 
   auto ng_stats = m_Cmp_result->responsible_nogood_stats();
   const Execution& left_execution = m_Cmp_result->left_execution();
-  const NameMap* nm = m_Cmp_result->left_execution().getNameMap();
 
   auto _model = new QStandardItemModel(0, 2, this);
   _model->setHorizontalHeaderLabels({"Id", "Occurrence", "Reduction Total", "Literals"});
@@ -502,6 +579,7 @@ CmpTreeDialog::showResponsibleNogoods() {
                                  "out of",         QString::number(total_nodes)};
   ng_layout->addWidget(new QLabel{reduction_label.join(" ")});
 
+  const NameMap* nm = left_execution.getNameMap();
   if(nm != nullptr) {
     auto buttons = new QHBoxLayout(this);
     auto heatmapButton = new QPushButton("Heatmap");
