@@ -64,9 +64,6 @@ public:
                             const QCheckBox* apply_filter,
                             const QCheckBox* only_earlier_sids);
 
-  // Update _colors
-  void updateColors(void);
-
 private:
   // Find which parts of the table are selected
   QModelIndexList getSelection() const;
@@ -77,6 +74,8 @@ private:
   void updateSelection() const;
   // Set location filter based on selected nodes
   void updateLocationFilter(QLineEdit* location_edit) const;
+  // Update _colors
+  void updateColors(void);
 
 private slots:
   // Replace selected nogoods with equivalent FlatZinc

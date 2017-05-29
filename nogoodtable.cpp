@@ -40,9 +40,6 @@ protected:
       for(QString& ls : clause.split(" ", QString::SplitBehavior::SkipEmptyParts)) {
         utils::lits::Lit lit = utils::lits::parse_lit(ls.toStdString());
         QStringList litstring;
-        if(_colors.find(lit.var) == _colors.end())
-          _nogoodTable->updateColors();
-
         QColor c = _colors.at(lit.var);
         litstring << "<span style=\"color:" << c.name()  << ";\">" << lit2string(lit).toHtmlEscaped() << "</span>";
         litsHtml.append(litstring.join(""));
@@ -169,26 +166,29 @@ NogoodTableView::NogoodTableView(QWidget* parent,
   setModel(nogood_proxy_model);
   setSortingEnabled(true);
 
+  updateColors();
   setItemDelegate(new NogoodDelegate(this, _colors, _nogood_col));
 }
 
 void NogoodTableView::updateColors(void) {
   int curr_color = 0;
   int step = 67;
-  std::unordered_set<string> vars;
-  auto& sid2nogood = _execution.getNogoods();
-  for(auto& sidNogood : sid2nogood) {
-    const string& sclause = _execution.getNogoodBySid(sidNogood.first,
-                                                      _show_renamed_literals,
-                                                      _show_simplified_nogoods);
-    vector<string> oclause = utils::split(sclause, ' ');
+  auto addColors = [this,&curr_color,step](const string& clause) {
+    vector<string> oclause = utils::split(clause, ' ');
     for(string s : oclause) {
       utils::lits::Lit lit = utils::lits::parse_lit(s);
-      if(vars.find(lit.var) == vars.end()) {
+      if(_colors.find(lit.var) == _colors.end()) {
         curr_color = (curr_color + step) % 360;
         _colors[lit.var] = QColor::fromHsv(curr_color, 255, 128);
       }
     }
+  };
+
+  auto& sid2nogood = _execution.getNogoods();
+  for(auto& sidNogood : sid2nogood) {
+    addColors(sidNogood.second.original);
+    addColors(sidNogood.second.renamed);
+    addColors(sidNogood.second.simplified);
   }
 }
 
