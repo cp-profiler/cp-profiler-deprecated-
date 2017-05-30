@@ -28,10 +28,16 @@ public:
   SubsumptionFinder(const Sid2Nogood& sid2nogood,
                     bool renamed,
                     bool simplified);
-  std::string getSubsumingClauseString(int64_t sid,
-                                       bool filter_only_earlier_sids = true) const;
-  std::string getSelfSubsumingResolutionString(int64_t sid,
-                                       bool filter_only_earlier_sids = true) const;
+
+  int64_t getSubsumingClauseString(int64_t sid,
+                                   bool filter_only_earlier_sids = true) const;
+
+  struct SSRResult {
+      std::string newNogood;
+      std::vector<int64_t> sids;
+  };
+  SSRResult getSelfSubsumingResolutionString(int64_t sid,
+                                             bool filter_only_earlier_sids = true) const;
 
 private:
   const Clause* findSubsumingClause(const Clause& iclause, bool filter_only_earlier_sids) const;

@@ -98,8 +98,9 @@ bool contains(const Clause& c, const Lit& lit) {
   return false;
 }
 
-string SubsumptionFinder::getSelfSubsumingResolutionString(int64_t sid,
-                                     bool filter_only_earlier_sids) const {
+SubsumptionFinder::SSRResult SubsumptionFinder::getSelfSubsumingResolutionString(int64_t sid,
+                                                                                 bool filter_only_earlier_sids) const {
+  SSRResult r;
   const Clause* iclause = sid2clause.at(sid);
   vector<bool> rem_lit(iclause->size(), false);
   for(const auto& size_sids : ordered_sids) {
@@ -112,6 +113,7 @@ string SubsumptionFinder::getSelfSubsumingResolutionString(int64_t sid,
           const Clause* jclause = sid2clause.at(jsid);
           if(contains(*jclause, negLit) &&
                   isSubset(*jclause, *iclause, &negLit)) {
+            r.sids.push_back(jsid);
             rem_lit[i] = true;
             goto lit_removed;
           }
@@ -123,13 +125,12 @@ string SubsumptionFinder::getSelfSubsumingResolutionString(int64_t sid,
   Clause newClause;
   for(size_t i=0; i<iclause->size(); i++)
     if(!rem_lit[i]) newClause.push_back((*iclause)[i]);
-    //else std::cerr << "Removed: " << (*iclause)[i].var << (*iclause)[i].op << (*iclause)[i].val
-    //               << " from " << sid << "\n";
-  return lits::stringify_lits(newClause);
+  r.newNogood = lits::stringify_lits(newClause);
+  return r;
 }
 
-string SubsumptionFinder::getSubsumingClauseString(int64_t sid,
-                                                   bool filter_only_earlier_sids) const {
+int64_t SubsumptionFinder::getSubsumingClauseString(int64_t sid,
+                                                    bool filter_only_earlier_sids) const {
   const Clause* iclause = sid2clause.at(sid);
   for(const auto& size_sids : ordered_sids) {
     if(static_cast<size_t>(size_sids.first) >= iclause->size()) break;
@@ -137,11 +138,11 @@ string SubsumptionFinder::getSubsumingClauseString(int64_t sid,
       if(!filter_only_earlier_sids || jsid < sid) {
         const Clause* jclause = sid2clause.at(jsid);
         if(isSubset(*jclause, *iclause))
-          return lits::stringify_lits(*jclause);
+          return jsid;
       }
     }
   }
-  return lits::stringify_lits(*iclause);
+  return sid;
 }
 
 static void test_subsumption();
@@ -165,7 +166,7 @@ static void test_subsumption() {
 
   int count=0;
   for(auto& sn : testNogoods)
-    if(sf.getSubsumingClauseString(sn.first) == testNogoods[0].second.original)
+    if(sf.getSubsumingClauseString(sn.first) == testNogoods[0].first)
       count++;
 
   qDebug() << count << "/" << testNogoods.size() << " Subsumption tests passed";
@@ -183,12 +184,15 @@ static void test_resolution() {
   utils::subsum::SubsumptionFinder sf(sid2nogood, false, false);
 
   int count=0;
-  if(sf.getSelfSubsumingResolutionString(1) == "b>2 c<=3")
-    count++;
-  if(sf.getSelfSubsumingResolutionString(2) == "a<=1 c<=3")
+  SubsumptionFinder::SSRResult r1 = sf.getSelfSubsumingResolutionString(1);
+  if(r1.newNogood == "b>2 c<=3" && r1.sids.size() == 0)
     count++;
 
-  qDebug() << count << "/" << testNogoods.size() << " self-subsuming resolution tests passed";
+  SubsumptionFinder::SSRResult r2 = sf.getSelfSubsumingResolutionString(2);
+  if(r2.newNogood == "a<=1 c<=3" && r2.sids.size() == 1 && r2.sids[0] == 1)
+    count++;
+
+  qDebug() << count << "/" << testNogoods.size() << " Self-subsuming resolution tests passed";
 }
 
 }}

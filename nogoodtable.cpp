@@ -334,10 +334,13 @@ void NogoodTableView::renameSubsumedSelection(const QCheckBox* resolution,
     int64_t isid = getSidFromRow(row);
 
     string finalString;
-    if(resolution->isChecked())
-      finalString = sf.getSelfSubsumingResolutionString(isid, only_earlier_sids->isChecked());
-    else
-      finalString = sf.getSubsumingClauseString(isid, only_earlier_sids->isChecked());
+    if(resolution->isChecked()) {
+      auto ssrr = sf.getSelfSubsumingResolutionString(isid, only_earlier_sids->isChecked());
+      finalString = ssrr.newNogood;
+    } else {
+      int64_t sid = sf.getSubsumingClauseString(isid, only_earlier_sids->isChecked());
+      finalString = _execution.getNogoodBySid(sid, _show_renamed_literals, _show_simplified_nogoods);
+    }
     QModelIndex idx = nogood_proxy_model->mapToSource(nogood_proxy_model->index(row, 0, QModelIndex()));
     _model->setData(idx.sibling(idx.row(), _nogood_col), QString::fromStdString(finalString));
   }
