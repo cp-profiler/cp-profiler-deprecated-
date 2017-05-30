@@ -352,13 +352,17 @@ void NogoodTableView::renameSubsumedSelection(const QCheckBox* resolution,
 void NogoodTableView::connectSubsumButtons(const QPushButton* subsumButton,
                                            const QCheckBox* resolution,
                                            const QCheckBox* use_all,
-                                           const QCheckBox* apply_filter,
+                                           QCheckBox* apply_filter,
                                            const QCheckBox* only_earlier_sids) {
   connect(subsumButton, &QPushButton::clicked,
           this, [subsumButton, resolution, use_all,
                  apply_filter, only_earlier_sids, this](){
       NogoodTableView::renameSubsumedSelection(resolution, use_all,
                                                apply_filter, only_earlier_sids);
+  });
+  connect(use_all, &QCheckBox::clicked,
+          [use_all, apply_filter](){
+      apply_filter->setEnabled(use_all->isChecked());
   });
 }
 
@@ -458,4 +462,85 @@ void NogoodTableView::connectLocationFilter(QLineEdit* location_edit) {
     location_edit->setText(QString::fromStdString(lf.toString()));
     nogood_proxy_model->setLocationFilter(lf);
   });
+}
+
+void NogoodTableView::addStandardButtons(QDialog* parent, QVBoxLayout* layout,
+                                         TreeCanvas* canvas, const Execution& e) {
+  const NameMap* nm = e.getNameMap();
+  if(nm != nullptr) {
+    auto buttons = new QHBoxLayout(parent);
+    auto heatmapButton = new QPushButton("Heatmap");
+    heatmapButton->setAutoDefault(false);
+    auto changeRepresentation = new QCheckBox("Rename vars");
+    changeRepresentation->setChecked(true);
+    auto showSimplified = new QCheckBox("Simplify Nogoods");
+    showSimplified->setChecked(true);
+    auto getFlatZinc = new QPushButton("Get FlatZinc");
+    getFlatZinc->setAutoDefault(false);
+
+    buttons->addWidget(heatmapButton);
+    buttons->addWidget(changeRepresentation);
+    buttons->addWidget(showSimplified);
+    buttons->addWidget(getFlatZinc);
+    layout->addLayout(buttons);
+
+    connectHeatmapButton(heatmapButton, *canvas);
+    connectNogoodRepresentationCheckBoxes(changeRepresentation, showSimplified);
+    connectFlatZincButton(getFlatZinc);
+  }
+
+  auto filter_layout = new QHBoxLayout();
+  filter_layout->addWidget(new QLabel{"Text Include:"});
+  auto include_edit = new QLineEdit("");
+  filter_layout->addWidget(include_edit);
+  filter_layout->addWidget(new QLabel{"Omit:"});
+  auto reject_edit = new QLineEdit("");
+  filter_layout->addWidget(reject_edit);
+  connectTextFilter(include_edit, reject_edit);
+
+  if(nm) {
+    filter_layout->addWidget(new QLabel{"Location Filter:"});
+    auto location_edit = new QLineEdit("");
+    connectLocationFilter(location_edit);
+    filter_layout->addWidget(location_edit);
+
+    auto locationButton = new QPushButton("Get Location");
+    locationButton->setAutoDefault(false);
+    connectLocationButton(locationButton, location_edit);
+    filter_layout->addWidget(locationButton);
+  }
+
+  layout->addLayout(filter_layout);
+
+  auto subsumlayout = new QHBoxLayout();
+  auto subsumbutton = new QPushButton("Simplify nogoods");
+  subsumbutton->setToolTip("Replace subsumed nogoods.");
+  subsumbutton->setAutoDefault(false);
+  auto subsumUseAllNogoods = new QCheckBox("Use all nogoods");
+  subsumUseAllNogoods->setToolTip("Use nogoods that are not presented in the table in the subsumption check.");
+  auto subsumUseAllNogoodsApplyFilter = new QCheckBox("Apply filters");
+  subsumUseAllNogoodsApplyFilter->setToolTip("Apply filter to 'all nogoods'.");
+  auto subsumUseOnlyEarlier = new QCheckBox("Preceding nogoods");
+  subsumUseOnlyEarlier->setToolTip("Only allow subsumption by earlier nogoods (that the solver should have known about)");
+  auto subsumResolution = new QCheckBox("Resolution");
+  subsumResolution->setToolTip("Use self-subsuming resolution to remove lits from nogoods (very slow).");
+  connectSubsumButtons(subsumbutton,
+                                 subsumResolution,
+                                 subsumUseAllNogoods,
+                                 subsumUseAllNogoodsApplyFilter,
+                                 subsumUseOnlyEarlier);
+
+  subsumUseOnlyEarlier->setChecked(true);
+  subsumUseAllNogoodsApplyFilter->setEnabled(false);
+  subsumUseAllNogoodsApplyFilter->setChecked(true);
+
+  subsumlayout->addWidget(subsumbutton);
+  subsumlayout->addWidget(subsumResolution);
+  subsumlayout->addWidget(subsumUseOnlyEarlier);
+  subsumlayout->addWidget(subsumUseAllNogoods);
+  subsumlayout->addWidget(subsumUseAllNogoodsApplyFilter);
+
+  subsumlayout->setStretchFactor(subsumbutton, 2);
+
+  layout->addLayout(subsumlayout);
 }

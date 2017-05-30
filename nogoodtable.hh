@@ -3,8 +3,9 @@
 
 #include "namemap.hh"
 
-#include <QTableView>
-#include <QSortFilterProxyModel>
+#include <qtableview.h>
+#include <qsortfilterproxymodel.h>
+#include <qboxlayout.h>
 
 class Execution;
 class TreeCanvas;
@@ -48,6 +49,10 @@ public:
                   const Execution& e,
                   int sid_col, int nogood_col);
 
+  void addStandardButtons(QDialog* parent, QVBoxLayout* layout,
+                          TreeCanvas* canvas, const Execution& e);
+
+private:
   // Connect buttons and text filters to their respective functionality
   void connectHeatmapButton(const QPushButton* heatmapButton, const TreeCanvas& tc);
   void connectFlatZincButton(const QPushButton* getFlatZinc);
@@ -61,10 +66,9 @@ public:
   void connectSubsumButtons(const QPushButton* subsumButton,
                             const QCheckBox* resolution,
                             const QCheckBox* use_all,
-                            const QCheckBox* apply_filter,
+                            QCheckBox* apply_filter,
                             const QCheckBox* only_earlier_sids);
 
-private:
   // Find which parts of the table are selected
   QModelIndexList getSelection() const;
 
