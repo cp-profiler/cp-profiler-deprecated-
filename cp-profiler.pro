@@ -29,7 +29,7 @@ TARGET = cp-profiler
 
 TEMPLATE = app
 
-SOURCES += main.cpp
+SOURCES += main_cpprofiler.cpp
 
 include(cp-profiler.pri)
 
