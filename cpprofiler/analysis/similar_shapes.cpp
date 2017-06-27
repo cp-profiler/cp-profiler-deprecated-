@@ -311,6 +311,8 @@ void SimilarShapesWindow::initInterface() {
         highlightAllSubtrees(node_tree, shapes);
 
     });
+
+#ifndef MAXIM_THESIS
     miscLayout->addWidget(highlightAll);
 
     auto aggregateBtn = new QPushButton{"Aggregate"};
@@ -319,6 +321,7 @@ void SimilarShapesWindow::initInterface() {
     miscLayout->addWidget(aggregateBtn);
 
     miscLayout->addStretch();
+#endif
 }
 
 using NodePair = std::pair<VisualNode*, VisualNode*>;
@@ -573,6 +576,7 @@ void SimilarShapesWindow::updateHistogram() {
 
       groups_shown = m_identicalGroups;
 
+#ifndef MAXIM_THESIS
 #ifdef MAXIM_DEBUG
       auto str = "IdenticalGroups: " + std::to_string(m_identicalGroups.size());
       debug_label.setText(str.c_str());
@@ -580,6 +584,7 @@ void SimilarShapesWindow::updateHistogram() {
       if (Settings::get_bool("save_shapes_to_file")) {
         save_partition(m_identicalGroups);
       }
+#endif
 #endif
 
       break;

@@ -231,8 +231,10 @@ void HistogramWindow::initSharedInterface(QAbstractScrollArea* sa) {
   globalLayout->addLayout(filtersLayout);
   globalLayout->addLayout(miscLayout);
 
+#ifndef MAXIM_THESIS
 #ifdef MAXIM_DEBUG
   globalLayout->addWidget(&debug_label);
+#endif
 #endif
 
 }

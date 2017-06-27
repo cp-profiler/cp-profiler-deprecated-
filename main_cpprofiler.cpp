@@ -30,7 +30,7 @@ int main(int argc, char *argv[]) {
 
   QApplication a(argc, argv);
 
-  QCoreApplication::setApplicationName("cpprof (build from 14.01.2016)");
+  QCoreApplication::setApplicationName("CP-Profiler");
   QCoreApplication::setApplicationVersion("0.2");
 
   GlobalParser clParser;

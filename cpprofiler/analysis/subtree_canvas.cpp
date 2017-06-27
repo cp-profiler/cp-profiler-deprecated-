@@ -27,34 +27,39 @@ void SubtreeCanvas::paintEvent(QPaintEvent* event) {
   const int view_w = m_ScrollArea->viewport()->width();
   const int view_h = m_ScrollArea->viewport()->height();
 
-  int xoff = m_ScrollArea->horizontalScrollBar()->value();
-  int yoff = m_ScrollArea->verticalScrollBar()->value();
 
   const BoundingBox bb = cur_node->getBoundingBox();
 
-  const int w = bb.right - bb.left + Layout::extent;
-  const int h =
+  const int shape_w = bb.right - bb.left + Layout::extent;
+  const int shape_h =
       2 * Layout::extent + cur_node->getShape()->depth() * Layout::dist_y;
 
+  int xoff = 0;
+  int yoff = 0;
   // center the shape if small
-  if (w < view_w) {
-    xoff -= (view_w - w) / 2;
+  if (shape_w < view_w) {
+    xoff -= (view_w - shape_w) / 2;
   }
+
+  auto scale = std::min((float)view_w/shape_w, (float)view_h/shape_h);
+  scale = std::min(scale, 1.0f);
+
+  painter.scale(scale, scale);
 
   setFixedSize(view_w, view_h);
 
   int xtrans = -bb.left + (Layout::extent / 2);
 
-  m_ScrollArea->horizontalScrollBar()->setRange(0, w - view_w);
-  m_ScrollArea->verticalScrollBar()->setRange(0, h - view_h);
-  m_ScrollArea->horizontalScrollBar()->setPageStep(view_w);
-  m_ScrollArea->verticalScrollBar()->setPageStep(view_h);
-
   QRect origClip = event->rect();
-  painter.translate(0, 30);
+
+  {
+    const auto top_padding = 30;
+    painter.translate(0, top_padding);
+  }
+
   painter.translate(xtrans - xoff, -yoff);
   QRect clip{origClip.x() - xtrans + xoff, origClip.y() + yoff,
-             origClip.width(), origClip.height()};
+             (int)(origClip.width()/scale), (int)(origClip.height()/scale)};
 
   DrawingCursor dc{cur_node, m_NodeTree.getNA(), painter, clip};
   PreorderNodeVisitor<DrawingCursor>(dc).run();

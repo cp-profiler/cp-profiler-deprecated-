@@ -73,6 +73,7 @@ public:
     unsigned getGidBySid(int64_t sid);
 
     std::string getLabel(int gid) const;
+
     std::string getLabel(const VisualNode& node) const;
 
     unsigned long long getTotalTime();

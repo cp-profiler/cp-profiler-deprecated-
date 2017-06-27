@@ -26,7 +26,7 @@ public:
   static constexpr int HEIGHT = 16;
   static constexpr int HALF_HEIGHT = HEIGHT / 2;
   static constexpr int PIXELS_PER_VALUE = 5;
-  static constexpr int SELECTION_WIDTH = 600;
+  static constexpr int SELECTION_WIDTH = 500;
 
   ShapeRect(int x, int y, int width, HistogramWindow*);
 

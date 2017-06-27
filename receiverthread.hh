@@ -29,6 +29,8 @@
 #include <QDebug>
 #include <iostream>
 
+#include "message.hh"
+
 class Execution;
 
 namespace cpprofiler {
@@ -83,9 +85,11 @@ class ReceiverWorker : public QObject {
   /// where to read next from
   int bytes_read = 0;
 
+  MessageMarshalling marshalling;
+
   /// if false -> next to read is size, otherwise -- message itself
   /// number of messages per buffer reset
-  static constexpr int MSG_PER_BUFFER = 100;
+  static constexpr int MSG_PER_BUFFER = 1;
 
   QTcpSocket* tcpSocket;
 

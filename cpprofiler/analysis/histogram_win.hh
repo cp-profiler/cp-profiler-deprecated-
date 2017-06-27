@@ -81,9 +81,12 @@ protected:
     QHBoxLayout* filtersLayout;
     QHBoxLayout* miscLayout;
 
+#ifndef MAXIM_THESIS
 #ifdef MAXIM_DEBUG
     QLabel debug_label{"debug info"};
 #endif
+#endif
+
 
     void workoutLabelDiff(const SubtreeInfo* const si);
     void highlightSubtrees(VisualNode*);

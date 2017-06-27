@@ -21,7 +21,6 @@
 
 #include "receiverthread.hh"
 #include "globalhelper.hh"
-#include "message.hh"
 
 #include <QTcpSocket>
 #include <QMutex>
@@ -77,7 +76,6 @@ using cpprofiler::Message;
 
 void ReceiverWorker::handleMessage(const Message& msg) {
 
-
     switch (msg.type()) {
         case cpprofiler::MsgType::NODE:
             execution->handleNewNode(msg);
@@ -120,6 +118,11 @@ void ReceiverWorker::handleMessage(const Message& msg) {
                 execution->start(msg.label(), is_restarts);
             }
 
+            qDebug() << "waiting for cond var";
+
+            /// NOTE(maxim): for now, don't want to wait
+            execution_id_communicated = true;
+
             /// Wait for condition variable
             if (!execution_id_communicated) {
                 QMutex m;
@@ -127,6 +130,7 @@ void ReceiverWorker::handleMessage(const Message& msg) {
                 while (!execution->has_exec_id) {
                     execution->has_exec_id_cond.wait(&m);
                 }
+                qDebug() << "exec id communicated";
                 execution_id_communicated = true;
                 m.unlock();
             }
@@ -147,24 +151,34 @@ void ReceiverWorker::handleMessage(const Message& msg) {
 void
 ReceiverWorker::doRead()
 {
-    MessageMarshalling marshalling;
+    bool can_read_more = true;
 
-    while (tcpSocket->bytesAvailable() > 0) {
+    while (tcpSocket->bytesAvailable() > 0 || can_read_more) {
+
+        if (tcpSocket->bytesAvailable() > 0) can_read_more = true;
 
         buffer.append(tcpSocket->readAll());
 
         if (!size_read) {
 
-            if (buffer.size() < bytes_read + 4) continue;
+            if (buffer.size() < bytes_read + 4) {
+                can_read_more = false;
+                continue;
+            }
 
             msg_size = ArrayToInt(buffer.mid(bytes_read, 4));
 
             bytes_read += 4;
             size_read = true;
+            // qDebug() << "size read";
 
         } else {
 
-            if (buffer.size() < bytes_read + msg_size) continue;
+            if (buffer.size() < bytes_read + msg_size) {
+                can_read_more = false;
+                continue;
+            }
+
 
             marshalling.deserialize(buffer.data() + bytes_read, msg_size);
 
@@ -182,6 +196,8 @@ ReceiverWorker::doRead()
                 buffer.remove(0, bytes_read);
                 bytes_read = 0;
             }
+
+            // qDebug() << "message read";
         }
     }
 

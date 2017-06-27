@@ -172,7 +172,14 @@ DbEntry* Execution::getEntry(const Node& node) const {
 }
 
 unsigned Execution::getGidBySid(int64_t sid) { return m_Data->getGidBySid(sid); }
-std::string Execution::getLabel(int gid) const { return m_Data->getLabel(gid); }
+std::string Execution::getLabel(int gid) const {
+  std::string origLabel = m_Data->getLabel(gid);
+  const auto* nm = m_Data->getNameMap();
+  return nm ? nm->replaceNames(origLabel) : origLabel;
+}
+
+
+
 
 std::string Execution::getLabel(const VisualNode& node) const {
   auto gid = node.getIndex(m_NodeTree->getNA());
