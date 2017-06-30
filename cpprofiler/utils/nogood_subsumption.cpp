@@ -21,7 +21,7 @@ void SubsumptionFinder::populateClauses(const Sid2Nogood& sid2nogood,
   clauses.resize(pool.size());
   size_t top = 0;
   for(int64_t jsid : pool) {
-    auto& ng = sid2nogood.at(static_cast<int>(jsid));
+    auto& ng = sid2nogood.at(jsid);
     const string* sclause;
     if(renamed) {
       sclause = simplified ? &ng.simplified : &ng.renamed;

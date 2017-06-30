@@ -481,7 +481,7 @@ CmpTreeDialog::showResponsibleNogoods() {
     _model->setItem(row, 0, new QStandardItem(QString::number(ng.first)));
     _model->setItem(row, 1, new QStandardItem(QString::number(ng.second.occurrence)));
 
-    const string& nogood = left_execution.getNogoodBySid(static_cast<int>(ng.first), true, false);
+    const string& nogood = left_execution.getNogoodBySid(ng.first, true, false);
 
     _model->setItem(row, 2, new QStandardItem(QString::number(ng.second.search_eliminated)));
     _model->setItem(row, 3, new QStandardItem(QString::fromStdString(nogood)));

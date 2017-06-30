@@ -267,7 +267,7 @@ void NogoodTableView::refreshModelRenaming() {
     int row = selection.at(i).row();
     int64_t sid = getSidFromRow(row);
 
-    const string& qclause = _execution.getNogoodBySid(static_cast<int>(sid),
+    const string& qclause = _execution.getNogoodBySid(sid,
                                                       _show_renamed_literals,
                                                       _show_simplified_nogoods);
     if(!qclause.empty()) {
@@ -417,7 +417,7 @@ void NogoodTableView::showFlatZinc() {
     int row = selection.at(i).row();
     int64_t sid = getSidFromRow(row);
 
-    const string& clause = _execution.getNogoodBySid(static_cast<int>(sid), false, false);
+    const string& clause = _execution.getNogoodBySid(sid, false, false);
     if(!clause.empty()) {
       const string fzn = convertToFlatZinc(clause);
       QModelIndex idx = nogood_proxy_model->mapToSource(nogood_proxy_model->index(row, 0, QModelIndex()));
