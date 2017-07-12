@@ -293,8 +293,7 @@ CmpTreeDialog::saveComparisonStats() {
 std::vector<int>
 infoToNogoodVector(const string& info) {
 
-  // TODO(maxim): better way for checking if json?
-  if (info.size() > 0 && info[0] == '{') {
+  try {
     auto info_json = nlohmann::json::parse(info);
 
     auto nogoods = info_json["nogoods"];
@@ -302,6 +301,10 @@ infoToNogoodVector(const string& info) {
     if (nogoods.is_array()) {
       return nogoods;
     }
+  } catch (std::exception&) {
+#ifdef MAXIM_DEBUG
+    std::cerr << "can't parse json\n";
+#endif
   }
 
   return {};
@@ -388,15 +391,21 @@ PentListWindow::PentListWindow(CmpTreeDialog* parent,
 static QString infoToNogoodStr(const string& info) {
   QString result = "";
 
-  auto info_json = nlohmann::json::parse(info);
+  try {
+    auto info_json = nlohmann::json::parse(info);
 
-  auto nogoods = info_json["nogoods"];
+    auto nogoods = info_json["nogoods"];
 
-  if (nogoods.is_array() && nogoods.size() > 0) {
-    for (auto nogood : nogoods) {
-      int ng = nogood;
-      result += QString::number(ng) + " ";
+    if (nogoods.is_array() && nogoods.size() > 0) {
+      for (auto nogood : nogoods) {
+        int ng = nogood;
+        result += QString::number(ng) + " ";
+      }
     }
+  } catch (std::exception& e) {
+#ifdef MAXIM_DEBUG
+    std::cerr << "can't parse json\n";
+#endif
   }
 
   return result;

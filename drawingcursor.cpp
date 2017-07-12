@@ -90,7 +90,7 @@ DrawingCursor::processCurrentNode(void) {
         } else {
             lx = myx - tw / 2;
         }
-        painter.drawText(QPointF(lx, myy - 2), label);
+        painter.drawText(QPointF(lx, myy - 4), label);
     }
 
     if (!parent || parent->_tid != n->_tid) {
@@ -143,8 +143,10 @@ DrawingCursor::processCurrentNode(void) {
                     myy + SHADOW_OFFSET, FAILED_WIDTH, FAILED_WIDTH);
                 break;
             case BRANCH:
+#ifndef MAXIM_THESIS
                 painter.drawEllipse(myx - HALF_NODE_WIDTH + SHADOW_OFFSET,
                     myy + SHADOW_OFFSET, NODE_WIDTH, NODE_WIDTH);
+#endif
                 break;
             case UNDETERMINED:
                 painter.drawEllipse(myx - HALF_NODE_WIDTH+SHADOW_OFFSET,
@@ -223,9 +225,11 @@ DrawingCursor::processCurrentNode(void) {
             painter.drawRect(myx - HALF_FAILED_WIDTH, myy, FAILED_WIDTH, FAILED_WIDTH);
             break;
         case BRANCH:
+#ifndef MAXIM_THESIS
             if (n->isMarked())
                 painter.setBrush(gold);
             else
+#endif
                 painter.setBrush(n->childrenLayoutIsDone() ? QBrush(blue) :
                                                              QBrush(white));
             painter.drawEllipse(myx - HALF_NODE_WIDTH, myy, NODE_WIDTH, NODE_WIDTH);

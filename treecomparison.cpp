@@ -146,21 +146,16 @@ static bool copmareNodes(const VisualNode* n1, const Execution& ex1,
   //    have the same status
   //    have the same labels
 
+  if (n1->getStatus() != n2->getStatus()) return false;
+
   const auto kids1 = n1->getNumberOfChildren();
   const auto kids2 = n2->getNumberOfChildren();
 
-  if (n1->getStatus() != n2->getStatus()) return false;
-
   /// check your own labels only, not children's
   if (with_labels) {
-    for (auto i = 0u; i < kids1; i++) {
-
       const auto& label1 = ex1.getLabel(*n1);
       const auto& label2 = ex2.getLabel(*n2);
-
       if (!compareLabels(label1, label2)) return false;
-
-    }
   }
 
   return true;
@@ -320,12 +315,12 @@ std::unique_ptr<ComparisonResult> compareTrees(TreeCanvas& new_tc,
 
     auto node1 = stack1.pop();
     auto node2 = stack2.pop();
+    auto target = stack.pop();
 
     /// TODO: check if implied
 
     bool equal = copmareNodes(node1, ex1, node2, ex2, with_labels);
 
-    auto target = stack.pop();
 
     if (equal) {
       /// turn current node into one of node1/node2

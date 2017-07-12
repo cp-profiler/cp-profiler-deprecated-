@@ -121,7 +121,9 @@ void ReceiverWorker::handleMessage(const Message& msg) {
             qDebug() << "waiting for cond var";
 
             /// NOTE(maxim): for now, don't want to wait
+#ifdef MAXIM_DEBUG
             execution_id_communicated = true;
+#endif
 
             /// Wait for condition variable
             if (!execution_id_communicated) {

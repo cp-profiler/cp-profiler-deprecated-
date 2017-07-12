@@ -25,20 +25,29 @@ Data& Execution::getData() const {
 
 static void printSearchLog(Execution& ex) {
 
-  std::stringstream ss;
+  QString path = QFileDialog::getSaveFileName(nullptr, "Save File", "");
+
+  QFile file(path);
+
+  if (!file.open(QFile::WriteOnly | QFile::Truncate)) {
+    qDebug() << "could not open the file: " << path;
+    return;
+  }
+
+  QTextStream out(&file);
 
   auto& nt = ex.nodeTree();
   auto root = nt.getRoot();
-  SearchLogCursor slc(root, ss, nt.getNA(), ex);
+  SearchLogCursor slc(root, out, nt.getNA(), ex);
   PreorderNodeVisitor<SearchLogCursor>(slc).run();
 
-  std::cerr << "SEARCH LOG READY" << std::endl;
+  std::cout << "SEARCH LOG READY" << std::endl;
 
-  if (GlobalParser::isSet(GlobalParser::save_log)) {
-    Utils::writeToFile("search.log", ss.str().c_str());
-  } else {
-    Utils::writeToFile(ss.str().c_str());
-  }
+  // if (GlobalParser::isSet(GlobalParser::save_log)) {
+  //   Utils::writeToFile("search.log", ss.str().c_str());
+  // } else {
+  //   Utils::writeToFile(ss.str().c_str());
+  // }
 }
 
 static void deleteNode(Execution& ex, Node* n) {

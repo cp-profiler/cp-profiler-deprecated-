@@ -140,6 +140,7 @@ int Data::handleNodeCallback(const cpprofiler::Message& node) {
     int status = node.status();
 
     int restart_id = node.restart_id();
+    // int restart_id = -1;
     int tid = node.thread_id();
     // float domain = node.domain_size();
     // int nogood_bld = node.nogood_bld();
@@ -154,9 +155,9 @@ int Data::handleNodeCallback(const cpprofiler::Message& node) {
 
     auto entry = new DbEntry(sid, real_pid, alt, kids, status);
 
-    if (node.has_restart_id()) {
+    // if (node.has_restart_id()) {
         entry->restart_id = node.restart_id();
-    }
+    // }
 
     entry->label = node.has_label() ? node.label() : "";
 

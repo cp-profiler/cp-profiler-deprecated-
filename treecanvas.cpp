@@ -919,17 +919,23 @@ void TreeCanvas::print(void) {
 /// This already exists in execution (reconnect and remove)
 void TreeCanvas::printSearchLog(void) {
 
-  std::stringstream out;
+  QString path = QFileDialog::getSaveFileName(nullptr, "Save File", "");
+
+  QFile file(path);
+
+  if (!file.open(QFile::WriteOnly | QFile::Truncate)) {
+    qDebug() << "could not open the file: " << path;
+    return;
+  }
+
+  QTextStream out(&file);
+
+  auto& nt = execution.nodeTree();
+  auto root = nt.getRoot();
   SearchLogCursor slc(root, out, execution.nodeTree().getNA(), execution);
   PreorderNodeVisitor<SearchLogCursor>(slc).run();
 
   std::cout << "SEARCH LOG READY" << std::endl;
-
-  if (GlobalParser::isSet(GlobalParser::save_log)) {
-    Utils::writeToFile("search.log", out.str().c_str());
-  } else {
-    Utils::writeToFile(out.str().c_str());
-  }
 }
 
 VisualNode* TreeCanvas::eventNode(QEvent* event) {
@@ -1358,11 +1364,17 @@ void TreeCanvas::highlightFailedByNogoods() {
 
     if (!info) return false;
 
-    auto info_json = nlohmann::json::parse(*info);
+    try {
+      auto info_json = nlohmann::json::parse(*info);
 
-    auto nogoods = info_json["nogoods"];
+      auto nogoods = info_json["nogoods"];
 
-    if (nogoods.is_array() && nogoods.size() > 0) return true;
+      if (nogoods.is_array() && nogoods.size() > 0) return true;
+    } catch (std::exception&) {
+#ifdef MAXIM_DEBUG
+      std::cerr << "can't parse json\n";
+#endif
+    }
 
     return false;
 
