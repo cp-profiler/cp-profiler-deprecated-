@@ -290,7 +290,7 @@ CmpTreeDialog::saveComparisonStats() {
 
 /// *************** Pentagon List Window ****************
 
-std::vector<int>
+std::vector<int64_t>
 infoToNogoodVector(const string& info) {
 
   try {
@@ -312,7 +312,7 @@ infoToNogoodVector(const string& info) {
 
 void
 PentListWindow::populateNogoodTable(QStandardItemModel* model,
-                                    const std::vector<int>& nogoods) {
+                                    const std::vector<int64_t>& nogoods) {
 
   auto ng_stats = cmp_result.responsible_nogood_stats();
   const Execution& left_execution = cmp_result.left_execution();
