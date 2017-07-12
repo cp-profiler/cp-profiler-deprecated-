@@ -74,7 +74,7 @@ bool Location::operator<(const Location& loc) const {
 Location::Location() {}
 Location::Location(const Location& l) : sl(l.sl), sc(l.sc), el(l.el), ec(l.ec) {}
 Location::Location(const string& pathHead) {
-  const vector<string> splitHead = utils::split(pathHead, ':');
+  const vector<string> splitHead = utils::split(pathHead, '|');
   //path = splitHead[0];
   sl = stoi(splitHead[1]);
   sc = stoi(splitHead[2]);
@@ -85,13 +85,13 @@ Location Location::fromString(const string& text) {
   Location loc;
   const vector<string> leftRight = utils::split(text, '-');
   const string& start = leftRight[0];
-  vector<string> slc = utils::split(start, ':');
+  vector<string> slc = utils::split(start, '|');
   loc.sl = stoi(slc[0]);
   loc.sc = slc.size() > 1 ? stoi(slc[1]) : 0;
 
   if(leftRight.size() > 1) {
     const string& end = leftRight[1];
-    vector<string> elc = utils::split(end, ':');
+    vector<string> elc = utils::split(end, '|');
     loc.el = stoi(elc[0]);
     loc.ec = elc.size() > 1 ? stoi(elc[1]) : std::numeric_limits<int>::max();
   } else {
@@ -302,7 +302,7 @@ vector<string> NameMap::getPathHead(const string& path, bool includeTrail = fals
   size_t i=0;
   do {
     string path_head = pathSplit[i];
-    vector<string> head = utils::split(path_head, ':');
+    vector<string> head = utils::split(path_head, '|');
     string head_file;
     if(head.size() > 0) {
       if(i==0) mzn_file = head[0];
@@ -329,7 +329,7 @@ string NameMap::getHeatMap(
   for(auto it : con_id_counts) {
     const string path = getPath(std::to_string(it.first));
     const string path_head = getPathHead(path, false)[0];
-    vector<string> location_etc = utils::split(path_head, ':');
+    vector<string> location_etc = utils::split(path_head, '|');
     int count = it.second;
 
     if(location_etc.size() >= 5) {
@@ -337,7 +337,7 @@ string NameMap::getHeatMap(
       for(int i=0; i<5; i++) newLoc.push_back(location_etc[static_cast<size_t>(i)]);
       int val = (1 + count) * bucket;
       newLoc.push_back(std::to_string(val <= 255 ? val : 255));
-      highlight_url << utils::join(newLoc, ':');
+      highlight_url << utils::join(newLoc, '|');
     }
   }
 
