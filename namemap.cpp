@@ -10,6 +10,9 @@
 #define reg_mzn_ident "[A-Za-z][A-Za-z0-9_]*"
 #define reg_number "[0-9]*"
 
+#define minor_sep '|'
+#define major_sep ';'
+
 std::regex NameMap::var_name_regex(reg_mzn_ident);
 std::regex NameMap::assignment_regex(reg_mzn_ident "=" reg_number);
 
@@ -74,7 +77,7 @@ bool Location::operator<(const Location& loc) const {
 Location::Location() {}
 Location::Location(const Location& l) : sl(l.sl), sc(l.sc), el(l.el), ec(l.ec) {}
 Location::Location(const string& pathHead) {
-  const vector<string> splitHead = utils::split(pathHead, '|');
+  const vector<string> splitHead = utils::split(pathHead, minor_sep);
   //path = splitHead[0];
   sl = stoi(splitHead[1]);
   sc = stoi(splitHead[2]);
@@ -85,13 +88,13 @@ Location Location::fromString(const string& text) {
   Location loc;
   const vector<string> leftRight = utils::split(text, '-');
   const string& start = leftRight[0];
-  vector<string> slc = utils::split(start, '|');
+  vector<string> slc = utils::split(start, minor_sep);
   loc.sl = stoi(slc[0]);
   loc.sc = slc.size() > 1 ? stoi(slc[1]) : 0;
 
   if(leftRight.size() > 1) {
     const string& end = leftRight[1];
-    vector<string> elc = utils::split(end, '|');
+    vector<string> elc = utils::split(end, minor_sep);
     loc.el = stoi(elc[0]);
     loc.ec = elc.size() > 1 ? stoi(elc[1]) : std::numeric_limits<int>::max();
   } else {
@@ -105,13 +108,13 @@ Location Location::fromString(const string& text) {
 string Location::toString() const {
   std::stringstream locSL;
   locSL << sl;
-  if(sc > 0) locSL << ":" << sc;
+  if(sc > 0) locSL << minor_sep << sc;
   if(sl != el) {
     locSL << "-" << el;
-    if(ec != std::numeric_limits<int>::max()) locSL << ":" << ec;
+    if(ec != std::numeric_limits<int>::max()) locSL << minor_sep << ec;
   } else if(sc != ec && ec != std::numeric_limits<int>::max()) {
     locSL << "-" << el;
-    if(ec != std::numeric_limits<int>::max()) locSL << ":" << ec;
+    if(ec != std::numeric_limits<int>::max()) locSL << minor_sep << ec;
   }
   return locSL.str();
 }
@@ -288,21 +291,21 @@ void NameMap::addIdExpressionToMap(const string& ident, const vector<string>& mo
               static_cast<size_t>(loc.sc-1),
               static_cast<size_t>(loc.ec-(loc.sc-1)));
   const vector<string> components = getPathHead(getPath(ident), true);
-  expression = replaceAssignments(utils::join(components, ';'), expression);
+  expression = replaceAssignments(utils::join(components, major_sep), expression);
 
   _expressionMap.insert(make_pair(ident, expression));
 }
 
 // Get the most specific path component that is still in the user model
 vector<string> NameMap::getPathHead(const string& path, bool includeTrail = false) const {
-  vector<string> pathSplit = utils::split(path, ';');
+  vector<string> pathSplit = utils::split(path, major_sep);
 
   string mzn_file;
   vector<string> previousHead;
   size_t i=0;
   do {
     string path_head = pathSplit[i];
-    vector<string> head = utils::split(path_head, '|');
+    vector<string> head = utils::split(path_head, minor_sep);
     string head_file;
     if(head.size() > 0) {
       if(i==0) mzn_file = head[0];
@@ -329,7 +332,7 @@ string NameMap::getHeatMap(
   for(auto it : con_id_counts) {
     const string path = getPath(std::to_string(it.first));
     const string path_head = getPathHead(path, false)[0];
-    vector<string> location_etc = utils::split(path_head, '|');
+    vector<string> location_etc = utils::split(path_head, minor_sep);
     int count = it.second;
 
     if(location_etc.size() >= 5) {
@@ -337,8 +340,9 @@ string NameMap::getHeatMap(
       for(int i=0; i<5; i++) newLoc.push_back(location_etc[static_cast<size_t>(i)]);
       int val = (1 + count) * bucket;
       newLoc.push_back(std::to_string(val <= 255 ? val : 255));
-      highlight_url << utils::join(newLoc, '|');
+      highlight_url << utils::join(newLoc, minor_sep);
     }
+    highlight_url << major_sep;
   }
 
   return highlight_url.str();
