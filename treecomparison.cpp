@@ -170,7 +170,7 @@ void ComparisonResult::sortPentagons() {
 }
 
 /// note(maxim): Defined in cmp_tree_dialog.cpp
-std::vector<int>
+std::vector<int64_t>
 infoToNogoodVector(const string& info);
 
 void ComparisonResult::analyseNogoods(const string& info, int search_reduction) {
