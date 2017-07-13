@@ -10,11 +10,6 @@
 #include "treecanvas.hh"
 #include "receiverthread.hh"
 
-#include <google/protobuf/io/zero_copy_stream_impl.h>
-#include <google/protobuf/io/coded_stream.h>
-
-// #include "message.pb.hh"
-
 #include "ml-stats.hh"
 //#include "webscript.hh"
 
@@ -30,8 +25,6 @@
 #include <QDebug>
 
 #include "subtree_comparison.hpp";
-
-using google::protobuf::io::IstreamInputStream;
 
 // Execution* loadSaved(Execution* e, std::string path) {
 //   std::ifstream inputFile(path, std::ios::in | std::ios::binary);
