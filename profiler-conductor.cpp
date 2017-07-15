@@ -149,15 +149,17 @@ ProfilerConductor::ProfilerConductor() : QMainWindow(), listen_port(6565) {
 
   // Listen for new executions.
   listener.reset(new ProfilerTcpServer([this](qintptr socketDescriptor) {
-    auto execution = new Execution();
+    // auto execution = new Execution();
+
+    if (!latest_execution) {
+      latest_execution = new Execution();
+    }
 
     /// TODO(maxim): receiver should be destroyed when done?
-    auto receiver = new ReceiverThread(socketDescriptor, execution, this);
+    auto receiver = new ReceiverThread(socketDescriptor, latest_execution, this);
 
     connect(receiver, &ReceiverThread::executionIdReady,
       this, &ProfilerConductor::executionIdReady);
-
-    addExecution(*execution);
 
     receiver->start();
   }));
@@ -561,6 +563,10 @@ void ProfilerConductor::createExecution(unique_ptr<NodeTree> nt,
 }
 
 void ProfilerConductor::executionIdReady(Execution* e) {
+  std::cerr << "latest execution available\n";
+  latest_execution = e;
+  addExecution(*e);
+
   int eid = e->getExecutionId();
   if (eid != -1 && eid < nameMaps.size()) {
     e->setNameMap(&nameMaps[eid]);

@@ -40,6 +40,9 @@ class ProfilerConductor : public QMainWindow {
 
   QVector<NameMap> nameMaps;
 
+  /// NOTE(maxim): This is a bit hacky
+  Execution* latest_execution = nullptr;
+
   std::unique_ptr<ProfilerTcpServer> listener;
 
   void addExecution(Execution& execution);

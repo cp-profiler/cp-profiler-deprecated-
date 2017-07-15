@@ -36,7 +36,6 @@ ReceiverThread::ReceiverThread(int socketDescriptor, Execution* execution, QObje
       socketDescriptor(socketDescriptor),
       execution(execution)
 {
-    connect(this, SIGNAL(doneReceiving()), execution, SIGNAL(doneReceiving()));
 }
 
 
@@ -54,8 +53,11 @@ ReceiverThread::run(void) {
 
     connect(worker, SIGNAL(doneReceiving(void)), this, SIGNAL(doneReceiving(void)));
     connect(worker, SIGNAL(doneReceiving(void)), this, SLOT(quit(void)));
-    connect(worker, &ReceiverWorker::executionIdReady, [this](){
-        emit executionIdReady(execution);
+    connect(worker, &ReceiverWorker::executionIdReady, [this](Execution* ex){
+
+        /// TODO(maxim): should this really be run for every solver thread?
+        connect(this, SIGNAL(doneReceiving()), ex, SIGNAL(doneReceiving()));
+        emit executionIdReady(ex);
     });
 
     connect(tcpSocket, SIGNAL(disconnected(void)), this, SLOT(quit(void)));
@@ -78,10 +80,23 @@ void ReceiverWorker::handleMessage(const Message& msg) {
 
     switch (msg.type()) {
         case cpprofiler::MsgType::NODE:
+            std::cerr << "handle message\n";
             execution->handleNewNode(msg);
         break;
         case cpprofiler::MsgType::START:
             std::cerr << "START\n";
+
+            /// Not very first START (in case of restart execution)
+            if (msg.restart_id() != -1 && msg.restart_id() != 0) {
+                break;
+            }
+
+            /// ----- Very first START -----
+            {
+                // execution = new Execution();
+                bool is_restarts = (msg.restart_id() != -1);
+                execution->start(msg.label(), is_restarts);
+            }
 
             if (msg.has_info()) {
 
@@ -95,7 +110,7 @@ void ReceiverWorker::handleMessage(const Message& msg) {
 
                         if (!execution_id_communicated) {
                             execution->setExecutionId(*execution_id);
-                            emit executionIdReady();
+                            emit executionIdReady(execution);
                         }
                     }
 
@@ -106,16 +121,6 @@ void ReceiverWorker::handleMessage(const Message& msg) {
                 } catch (std::exception& e) {
                     std::cerr << "Can't parse json in info: " << e.what() << "\n";
                 }
-            }
-
-            /// NOTE(maxim): not sure why break is here
-            if (msg.restart_id() != -1 && msg.restart_id() != 0) {
-                break;
-            }
-
-            {
-                bool is_restarts = (msg.restart_id() != -1);
-                execution->start(msg.label(), is_restarts);
             }
 
             qDebug() << "waiting for cond var";

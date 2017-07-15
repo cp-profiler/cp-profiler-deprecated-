@@ -59,7 +59,7 @@ class ReceiverThread : public QThread {
   QByteArray* buffer;
   QTcpSocket* tcpSocket;
   int size;
-  Execution* execution;
+  Execution* execution = nullptr;
 };
 
 class ReceiverWorker : public QObject {
@@ -71,7 +71,7 @@ class ReceiverWorker : public QObject {
 
  signals:
   void doneReceiving(void);
-  void executionIdReady(void);
+  void executionIdReady(Execution*);
 
  private:
   Execution* execution;
