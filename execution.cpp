@@ -25,7 +25,13 @@ Data& Execution::getData() const {
 
 static void printSearchLog(Execution& ex) {
 
-  QString path = QFileDialog::getSaveFileName(nullptr, "Save File", "");
+  QString path;
+
+  if (GlobalParser::isSet(GlobalParser::save_log)) {
+    path = "search.log";
+  } else {
+    path = QFileDialog::getSaveFileName(nullptr, "Save File", "");
+  }
 
   QFile file(path);
 
@@ -43,11 +49,7 @@ static void printSearchLog(Execution& ex) {
 
   std::cout << "SEARCH LOG READY" << std::endl;
 
-  // if (GlobalParser::isSet(GlobalParser::save_log)) {
-  //   Utils::writeToFile("search.log", ss.str().c_str());
-  // } else {
-  //   Utils::writeToFile(ss.str().c_str());
-  // }
+
 }
 
 static void deleteNode(Execution& ex, Node* n) {

@@ -247,7 +247,7 @@ CmpTreeDialog::saveComparisonStatsTo(const QString& file_name) {
 
   out << "id, occur, score, nogood\n";
 
-  std::vector<std::pair<int, NogoodCmpStats> > ng_stats_vector;
+  std::vector<std::pair<int64_t, NogoodCmpStats> > ng_stats_vector;
   ng_stats_vector.reserve(ng_stats.size());
 
   for (auto ng : ng_stats) {
@@ -255,8 +255,8 @@ CmpTreeDialog::saveComparisonStatsTo(const QString& file_name) {
   }
 
   std::sort(ng_stats_vector.begin(), ng_stats_vector.end(),
-    [](const std::pair<int, NogoodCmpStats>& lhs,
-       const std::pair<int, NogoodCmpStats>& rhs) {
+    [](const std::pair<int64_t, NogoodCmpStats>& lhs,
+       const std::pair<int64_t, NogoodCmpStats>& rhs) {
       return lhs.second.search_eliminated > rhs.second.search_eliminated;
   });
 
@@ -293,6 +293,7 @@ CmpTreeDialog::saveComparisonStats() {
 std::vector<int64_t>
 infoToNogoodVector(const string& info) {
 
+/// NOTE(maxim): chuffed should send full sid here as well (if it intends on specifying restart ids)
   try {
     auto info_json = nlohmann::json::parse(info);
 

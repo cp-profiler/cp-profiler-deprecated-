@@ -161,6 +161,10 @@ ProfilerConductor::ProfilerConductor() : QMainWindow(), listen_port(6565) {
     connect(receiver, &ReceiverThread::executionIdReady,
       this, &ProfilerConductor::executionIdReady);
 
+    connect(receiver, &ReceiverThread::doneReceiving, [this]() {
+      latest_execution = nullptr;
+    });
+
     receiver->start();
   }));
 
@@ -563,7 +567,6 @@ void ProfilerConductor::createExecution(unique_ptr<NodeTree> nt,
 }
 
 void ProfilerConductor::executionIdReady(Execution* e) {
-  std::cerr << "latest execution available\n";
   latest_execution = e;
   addExecution(*e);
 
