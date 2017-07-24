@@ -302,6 +302,10 @@ vector<string> NameMap::getPathHead(const string& path, bool includeTrail = fals
 
   string mzn_file;
   vector<string> previousHead;
+
+  if(pathSplit.size() == 0)
+    return previousHead;
+
   size_t i=0;
   do {
     string path_head = pathSplit[i];
@@ -327,11 +331,14 @@ vector<string> NameMap::getPathHead(const string& path, bool includeTrail = fals
 string NameMap::getHeatMap(
     const std::unordered_map<int, int>& con_id_counts, int max_count) const {
   int bucket = int(ceil(255.0/double(max_count+1)));
-  std::stringstream highlight_url;
-  highlight_url << "highlight://?";
+
+  std::unordered_map<string, int> locations;
   for(auto it : con_id_counts) {
     const string path = getPath(std::to_string(it.first));
-    const string path_head = getPathHead(path, false)[0];
+    const vector<string> path_head_elements = getPathHead(path, false);
+    if(path_head_elements.size() == 0)
+      continue;
+    const string path_head = path_head_elements[0];
     vector<string> location_etc = utils::split(path_head, minor_sep);
     int count = it.second;
 
@@ -339,11 +346,21 @@ string NameMap::getHeatMap(
       vector<string> newLoc;
       for(int i=0; i<5; i++) newLoc.push_back(location_etc[static_cast<size_t>(i)]);
       int val = (1 + count) * bucket;
-      newLoc.push_back(std::to_string(val <= 255 ? val : 255));
-      highlight_url << utils::join(newLoc, minor_sep);
+      val = val <= 255 ? val : 255;
+      string loc_str = utils::join(newLoc, minor_sep);
+      std::unordered_map<string, int>::iterator loc_it = locations.find(loc_str);
+      if(loc_it == locations.end()) {
+        locations[loc_str] = val;
+      } else {
+        loc_it->second = loc_it->second > val ? loc_it->second : val;
+      }
     }
-    highlight_url << major_sep;
   }
+
+  std::stringstream highlight_url;
+  highlight_url << "highlight://?";
+  for(auto it : locations)
+    highlight_url << it.first << minor_sep << it.second << ";";
 
   return highlight_url.str();
 }
