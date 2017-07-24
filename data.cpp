@@ -182,7 +182,9 @@ int Data::handleNodeCallback(const cpprofiler::Message& node) {
             ng.simplified = utils::lits::simplify_ng(ng.renamed);
         }
 
-        qDebug() << "add nogood: " << entry->full_sid << " " << ng.original.c_str(); 
+#ifdef MAXIM_DEBUG
+        qDebug() << "add nogood: " << entry->full_sid << " " << ng.original.c_str();
+#endif
 
         sid2nogood[entry->full_sid] = ng;
     }

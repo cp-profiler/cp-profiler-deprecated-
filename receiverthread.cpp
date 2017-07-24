@@ -80,7 +80,9 @@ void ReceiverWorker::handleMessage(const Message& msg) {
 
     switch (msg.type()) {
         case cpprofiler::MsgType::NODE:
+#ifdef MAXIM_DEBUG
             std::cerr << "handle message\n";
+#endif
             execution->handleNewNode(msg);
         break;
         case cpprofiler::MsgType::START:

@@ -350,7 +350,9 @@ namespace utils { namespace lits {
       return mod;
     }
 
+#ifdef MAXIM_DEBUG
     std::cerr << "can't simplify: " << l << endl;
+#endif
 
     return l;
 
