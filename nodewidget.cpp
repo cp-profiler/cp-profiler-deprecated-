@@ -40,9 +40,9 @@
 
 using namespace cpprofiler;
 
-const double NODE_WIDTH = 20.0;
-const double HALF_NODE_WIDTH = NODE_WIDTH / 2.0;
-const double THIRD_NODE_WIDTH = NODE_WIDTH / 3.0;
+static constexpr double NODE_WIDTH = 16.0;
+static constexpr double HALF_NODE_WIDTH = NODE_WIDTH / 2.0;
+static constexpr double THIRD_NODE_WIDTH = NODE_WIDTH / 3.0;
 
 NodeWidget::NodeWidget(NodeStatus s) : status(s) {
     setMinimumSize(22,22);

@@ -49,7 +49,7 @@ public:
                   const Execution& e,
                   int sid_col, int nogood_col);
 
-  void addStandardButtons(QDialog* parent, QVBoxLayout* layout,
+  void addStandardButtons(QWidget* parent, QVBoxLayout* layout,
                           TreeCanvas* canvas, const Execution& e);
 
 private:

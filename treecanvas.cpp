@@ -30,7 +30,6 @@
 #include <exception>
 #include <ctime>
 
-#include "zoomToFitIcon.hpp"
 #include "cpprofiler/pixeltree/pixel_tree_dialog.hh"
 #include "cpprofiler/pixeltree/icicle_tree_dialog.hh"
 #include "highlight_nodes_dialog.hpp"
@@ -64,7 +63,7 @@
 
 using namespace cpprofiler::analysis;
 
-TreeCanvas::TreeCanvas(Execution* e, QGridLayout* layout, QWidget* parent)
+TreeCanvas::TreeCanvas(Execution* e, QWidget* parent)
     : QWidget{parent},
       execution{*e},
       mutex(execution.getMutex()),
@@ -80,22 +79,6 @@ TreeCanvas::TreeCanvas(Execution* e, QGridLayout* layout, QWidget* parent)
   m_options.scale = init_scale / 100;
 
   setAutoFillBackground(true);
-
-  QPixmap zoomPic;
-  zoomPic.loadFromData(zoomToFitIcon, sizeof(zoomToFitIcon));
-
-  auto autoZoomButton = new QToolButton(this);
-  autoZoomButton->setCheckable(true);
-  autoZoomButton->setIcon(zoomPic);
-  autoZoomButton->setFixedSize(30, 30);
-  autoZoomButton->setFocusPolicy(Qt::NoFocus);
-
-  layout->addWidget(autoZoomButton, 1,1, Qt::AlignHCenter);
-
-  connect(autoZoomButton, SIGNAL(toggled(bool)), this, SLOT(setAutoZoom(bool)));
-
-  connect(this, SIGNAL(autoZoomChanged(bool)), autoZoomButton,
-          SLOT(setChecked(bool)));
 
   connect(&execution, &Execution::newNode, this, &TreeCanvas::maybeUpdateCanvas);
   connect(&execution, &Execution::newRoot, [this]() {

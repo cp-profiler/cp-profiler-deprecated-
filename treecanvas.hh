@@ -165,7 +165,7 @@ class TreeCanvas : public QWidget {
 public:
 
 
-  TreeCanvas(Execution* execution, QGridLayout* layout, QWidget* parent);
+  TreeCanvas(Execution* execution, QWidget* parent);
 
   ~TreeCanvas();
 

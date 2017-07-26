@@ -22,6 +22,7 @@
 #include <algorithm>
 #include <cmath>
 #include "third-party/json.hpp"
+#include "zoomToFitIcon.hpp"
 
 #include "globalhelper.hh"
 #include "cmp_tree_dialog.hh"
@@ -39,32 +40,49 @@ using std::string;
 
 CmpTreeDialog::CmpTreeDialog(QWidget* parent, Execution* execution, bool with_labels,
                              const Execution& ex1, const Execution& ex2)
-    : QDialog{parent}, expand_expressions(true) {
+    : QMainWindow{parent}, expand_expressions(true) {
 
-  qDebug() << "new CmpTreeDialog";
+  layout = new QGridLayout();
 
-  auto main_layout = new QHBoxLayout();
-  layout = new QGridLayout(this);
-  auto nc_layout = new QVBoxLayout();
-  auto status_layout = new QVBoxLayout();
-
-  main_layout->addLayout(status_layout);
+  auto main_widget = new QWidget{};
+  setCentralWidget(main_widget);
+  main_widget->setLayout(layout);
 
   auto scrollArea = new QAbstractScrollArea(this);
 
-  m_Canvas.reset(new TreeCanvas(execution, layout, scrollArea->viewport()));
+  m_Canvas.reset(new TreeCanvas(execution, scrollArea->viewport()));
 
-  layout->addWidget(scrollArea, 0, 0, 1, 1);
-  layout->addWidget(m_Canvas->scaleBar(), 0, 1, Qt::AlignHCenter);
+  {
+    QPixmap zoomPic;
+    zoomPic.loadFromData(zoomToFitIcon, sizeof(zoomToFitIcon));
 
-  scrollArea->viewport()->setLayout(nc_layout);
+    auto autoZoomButton = new QToolButton(this);
+    autoZoomButton->setCheckable(true);
+    autoZoomButton->setIcon(zoomPic);
+    autoZoomButton->setFixedSize(30, 30);
+    autoZoomButton->setFocusPolicy(Qt::NoFocus);
+
+    layout->addWidget(autoZoomButton, 0, 1, Qt::AlignHCenter);
+
+    connect(autoZoomButton, SIGNAL(toggled(bool)), m_Canvas.get(), SLOT(setAutoZoom(bool)));
+
+    connect(m_Canvas.get(), SIGNAL(autoZoomChanged(bool)), autoZoomButton,
+            SLOT(setChecked(bool)));
+  }
+
+  layout->addWidget(scrollArea, 0, 0, 2, 1);
+  layout->addWidget(m_Canvas->scaleBar(), 1, 1, Qt::AlignHCenter);
+
+  auto sa_layout = new QVBoxLayout();
+  sa_layout->setContentsMargins(0, 0, 0, 0);
+  scrollArea->viewport()->setLayout(sa_layout);
+  sa_layout->addWidget(m_Canvas.get());
 
   connect(scrollArea->horizontalScrollBar(), SIGNAL(valueChanged(int)),
             m_Canvas.get(), SLOT(scroll(void)));
+
   connect(scrollArea->verticalScrollBar(), SIGNAL(valueChanged(int)),
             m_Canvas.get(), SLOT(scroll(void)));
-
-  nc_layout->addWidget(m_Canvas.get());
 
   auto menuBar = new QMenuBar(this);
   auto nodeMenu = menuBar->addMenu(tr("&Node"));
@@ -77,12 +95,8 @@ CmpTreeDialog::CmpTreeDialog(QWidget* parent, Execution* execution, bool with_la
     layout->setMenuBar(menuBar);
   #endif
 
-  statusBar = new QStatusBar(this);
-
   QWidget* stw = new QWidget();
-  statusBar->addPermanentWidget(stw);
-  statusBar->showMessage("Ready");
-  layout->addWidget(statusBar);
+  statusBar()->addPermanentWidget(stw);
 
   auto hbl = new QHBoxLayout();
   hbl->setContentsMargins(0,0,0,0);
@@ -104,7 +118,7 @@ CmpTreeDialog::CmpTreeDialog(QWidget* parent, Execution* execution, bool with_la
 
   mergedLabel->setNum(m_Cmp_result->get_no_pentagons());
 
-  setAttribute( Qt::WA_DeleteOnClose );
+  setAttribute( Qt::WA_DeleteOnClose);
 
   m_Canvas->setCurrentNode(m_Canvas->getExecution().nodeTree().getRoot());
 

@@ -30,6 +30,7 @@
 #include "data.hh"
 #include "nodevisitor.hh"
 #include "nodecursor.hh"
+#include "zoomToFitIcon.hpp"
 
 #include "treecanvas.hh"
 #include "execution.hh"
@@ -107,7 +108,26 @@ GistMainWindow::GistMainWindow(Execution& e,
   myPalette->setColor(QPalette::Window, Qt::white);
   scrollArea->setPalette(*myPalette);
 
-  m_Canvas.reset(new TreeCanvas(&execution, layout, scrollArea->viewport()));
+  m_Canvas.reset(new TreeCanvas(&execution, scrollArea->viewport()));
+
+  {
+    QPixmap zoomPic;
+    zoomPic.loadFromData(zoomToFitIcon, sizeof(zoomToFitIcon));
+
+    auto autoZoomButton = new QToolButton(this);
+    autoZoomButton->setCheckable(true);
+    autoZoomButton->setIcon(zoomPic);
+    autoZoomButton->setFixedSize(30, 30);
+    autoZoomButton->setFocusPolicy(Qt::NoFocus);
+
+    layout->addWidget(autoZoomButton, 0,1, Qt::AlignHCenter);
+
+    connect(autoZoomButton, SIGNAL(toggled(bool)), m_Canvas.get(), SLOT(setAutoZoom(bool)));
+
+    connect(m_Canvas.get(), SIGNAL(autoZoomChanged(bool)), autoZoomButton,
+            SLOT(setChecked(bool)));
+  }
+
   m_Canvas->setPalette(*myPalette);
   m_Canvas->setObjectName("canvas");
 
@@ -116,8 +136,8 @@ GistMainWindow::GistMainWindow(Execution& e,
   main_widget->setLayout(layout);
 
   layout->addWidget(scrollArea, 0, 0, -1, 1);
-  layout->addWidget(m_Canvas->scaleBar(), 2, 1, Qt::AlignHCenter);
-  layout->addWidget(m_Canvas->smallBox, 3, 1, Qt::AlignBottom);
+  layout->addWidget(m_Canvas->scaleBar(), 1, 1, Qt::AlignHCenter);
+  layout->addWidget(m_Canvas->smallBox, 2, 1, Qt::AlignHCenter);
 
   connect(&e.nodeTree(), &NodeTree::treeModified, [this]() {
     m_Canvas->updateCanvas(false);
@@ -139,7 +159,6 @@ GistMainWindow::GistMainWindow(Execution& e,
     updateStatsBar();
     finishStatsBar();
   }
-
 
   resize(500, 400);
 

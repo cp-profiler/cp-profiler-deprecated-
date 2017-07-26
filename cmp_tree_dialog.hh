@@ -22,6 +22,7 @@
 #define CMP_TREE_DIALOG_HH
 
 #include <QTableWidget>
+#include <QMainWindow>
 #include <QDialog>
 #include <memory>
 
@@ -60,7 +61,7 @@ public:
   void createList(); /// TODO(maxim): make this a free function?
 };
 
-class CmpTreeDialog : public QDialog {
+class CmpTreeDialog : public QMainWindow {
 Q_OBJECT
 
 private:
@@ -71,7 +72,7 @@ private:
 
   QGridLayout* layout;
 
-  QStatusBar* statusBar;
+  // QStatusBar* statusBar;
 
   bool expand_expressions;
 

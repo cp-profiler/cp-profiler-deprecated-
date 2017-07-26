@@ -464,7 +464,7 @@ void NogoodTableView::connectLocationFilter(QLineEdit* location_edit) {
   });
 }
 
-void NogoodTableView::addStandardButtons(QDialog* parent, QVBoxLayout* layout,
+void NogoodTableView::addStandardButtons(QWidget* parent, QVBoxLayout* layout,
                                          TreeCanvas* canvas, const Execution& e) {
   const NameMap* nm = e.getNameMap();
   if(nm != nullptr) {
