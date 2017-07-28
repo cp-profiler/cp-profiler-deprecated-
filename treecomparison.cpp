@@ -142,14 +142,8 @@ static bool copmareNodes(const VisualNode* n1, const Execution& ex1,
   /// if one is a nullptr -> not equal
   if (!n1 || !n2) return false;
 
-  // Two nodes are euqal if:
-  //    have the same status
-  //    have the same labels
-
+  // Two nodes are euqal if: they have the same status && label (optionally)
   if (n1->getStatus() != n2->getStatus()) return false;
-
-  const auto kids1 = n1->getNumberOfChildren();
-  const auto kids2 = n2->getNumberOfChildren();
 
   /// check your own labels only, not children's
   if (with_labels) {
@@ -329,39 +323,46 @@ std::unique_ptr<ComparisonResult> compareTrees(TreeCanvas& new_tc,
       auto kids2 = (int)node2->getNumberOfChildren();
 
       auto min_kids = std::min(kids1, kids2);
-      auto diff_kids = std::abs(kids1 - kids2);
+      auto max_kids = std::max(kids1, kids2);
 
-      target->setNumberOfChildren(min_kids + diff_kids, na);
+      target->setNumberOfChildren(max_kids, na);
 
       copy_into(ex1, node1, ex, target);
 
-      for (auto i = 0; i < min_kids; i++) {
-        stack1.push(node1->getChild(na1, min_kids - i - 1));
-        stack2.push(node2->getChild(na2, min_kids - i - 1));
-        stack.push(target->getChild(na, min_kids - i - 1));
+      for (auto i = 0; i < max_kids; i++) {
+        stack.push(target->getChild(na, max_kids - i - 1));
       }
 
-      for (auto i = min_kids; i < min_kids + diff_kids; i++) {
-        auto child = target->getChild(na, i);
+      for (auto i = 0; i < max_kids - min_kids; i++) {
 
         if (kids1 > kids2) {
-          auto node = node1->getChild(na1, i);
+          auto node = node1->getChild(na1, max_kids - i - 1);
+
+          /// NOTE(maxim): this is most likely the case of replaying with skipped nodes,
+          /// so should not be compared (the same below)
+          if (node->getStatus() == UNDETERMINED || node->getStatus() == SKIPPED) {
+            continue;
+          }
+
+          stack1.push(node);
+          stack2.push(nullptr);
+
+        } else {
+          auto node = node2->getChild(na2, max_kids - i - 1);
 
           if (node->getStatus() == UNDETERMINED || node->getStatus() == SKIPPED) {
             continue;
           }
-          auto ignored = create_pentagon(ex, child, ex1, node, ex2, nullptr);
-        } else {
-          auto node = node2->getChild(na2, i);
 
-          if (node->getStatus() == UNDETERMINED  || node->getStatus() == SKIPPED) {
-            continue;
-          }
-          auto ignored = create_pentagon(ex, child, ex1, nullptr, ex2, node);
+          stack1.push(nullptr);
+          stack2.push(node);
         }
       }
 
-      /// TODO: crate pentagons here as well
+      for (auto i = 0; i < min_kids; i++) {
+        stack1.push(node1->getChild(na1, min_kids - i - 1));
+        stack2.push(node2->getChild(na2, min_kids - i - 1));
+      }
 
     } else {
       int left_size, right_size;
@@ -370,7 +371,7 @@ std::unique_ptr<ComparisonResult> compareTrees(TreeCanvas& new_tc,
       const string* info_str = nullptr;
 
       /// if node1 is FAILED -> check nogoods // TODO(maxim): branch node?
-      if (node1->getStatus() == FAILED) {
+      if (node1 && node1->getStatus() == FAILED) {
         info_str = ex1.getInfo(*node1);
 
         int search_reduction = right_size - left_size;
