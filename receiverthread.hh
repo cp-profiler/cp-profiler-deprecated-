@@ -51,7 +51,8 @@ class ReceiverThread : public QThread {
 
  signals:
   void doneReceiving(void);
-  void executionIdReady(Execution* execution);
+  void executionIdReady(Execution*);
+  void executionStarted(Execution*);
 
  private:
   void run(void) override;
@@ -72,6 +73,7 @@ class ReceiverWorker : public QObject {
  signals:
   void doneReceiving(void);
   void executionIdReady(Execution*);
+  void executionStarted(Execution*);
 
  private:
   Execution* execution;
@@ -94,6 +96,8 @@ class ReceiverWorker : public QObject {
   QTcpSocket* tcpSocket;
 
   bool execution_id_communicated = false;
+  /// initialised shortly after execution id is available
+  bool wait_for_name_map = true;
  public slots:
   void doRead();
   void handleMessage(const cpprofiler::Message& msg);

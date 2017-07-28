@@ -53,11 +53,13 @@ ReceiverThread::run(void) {
 
     connect(worker, SIGNAL(doneReceiving(void)), this, SIGNAL(doneReceiving(void)));
     connect(worker, SIGNAL(doneReceiving(void)), this, SLOT(quit(void)));
-    connect(worker, &ReceiverWorker::executionIdReady, [this](Execution* ex){
-
-        /// TODO(maxim): should this really be run for every solver thread?
-        connect(this, SIGNAL(doneReceiving()), ex, SIGNAL(doneReceiving()));
+    connect(worker, &ReceiverWorker::executionIdReady, [this](Execution* ex) {
         emit executionIdReady(ex);
+    });
+
+    connect(worker, &ReceiverWorker::executionStarted, [this](Execution* ex) {
+        connect(this, SIGNAL(doneReceiving()), ex, SIGNAL(doneReceiving()));
+        emit executionStarted(ex);
     });
 
     connect(tcpSocket, SIGNAL(disconnected(void)), this, SLOT(quit(void)));
@@ -97,6 +99,8 @@ void ReceiverWorker::handleMessage(const Message& msg) {
                 execution->start(msg.label(), is_restarts);
             }
 
+            emit executionStarted(execution);
+
             if (msg.has_info()) {
 
                 try {
@@ -111,6 +115,10 @@ void ReceiverWorker::handleMessage(const Message& msg) {
                             execution->setExecutionId(*execution_id);
                             emit executionIdReady(execution);
                         }
+                    } else {
+                        /// Note(maxim): should not expect Execution Id in the future,
+                        /// so there is no reason to wait for the name map
+                        wait_for_name_map = false;
                     }
 
                     auto variableListString = info_json.find("variable_list");
@@ -121,16 +129,8 @@ void ReceiverWorker::handleMessage(const Message& msg) {
                     std::cerr << "Can't parse json in info: " << e.what() << "\n";
                 }
             }
-
-            // qDebug() << "waiting for cond var";
-
-            /// NOTE(maxim): for now, don't want to wait
-#ifdef MAXIM_DEBUG
-            execution_id_communicated = true;
-#endif
-
             /// Wait for condition variable
-            if (!execution_id_communicated) {
+            if (!execution_id_communicated && wait_for_name_map) {
                 QMutex m;
                 m.lock();
                 while (!execution->has_exec_id) {

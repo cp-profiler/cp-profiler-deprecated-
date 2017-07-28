@@ -161,6 +161,9 @@ ProfilerConductor::ProfilerConductor() : QMainWindow(), listen_port(6565) {
     connect(receiver, &ReceiverThread::executionIdReady,
       this, &ProfilerConductor::executionIdReady);
 
+    connect(receiver, &ReceiverThread::executionStarted,
+      this, &ProfilerConductor::executionStarted);
+
     connect(receiver, &ReceiverThread::doneReceiving, [this]() {
       latest_execution = nullptr;
     });
@@ -567,15 +570,17 @@ void ProfilerConductor::createExecution(unique_ptr<NodeTree> nt,
 }
 
 void ProfilerConductor::executionIdReady(Execution* e) {
-  latest_execution = e;
-  addExecution(*e);
-
+  // latest_execution = e; // TODO(maxim): check if still needed
   int eid = e->getExecutionId();
   if (eid != -1 && eid < nameMaps.size()) {
     e->setNameMap(&nameMaps[eid]);
   }
   e->has_exec_id = true;
   e->has_exec_id_cond.wakeOne();
+}
+
+void ProfilerConductor::executionStarted(Execution* e) {
+  addExecution(*e);
 }
 
 void ProfilerConductor::showNodeInfoToIDE(std::string extra_info) {
