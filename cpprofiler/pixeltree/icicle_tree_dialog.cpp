@@ -263,7 +263,8 @@ QRgb IcicleTreeCanvas::getColorByType(const VisualNode& node) {
   auto& data = tc_.getExecution().getData();
   auto gid = node.getIndex(na);
   auto* entry = data.getEntry(gid);
-  auto domain_red = entry == nullptr ? 0 : entry->domain;
+  // auto domain_red = entry == nullptr ? 0 : entry->domain;
+  auto domain_red = 0;
   domain_red_sum += domain_red;
   switch (IcicleTreeCanvas::color_mapping_type) {
     case ColorMappingType::DEFAULT: {

@@ -80,13 +80,10 @@ void ReceiverWorker::handleMessage(const Message& msg) {
 
     switch (msg.type()) {
         case cpprofiler::MsgType::NODE:
-#ifdef MAXIM_DEBUG
-            std::cerr << "handle message\n";
-#endif
             execution->handleNewNode(msg);
         break;
         case cpprofiler::MsgType::START:
-            std::cerr << "START\n";
+            // std::cerr << "START\n";
 
             /// Not very first START (in case of restart execution)
             if (msg.restart_id() != -1 && msg.restart_id() != 0) {
@@ -125,7 +122,7 @@ void ReceiverWorker::handleMessage(const Message& msg) {
                 }
             }
 
-            qDebug() << "waiting for cond var";
+            // qDebug() << "waiting for cond var";
 
             /// NOTE(maxim): for now, don't want to wait
 #ifdef MAXIM_DEBUG
@@ -139,7 +136,7 @@ void ReceiverWorker::handleMessage(const Message& msg) {
                 while (!execution->has_exec_id) {
                     execution->has_exec_id_cond.wait(&m);
                 }
-                qDebug() << "exec id communicated";
+                // qDebug() << "exec id communicated";
                 execution_id_communicated = true;
                 m.unlock();
             }

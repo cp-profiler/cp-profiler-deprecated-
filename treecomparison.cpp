@@ -335,7 +335,7 @@ std::unique_ptr<ComparisonResult> compareTrees(TreeCanvas& new_tc,
 
       copy_into(ex1, node1, ex, target);
 
-      for (auto i = 0u; i < min_kids; i++) {
+      for (auto i = 0; i < min_kids; i++) {
         stack1.push(node1->getChild(na1, min_kids - i - 1));
         stack2.push(node2->getChild(na2, min_kids - i - 1));
         stack.push(target->getChild(na, min_kids - i - 1));

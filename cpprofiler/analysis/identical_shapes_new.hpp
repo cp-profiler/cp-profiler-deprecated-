@@ -50,7 +50,7 @@ namespace detail {
       Group* new_group = sgroups.split_group(g);
 
       /// ----- change group_id for nodes in the second group -----
-      for (auto j = 0u; j < new_group->size(); ++j) {
+      for (auto j = 0; j < new_group->size(); ++j) {
         auto* node = new_group->at(j).node;
         node2pos[node].group = new_group;
         node2pos[node].inner_idx = j;
@@ -91,7 +91,7 @@ GroupsOfNodes_t findIdentical(NodeTree& nt, const GroupsOfNodes_t& init_p) {
   SplittableGroups sgroups{groups};
 
   for (auto& group : sgroups) {
-    for (auto i = 0u; i < group->size(); ++i) {
+    for (auto i = 0; i < group->size(); ++i) {
       auto& ci = group->at(i);
 
       node2pos[ci.node] = PosInGroups{(int)i, group};
@@ -101,7 +101,7 @@ GroupsOfNodes_t findIdentical(NodeTree& nt, const GroupsOfNodes_t& init_p) {
   // print_groups(sgroups);
   // print(sgroups);
 
-  for (auto g_idx = 0; g_idx < sgroups.size(); ++g_idx) {
+  for (auto g_idx = 0u; g_idx < sgroups.size(); ++g_idx) {
 
     auto* group = sgroups[g_idx];
     /// separately for each type of child node

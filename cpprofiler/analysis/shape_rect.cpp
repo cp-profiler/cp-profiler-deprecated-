@@ -10,8 +10,8 @@ namespace analysis {
 
 ShapeRect::ShapeRect(int x, int y, int width, HistogramWindow* ssw)
     : QGraphicsRectItem(x, y, SELECTION_WIDTH, HEIGHT, nullptr),
-      visibleArea(x, y + 1, width, HEIGHT - 2),
-      m_ssWindow{ssw} {
+      m_ssWindow{ssw},
+      visibleArea(x, y + 1, width, HEIGHT - 2) {
   setBrush(Qt::white);
   QPen whitepen(Qt::white);
   setPen(whitepen);

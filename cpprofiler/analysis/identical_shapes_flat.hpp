@@ -197,7 +197,7 @@ static void updateGroups(const std::vector<ChildInfo>& subtrees,
 
     /// TODO(maxim): can this be taken in the outer loop?
     for (auto i = 0u; i < id2idx.size() - 1; ++i) {
-      if (id2idx[i] >= new_group_idx) {
+      if (id2idx[i] >= (int)new_group_idx) {
         id2idx[i] += 1;
       }
     }
@@ -276,14 +276,14 @@ GroupsOfNodes_t findIdentical(NodeTree& nt, const GroupsOfNodes_t& init_p) {
 
   /// ---- 3) do stuff for each group in order (starting with the most shallow) ----
   // for (auto g_idx = 0; g_idx < 1; ++g_idx) {
-  for (auto g_idx = 0; g_idx < group_separators.size() - 1; ++g_idx) {
+  for (auto g_idx = 0; g_idx < (int)(group_separators.size() - 1); ++g_idx) {
 
     int g_beg = group_separators[g_idx].mark;
     int g_end = group_separators[g_idx + 1].mark;
     
     /// do stuff for left and then right children
     /// NOTE(maxim): only works with binary trees for now
-    for (auto alt = 0u; alt < 2; ++alt) {
+    for (auto alt = 0; alt < 2; ++alt) {
 
       for (auto i = g_beg; i < g_end; ++i) {
         auto& ci = subtrees[i];

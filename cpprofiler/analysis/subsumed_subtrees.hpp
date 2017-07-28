@@ -67,7 +67,7 @@ static void eliminateSubsumed(const NodeTree& nt, vector<Group>& subtrees) {
     }
 
     /// Populate `subsumed`
-    for (int h = 2; h < soh.size(); ++h) {
+    for (auto h = 2u; h < soh.size(); ++h) {
         detail::eliminateSubsumedStep(nt, subsumed, soh[h], node2group);
     }
   }

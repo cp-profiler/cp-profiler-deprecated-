@@ -117,8 +117,7 @@ collectShapes(NodeTree& nt) {
             nSol += nSols.value(n->getChild(na,i));
           }
         break;
-        case MERGING:
-        break;    /// To avoid compiler warnings
+        default: break;    /// To avoid compiler warnings
     }
 
     return nSol;

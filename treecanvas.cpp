@@ -1456,7 +1456,7 @@ static void copyTree(VisualNode* target, NodeTree& tree_target,
   while (source_stack.size() > 0) {
 
     /// TODO(maxim): isn't this info readily available somewhere?
-    depth = (source_stack.size() > depth) ? source_stack.size() : depth;
+    depth = ((int)source_stack.size() > depth) ? source_stack.size() : depth;
 
     VisualNode* target = target_stack.top(); target_stack.pop();
     const VisualNode* source = source_stack.top(); source_stack.pop();

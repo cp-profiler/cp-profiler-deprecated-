@@ -158,6 +158,7 @@ DrawingCursor::processCurrentNode(void) {
                 break;
             case MERGING:
                 break; /// already handled, here to avoid warnings
+            default: { break; }
             }
         }
     }
@@ -256,6 +257,7 @@ DrawingCursor::processCurrentNode(void) {
             }
             drawPentagon(painter, myx, myy, false);
             break;
+        default: break;
         }
     }
 

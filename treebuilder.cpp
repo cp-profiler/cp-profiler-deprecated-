@@ -308,7 +308,7 @@ void TreeBuilder::run() {
 
   bool is_delayed;
 
-  perfHelper.begin("building a tree");
+  // perfHelper.begin("building a tree");
 
   while (true) {
     /// TODO(maxim): isn't it the same as `lock`?
@@ -340,7 +340,7 @@ void TreeBuilder::run() {
     dataMutex.unlock();
   }
 
-  perfHelper.end();
+  // perfHelper.end();
 
   emit doneBuilding(true);
 
@@ -349,8 +349,8 @@ void TreeBuilder::run() {
 
   double elapsed_clock_secs = double(endClock - beginClock) / CLOCKS_PER_SEC;
   //    qDebug() << "Time elapsed: " << elapsed_secs << " seconds";
-  qDebug() << "Elapsed CPU time:  " << elapsed_clock_secs << " seconds";
-  qDebug() << "Elapsed wall time: " << (endTime - beginTime) << " seconds";
+  // qDebug() << "Elapsed CPU time:  " << elapsed_clock_secs << " seconds";
+  // qDebug() << "Elapsed wall time: " << (endTime - beginTime) << " seconds";
   // qDebug() << fixed << beginTime << "  ->  " << endTime;
 
   qDebug() << "solutions:" << stats.solutions;

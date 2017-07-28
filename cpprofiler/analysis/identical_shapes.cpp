@@ -46,7 +46,7 @@ static ChildInfo node2ci(VisualNode* n, const NodeTree& nt) {
   auto& na = nt.getNA();
   /// figure out `alt`: have to check all parent's children
   auto* p = n->getParent(na);
-  int alt;
+  int alt = -1;
   if (p != nullptr) {
 
     for (auto i = 0u; i < p->getNumberOfChildren(); ++i) {
@@ -56,8 +56,6 @@ static ChildInfo node2ci(VisualNode* n, const NodeTree& nt) {
       }
     }
 
-  } else {
-    alt = -1;
   }
 
   return {alt, n};

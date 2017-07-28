@@ -20,10 +20,9 @@ QString lit2string(utils::lits::Lit l) {
 // =============================================================
 class NogoodDelegate : public QStyledItemDelegate {
 public:
-    NogoodDelegate(NogoodTableView* nogoodTable,
+    NogoodDelegate(QWidget* parent,
                    std::unordered_map<std::string, QColor>& colors,
-                   int nogood_col) : _nogoodTable(nogoodTable),
-      _colors(colors), _nogood_col(nogood_col) {}
+                   int nogood_col) : QStyledItemDelegate(parent), _colors(colors), _nogood_col(nogood_col) {}
 
 protected:
   void paint(QPainter* painter, const QStyleOptionViewItem& item, const QModelIndex& index) const {
@@ -64,7 +63,6 @@ protected:
     painter->restore();
   }
 private:
-  NogoodTableView* _nogoodTable;
   std::unordered_map<std::string, QColor>& _colors;
   int _nogood_col;
 };

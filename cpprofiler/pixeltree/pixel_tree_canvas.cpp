@@ -52,9 +52,9 @@ using std::string;
 PixelTreeCanvas::PixelTreeCanvas(QWidget* parent, TreeCanvas& tc, InfoPanel& ip)
     : QWidget(parent),
       _tc(tc),
-      infoPanel(ip),
       _data(tc.getExecution().getData()),
       _na(tc.getExecution().nodeTree().getNA()),
+      infoPanel(ip),
       depthAnalysis(tc.getExecution().nodeTree()) {
   using cpprofiler::analysis::Backjumps;
 
@@ -238,7 +238,8 @@ void PixelTreeCanvas::getDomainDataCompressed(vector<float>& compressed,
     group_count++;
 
     auto entry = _data.getEntry(pixel_list[i].node()->getIndex(_na));
-    auto value = (entry == nullptr) ? 0 : entry->domain;
+    // auto value = (entry == nullptr) ? 0 : entry->domain;
+    auto value = 0;
     group_value += value;
 
     if (group_count == compression) {

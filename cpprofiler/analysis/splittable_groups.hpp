@@ -87,7 +87,7 @@ public:
     SplittableGroups(const SplittableGroups& other) = delete;
 
     Group* get_group(int g_idx) {
-        assert(groups.size() > g_idx);
+        assert((int)groups.size() > g_idx);
         return groups[g_idx];
     }
 

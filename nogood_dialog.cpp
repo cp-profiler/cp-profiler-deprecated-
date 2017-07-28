@@ -75,6 +75,7 @@ void NogoodDialog::populateTable(const std::vector<int>& selected_nodes) {
 }
 
 void NogoodDialog::selectNode(const QModelIndex& index) {
-  unsigned int gid = _tc.getExecution().getData().getGidBySid(index.sibling(index.row(), 0).data().toInt());
+  int64_t full_sid = index.sibling(index.row(), 0).data().toLongLong();
+  int32_t gid = _tc.getExecution().getData().getGidBySid(full_sid);
   _tc.navigateToNodeById(static_cast<int>(gid));
 }

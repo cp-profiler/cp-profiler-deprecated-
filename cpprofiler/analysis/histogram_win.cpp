@@ -100,7 +100,7 @@ static std::vector<std::string> pathLabels(const VisualNode* const node,
     if (label != "") {
       labels.push_back(label);
     }
-  } while (cur_node = cur_node->getParent(na));
+  } while ((cur_node = cur_node->getParent(na)));
 
   return labels;
 }
@@ -172,7 +172,7 @@ vector<string> getLabelDiff(const Execution& ex,
   vector<string> result;
 
   for (auto& pair : label_counts) {
-    if (pair.second != vec.size()) {
+    if (pair.second != (int)vec.size()) {
       result.push_back(pair.first);
     }
   }

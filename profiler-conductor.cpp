@@ -24,7 +24,7 @@
 
 #include <QDebug>
 
-#include "subtree_comparison.hpp";
+#include "subtree_comparison.hpp"
 
 // Execution* loadSaved(Execution* e, std::string path) {
 //   std::ifstream inputFile(path, std::ios::in | std::ios::binary);

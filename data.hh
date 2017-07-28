@@ -55,15 +55,10 @@ class DbEntry {
 
 public:
     DbEntry(int sid, int restart_id, int64_t parent_id, int _alt, int _kids,
-            std::string _label, int tid, int _status, unsigned long long _time_stamp,
-            unsigned long long _node_time, float _domain, int _nogood_bld,
-            bool _uses_assumptions, int _backjump_distance, int _decision_level) :
-        s_node_id(sid), restart_id(restart_id), gid(-1), parent_sid(parent_id), alt(_alt), numberOfKids(_kids),
-        status(_status), label(_label), thread_id(tid), depth(-1), time_stamp(_time_stamp), node_time(_node_time),
-        domain(_domain), nogood_bld(_nogood_bld),
-        usesAssumptions(_uses_assumptions),
-        backjump_distance(_backjump_distance),
-        decision_level(_decision_level)
+            std::string _label, int tid, int _status, int64_t _time_stamp,
+            int64_t _node_time) :
+        s_node_id(sid), restart_id(restart_id), gid(-1), parent_sid(parent_id), alt(_alt), numberOfKids(_kids), label(_label), thread_id(tid), depth(-1), time_stamp(_time_stamp), node_time(_node_time),
+        status(_status)
     {
     }
 
@@ -87,21 +82,16 @@ public:
         };
         int64_t full_sid;
     };
-    int gid; // gist id, set to -1 so we don't forget to assign the real value
+    int32_t gid; // gist id, set to -1 so we don't forget to assign the real value
     int64_t parent_sid; // TODO(maxim): this needs only 32 bit integer, as restart_id is known
-    int alt; // which child by order
-    int numberOfKids;
-    char status;
+    int32_t alt; // which child by order
+    int32_t numberOfKids;
     std::string label;
-    int thread_id{-1};
-    int depth;
+    int32_t thread_id{-1};
+    int32_t depth;
     uint64_t time_stamp;
     uint64_t node_time;
-    float domain;
-    int nogood_bld;
-    bool usesAssumptions;
-    int backjump_distance;
-    int decision_level;
+    char status;
 };
 
 class NodeTimer;
@@ -210,12 +200,6 @@ void Data::connectNodeToEntry(int gid, DbEntry* const entry) {
 
 inline
 DbEntry* Data::getEntry(int gid) const {
-
-    auto sid = gid2sid(gid);
-
-    if (nodes_arr.size() > sid) {
-        return nodes_arr[sid];
-    }
 
     auto it = gid2entry.find(gid);
     if (it != gid2entry.end()) {

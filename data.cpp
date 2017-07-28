@@ -129,6 +129,8 @@ void Data::setDoneReceiving(void) {
 }
 
 
+
+
 int Data::handleNodeCallback(const cpprofiler::Message& node) {
 
     search_timer->on_node();
@@ -142,11 +144,6 @@ int Data::handleNodeCallback(const cpprofiler::Message& node) {
     int restart_id = node.restart_id();
     // int restart_id = -1;
     int tid = node.thread_id();
-    // float domain = node.domain_size();
-    // int nogood_bld = node.nogood_bld();
-    // bool usesAssumptions = node.uses_assumptions();
-    // int backjump_distance = node.backjump_distance();
-    // int decision_level = node.decision_level();
 
     int64_t real_pid = -1;
     if (pid != -1) {

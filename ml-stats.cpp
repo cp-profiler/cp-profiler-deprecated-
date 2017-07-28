@@ -31,7 +31,7 @@ public:
     int nogoodLength;
     int nogoodNumberVariables;
     int nogoodBLD;
-    bool usesAssumptions;
+    // bool usesAssumptions;
     int backjumpDistance;
     int backjumpDestination;
     unsigned long long timestamp;
@@ -60,7 +60,7 @@ void printStatsHeader(std::ostream& out = std::cout) {
         << "," << "nogoodLength"
         << "," << "nogoodNumberVariables"
         << "," << "nogoodBLD"
-        << "," << "usesAssumptions"
+        // << "," << "usesAssumptions"
         << "," << "backjumpDistance"
         << "," << "backjumpDestination"
         << "," << "timestamp"
@@ -103,7 +103,7 @@ void printStatsEntry(const StatsEntry& se, std::ostream& out = std::cout) {
         << "," << se.nogoodLength
         << "," << se.nogoodNumberVariables
         << "," << se.nogoodBLD
-        << "," << se.usesAssumptions
+        // << "," << se.usesAssumptions
         << "," << se.backjumpDistance
         << "," << se.backjumpDestination
         << "," << se.timestamp
@@ -222,11 +222,11 @@ public:
             se.nogoodString = getNogoodString(sid);
             se.nogoodLength = calculateNogoodLength(se.nogoodString);
             se.nogoodNumberVariables = calculateNogoodNumberVariables(se.nogoodString);
-            se.nogoodBLD = entry->nogood_bld;
-            se.usesAssumptions = entry->usesAssumptions;
-            se.backjumpDistance = entry->backjump_distance;
+            // se.nogoodBLD = entry->nogood_bld;
+            // se.usesAssumptions = entry->usesAssumptions;
+            // se.backjumpDistance = entry->backjump_distance;
+            // se.decisionLevel = entry->decision_level;
             se.label = entry->label;
-            se.decisionLevel = entry->decision_level;
             se.timestamp = entry->time_stamp;
             se.solutionString = getSolutionString(sid);
 
