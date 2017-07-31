@@ -180,7 +180,7 @@ int Data::handleNodeCallback(const cpprofiler::Message& node) {
         }
 
 #ifdef MAXIM_DEBUG
-        qDebug() << "add nogood: " << entry->full_sid << " " << ng.original.c_str();
+        // qDebug() << "add nogood: " << entry->full_sid << " " << ng.original.c_str();
 #endif
 
         sid2nogood[entry->full_sid] = ng;

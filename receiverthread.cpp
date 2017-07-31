@@ -51,14 +51,27 @@ ReceiverThread::run(void) {
     ReceiverWorker* worker = new ReceiverWorker(tcpSocket, execution);
     connect(tcpSocket, SIGNAL(readyRead()), worker, SLOT(doRead()));
 
-    connect(worker, SIGNAL(doneReceiving(void)), this, SIGNAL(doneReceiving(void)));
-    connect(worker, SIGNAL(doneReceiving(void)), this, SLOT(quit(void)));
+    // connect(worker, SIGNAL(doneReceiving(void)), this, SIGNAL(doneReceiving(void)));
+    auto conn_1 = std::make_shared<QMetaObject::Connection>();
+
+    *conn_1 = connect(worker, &ReceiverWorker::doneReceiving, [this, conn_1]() {
+        QObject::disconnect(*conn_1);
+        emit doneReceiving();
+        quit();
+    });
+
+    // connect(worker, SIGNAL(doneReceiving(void)), this, SLOT(quit(void)));
     connect(worker, &ReceiverWorker::executionIdReady, [this](Execution* ex) {
         emit executionIdReady(ex);
     });
 
-    connect(worker, &ReceiverWorker::executionStarted, [this](Execution* ex) {
+    auto conn_2 = std::make_shared<QMetaObject::Connection>();
+
+    *conn_2 = connect(worker, &ReceiverWorker::executionStarted, [this, conn_2](Execution* ex) {
+
+        /// NOTE(maxim): this can be triggered more than once...
         connect(this, SIGNAL(doneReceiving()), ex, SIGNAL(doneReceiving()));
+        QObject::disconnect(*conn_2);
         emit executionStarted(ex);
     });
 
@@ -88,6 +101,7 @@ void ReceiverWorker::handleMessage(const Message& msg) {
             // std::cerr << "START\n";
 
             /// Not very first START (in case of restart execution)
+            /// NOTE(maxim): Chuffed currently always sends 0 for all restarts...
             if (msg.restart_id() != -1 && msg.restart_id() != 0) {
                 break;
             }
