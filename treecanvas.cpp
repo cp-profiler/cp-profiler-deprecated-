@@ -1371,6 +1371,8 @@ void TreeCanvas::highlightFailedByNogoods() {
 void TreeCanvas::deleteNode(VisualNode* n) {
   auto parent = n->getParent(na);
   if (!parent) return;
+
+  n->setStatus(REMOVED); /// so it is not listed as open
   parent->closeChild(na, true, false);
   parent->removeChild(n->getIndex(na), na);
 
