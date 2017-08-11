@@ -142,6 +142,8 @@ static bool copmareNodes(const VisualNode* n1, const Execution& ex1,
   /// if one is a nullptr -> not equal
   if (!n1 || !n2) return false;
 
+  if (n1->getNumberOfChildren() != n2->getNumberOfChildren()) return false;
+
   // Two nodes are euqal if: they have the same status && label (optionally)
   if (n1->getStatus() != n2->getStatus()) return false;
 
@@ -276,6 +278,85 @@ static std::pair<int,int> create_pentagon(Execution& t_ex, VisualNode* target,
 
   return std::make_pair(left_size, right_size);
 
+}
+
+std::unique_ptr<ComparisonResult> compareBinaryTrees(TreeCanvas& new_tc,
+                                               const Execution& ex1,
+                                               const Execution& ex2,
+                                               bool with_labels) {
+
+  /// For source trees
+  QStack<const VisualNode*> stack1, stack2;
+
+  /// The stack used for building new_tc
+  QStack<VisualNode*> stack;
+
+  auto root1 = ex1.nodeTree().getRoot();
+  auto root2 = ex2.nodeTree().getRoot();
+
+  auto& na1 = ex1.nodeTree().getNA();
+  auto& na2 = ex2.nodeTree().getNA();
+
+  stack1.push(root1); stack2.push(root2);
+
+  auto& ex = new_tc.getExecution();
+  auto& nt = ex.nodeTree();
+  auto& na = nt.getNA();
+
+  stack.push(nt.getRoot());
+
+  std::unique_ptr<ComparisonResult> result(new ComparisonResult{ex1, ex2});
+
+  while (stack1.size() > 0) {
+
+    auto node1 = stack1.pop();
+    auto node2 = stack2.pop();
+    auto target = stack.pop();
+
+    bool equal = copmareNodes(node1, ex1, node2, ex2, with_labels);
+
+    if (equal) {
+      /// turn current node into one of node1/node2
+      auto kids = (int)node1->getNumberOfChildren();
+
+      copy_into(ex1, node1, ex, target);
+
+      target->setNumberOfChildren(kids, na);
+
+      for (auto i = kids - 1; i >= 0; --i) {
+        stack1.push(node1->getChild(na1, i));
+        stack2.push(node2->getChild(na2, i));
+        stack.push(target->getChild(na, i));
+      }
+
+    } else {
+      int left_size, right_size;
+      std::tie(left_size, right_size) = create_pentagon(ex, target, ex1, node1, ex2, node2);
+
+      const string* info_str = nullptr;
+
+      /// if node1 is FAILED -> check nogoods // TODO(maxim): branch node?
+      // if (node1 && node1->getStatus() == FAILED) {
+      //   info_str = ex1.getInfo(*node1);
+
+      //   int search_reduction = right_size - left_size;
+      //   /// identify nogoods and increment counters
+      //   if (info_str) {
+      //     result->analyseNogoods(*info_str, search_reduction);
+      //   }
+      // }
+
+      result->m_pentagonItems.emplace_back(
+        PentagonItem{left_size, right_size, target, info_str});
+    }
+
+    target->dirtyUp(na);
+
+  }
+
+  new_tc.updateCanvas();
+
+  return result;
 }
 
 std::unique_ptr<ComparisonResult> compareTrees(TreeCanvas& new_tc,

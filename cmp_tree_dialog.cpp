@@ -109,7 +109,7 @@ CmpTreeDialog::CmpTreeDialog(QWidget* parent, Execution* execution, bool with_la
 
   perfHelper.begin("comparison");
 
-  m_Cmp_result = treecomparison::compareTrees(*m_Canvas, ex1, ex2, with_labels);
+  m_Cmp_result = treecomparison::compareBinaryTrees(*m_Canvas, ex1, ex2, with_labels);
 
   perfHelper.end();
 

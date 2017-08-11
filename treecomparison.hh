@@ -52,10 +52,19 @@ std::unique_ptr<ComparisonResult> compareTrees(TreeCanvas& new_tc,
                                                const Execution& ex1,
                                                const Execution& ex2,
                                                bool with_labels);
+
+std::unique_ptr<ComparisonResult> compareBinaryTrees(TreeCanvas& new_tc,
+                                               const Execution& ex1,
+                                               const Execution& ex2,
+                                               bool with_labels);
 }
 
 class ComparisonResult {
   friend std::unique_ptr<ComparisonResult> treecomparison::compareTrees(
+      TreeCanvas& new_tc, const Execution& ex1, const Execution& ex2,
+      bool with_labels);
+
+  friend std::unique_ptr<ComparisonResult> treecomparison::compareBinaryTrees(
       TreeCanvas& new_tc, const Execution& ex1, const Execution& ex2,
       bool with_labels);
 
