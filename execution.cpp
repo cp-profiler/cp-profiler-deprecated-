@@ -161,7 +161,8 @@ const std::string& Execution::getNogoodBySid(int64_t sid, bool renamed, bool sim
   auto maybe_nogood = ng_map.find(sid);
   if (maybe_nogood != ng_map.end()){
     const NogoodViews& ng = maybe_nogood->second;
-    if(renamed) {
+
+    if(renamed && (ng.renamed != "")) {
       return simplified ? ng.simplified : ng.renamed;
     } else {
       return ng.original;

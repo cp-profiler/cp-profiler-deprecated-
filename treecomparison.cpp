@@ -116,6 +116,14 @@ static bool compareLabels(std::string lhs, std::string rhs) {
     /// for parsing logbrancher while Chuffed uses them as a delimiter
     /// between literals)
 
+    if (lhs.substr(0,3) == "[i]" || lhs.substr(0,3) == "[f]") {
+      lhs = lhs.substr(3);
+    }
+
+    if (rhs.substr(0,3) == "[i]" || rhs.substr(0,3) == "[f]") {
+      rhs = rhs.substr(3);
+    }
+
     lhs.erase(remove_if(lhs.begin(), lhs.end(), isspace), lhs.end());
     rhs.erase(remove_if(rhs.begin(), rhs.end(), isspace), rhs.end());
 
@@ -336,15 +344,15 @@ std::unique_ptr<ComparisonResult> compareBinaryTrees(TreeCanvas& new_tc,
       const string* info_str = nullptr;
 
       /// if node1 is FAILED -> check nogoods // TODO(maxim): branch node?
-      // if (node1 && node1->getStatus() == FAILED) {
-      //   info_str = ex1.getInfo(*node1);
+      if (node1 && node1->getStatus() == FAILED) {
+        info_str = ex1.getInfo(*node1);
 
-      //   int search_reduction = right_size - left_size;
+        int search_reduction = right_size - left_size;
       //   /// identify nogoods and increment counters
-      //   if (info_str) {
-      //     result->analyseNogoods(*info_str, search_reduction);
-      //   }
-      // }
+        if (info_str) {
+          result->analyseNogoods(*info_str, search_reduction);
+        }
+      }
 
       result->m_pentagonItems.emplace_back(
         PentagonItem{left_size, right_size, target, info_str});
@@ -453,6 +461,7 @@ std::unique_ptr<ComparisonResult> compareTrees(TreeCanvas& new_tc,
 
       /// if node1 is FAILED -> check nogoods // TODO(maxim): branch node?
       if (node1 && node1->getStatus() == FAILED) {
+
         info_str = ex1.getInfo(*node1);
 
         int search_reduction = right_size - left_size;
