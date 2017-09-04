@@ -32,21 +32,6 @@ ReadingQueue::ReadingQueue(const std::vector<DbEntry*>& nodes)
 DbEntry*
 ReadingQueue::next(bool& delayed) {
 
-  /// for dubugging
-  // std::cout << "*** delayed: ***\n";
-  // for (auto it = delayed_treads.begin(); it != delayed_treads.end(); it++) {
-  //   // std::cout << "front: " << (*it->second).front()->sid;
-  //   std::cout << "size: " << (*it->second).size();
-  //   std::cout << "\n";
-  // }
-  // std::cout << "*********\n";
-
-  // std::cout << "nodes_arr: ";
-  // for (auto entry = nodes_arr.begin(); entry != nodes_arr.end(); entry++) {
-  //     std::cout << (*entry)->sid << " ";
-  // }
-  // std::cout << std::endl;
-
   /// if normal read mode && nodes_arr has unread elements
   if (!read_delayed && nodes_arr.size() > last_read) {
 
@@ -131,8 +116,9 @@ ReadingQueue::update(bool success) {
       read_delayed = true;
       /// todo: remember the queue
     } else {
-      std::cerr << "can't read from either queue, aborting\n";
-      abort();
+#ifdef MAXIM_DEBUG
+      std::cerr << "can't read from either queue\n";
+#endif
     }
     return;
   }

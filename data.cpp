@@ -168,6 +168,9 @@ int Data::handleNodeCallback(const cpprofiler::Message& node) {
 
     pushInstance(entry);
 
+    // std::cout << "sid: " << node.id() << "\n";
+    // std::cout << "node: " << *entry << "\n";
+
     if (node.has_nogood() && node.nogood().length() > 0) {
 
         /// simplify nogood here

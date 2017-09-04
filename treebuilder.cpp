@@ -26,41 +26,6 @@
 #include "nodetree.hh"
 #include <cassert>
 
-#ifndef Q_OS_WIN
-#include <sys/time.h>
-#else
-#include <time.h>
-int gettimeofday(struct timeval * tp, struct timezone * tzp)
-{
-    // Note: some broken versions only have 8 trailing zero's, the correct epoch has 9 trailing zero's
-    // This magic number is the number of 100 nanosecond intervals since January 1, 1601 (UTC)
-    // until 00:00:00 January 1, 1970 
-    static const uint64_t EPOCH = ((uint64_t) 116444736000000000ULL);
-
-    SYSTEMTIME  system_time;
-    FILETIME    file_time;
-    uint64_t    time;
-
-    GetSystemTime( &system_time );
-    SystemTimeToFileTime( &system_time, &file_time );
-    time =  ((uint64_t)file_time.dwLowDateTime )      ;
-    time += ((uint64_t)file_time.dwHighDateTime) << 32;
-
-    tp->tv_sec  = (long) ((time - EPOCH) / 10000000L);
-    tp->tv_usec = (long) (system_time.wMilliseconds * 1000);
-    return 0;
-}
-#endif
-
-double get_wall_time() {
-  struct timeval time;
-  if (gettimeofday(&time, nullptr)) {
-    //  Handle error
-    return 0;
-  }
-  return (double)time.tv_sec + (double)time.tv_usec * .000001;
-}
-
 TreeBuilder::TreeBuilder(Execution* exec, QObject* parent)
     : QThread(parent),
       execution(*exec),
@@ -79,19 +44,18 @@ bool TreeBuilder::processRoot(DbEntry& dbEntry) {
   Statistics& stats = execution.getStatistics();
 
   stats.choices++;
+  stats.undetermined += dbEntry.numberOfKids;
 
   // can be a real root, or one of initial nodes in restarts
   VisualNode* root = nullptr;
 
-  int kids = dbEntry.numberOfKids;
-
   if (execution.isRestarts()) {
+#ifdef MAXIM_DEBUG
+    qDebug() << "creating restart root";
+#endif
     // create a node for a new root
     int restart_root = (_na)[0]->addChild(_na);
     root = (_na)[restart_root];
-
-    /// TODO(maxim): figure out where this is set (to 3?)
-    (_na)[0]->_tid = 0;
 
     // The "super root" now has an extra child, so its children
     // haven't been laid out yet.
@@ -101,23 +65,23 @@ bool TreeBuilder::processRoot(DbEntry& dbEntry) {
     // The "super root" is effectively a branch node.
     (_na)[0]->setStatus(BRANCH);
 
-    stats.undetermined += kids;
-    
     dbEntry.gid = restart_root;
     dbEntry.depth = 2;
   } else {
     root = (_na)[0];  // use the root that is already there
-    root->_tid = 0;
+    if (root->getStatus() != UNDETERMINED) {
+      qDebug() << "ERROR: can't process node (root)";
+      return true;
+    }
     dbEntry.gid = 0;
     dbEntry.depth = 1;
-    stats.undetermined += kids;
   }
 
   auto& gid2entry = _data.gid2entry;
   gid2entry[dbEntry.gid] = &dbEntry;
 
   /// setNumberOfChildren
-  root->setNumberOfChildren(kids, _na);
+  root->setNumberOfChildren(dbEntry.numberOfKids, _na);
   root->setStatus(BRANCH);
   root->setHasSolvedChildren(false);
   root->setHasOpenChildren(true);
@@ -150,9 +114,9 @@ bool TreeBuilder::processNode(DbEntry& dbEntry, bool is_delayed) {
     return false;
   }
 
-  const DbEntry& parentEntry = *_data.getEntries()[pid_it->second];
+  const DbEntry& parentEntry = *_data.getEntries().at(pid_it->second);
   /// parent ID as it is in Node Allocator (Gist)
-  int parent_gid = parentEntry.gid;  
+  int parent_gid = parentEntry.gid;
 
   /// put delayed also if parent node hasn't been processed yet:
   if (parent_gid == -1) {
@@ -166,15 +130,17 @@ bool TreeBuilder::processNode(DbEntry& dbEntry, bool is_delayed) {
     return false;
   }
 
-  auto& parent = *(_na)[parent_gid];
+  auto parent = (_na)[parent_gid];
 
-  assert(parent_gid >= 0);
-  if (parent_gid < 0) {
+  if (!parent) {
+#ifdef MAXIM_DEBUG
+    std::cerr << "can't parse node" << dbEntry;
+#endif
     ignored_entries.push_back(&dbEntry);
     return false;
   }
 
-  auto& node = *parent.getChild(_na, alt);
+  auto& node = *parent->getChild(_na, alt);
 
   auto& stats = execution.getStatistics();
 
@@ -216,7 +182,7 @@ bool TreeBuilder::processNode(DbEntry& dbEntry, bool is_delayed) {
         node.setHasSolvedChildren(false);
         node.setHasFailedChildren(true);
         node.setStatus(FAILED);
-        parent.closeChild(_na, true, false);
+        parent->closeChild(_na, true, false);
         stats.failures++;
 
         break;
@@ -227,7 +193,7 @@ bool TreeBuilder::processNode(DbEntry& dbEntry, bool is_delayed) {
         node.setHasSolvedChildren(false);
         node.setHasFailedChildren(true);
         node.setStatus(SKIPPED);
-        parent.closeChild(_na, true, false);
+        parent->closeChild(_na, true, false);
         stats.failures++;
         break;
       case SOLVED:  // 0
@@ -235,7 +201,7 @@ bool TreeBuilder::processNode(DbEntry& dbEntry, bool is_delayed) {
         node.setHasSolvedChildren(true);
         node.setHasOpenChildren(false);
         node.setStatus(SOLVED);
-        parent.closeChild(_na, false, true);
+        parent->closeChild(_na, false, true);
         stats.solutions++;
         break;
       case BRANCH:  // 2
@@ -263,7 +229,7 @@ bool TreeBuilder::processNode(DbEntry& dbEntry, bool is_delayed) {
           node.setHasSolvedChildren(false);
           node.setHasFailedChildren(true);
           node.setStatus(FAILED);
-          parent.closeChild(_na, true, false);
+          parent->closeChild(_na, true, false);
           stats.failures++;
 
           break;
@@ -293,13 +259,8 @@ bool TreeBuilder::processNode(DbEntry& dbEntry, bool is_delayed) {
 
 void TreeBuilder::run() {
 
-  std::cerr << "TreeBuilder::run\n";
-
-  clock_t beginClock, endClock;
-  double beginTime, endTime;
-
-  beginClock = clock();
-  beginTime = get_wall_time();
+  perf_helper::Timer timer;
+  timer.begin();
 
   QMutex& dataMutex = _data.dataMutex;
 
@@ -307,8 +268,6 @@ void TreeBuilder::run() {
   // stats.undetermined = 1;
 
   bool is_delayed;
-
-  // perfHelper.begin("building a tree");
 
   while (true) {
     /// TODO(maxim): isn't it the same as `lock`?
@@ -332,27 +291,17 @@ void TreeBuilder::run() {
     bool isRoot = (entry->parent_sid == -1) ? true : false;
 
     /// try to put node into the tree
-    bool success =
-        isRoot ? processRoot(*entry) : processNode(*entry, is_delayed);
+    bool success = isRoot ? processRoot(*entry) : processNode(*entry, is_delayed);
 
     read_queue->update(success);
 
     dataMutex.unlock();
   }
 
-  // perfHelper.end();
-
   emit doneBuilding(true);
 
-  endClock = clock();
-  endTime = get_wall_time();
-
-  double elapsed_clock_secs = double(endClock - beginClock) / CLOCKS_PER_SEC;
-  //    qDebug() << "Time elapsed: " << elapsed_secs << " seconds";
-  // qDebug() << "Elapsed CPU time:  " << elapsed_clock_secs << " seconds";
-  // qDebug() << "Elapsed wall time: " << (endTime - beginTime) << " seconds";
-  // qDebug() << fixed << beginTime << "  ->  " << endTime;
-
+  auto elapsed_ms = timer.end();
+  std::cout << "Time elapsed: " << elapsed_ms << "ms\n";
   qDebug() << "solutions:" << stats.solutions;
   qDebug() << "failures:" << stats.failures;
   qDebug() << "undetermined:" << stats.undetermined;

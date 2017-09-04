@@ -72,8 +72,11 @@ inline VisualNode* NodeAllocator::operator[](int i) const {
 #ifdef MAXIM_DEBUG
   // qDebug() << "nodes[" << i << "]";
 #endif
-  assert(static_cast<uint>(i) < nodes.size());
-  return nodes[i];
+  if (nodes.size() <= static_cast<uint>(i)) {
+    return nullptr;
+  } else {
+    return nodes[i];
+  }
 }
 
 inline bool NodeAllocator::hasLabel(VisualNode* n) const {

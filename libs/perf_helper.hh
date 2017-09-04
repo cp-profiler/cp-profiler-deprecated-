@@ -57,4 +57,26 @@ public:
 
 }
 
+namespace perf_helper {
+
+  using namespace std::chrono;
+
+  struct Timer {
+    using TimePoint = time_point<high_resolution_clock>;
+    high_resolution_clock m_hrClock;
+    TimePoint m_begin;
+
+    void begin() {
+      m_begin = m_hrClock.now();
+    }
+
+    int64_t end() {
+      int64_t ms =
+          duration_cast<milliseconds>(m_hrClock.now() - m_begin).count();
+      return ms;
+    }
+  };
+
+}
+
 static detail::PerformanceHelper perfHelper;
