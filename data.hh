@@ -65,6 +65,7 @@ public:
     DbEntry(int id, int64_t parent_sid, int alt, int kids, int status)
         : s_node_id(id),
           restart_id(0),
+          gid(-1),
           parent_sid(parent_sid),
           alt(alt),
           numberOfKids(kids),
@@ -114,7 +115,7 @@ Q_OBJECT
     /// Map solver Id to no-good string (rid = 0 always for chuffed)
     Sid2Nogood sid2nogood;
 
-    NameMap* nameMap{nullptr};
+    NameMap* nameMap;
 
     /// node rate intervals
     std::vector<int> nr_intervals;

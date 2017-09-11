@@ -179,7 +179,7 @@ NameMap::SymbolRecord::SymbolRecord()
 NameMap::SymbolRecord::SymbolRecord(const std::string& nn, const std::string& p, const Location& l)
     : niceName(nn), path(p), location(l) {};
 
-NameMap::NameMap(SymbolTable& st) : _nameMap(st) {};
+NameMap::NameMap(SymbolTable& st) : _nameMap(st) {}
 
 NameMap::NameMap(std::string& path_filename, std::string& model_filename) {
   vector<std::string> modelText;

@@ -1,14 +1,14 @@
 #ifndef PROFILER_CONDUCTOR_HH
 #define PROFILER_CONDUCTOR_HH
 
-#include <QListWidget>
 #include <QCheckBox>
 #include <QMainWindow>
+#include <QStandardItemModel>
+#include <QTreeWidget>
 
 #include <memory>
 #include <unordered_map>
-#include "execution.hh"
-#include "namemap.hh"
+#include "executiontree.hh"
 
 #include <utility>
 
@@ -16,15 +16,17 @@ class WebscriptView;
 class GistMainWindow;
 class NodeTree;
 class Data;
+class CmpTreeDialog;
 
 class ProfilerTcpServer;
 
 class ExecutionInfo {
 public:
-    WebscriptView* sunburstView  = nullptr;
-    WebscriptView* icicleView    = nullptr;
-    WebscriptView* variablesView = nullptr;
-    GistMainWindow* gistWindow   = nullptr;
+  WebscriptView*  sunburstView  = nullptr;
+  WebscriptView*  icicleView    = nullptr;
+  WebscriptView*  variablesView = nullptr;
+  GistMainWindow* gistWindow    = nullptr;
+  CmpTreeDialog*  cmpTreeDialog = nullptr;
 };
 
 class ProfilerConductor : public QMainWindow {
@@ -35,10 +37,11 @@ class ProfilerConductor : public QMainWindow {
 
   quint16 listen_port;
 
-  QListWidget executionList;
-  QCheckBox   compareWithLabelsCB;
+  ExecutionTreeModel executionTreeModel;
+  QTreeView executionTreeView;
+  QCheckBox compareWithLabelsCB;
 
-  QVector<NameMap> nameMaps;
+  QHash<int, MetaExecution> executionMetadata;
 
   /// NOTE(maxim): This is a bit hacky
   Execution* latest_execution = nullptr;
@@ -46,10 +49,14 @@ class ProfilerConductor : public QMainWindow {
   std::unique_ptr<ProfilerTcpServer> listener;
 
   void addExecution(Execution& execution);
+  void arrangeExecutions(void);
   void displayExecution(Execution& execution, QString&& title);
   GistMainWindow* createGist(Execution&, QString title);
   WebscriptView* getWebscriptView(Execution* execution, std::string id);
   void registerWebscriptView(Execution* execution, std::string id, WebscriptView* webView);
+
+  QVector<Execution*> getSelectedExecutions() const;
+
   void tellVisualisationsSelectNode(Execution* execution, int gid);
   void tellVisualisationsSelectManyNodes(Execution* execution, QList<QVariant> gids);
 
@@ -72,7 +79,9 @@ class ProfilerConductor : public QMainWindow {
   ProfilerConductor();
   ~ProfilerConductor();
 
-  int getNextExecId(const NameMap& nameMap);
+  int getNextExecId(const std::string& group_name,
+                    const std::string& execution_name,
+                    const NameMap& nameMap);
   int getListenPort();
   void loadExecution(std::string filename);
   void createExecution(std::unique_ptr<NodeTree> nt, std::unique_ptr<Data>);
@@ -82,11 +91,12 @@ class ProfilerConductor : public QMainWindow {
 Q_SIGNALS:
   void showNodeInfo(std::string extra_info);
   void showNogood(QString heatmap, QString text, bool record);
+  void searchLogReady(const QString& path);
 
  public Q_SLOTS:
   void showNodeInfoToIDE(std::string extra_info);
   void showNogoodToIDE(QString heatmap, QString text, bool record);
-
+  void emitSearchLogReady(const QString& path);
 };
 
 #endif

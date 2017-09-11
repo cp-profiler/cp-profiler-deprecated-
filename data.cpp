@@ -101,7 +101,7 @@ class NodeTimer {
   uint64_t total_time() { return finished ? m_total_time : 0; }
 };
 
-Data::Data() : search_timer{new NodeTimer} {
+Data::Data() : search_timer{new NodeTimer}, nameMap{nullptr} {
 
   // last_interval_time = begin_time;
   // last_interval_nc = 0;
@@ -151,7 +151,6 @@ int Data::handleNodeCallback(const cpprofiler::Message& node) {
     }
 
     auto entry = new DbEntry(sid, real_pid, alt, kids, status);
-
     // if (node.has_restart_id()) {
         entry->restart_id = node.restart_id();
     // }

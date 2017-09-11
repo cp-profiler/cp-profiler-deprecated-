@@ -67,7 +67,6 @@ public:
 
   NameMap() {}
   NameMap(std::string& path_filename, std::string& model_filename);
-  NameMap(SymbolTable& st);
 
   const std::string& getPath(const std::string& ident) const;
   const Location& getLocation(const std::string& ident) const;
@@ -79,6 +78,8 @@ public:
   std::string getLocationFilterString(const std::vector<int>& reasons) const;
 
 private:
+  NameMap(SymbolTable& st);
+
   std::vector<std::string> getPathHead(const std::string& path, bool includeTrail) const;
   std::string replaceAssignments(const std::string& path, const std::string& expression) const;
 

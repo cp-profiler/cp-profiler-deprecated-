@@ -219,6 +219,8 @@ Q_SIGNALS:
   void showNodeInfo(std::string extra_info);
   void showNogood(const QString& heatmap, const QString& text, bool record) const;
 
+  void searchLogReady(const QString& replayPath);
+
 public Q_SLOTS:
   void reset();
 

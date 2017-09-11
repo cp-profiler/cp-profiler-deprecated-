@@ -53,8 +53,11 @@
 // }
 
 ProfilerConductor::ProfilerConductor() : QMainWindow(), listen_port(6565) {
+  executionTreeView.setModel(&executionTreeModel);
+  executionTreeView.setSelectionMode(QAbstractItemView::MultiSelection);
 
-  executionList.setSelectionMode(QAbstractItemView::MultiSelection);
+  QStringList header{"Executions:"};
+  executionTreeModel.setHorizontalHeaderLabels(header);
   compareWithLabelsCB.setText("with labels");
   compareWithLabelsCB.setEnabled(false);
   compareWithLabelsCB.setChecked(true);
@@ -109,9 +112,35 @@ ProfilerConductor::ProfilerConductor() : QMainWindow(), listen_port(6565) {
   connect(cloneExecutionButton, &QPushButton::clicked, this,
           &ProfilerConductor::cloneExecution);
 
-  connect(executionList.selectionModel(), &QItemSelectionModel::selectionChanged, [=]() {
-      int nselected = executionList.selectionModel()->selectedIndexes().size();
+  connect(executionTreeView.selectionModel(), &QItemSelectionModel::selectionChanged,
+          [=](const QItemSelection& selected, const QItemSelection& deselected) {
+      auto selectionModel = executionTreeView.selectionModel();
+      for(auto ind : selected.indexes()) {
+        QStandardItem* item = executionTreeModel.itemFromIndex(ind);
+        if(item != executionTreeModel.invisibleRootItem()) {
+          int rows = item->rowCount();
+          for(int i=0; i<rows; i++) {
+            QStandardItem* child = item->child(i, 0);
+            selectionModel->select(executionTreeModel.indexFromItem(child),
+                                   QItemSelectionModel::Select);
+          }
+        }
+      }
+      for(auto ind : deselected.indexes()) {
+        QStandardItem* item = executionTreeModel.itemFromIndex(ind);
+        if(item != executionTreeModel.invisibleRootItem()) {
+          selectionModel->select(executionTreeModel.indexFromItem(item->parent()),
+                                 QItemSelectionModel::Deselect);
+          int rows = item->rowCount();
+          for(int i=0; i<rows; i++) {
+            QStandardItem* child = item->child(i, 0);
+            selectionModel->select(executionTreeModel.indexFromItem(child),
+                                   QItemSelectionModel::Deselect);
+          }
+        }
+      }
 
+      int nselected = getSelectedExecutions().size();
       gistButton->setEnabled            (nselected > 0);
       compareButton->setEnabled         (nselected == 2);
       compareSubtrees->setEnabled       (nselected == 2);
@@ -127,7 +156,7 @@ ProfilerConductor::ProfilerConductor() : QMainWindow(), listen_port(6565) {
 
   auto layout = new QGridLayout();
 
-  layout->addWidget(&executionList,         0, 0, 1, 2);
+  layout->addWidget(&executionTreeView,     0, 0, 1, 2);
   layout->addWidget(gistButton,             1, 0, 1, 2);
 
   layout->addWidget(compareButton,          2, 0, 1, 1);
@@ -176,39 +205,28 @@ ProfilerConductor::ProfilerConductor() : QMainWindow(), listen_port(6565) {
     listen_port = listener->serverPort();
   }
 
+  setWindowTitle("CPProfiler");
   std::cerr << "READY TO LISTEN ON: " << listen_port << " \n";
 }
 
 ProfilerConductor::~ProfilerConductor() = default;
 
 int ProfilerConductor::getListenPort() {
-  return (int) listen_port;
+  return static_cast<int>(listen_port);
 }
 
-class ExecutionListItem : public QListWidgetItem {
- public:
-  ExecutionListItem(Execution& execution, QListWidget* parent)
-      : QListWidgetItem{parent, QListWidgetItem::Type},
-        execution_{execution}
-    {}
-
-  Execution& execution_;
-};
-
-int ProfilerConductor::getNextExecId(const NameMap& nameMap) {
-   // Allocate some kind of execution placeholder
-   int eid=nameMaps.size();
-   nameMaps.push_back(nameMap);
+int ProfilerConductor::getNextExecId(const std::string& group_name,
+                                     const std::string& execution_name,
+                                     const NameMap& nameMap) {
+   // walk until we find an unused execution id (may have to be more robust later)
+   int eid=0;
+   while(executionMetadata.find(eid) != executionMetadata.end()) { eid++; }
+   executionMetadata[eid] = MetaExecution(group_name, execution_name, nameMap);
+   executionTreeModel.addGroup(QString::fromStdString(group_name));
    return eid;
 }
 
 void ProfilerConductor::addExecution(Execution& e) {
-  auto newItem = new ExecutionListItem(e, &executionList);
-
-  std::string title = (e.getTitle() == "") ? "some execution" : e.getTitle();
-  newItem->setText(title.c_str());
-  newItem->setSelected(true);
-  executionList.addItem(newItem);
   executions << &e;
 
   executionInfoHash.insert(&e, new ExecutionInfo);
@@ -216,7 +234,7 @@ void ProfilerConductor::addExecution(Execution& e) {
   /// updates titles when a new one becomes known
   connect(&e, SIGNAL(titleKnown()), this, SLOT(updateTitles()));
 
-    /// See if should auto compare the first two execution
+  /// See if should auto compare the first two execution
   if (GlobalParser::isSet(GlobalParser::auto_compare)) {
     connect(&e, &Execution::doneBuilding, [this]() {
 
@@ -246,11 +264,12 @@ void ProfilerConductor::displayExecution(Execution& ex, QString&& title) {
           });
 }
 
+// Disabled for now
 void ProfilerConductor::updateTitles(void) {
-  for (int i = 0; i < executions.size(); i++) {
-    executionList.item(i)
-        ->setText(QString::fromStdString(executions[i]->getTitle()));
-  }
+  //for (int i = 0; i < executions.size(); i++) {
+  //  ExecutionTreeItem* e = static_cast<ExecutionTreeItem*>(executionTreeModel.index(i,0).internalPointer());
+  //  e->updateTitle();
+  //}
 }
 
 GistMainWindow* ProfilerConductor::createGist(Execution& e, QString title) {
@@ -263,27 +282,42 @@ GistMainWindow* ProfilerConductor::createGist(Execution& e, QString title) {
   connect(gist->getCanvas(), SIGNAL(showNogood(QString, QString, bool)),
           this, SLOT(showNogoodToIDE(QString, QString, bool)));
 
+  connect(gist->getCanvas(), SIGNAL(searchLogReady(const QString&)),
+          this, SLOT(emitSearchLogReady(const QString&)));
+
   connect(&e, &Execution::doneBuilding,
           gist->getCanvas(), &TreeCanvas::finalize);
+
 
   return gist;
 }
 
 void ProfilerConductor::gistButtonClicked() {
-  for (auto* l_item : executionList.selectedItems()) {
-    auto item = static_cast<ExecutionListItem*>(l_item);
-    Execution& ex = item->execution_;
-    
-    displayExecution(ex, item->text());
+  auto selectionModel = executionTreeView.selectionModel();
+  for (auto ind : selectionModel->selectedIndexes()) {
+    Execution* ex = executionTreeModel.getExecution(ind);
+    if(ex)
+      displayExecution(*ex, QString::fromStdString(ex->getTitle()));
   }
 }
 
-void ProfilerConductor::compareButtonClicked() {
-  QList<QListWidgetItem*> selected = executionList.selectedItems();
-  if (selected.size() != 2) return;
+QVector<Execution*> ProfilerConductor::getSelectedExecutions() const {
+  QVector<Execution*> selected_executions;
+  auto selectionModel = executionTreeView.selectionModel();
+  for(auto ind : selectionModel->selectedIndexes()) {
+    Execution* ex = executionTreeModel.getExecution(ind);
+    if(ex)
+      selected_executions.append(ex);
+  }
+  return selected_executions;
+}
 
-  auto ex1 = &static_cast<ExecutionListItem*>(selected[0])->execution_;
-  auto ex2 = &static_cast<ExecutionListItem*>(selected[1])->execution_;
+void ProfilerConductor::compareButtonClicked() {
+  QVector<Execution*> selected_executions = getSelectedExecutions();
+  if (selected_executions.size() != 2) return;
+
+  auto ex1 = selected_executions[0];
+  auto ex2 = selected_executions[1];
 
   auto gmw1 = executionInfoHash[ex1]->gistWindow;
   auto gmw2 = executionInfoHash[ex2]->gistWindow;
@@ -292,8 +326,15 @@ void ProfilerConductor::compareButtonClicked() {
   const bool withLabels = compareWithLabelsCB.isChecked();
 
   /// NOTE(maxim): the new window will delete itself when closed
-  Execution* exec = new Execution{};
-  exec->setNameMap(const_cast<NameMap*>(ex1->getNameMap()));
+  int executionId = ex1->getExecutionId();
+  MetaExecution& me = executionMetadata[executionId];
+
+  Execution* exec = new Execution;
+  exec->setExecutionId(executionId);
+  exec->setNameMap(&me.name_map);
+  exec->setTitle("Comparison of " + ex1->getTitle() + " with " + ex2->getTitle());
+
+  executionTreeModel.addComparison(&executionTreeView, me, exec);
   auto cmp_tree_dialog = new CmpTreeDialog(this, exec, withLabels, *ex1, *ex2);
   connect(cmp_tree_dialog->getCanvas(), SIGNAL(showNogood(QString, QString, bool)),
           this, SLOT(showNogoodToIDE(QString, QString, bool)));
@@ -319,14 +360,12 @@ void ProfilerConductor::autoCompareTwoExecution() {
   cmp_dialog->showResponsibleNogoods();
 }
 
-
 void ProfilerConductor::compareSubtrees() {
+  auto selected_executions = getSelectedExecutions();
+  if (selected_executions.size() != 2) return;
 
-  QList<QListWidgetItem*> selected = executionList.selectedItems();
-  if (selected.size() != 2) return;
-
-  const auto* ex1 = &static_cast<ExecutionListItem*>(selected[0])->execution_;
-  const auto* ex2 = &static_cast<ExecutionListItem*>(selected[1])->execution_;
+  const auto* ex1 = selected_executions[0];
+  const auto* ex2 = selected_executions[1];
 
   auto gmw1 = executionInfoHash[ex1]->gistWindow;
   auto gmw2 = executionInfoHash[ex2]->gistWindow;
@@ -372,15 +411,14 @@ class StatsHelper {
 // }
 
 void ProfilerConductor::gatherStatisticsClicked() {
-  QList<QListWidgetItem*> selected = executionList.selectedItems();
-  for (int i = 0; i < selected.size(); i++) {
-    ExecutionListItem* item = static_cast<ExecutionListItem*>(selected[i]);
-
-    GistMainWindow* g = executionInfoHash[&item->execution_]->gistWindow;
+  auto selected_executions = getSelectedExecutions();
+  for (int i = 0; i < selected_executions.size(); i++) {
+    Execution* ex = selected_executions[i];
+    GistMainWindow* g = executionInfoHash[ex]->gistWindow;
 
     if (g == nullptr) {
-      g = new GistMainWindow(item->execution_, this);
-      executionInfoHash[&item->execution_]->gistWindow = g;
+      g = new GistMainWindow(*ex, this);
+      executionInfoHash[ex]->gistWindow = g;
     }
     //        g->hide();
 
@@ -520,16 +558,15 @@ void ProfilerConductor::loadExecution(std::string filename) {
 }
 
 void ProfilerConductor::deleteExecutionClicked() {
-  QList<QListWidgetItem*> selected = executionList.selectedItems();
-  for (int i = 0; i < selected.size(); i++) {
-    auto item = static_cast<ExecutionListItem*>(selected[i]);
-    executions.removeOne(&item->execution_);
-    delete &item->execution_;
-    if (executionInfoHash[&item->execution_]->gistWindow != NULL) {
-        executionInfoHash[&item->execution_]->gistWindow->stopReceiver();
-        delete executionInfoHash[&item->execution_]->gistWindow;
+  auto selected_executions = getSelectedExecutions();
+  for (int i = 0; i < selected_executions.size(); i++) {
+    auto ex = selected_executions[i];
+    executions.removeOne(ex);
+    if (executionInfoHash[ex]->gistWindow != NULL) {
+        executionInfoHash[ex]->gistWindow->stopReceiver();
+        delete executionInfoHash[ex]->gistWindow;
     }
-    delete item;
+    delete ex;
   }
 }
 
@@ -553,7 +590,10 @@ void ProfilerConductor::createDebugExecution() {
 }
 
 void ProfilerConductor::cloneExecution() {
-  auto& sel_ex = static_cast<ExecutionListItem*>(executionList.selectedItems()[0])->execution_;
+  auto selectionModel = executionTreeView.selectionModel();
+  auto selected = selectionModel->selectedIndexes();
+  auto sel_ex = executionTreeModel.getExecution(selected.first());
+  //TODO
 }
 
 using namespace std;
@@ -572,9 +612,15 @@ void ProfilerConductor::createExecution(unique_ptr<NodeTree> nt,
 void ProfilerConductor::executionIdReady(Execution* e) {
   // latest_execution = e; // TODO(maxim): check if still needed
   int eid = e->getExecutionId();
-  if (eid != -1 && eid < nameMaps.size()) {
-    e->setNameMap(&nameMaps[eid]);
-  }
+  auto eit = executionMetadata.find(eid);
+  if(eit == executionMetadata.end())
+    eid = getNextExecId("External Execution", e->getTitle(), NameMap());
+  MetaExecution& me = executionMetadata[eid];
+  e->setNameMap(&me.name_map);
+
+  executionTreeModel.addExecution(&executionTreeView, executionMetadata[eid], e);
+  executionTreeView.update();
+
   e->has_exec_id = true;
   e->has_exec_id_cond.wakeOne();
 }
@@ -589,4 +635,8 @@ void ProfilerConductor::showNodeInfoToIDE(std::string extra_info) {
 
 void ProfilerConductor::showNogoodToIDE(QString heatmap, QString text, bool record) {
     emit showNogood(heatmap, text, record);
+}
+
+void ProfilerConductor::emitSearchLogReady(const QString& path) {
+    emit searchLogReady(path);
 }

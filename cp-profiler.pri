@@ -48,7 +48,8 @@ SOURCES += \
     $$PWD/cpprofiler\analysis\shape_rect.cpp \
     $$PWD/namemap.cpp \
     $$PWD/nogoodtable.cpp \
-    $$PWD/cpprofiler/utils/string_utils.cpp
+    $$PWD/cpprofiler/utils/string_utils.cpp \
+    $$PWD/executiontree.cpp
 
 HEADERS  += \
     $$PWD/globalhelper.hh \
@@ -116,6 +117,7 @@ HEADERS  += \
     $$PWD/namemap.hh \
     $$PWD/nogoodtable.hh \
     $$PWD/cpprofiler/utils/string_utils.hh \
-    $$PWD/nogood_representation.hh
+    $$PWD/nogood_representation.hh \
+    $$PWD/executiontree.hh
 
 FORMS    +=

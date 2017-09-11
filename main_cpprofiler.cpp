@@ -62,7 +62,7 @@ int main(int argc, char *argv[]) {
   if (GlobalParser::isSet(GlobalParser::paths_option)) {
     std::string file_name = GlobalParser::value(GlobalParser::paths_option).toStdString();
     qDebug() << "loading paths file: " << QString::fromStdString(file_name);
-    conductor.getNextExecId(NameMap(file_name, mzn_name));
+    conductor.getNextExecId("", file_name, NameMap(file_name, mzn_name));
   }
 
   /// NOTE(maxim): only can load 1 execution for now

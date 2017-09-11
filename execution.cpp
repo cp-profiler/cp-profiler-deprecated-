@@ -105,7 +105,7 @@ void Execution::start(std::string label, bool isRestarts) {
 
     // asctime puts a newline at the end; remove it
     ts.pop_back();
-    setTitle(label + " (" + ts + ")");
+    setTitle(label);// + " (" + ts + ")");
 
     connect(this, SIGNAL(doneReceiving(void)), m_Data.get(), SLOT(setDoneReceiving(void)));
 

@@ -919,6 +919,7 @@ void TreeCanvas::printSearchLog(void) {
   PreorderNodeVisitor<SearchLogCursor>(slc).run();
 
   std::cout << "SEARCH LOG READY" << std::endl;
+  emit searchLogReady(path);
 }
 
 VisualNode* TreeCanvas::eventNode(QEvent* event) {
