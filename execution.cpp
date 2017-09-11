@@ -184,18 +184,18 @@ DbEntry* Execution::getEntry(const Node& node) const {
 }
 
 unsigned Execution::getGidBySid(int64_t sid) { return m_Data->getGidBySid(sid); }
-std::string Execution::getLabel(int gid) const {
+std::string Execution::getLabel(int gid, bool rename) const {
   std::string origLabel = m_Data->getLabel(gid);
-  const auto* nm = m_Data->getNameMap();
-  return nm ? nm->replaceNames(origLabel) : origLabel;
+  if(rename) {
+    const auto* nm = m_Data->getNameMap();
+    return nm ? nm->replaceNames(origLabel) : origLabel;
+  }
+  return origLabel;
 }
 
-
-
-
-std::string Execution::getLabel(const VisualNode& node) const {
+std::string Execution::getLabel(const VisualNode& node, bool rename) const {
   auto gid = node.getIndex(m_NodeTree->getNA());
-  return getLabel(gid);
+  return getLabel(gid, rename);
 }
 
 unsigned long long Execution::getTotalTime() { return m_Data->getTotalTime(); }

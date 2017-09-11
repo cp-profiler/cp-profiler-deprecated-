@@ -634,7 +634,8 @@ SearchLogCursor::processCurrentNode(void) {
         VisualNode* child = n->getChild(_na, i);
         int child_gid = n->getChild(i);
 
-        auto child_label = _execution.getLabel(child_gid);
+        // Get original (FlatZinc) label
+        auto child_label = _execution.getLabel(child_gid, false);
 
         // ignore "skipped" and "white" nodes
         if (child->getStatus() == SKIPPED || child->getStatus() == UNDETERMINED) continue;
@@ -645,7 +646,7 @@ SearchLogCursor::processCurrentNode(void) {
         ++nonskipped_kids;
 
         // if (i == 1 && numChildren == 2 && child_label == "") {
-        //   auto prev = _execution.getLabel(n->getChild(0));
+        //   auto prev = _execution.getLabel(n->getChild(0), false);
 
         //   if (prev != "") {
         //     qDebug() << "reversing: " << prev.c_str();

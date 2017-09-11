@@ -72,9 +72,9 @@ public:
     std::unordered_map<int64_t, std::string*>& getInfo(void) const;
     unsigned getGidBySid(int64_t sid);
 
-    std::string getLabel(int gid) const;
+    std::string getLabel(int gid, bool rename = true) const;
 
-    std::string getLabel(const VisualNode& node) const;
+    std::string getLabel(const VisualNode& node, bool rename = true) const;
 
     unsigned long long getTotalTime();
 

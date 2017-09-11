@@ -482,6 +482,7 @@ CmpTreeDialog::showResponsibleNogoods() {
     saveComparisonStatsTo("ng_stats.txt");
     std::cerr << "STATS SAVED\n";
     QCoreApplication::quit();
+    return;
   }
 
   auto ng_stats = m_Cmp_result->responsible_nogood_stats();
