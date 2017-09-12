@@ -92,7 +92,7 @@ class NodeTimer {
   void on_node() {
     current_time = system_clock::now();
 
-    auto time_passed = milliseconds_passed(last_interval_time, current_time);
+    //auto time_passed = milliseconds_passed(last_interval_time, current_time);
 
   }
 

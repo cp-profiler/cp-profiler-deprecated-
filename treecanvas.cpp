@@ -458,7 +458,6 @@ void TreeCanvas::printPath(std::stringstream& str, const VisualNode* node) {
 
 void TreeCanvas::printPaths(const std::vector<VisualNode*>& nodes) {
 
-  const auto& na = execution.nodeTree().getNA();
   std::stringstream str;
 
   for (auto node : nodes) {
@@ -1223,7 +1222,6 @@ void TreeCanvas::updateCanvas(bool hide_failed) {
       if (scale0 < LayoutConfig::minScale) scale0 = LayoutConfig::minScale;
       if (scale0 > LayoutConfig::maxAutoZoomScale)
         scale0 = LayoutConfig::maxAutoZoomScale;
-      double scale = (static_cast<double>(scale0)) / 100.0;
 
       w = static_cast<int>((bb.right - bb.left + Layout::extent) * m_options.scale);
       h = static_cast<int>(2 * Layout::extent +
@@ -1374,7 +1372,7 @@ void TreeCanvas::deleteNode(VisualNode* n) {
 
   n->setStatus(REMOVED); /// so it is not listed as open
   parent->closeChild(na, true, false);
-  parent->removeChild(n->getIndex(na), na);
+  parent->removeChild(n->getIndex(na));
 
   parent->dirtyUp(na);
 }

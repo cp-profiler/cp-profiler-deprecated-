@@ -54,7 +54,6 @@ static void separateNode(
 }
 
 static std::pair<int, int> findNodeInGroups(
-    const std::vector<Group>& groups,
     std::unordered_map<const VisualNode*, PosInGroups>& node2groupID,
     const VisualNode* n) {
 
@@ -102,7 +101,7 @@ GroupsOfNodes_t findIdentical(NodeTree& nt, const GroupsOfNodes_t& init_p) {
 
           /// 3.2 )find it in groups
 
-          auto location = findNodeInGroups(groups, node2groupID, parent);
+          auto location = findNodeInGroups(node2groupID, parent);
           auto g_idx = location.first;
           groups_to_split.insert(g_idx); /// NOTE(maxim): has duplicate elements (?)
 

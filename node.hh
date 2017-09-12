@@ -119,7 +119,7 @@ public:
   /// Return the number of children
   unsigned int getNumberOfChildren(void) const;
 
-  void removeChild(int n, NodeAllocator& na);
+  void removeChild(int n);
 
   /// for multithreaded search (drawing)
   /// thread id

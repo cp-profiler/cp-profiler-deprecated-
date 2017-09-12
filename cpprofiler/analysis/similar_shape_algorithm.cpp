@@ -104,10 +104,7 @@ collectShapes(NodeTree& nt) {
           nSol = 1;
         break;
         case FAILED:
-          nSol = 0;
-        break;
         case SKIPPED:
-          nSol = 0;
         case UNDETERMINED:
           nSol = 0;
         break;

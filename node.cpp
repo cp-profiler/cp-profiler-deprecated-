@@ -81,7 +81,7 @@ Node::setNumberOfChildren(unsigned int n, NodeAllocator& na) {
 }
 
 void
-Node::removeChild(int n, NodeAllocator& na) {
+Node::removeChild(int n) {
     /// ***** one child *****
 
 

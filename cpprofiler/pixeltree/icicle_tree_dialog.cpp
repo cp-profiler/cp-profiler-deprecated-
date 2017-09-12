@@ -112,15 +112,15 @@ VisualNode* IcicleTreeCanvas::findLeftLeaf() {
 
 void IcicleTreeCanvas::compressLevelChanged(int value) {
   auto& na = node_tree.getNA();
-  int leafIndex;
+  //int leafIndex;
   compressLevel = value;
   compressInit(*na[0], 0, 0);
   VisualNode* lftLeaf = findLeftLeaf();
-  leafIndex = lftLeaf->getIndex(na);
+  //leafIndex = lftLeaf->getIndex(na);
   int xoff = statistic[lftLeaf->getIndex(na)].absX * icicle_image_.pixel_height();
   sa_.horizontalScrollBar()->setValue(xoff);
   redrawAll();
-  leafIndex = findLeftLeaf()->getIndex(na);
+  //leafIndex = findLeftLeaf()->getIndex(na);
   sa_.horizontalScrollBar()->setValue(xoff);
 }
 

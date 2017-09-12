@@ -221,9 +221,8 @@ static GroupsOfNodes_t groupByNoNodes(NodeTree& nt) {
 
 static GroupsOfNodes_t groupByShapes(NodeTree& nt) {
 
-  auto shapesToGroups = [] (const std::vector<ShapeInfo>& shapes,
-                                         const NodeTree& nt) {
-    const auto& na = nt.getNA();
+  auto shapesToGroups = [] (const std::vector<ShapeInfo>& shapes) {
+    //const auto& na = nt.getNA();
 
     GroupsOfNodes_t result;
     result.reserve(shapes.size());
@@ -239,7 +238,7 @@ static GroupsOfNodes_t groupByShapes(NodeTree& nt) {
   };
 
   std::vector<ShapeInfo> shapes = runSimilarShapes(nt);
-  return shapesToGroups(shapes, nt);
+  return shapesToGroups(shapes);
 }
 
 struct PosInGroups {

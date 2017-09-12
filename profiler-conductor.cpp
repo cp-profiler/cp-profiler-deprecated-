@@ -478,8 +478,8 @@ void ProfilerConductor::tellVisualisationsSelectNode(Execution* execution, int g
     // p = executionInfoHash[execution]->sunburstView;  if (p) p->select(gid);
     // p = executionInfoHash[execution]->icicleView;    if (p) p->select(gid);
     // p = executionInfoHash[execution]->variablesView; if (p) p->select(gid);
-    // GistMainWindow* g;
-    // g = executionInfoHash[execution]->gistWindow;    if (g) g->selectNode(gid);
+    GistMainWindow* g;
+    g = executionInfoHash[execution]->gistWindow;    if (g) g->selectNode(gid);
 }
 
 void ProfilerConductor::tellVisualisationsSelectManyNodes(Execution* execution, QList<QVariant> gids) {
@@ -487,8 +487,8 @@ void ProfilerConductor::tellVisualisationsSelectManyNodes(Execution* execution, 
     // p = executionInfoHash[execution]->sunburstView;  if (p) p->selectMany(gids);
     // p = executionInfoHash[execution]->icicleView;    if (p) p->selectMany(gids);
     // p = executionInfoHash[execution]->variablesView; if (p) p->selectMany(gids);
-    // GistMainWindow* g;
-    // g = executionInfoHash[execution]->gistWindow;    if (g) g->selectManyNodes(gids);
+    GistMainWindow* g;
+    g = executionInfoHash[execution]->gistWindow;    if (g) g->selectManyNodes(gids);
 }
 
 void ProfilerConductor::saveExecutionClicked() {

@@ -237,7 +237,7 @@ void PixelTreeCanvas::getDomainDataCompressed(vector<float>& compressed,
   for (unsigned i = 0; i < pixel_list.size(); i++) {
     group_count++;
 
-    auto entry = _data.getEntry(pixel_list[i].node()->getIndex(_na));
+    //auto entry = _data.getEntry(pixel_list[i].node()->getIndex(_na));
     // auto value = (entry == nullptr) ? 0 : entry->domain;
     auto value = 0;
     group_value += value;

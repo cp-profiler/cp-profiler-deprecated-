@@ -58,7 +58,7 @@ static void deleteNode(Execution& ex, Node* n) {
 
   auto parent = n->getParent(na);
   if (!parent) return;
-  parent->removeChild(n->getIndex(na), na);
+  parent->removeChild(n->getIndex(na));
   parent->dirtyUp(na);
 }
 
