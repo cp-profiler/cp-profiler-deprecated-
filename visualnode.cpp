@@ -422,7 +422,7 @@ VisualNode::setShape(Shape* s) {
 
 void
 VisualNode::computeShape(const NodeAllocator& na) {
-    int numberOfShapes = getNumberOfChildren();
+    int num_of_kids = getNumberOfChildren();
     Extent extent;
     if (na.hasLabel(this)) {
         int ll = na.getLabel(this).length();
@@ -444,7 +444,8 @@ VisualNode::computeShape(const NodeAllocator& na) {
             extent.r = std::max(extent.r, ll);
         }
     } else {
-        if (numberOfShapes==0) {
+        if (num_of_kids == 0) {
+            /// leaf nodes share the same layout
             setShape(Shape::leaf);
             return;
         } else {
@@ -453,26 +454,32 @@ VisualNode::computeShape(const NodeAllocator& na) {
     }
 
     int maxDepth = 0;
-    for (int i = numberOfShapes; i--;)
+    for (int i = num_of_kids; i--;)
         maxDepth = std::max(maxDepth, getChild(na,i)->getShape()->depth());
+
     Shape* mergedShape;
-    if (getShape() && getShape() != Shape::leaf &&
-            getShape()->depth() >= maxDepth+1) {
+    if (getShape() && getShape() != Shape::leaf && getShape()->depth() >= maxDepth+1) {
         mergedShape = getShape();
         mergedShape->setDepth(maxDepth+1);
     } else {
         mergedShape = Shape::allocate(maxDepth+1);
     }
     (*mergedShape)[0] = extent;
-    if (numberOfShapes < 1) {
+
+    /// A node has a label, but no children
+    if (num_of_kids < 1) {
         setShape(mergedShape);
-    } else if (numberOfShapes == 1) {
+
+    /// A node has one child
+    } else if (num_of_kids == 1) {
         getChild(na,0)->setOffset(0);
         const Shape* childShape = getChild(na,0)->getShape();
-        for (int i=childShape->depth(); i--;)
+        for (int i = childShape->depth(); i--;)
             (*mergedShape)[i+1] = (*childShape)[i];
-        (*mergedShape)[1].extend(- extent.l, - extent.r);
+        (*mergedShape)[1].extend(-extent.l, -extent.r);
         setShape(mergedShape);
+
+    /// More than one child
     } else {
         // alpha stores the necessary distances between the
         // axes of the shapes in the list: alpha[i].first gives the distance
@@ -481,7 +488,7 @@ VisualNode::computeShape(const NodeAllocator& na) {
         // shape[i] and shape[i+1], when shape[i] and shape[i+1] are merged
         // right-to-left.
         std::pair<int,int>* alpha =
-                heap.alloc<std::pair<int,int> >(numberOfShapes);
+                heap.alloc<std::pair<int,int> >(num_of_kids);
 
         // distance between the leftmost and the rightmost axis in the list
         int width = 0;
@@ -493,14 +500,14 @@ VisualNode::computeShape(const NodeAllocator& na) {
 
         // After merging, we can pick the result of either merging left or right
         // Here we chose the result of merging right
-        Shape* rShape = getChild(na,numberOfShapes-1)->getShape();
+        Shape* rShape = getChild(na,num_of_kids-1)->getShape();
         int rdepth = rShape->depth();
         assert(rdepth<=mergedShape->depth()-1);
         for (int i=rdepth; i--;)
             (*mergedShape)[i+1] = (*rShape)[i];
         Extent* currentShapeR = &(*mergedShape)[1];
 
-        for (int i = 1; i < numberOfShapes; i++) {
+        for (int i = 1; i < num_of_kids; i++) {
             // Merge left-to-right.  Note that due to the asymmetry of the
             // merge operation, nextAlphaL is the distance between the
             // *leftmost* axis in the shape list, and the axis of
@@ -522,7 +529,7 @@ VisualNode::computeShape(const NodeAllocator& na) {
 
             // Merge right-to-left.  Here, a correction of nextAlphaR is
             // not required.
-            Shape* nextShapeR = getChild(na,numberOfShapes-1-i)->getShape();
+            Shape* nextShapeR = getChild(na,num_of_kids-1-i)->getShape();
             int nextAlphaR =
                     Layouter::getAlpha<Shape,Extent*>(*nextShapeR, nextShapeR->depth(),
                                                       &currentShapeR[0], rdepth);
@@ -531,7 +538,7 @@ VisualNode::computeShape(const NodeAllocator& na) {
                     &currentShapeR[0], rdepth,
                     nextAlphaR);
             rdepth = std::max(rdepth,nextShapeR->depth());
-            alpha[numberOfShapes - i].second = nextAlphaR;
+            alpha[num_of_kids - i].second = nextAlphaR;
         }
 
         // The merged shape has to be adjusted to its topmost extent
@@ -552,12 +559,12 @@ VisualNode::computeShape(const NodeAllocator& na) {
         // Kennedy's paper.
         int offset = - halfWidth;
         getChild(na,0)->setOffset(offset);
-        for (int i = 1; i < numberOfShapes; i++) {
+        for (int i = 1; i < num_of_kids; i++) {
             offset += (alpha[i].first + alpha[i].second) / 2;
             getChild(na,i)->setOffset(offset);
         }
         setShape(mergedShape);
-        heap.free<std::pair<int,int> >(alpha,numberOfShapes);
+        heap.free<std::pair<int,int> >(alpha,num_of_kids);
         heap.free<Extent>(currentShapeL,maxDepth);
     }
 }

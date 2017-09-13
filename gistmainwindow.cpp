@@ -540,6 +540,11 @@ void GistMainWindow::addActions() {
   connect(addChildren, &QAction::triggered, canvas, &TreeCanvas::addChildren);
   addAction(addChildren);
 
+  auto nextStatus = new QAction{"Next Status", this};
+  nextStatus->setShortcut(QKeySequence("Shift+V"));
+  connect(nextStatus, &QAction::triggered, canvas, &TreeCanvas::nextStatus);
+  addAction(nextStatus);
+
   auto deleteNode = new QAction{"Delete Node", this};
   deleteNode->setShortcut(QKeySequence("del"));
   connect(deleteNode, &QAction::triggered, canvas, &TreeCanvas::deleteSelectedNode);
@@ -558,6 +563,11 @@ void GistMainWindow::addActions() {
   dirtyUpNode->setShortcut(QKeySequence("D"));
   connect(dirtyUpNode, &QAction::triggered, canvas, &TreeCanvas::dirtyUpNode);
   addAction(dirtyUpNode);
+
+  auto highlightSubtree = new QAction{"Toggle Highlight Subtree", this};
+  connect(highlightSubtree, &QAction::triggered, canvas, &TreeCanvas::highlightSubtree);
+  addAction(highlightSubtree);
+
 #endif
 
   unhideAll = new QAction("Unhide all", this);
@@ -673,6 +683,7 @@ void GistMainWindow::addActions() {
   contextMenu->addAction(deleteNode);
   contextMenu->addAction(deleteMiddleNode);
   contextMenu->addAction(dirtyUpNode);
+  contextMenu->addAction(highlightSubtree);
 #endif
 
 }

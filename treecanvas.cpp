@@ -1673,6 +1673,20 @@ void TreeCanvas::_addChildren(VisualNode* node) {
   stats.maxDepth = std::max(stats.maxDepth, new_depth);
 }
 
+void TreeCanvas::highlightSubtree() {
+
+  auto state = currentNode->isHighlighted();
+  currentNode->setHighlighted(!state);
+}
+
+void TreeCanvas::nextStatus() {
+  // qDebug() << "next Status";
+  // auto curStatus = (int)currentNode->getStatus();
+  currentNode->setStatus(FAILED);
+  currentNode->dirtyUp(na);
+  updateCanvas();
+}
+
 void TreeCanvas::addChildren() {
   if (currentNode->getNumberOfChildren() == 0) {
     _addChildren(currentNode);

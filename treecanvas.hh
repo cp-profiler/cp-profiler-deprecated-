@@ -396,6 +396,8 @@ private:
 public:
   void printDebugInfo();
   void addChildren();
+  void nextStatus();
+  void highlightSubtree();
   void createRandomTree(); // in place
   void deleteSelectedNode();
   void deleteSelectedMiddleNode();

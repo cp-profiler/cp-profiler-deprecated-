@@ -134,6 +134,7 @@ inline Extent& Shape::operator[](int i) {
   return shape[i];
 }
 
+/// Allocate memory for a shape of depth \d
 inline Shape* Shape::allocate(int d) {
   assert(d >= 1);
   Shape* ret;

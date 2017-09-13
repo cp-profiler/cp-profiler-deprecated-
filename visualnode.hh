@@ -46,9 +46,9 @@ class Data;
 //class TreeCanvas;
 
 /// \brief %Layout parameters
-class Layout {
-public:
+namespace Layout {
   static constexpr int dist_y = 38;
+  /// Single node width
   static constexpr int extent = 20;
   static constexpr int minimalSeparation = 10;
 };
