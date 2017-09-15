@@ -3,6 +3,7 @@
 
 #include <string>
 #include <unordered_map>
+#include <cpprofiler/universal.hh>
 
 struct NogoodViews {
   std::string original;
@@ -13,6 +14,6 @@ struct NogoodViews {
   NogoodViews(std::string orig) : original(orig) {}
 };
 
-using Sid2Nogood = std::unordered_map<int64_t, NogoodViews>;
+using Uid2Nogood = std::unordered_map<NodeUID, NogoodViews>;
 
 #endif // NOGOOD_REPRESENTATION_H

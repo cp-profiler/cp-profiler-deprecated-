@@ -35,7 +35,7 @@ private:
   QStringList _include_text_filter;
   QStringList _reject_text_filter;
   LocationFilter _loc_filter;
-  const std::unordered_map<int64_t, std::string*>& _sid2info;
+  const Execution& ex;
   const NameMap* _nm;
   int _sid_col;
   int _nogood_col;
@@ -73,7 +73,7 @@ private:
   QModelIndexList getSelection() const;
 
   // Read _sid_col of the row (handles mapping)
-  int64_t getSidFromRow(int row) const;
+  NodeUID getUidFromRow(int row) const;
   // Re-select the correct rows (sorting might move rows)
   void updateSelection() const;
   // Set location filter based on selected nodes

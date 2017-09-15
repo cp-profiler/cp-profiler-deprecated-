@@ -20,18 +20,18 @@ using std::string;
 using std::vector;
 using std::unordered_set;
 
-vector<int> getReasons(const int64_t sid,
-                        const std::unordered_map<int64_t, std::string*>& sid2info) {
+vector<int> getReasons(const string* maybe_info) {
+
+  if (maybe_info == nullptr) return {};
+
   vector<int> reason_list;
-  auto info_item = sid2info.find(sid);
-  if(info_item != sid2info.end()) {
-    auto info_json = nlohmann::json::parse(*info_item->second);
-    auto reasonIt = info_json.find("reasons");
-    if(reasonIt != info_json.end()) {
-      auto reasons = *reasonIt;
-      for(int con_id : reasons) {
-        reason_list.push_back(con_id);
-      }
+
+  auto info_json = nlohmann::json::parse(*maybe_info);
+  auto reasonIt = info_json.find("reasons");
+  if(reasonIt != info_json.end()) {
+    auto reasons = *reasonIt;
+    for(int con_id : reasons) {
+      reason_list.push_back(con_id);
     }
   }
   return reason_list;

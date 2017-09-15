@@ -6,6 +6,8 @@
 #include <vector>
 #include <regex>
 
+#include "cpprofiler/universal.hh"
+
 struct Location {
   //QString path = "";
   int sl = 0;
@@ -47,8 +49,7 @@ private:
 };
 
 // This should go somewhere more sensible
-std::vector<int> getReasons(const int64_t sid,
-                            const std::unordered_map<int64_t, std::string*>& sid2info);
+std::vector<int> getReasons(const std::string* maybe_info);
 
 class NameMap {
 private:

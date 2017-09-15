@@ -69,7 +69,7 @@ class ComparisonResult {
       bool with_labels);
 
   std::vector<PentagonItem> m_pentagonItems;
-  std::unordered_map<int64_t, NogoodCmpStats> m_responsibleNogoodStats;
+  std::unordered_map<NodeUID, NogoodCmpStats> m_responsibleNogoodStats;
   int m_totalReduced = 0;
   const Execution& _ex1;
   const Execution& _ex2;
@@ -85,7 +85,7 @@ class ComparisonResult {
     return m_pentagonItems;
   }
 
-  const std::unordered_map<int64_t, NogoodCmpStats>& responsible_nogood_stats()
+  const std::unordered_map<NodeUID, NogoodCmpStats>& responsible_nogood_stats()
       const {
     return m_responsibleNogoodStats;
   }

@@ -326,12 +326,14 @@ void PixelTreeCanvas::gatherNogoodData() {
   auto data_length = pixel_data.pixel_list.size();
   nogood_counts.resize(data_length);
 
-  auto sid2nogood = _data.getNogoods();
+  auto uid2nogood = _data.getNogoods();
 
   for (unsigned i = 0; i < data_length; i++) {
     auto node = pixel_data.pixel_list[i].node();
-    auto it = sid2nogood.find(node->getIndex(_na));
-    if (it != sid2nogood.end()) {
+    auto gid = node->getIndex(_na);
+    auto uid = _data.gid2uid(gid);
+    auto it = uid2nogood.find(uid);
+    if (it != uid2nogood.end()) {
       auto nogood = it->second;
       // qDebug() << "nogood: " << nogood.c_str();
       /// work out var length

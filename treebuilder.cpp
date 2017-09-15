@@ -98,17 +98,15 @@ bool TreeBuilder::processNode(DbEntry& dbEntry, bool is_delayed) {
   QMutexLocker locker(&execution.getMutex());
   QMutexLocker layoutLocker(&execution.getLayoutMutex());
 
-  int64_t pid = dbEntry.parent_sid;  /// parent ID as it comes from Solver
+  NodeUID p_uid = dbEntry.parentUID;  /// parent ID as it comes from Solver
   int alt = dbEntry.alt;             /// which alternative the current node is
   int nalt = dbEntry.numberOfKids;   /// number of kids in current node
   char status = dbEntry.status;
 
-  const auto& sid2aid = _data.sid2aid;
-  
   /// find out if node exists
-  auto pid_it = sid2aid.find(pid);
+  auto pid_it = _data.uid2aid.find(p_uid);
 
-  if (pid_it == sid2aid.end()) {
+  if (pid_it == _data.uid2aid.end()) {
     if (!is_delayed) read_queue->readLater(&dbEntry);
 
     return false;
@@ -288,7 +286,7 @@ void TreeBuilder::run() {
     /// ask queue for an entry, note: is_delayed gets assigned here
     DbEntry* entry = read_queue->next(is_delayed);
 
-    bool isRoot = (entry->parent_sid == -1) ? true : false;
+    bool isRoot = (entry->parentUID.nid == -1) ? true : false;
 
     /// try to put node into the tree
     bool success = isRoot ? processRoot(*entry) : processNode(*entry, is_delayed);

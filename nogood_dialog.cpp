@@ -64,10 +64,11 @@ void NogoodDialog::populateTable(const std::vector<int>& selected_nodes) {
   int row = 0;
   for (auto it = selected_nodes.begin(); it != selected_nodes.end(); it++) {
     int gid = *it;
-    int64_t sid = _tc.getExecution().getData().gid2sid(gid);
-    const std::string& clause = _tc.getExecution().getNogoodBySid(sid, false, false);
+    /// TODO(maxim): find an easier way to get a nogood from gid?
+    NodeUID uid = _tc.getExecution().getData().gid2uid(gid);
+    const std::string& clause = _tc.getExecution().getNogoodByUID(uid, false, false);
     if(!clause.empty()) {
-      _model->setItem(row, 0, new QStandardItem(QString::number(sid)));
+      _model->setItem(row, 0, new QStandardItem(QString::number(uid.nid)));
       _model->setItem(row, 1, new QStandardItem(QString::fromStdString(clause)));
       row++;
     }
@@ -75,7 +76,10 @@ void NogoodDialog::populateTable(const std::vector<int>& selected_nodes) {
 }
 
 void NogoodDialog::selectNode(const QModelIndex& index) {
-  int64_t full_sid = index.sibling(index.row(), 0).data().toLongLong();
-  int32_t gid = _tc.getExecution().getData().getGidBySid(full_sid);
-  _tc.navigateToNodeById(static_cast<int>(gid));
+  // TODO(maxim): make UID available in the table somehow; disabled for now
+  qDebug() << "TODO: UID isn't available in the table";
+
+  // int64_t full_sid = index.sibling(index.row(), 0).data().toLongLong();
+  // int32_t gid = _tc.getExecution().getGidByUID(full_sid);
+  // _tc.navigateToNodeById(static_cast<int>(gid));
 }

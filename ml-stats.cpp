@@ -133,28 +133,10 @@ public:
         enter();
     }
 
-    int getNogoodStringLength(int sid) {
-        const auto it = execution->getNogoods().find(sid);
-        if (it != execution->getNogoods().end()) {
-            return it->second.original.length();
-        } else {
-            return 0;
-        }
-    }
-
-    string getNogoodString(int sid) {
-        const auto it = execution->getNogoods().find(sid);
-        if (it != execution->getNogoods().end()) {
-            return it->second.original;
-        } else {
-            return "";
-        }
-    }
-
-    string getSolutionString(int sid) {
-        const auto it = execution->getInfo().find(sid);
-        if (it != execution->getInfo().end()) {
-            return *it->second;
+    string getSolutionString(NodeUID uid) {
+        auto maybe_info = execution->getInfo(uid);
+        if (maybe_info != nullptr) {
+            return *maybe_info;
         } else {
             return "";
         }
@@ -213,13 +195,13 @@ public:
         se.gid = gid;
         DbEntry* entry = execution->getEntry(gid);
         if (entry != nullptr) {
-            unsigned int sid = entry->s_node_id;
-            se.nodeid = sid;
-            se.parentid = entry->parent_sid;
+            auto nid = entry->nodeUID.nid;
+            se.nodeid = nid;
+            se.parentid = entry->parentUID.nid;
             se.alternative = entry->alt;
             // se.restartNumber = entry->restart_id;
-            se.nogoodStringLength = getNogoodStringLength(sid);
-            se.nogoodString = getNogoodString(sid);
+            se.nogoodStringLength = execution->getNogoodByUID(entry->nodeUID, true, false).length();
+            se.nogoodString = execution->getNogoodByUID(entry->nodeUID, true, false);
             se.nogoodLength = calculateNogoodLength(se.nogoodString);
             se.nogoodNumberVariables = calculateNogoodNumberVariables(se.nogoodString);
             // se.nogoodBLD = entry->nogood_bld;
@@ -228,7 +210,7 @@ public:
             // se.decisionLevel = entry->decision_level;
             se.label = entry->label;
             se.timestamp = entry->time_stamp;
-            se.solutionString = getSolutionString(sid);
+            se.solutionString = getSolutionString(entry->nodeUID);
 
             se.backjumpDestination = se.decisionLevel - se.backjumpDistance;
         } else {

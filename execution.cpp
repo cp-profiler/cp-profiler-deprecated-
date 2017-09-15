@@ -130,7 +130,7 @@ void Execution::start(std::string label, bool isRestarts) {
 const NogoodViews* Execution::getNogood(const Node& node) const {
     auto entry = getEntry(node);
     if (!entry) return nullptr;
-    auto nogood = m_Data->getNogoods().find(entry->full_sid);
+    auto nogood = m_Data->getNogoods().find(entry->nodeUID);
     if (nogood == m_Data->getNogoods().end()) return nullptr;
     return &nogood->second;
 }
@@ -138,9 +138,13 @@ const NogoodViews* Execution::getNogood(const Node& node) const {
 const std::string* Execution::getInfo(const Node& node) const {
     auto entry = getEntry(node);
     if (!entry) return nullptr;
-    auto info = m_Data->sid2info.find(entry->full_sid);
-    if (info == m_Data->sid2info.end()) return nullptr;
-    return info->second;
+    return getInfo(entry->nodeUID);
+}
+
+const std::string* Execution::getInfo(NodeUID uid) const {
+  auto info = m_Data->uid2info.find(uid);
+  if (info == m_Data->uid2info.end()) return nullptr;
+  return info->second.get();
 }
 
 Statistics& Execution::getStatistics() {
@@ -151,14 +155,14 @@ void Execution::handleNewNode(const cpprofiler::Message& msg) {
     m_Data->handleNodeCallback(msg);
 }
 
-const Sid2Nogood& Execution::getNogoods() const {
+const Uid2Nogood& Execution::getNogoods() const {
   return m_Data->getNogoods();
 }
 
 static std::string empty_string;
-const std::string& Execution::getNogoodBySid(int64_t sid, bool renamed, bool simplified) const {
+const std::string& Execution::getNogoodByUID(NodeUID uid, bool renamed, bool simplified) const {
   const auto& ng_map = m_Data->getNogoods();
-  auto maybe_nogood = ng_map.find(sid);
+  auto maybe_nogood = ng_map.find(uid);
   if (maybe_nogood != ng_map.end()){
     const NogoodViews& ng = maybe_nogood->second;
 
@@ -172,10 +176,6 @@ const std::string& Execution::getNogoodBySid(int64_t sid, bool renamed, bool sim
   return empty_string;
 }
 
-std::unordered_map<int64_t, string*>& Execution::getInfo(void) const {
-  return m_Data->getInfo();
-}
-
 DbEntry* Execution::getEntry(int gid) const { return m_Data->getEntry(gid); }
 
 DbEntry* Execution::getEntry(const Node& node) const {
@@ -183,7 +183,7 @@ DbEntry* Execution::getEntry(const Node& node) const {
     return getEntry(gid);
 }
 
-unsigned Execution::getGidBySid(int64_t sid) { return m_Data->getGidBySid(sid); }
+int32_t Execution::getGidByUID(NodeUID uid) { return m_Data->getGidByUID(uid); }
 std::string Execution::getLabel(int gid, bool rename) const {
   std::string origLabel = m_Data->getLabel(gid);
   if(rename) {

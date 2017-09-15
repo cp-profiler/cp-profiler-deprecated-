@@ -261,7 +261,7 @@ CmpTreeDialog::saveComparisonStatsTo(const QString& file_name) {
 
   out << "id, occur, score, nogood\n";
 
-  std::vector<std::pair<int64_t, NogoodCmpStats> > ng_stats_vector;
+  std::vector<std::pair<NodeUID, NogoodCmpStats> > ng_stats_vector;
   ng_stats_vector.reserve(ng_stats.size());
 
   for (auto ng : ng_stats) {
@@ -269,8 +269,8 @@ CmpTreeDialog::saveComparisonStatsTo(const QString& file_name) {
   }
 
   std::sort(ng_stats_vector.begin(), ng_stats_vector.end(),
-    [](const std::pair<int64_t, NogoodCmpStats>& lhs,
-       const std::pair<int64_t, NogoodCmpStats>& rhs) {
+    [](const std::pair<NodeUID, NogoodCmpStats>& lhs,
+       const std::pair<NodeUID, NogoodCmpStats>& rhs) {
       return lhs.second.search_eliminated > rhs.second.search_eliminated;
   });
 
@@ -278,17 +278,18 @@ CmpTreeDialog::saveComparisonStatsTo(const QString& file_name) {
 
   for (auto& ng : ng_stats_vector) {
 
-    out << ng.first << ", ";
+    out << to_string(ng.first).c_str() << ", ";
     out << ng.second.occurrence << ", ";
     out << ng.second.search_eliminated << ", ";
 
     bool to_subsume = false;
-    int64_t sid = ng.first;
+    NodeUID uid = ng.first;
 
     if(to_subsume)
-      sid = sf.getSubsumingClauseString(ng.first);
+      uid = sf.getSubsumingClauseString(uid);
 
-    const string nogood = left_execution.getNogoodBySid(sid, true, true);
+    qDebug() << "sid to UID (cmp_tree_dialog.cpp)";
+    const string nogood = left_execution.getNogoodByUID(uid, true, true);
 
     out << nogood.c_str() << "\n";
   }
@@ -304,7 +305,7 @@ CmpTreeDialog::saveComparisonStats() {
 
 /// *************** Pentagon List Window ****************
 
-std::vector<int64_t>
+std::vector<NodeUID>
 infoToNogoodVector(const string& info) {
 
 /// NOTE(maxim): chuffed should send full sid here as well (if it intends on specifying restart ids)
@@ -314,7 +315,14 @@ infoToNogoodVector(const string& info) {
     auto nogoods = info_json["nogoods"];
 
     if (nogoods.is_array()) {
-      return nogoods;
+
+      std::vector<NodeUID> result;
+      qDebug() << "TODO";
+      for (auto i = 0u; i < nogoods.size(); i++) {
+        result.push_back({(int)nogoods[i], -1, -1});
+      }
+
+
     }
   } catch (std::exception&) {
 #ifdef MAXIM_DEBUG
@@ -327,20 +335,20 @@ infoToNogoodVector(const string& info) {
 
 void
 PentListWindow::populateNogoodTable(QStandardItemModel* model,
-                                    const std::vector<int64_t>& nogoods) {
+                                    const std::vector<NodeUID>& nogoods) {
 
   auto ng_stats = cmp_result.responsible_nogood_stats();
   const Execution& left_execution = cmp_result.left_execution();
 
   for (size_t i = 0; i < nogoods.size(); i++) {
 
-    auto ng_id = nogoods[i]; /// is this sid of gid???
-    model->setItem(static_cast<int>(i), 0, new QStandardItem(QString::number(ng_id)));
+    NodeUID uid = nogoods[i];
+    model->setItem(static_cast<int>(i), 0, new QStandardItem(QString::number(uid.nid)));
 
-    const string& nogood = left_execution.getNogoodBySid(ng_id, true, true);
-    //qDebug() << "nogood id " << ng_id << ": " << nogood.c_str();
+    qDebug() << "TODO: sid -> uid";
+    const string& nogood = left_execution.getNogoodByUID(uid, true, true);
 
-    int ng_count = ng_stats.at(ng_id).occurrence;
+    int ng_count = ng_stats.at(uid).occurrence;
 
     model->setItem(static_cast<int>(i), 1, new QStandardItem(QString::number(ng_count)));
 
@@ -494,10 +502,11 @@ CmpTreeDialog::showResponsibleNogoods() {
 
   int row = 0;
   for (auto ng : ng_stats) {
-    _model->setItem(row, 0, new QStandardItem(QString::number(ng.first)));
+    _model->setItem(row, 0, new QStandardItem(to_string(ng.first).c_str()));
     _model->setItem(row, 1, new QStandardItem(QString::number(ng.second.occurrence)));
 
-    const string& nogood = left_execution.getNogoodBySid(ng.first, true, false);
+    qDebug() << "TODO: sid -> uid";
+    const string& nogood = left_execution.getNogoodByUID(ng.first, true, false);
 
     _model->setItem(row, 2, new QStandardItem(QString::number(ng.second.search_eliminated)));
     _model->setItem(row, 3, new QStandardItem(QString::fromStdString(nogood)));

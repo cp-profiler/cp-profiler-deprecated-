@@ -15,13 +15,13 @@ namespace utils { namespace subsum {
 using Lit = utils::lits::Lit;
 using Clause = std::vector<Lit>;
 
-void SubsumptionFinder::populateClauses(const Sid2Nogood& sid2nogood,
-                                        const std::vector<int64_t>& pool,
+void SubsumptionFinder::populateClauses(const Uid2Nogood& uid2nogood,
+                                        const std::vector<NodeUID>& pool,
                                         bool renamed, bool simplified) {
   clauses.resize(pool.size());
   size_t top = 0;
-  for(int64_t jsid : pool) {
-    auto& ng = sid2nogood.at(jsid);
+  for(NodeUID uid : pool) {
+    auto& ng = uid2nogood.at(uid);
     const string* sclause;
     if(renamed) {
       sclause = simplified ? &ng.simplified : &ng.renamed;
@@ -30,31 +30,31 @@ void SubsumptionFinder::populateClauses(const Sid2Nogood& sid2nogood,
     }
     if(!sclause->empty()) {
       Clause* clause = &clauses[top++];
-      sid2clause[jsid] = clause;
+      uid2clause[uid] = clause;
       const vector<string> lits = utils::split(*sclause, ' ');
       for(const string& lit : lits)
         clause->push_back(lits::parse_lit(lit));
       std::sort(clause->begin(), clause->end());
 
-      ordered_sids[static_cast<int>(clause->size())].push_back(jsid);
+      ordered_uids[static_cast<int>(clause->size())].push_back(uid);
     }
   }
 }
 
-SubsumptionFinder::SubsumptionFinder(const Sid2Nogood& sid2nogood,
-                                     const std::vector<int64_t>& pool,
+SubsumptionFinder::SubsumptionFinder(const Uid2Nogood& uid2nogood,
+                                     const std::vector<NodeUID>& pool,
                                      bool renamed, bool simplified) {
-  populateClauses(sid2nogood, pool, renamed, simplified);
+  populateClauses(uid2nogood, pool, renamed, simplified);
 }
 
-SubsumptionFinder::SubsumptionFinder(const Sid2Nogood& sid2nogood,
+SubsumptionFinder::SubsumptionFinder(const Uid2Nogood& uid2nogood,
                                      bool renamed, bool simplified) {
-  std::vector<int64_t> all;
-  for(auto& sidNogood : sid2nogood) {
-    if(!sidNogood.second.original.empty())
-      all.push_back(sidNogood.first);
+  std::vector<NodeUID> all;
+  for(auto& uidNogood : uid2nogood) {
+    if(!uidNogood.second.original.empty())
+      all.push_back(uidNogood.first);
   }
-  populateClauses(sid2nogood, all, renamed, simplified);
+  populateClauses(uid2nogood, all, renamed, simplified);
 }
 
 inline
@@ -98,22 +98,22 @@ bool contains(const Clause& c, const Lit& lit) {
   return false;
 }
 
-SubsumptionFinder::SSRResult SubsumptionFinder::getSelfSubsumingResolutionString(int64_t sid,
+SubsumptionFinder::SSRResult SubsumptionFinder::getSelfSubsumingResolutionString(NodeUID uid,
                                                                                  bool filter_only_earlier_sids) const {
   SSRResult r;
-  const Clause* iclause = sid2clause.at(sid);
+  const Clause* iclause = uid2clause.at(uid);
   vector<bool> rem_lit(iclause->size(), false);
-  for(const auto& size_sids : ordered_sids) {
-    if(static_cast<size_t>(size_sids.first) >= iclause->size()) break;
+  for(const auto& size_uids : ordered_uids) {
+    if(static_cast<size_t>(size_uids.first) >= iclause->size()) break;
     for(size_t i=0; i<iclause->size(); i++) {
       const Lit& lit = (*iclause)[i];
       const Lit negLit = lits::negate_lit(lit);
-      for(int64_t jsid : size_sids.second) {
-        if(!filter_only_earlier_sids || jsid < sid) {
-          const Clause* jclause = sid2clause.at(jsid);
+      for(NodeUID juid : size_uids.second) {
+        if(!filter_only_earlier_sids || juid < uid) {
+          const Clause* jclause = uid2clause.at(juid);
           if(contains(*jclause, negLit) &&
                   isSubset(*jclause, *iclause, &negLit)) {
-            r.sids.push_back(jsid);
+            r.uids.push_back(juid);
             rem_lit[i] = true;
             goto lit_removed;
           }
@@ -129,20 +129,20 @@ SubsumptionFinder::SSRResult SubsumptionFinder::getSelfSubsumingResolutionString
   return r;
 }
 
-int64_t SubsumptionFinder::getSubsumingClauseString(int64_t sid,
-                                                    bool filter_only_earlier_sids) const {
-  const Clause* iclause = sid2clause.at(sid);
-  for(const auto& size_sids : ordered_sids) {
-    if(static_cast<size_t>(size_sids.first) >= iclause->size()) break;
-    for(int64_t jsid : size_sids.second) {
-      if(!filter_only_earlier_sids || jsid < sid) {
-        const Clause* jclause = sid2clause.at(jsid);
+NodeUID SubsumptionFinder::getSubsumingClauseString(NodeUID uid,
+                                                    bool filter_only_earlier_uids) const {
+  const Clause* iclause = uid2clause.at(uid);
+  for(const auto& size_uids : ordered_uids) {
+    if(static_cast<size_t>(size_uids.first) >= iclause->size()) break;
+    for(NodeUID juid : size_uids.second) {
+      if(!filter_only_earlier_uids || juid < uid) {
+        const Clause* jclause = uid2clause.at(juid);
         if(isSubset(*jclause, *iclause))
-          return jsid;
+          return juid;
       }
     }
   }
-  return sid;
+  return uid;
 }
 
 static void test_subsumption();
@@ -154,15 +154,15 @@ void test_module() {
 }
 
 static void test_subsumption() {
-  vector<std::pair<int64_t, NogoodViews> > testNogoods {
-    std::make_pair(1, NogoodViews("b<=2 c<=3")),
-    std::make_pair(2, NogoodViews("a<=1 b<=2 c<=3")),
+  vector<std::pair<NodeUID, NogoodViews> > testNogoods {
+    std::make_pair(NodeUID{1, -1, -1}, NogoodViews("b>2 c<=3")),
+    std::make_pair(NodeUID{2, -1, -1}, NogoodViews("a<=1 b<=2 c<=3")),
   };
 
-  Sid2Nogood sid2nogood;
-  sid2nogood.insert(testNogoods.begin(), testNogoods.end());
+  Uid2Nogood uid2nogood;
+  uid2nogood.insert(testNogoods.begin(), testNogoods.end());
 
-  utils::subsum::SubsumptionFinder sf(sid2nogood, false, false);
+  utils::subsum::SubsumptionFinder sf(uid2nogood, false, false);
 
   int count=0;
   for(auto& sn : testNogoods)
@@ -173,23 +173,23 @@ static void test_subsumption() {
 }
 
 static void test_resolution() {
-  vector<std::pair<int, NogoodViews> > testNogoods {
-    std::make_pair(1, NogoodViews("b>2 c<=3")),
-    std::make_pair(2, NogoodViews("a<=1 b<=2 c<=3")),
+  vector<std::pair<NodeUID, NogoodViews> > testNogoods {
+    std::make_pair(NodeUID{1, -1, -1}, NogoodViews("b>2 c<=3")),
+    std::make_pair(NodeUID{2, -1, -1}, NogoodViews("a<=1 b<=2 c<=3")),
   };
 
-  Sid2Nogood sid2nogood;
-  sid2nogood.insert(testNogoods.begin(), testNogoods.end());
+  Uid2Nogood uid2nogood;
+  uid2nogood.insert(testNogoods.begin(), testNogoods.end());
 
-  utils::subsum::SubsumptionFinder sf(sid2nogood, false, false);
+  utils::subsum::SubsumptionFinder sf(uid2nogood, false, false);
 
   int count=0;
-  SubsumptionFinder::SSRResult r1 = sf.getSelfSubsumingResolutionString(1);
-  if(r1.newNogood == "b>2 c<=3" && r1.sids.size() == 0)
+  SubsumptionFinder::SSRResult r1 = sf.getSelfSubsumingResolutionString({1, -1, -1});
+  if(r1.newNogood == "b>2 c<=3" && r1.uids.size() == 0)
     count++;
 
-  SubsumptionFinder::SSRResult r2 = sf.getSelfSubsumingResolutionString(2);
-  if(r2.newNogood == "a<=1 c<=3" && r2.sids.size() == 1 && r2.sids[0] == 1)
+  SubsumptionFinder::SSRResult r2 = sf.getSelfSubsumingResolutionString({2, -1, -1});
+  if(r2.newNogood == "a<=1 c<=3" && r2.uids.size() == 1 && r2.uids[0] == NodeUID{1, -1, -1})
     count++;
 
   qDebug() << count << "/" << testNogoods.size() << " Self-subsuming resolution tests passed";

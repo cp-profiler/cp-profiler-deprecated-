@@ -77,13 +77,13 @@ static int copyTree(VisualNode* target_node, Execution& ex_target,
 
             /// TODO(maxim): connect nogoods as well
 
-            auto sid = entry->full_sid;
-            auto info = source_data.sid2info.find(sid);
+            auto uid = entry->nodeUID;
+            auto info = source_data.uid2info.find(uid);
 
             /// note(maxim): should have to maintain another map
             /// (even though info is only a pointer)
-            if (info != source_data.sid2info.end()) {
-                this_data.sid2info[sid] = info->second;
+            if (info != source_data.uid2info.end()) {
+                this_data.uid2info[uid] = info->second;
             }
 
         }
@@ -174,7 +174,7 @@ void ComparisonResult::sortPentagons() {
 }
 
 /// note(maxim): Defined in cmp_tree_dialog.cpp
-std::vector<int64_t>
+std::vector<NodeUID>
 infoToNogoodVector(const string& info);
 
 void ComparisonResult::analyseNogoods(const string& info, int search_reduction) {

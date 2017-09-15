@@ -29,6 +29,7 @@
 #include <fstream>
 #include <exception>
 #include <ctime>
+#include <cstdint>
 
 #include "cpprofiler/pixeltree/pixel_tree_dialog.hh"
 #include "cpprofiler/pixeltree/icicle_tree_dialog.hh"
@@ -349,18 +350,16 @@ void TreeCanvas::showNodeInfo(void) {
       extra_info = nm != nullptr ? nm->replaceNames(*info) : *info;
   extra_info += "\n";
 
-  auto id = currentNode->getIndex(na);
   DbEntry* entry = execution.getEntry(*currentNode);
-  int64_t sid;
-  if(entry)
-    sid = entry->full_sid;
+  int32_t nid = entry ? entry->nodeUID.nid : INT32_MIN;
 
   auto depth = utils::calculateDepth(execution.nodeTree(), *currentNode);
+  auto gid = currentNode->getIndex(na);
 
   extra_info += "--------------------------------------------\n";
   if(entry)
-    extra_info += "sid: " + std::to_string(sid) + "\t";
-  extra_info += " id: " + std::to_string(id) + "\tdepth: " + std::to_string(depth) + "\n";
+    extra_info += "sid: " + std::to_string(nid) + "\t";
+  extra_info += " gid: " + std::to_string(gid) + "\tdepth: " + std::to_string(depth) + "\n";
   extra_info += "--------------------------------------------\n";
 
 #ifdef MAXIM_DEBUG
@@ -375,12 +374,12 @@ void TreeCanvas::showNodeInfo(void) {
   extra_info += "number of direct children: " + std::to_string(currentNode->getNumberOfChildren()) + "\n";
   extra_info += "--------------------------------------------\n";
 
-  auto db_entry = execution.getEntry(id);
+  auto db_entry = execution.getEntry(gid);
 
   extra_info += "gecode/na id: " + std::to_string(currentNode->getIndex(na)) + "\n";
   // extra_info += "array index: " + std::to_string(db_entry) + "\n";
 
-  assert (na[id] == currentNode);
+  assert (na[gid] == currentNode);
 #endif
 
   auto nidialog = new NodeInfoDialog(this, extra_info, domain_filter);
@@ -1648,9 +1647,11 @@ void TreeCanvas::openNodeSearch() {
     return;
   }
 
-  auto gid = execution.getGidBySid(sid);
+  qDebug() << "TODO: should search by UID, not nid; disabled for now";
 
-  navigateToNodeById(gid);
+  // auto gid = execution.getGidByUID(sid);
+
+  // navigateToNodeById(gid);
 
 }
 

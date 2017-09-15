@@ -21,6 +21,7 @@ class Node;
 class VisualNode;
 class Statistics;
 class QMutex;
+struct NodeUID;
 
 namespace cpprofiler {
     class Message;
@@ -43,6 +44,7 @@ public:
 
     const NogoodViews* getNogood(const Node& node) const;
     const std::string* getInfo(const Node& node) const;
+    const std::string* getInfo(NodeUID uid) const;
 
     int getExecutionId() const {
         return execution_id;
@@ -67,10 +69,10 @@ public:
 
     NodeTree& nodeTree() { return *m_NodeTree.get(); }
 
-    const Sid2Nogood& getNogoods() const;
-    const std::string& getNogoodBySid(int64_t sid, bool renamed, bool simplified) const;
-    std::unordered_map<int64_t, std::string*>& getInfo(void) const;
-    unsigned getGidBySid(int64_t sid);
+    const Uid2Nogood& getNogoods() const;
+    const std::string& getNogoodByUID(NodeUID uid, bool renamed, bool simplified) const;
+    // std::unordered_map<NodeUID, std::shared_ptr<std::string>>& getInfo(void) const;
+    int32_t getGidByUID(NodeUID uid);
 
     std::string getLabel(int gid, bool rename = true) const;
 

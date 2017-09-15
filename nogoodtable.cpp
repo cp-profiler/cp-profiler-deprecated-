@@ -73,7 +73,7 @@ NogoodProxyModel::NogoodProxyModel(QWidget* parent,
                                    const Execution& e,
                                    const QVector<Sorter>& sorters)
     : QSortFilterProxyModel(parent), _sorters(sorters),
-      _sid2info(e.getInfo()), _nm(e.getNameMap()) {
+      ex(e), _nm(e.getNameMap()) {
   _sid_col = sorters.indexOf(NogoodProxyModel::SORTER_SID);
   _nogood_col = sorters.indexOf(NogoodProxyModel::SORTER_NOGOOD);
 }
@@ -127,7 +127,10 @@ bool NogoodProxyModel::filterAcceptsRow(int source_row, const QModelIndex&) cons
   bool text_matches = filterAcceptsText(nogood);
 
   const int sid = sourceModel()->data(sourceModel()->index(source_row, _sid_col)).toInt();
-  auto reasons = getReasons(sid, _sid2info);
+  /// TODO
+
+  const string* maybe_info = ex.getInfo(NodeUID{sid, -1, -1});
+  auto reasons = getReasons(maybe_info);
   bool loc_matches = true;
   if(_nm) {
     loc_matches = std::all_of(reasons.begin(),
@@ -182,18 +185,18 @@ void NogoodTableView::updateColors(void) {
     }
   };
 
-  auto& sid2nogood = _execution.getNogoods();
-  for(auto& sidNogood : sid2nogood) {
-    addColors(sidNogood.second.original);
-    addColors(sidNogood.second.renamed);
-    addColors(sidNogood.second.simplified);
+  auto& uid2nogood = _execution.getNogoods();
+  for(auto& uidNogood : uid2nogood) {
+    addColors(uidNogood.second.original);
+    addColors(uidNogood.second.renamed);
+    addColors(uidNogood.second.simplified);
   }
 }
 
-int64_t NogoodTableView::getSidFromRow(int row) const {
+NodeUID NogoodTableView::getUidFromRow(int row) const {
   QModelIndex proxy_index = nogood_proxy_model->index(row, _sid_col, QModelIndex());
   QModelIndex mapped_index = nogood_proxy_model->mapToSource(proxy_index);
-  return _model->data(mapped_index).toLongLong();
+  return {(int)_model->data(mapped_index).toLongLong(), -1, -1};
 }
 
 void NogoodTableView::getHeatmapAndEmit(const TreeCanvas& tc, bool record = false) const {
@@ -203,8 +206,9 @@ void NogoodTableView::getHeatmapAndEmit(const TreeCanvas& tc, bool record = fals
 
   int max_count = 0;
   for(int i=0; i<selection.count(); i++) {
-    int64_t sid = getSidFromRow(selection.at(i).row());
-    for(int con_id : getReasons(sid, _execution.getInfo())) {
+    NodeUID uid = getUidFromRow(selection.at(i).row());
+    const string* maybe_info = _execution.getInfo(uid);
+    for(int con_id : getReasons(maybe_info)) {
       int count = 0;
       if(con_ids.find(con_id) == con_ids.end()) {
         con_ids[con_id] = 1;
@@ -216,7 +220,7 @@ void NogoodTableView::getHeatmapAndEmit(const TreeCanvas& tc, bool record = fals
       max_count = count > max_count ? count : max_count;
     }
 
-    label.push_back(std::to_string(sid));
+    label.push_back(to_string(uid));
   }
 
   updateSelection();
@@ -263,9 +267,9 @@ void NogoodTableView::refreshModelRenaming() {
   const QModelIndexList selection = getSelection();
   for(int i=0; i<selection.count(); i++) {
     int row = selection.at(i).row();
-    int64_t sid = getSidFromRow(row);
+    NodeUID uid = getUidFromRow(row);
 
-    const string& qclause = _execution.getNogoodBySid(sid,
+    const string& qclause = _execution.getNogoodByUID(uid,
                                                       _show_renamed_literals,
                                                       _show_simplified_nogoods);
     if(!qclause.empty()) {
@@ -300,25 +304,25 @@ void NogoodTableView::renameSubsumedSelection(const QCheckBox* resolution,
                                               const QCheckBox* only_earlier_sids) {
   setSortingEnabled(false);
 
-  std::vector<int64_t> pool;
+  std::vector<NodeUID> pool;
   if(use_all->isChecked()) {
 
-    auto& sid2nogood = _execution.getNogoods();
-    for(auto& sidNogood : sid2nogood) {
+    auto& uid2nogood = _execution.getNogoods();
+    for(auto& uidNogood : uid2nogood) {
 
-      if(sidNogood.second.original.empty()) continue;
+      if(uidNogood.second.original.empty()) continue;
 
-      int64_t sid = sidNogood.first;
-      const auto nogood = QString::fromStdString(sidNogood.second.original);
+      NodeUID uid = uidNogood.first;
+      const auto nogood = QString::fromStdString(uidNogood.second.original);
 
       if(!apply_filter->isChecked() || nogood_proxy_model->filterAcceptsText(nogood)) {
-        pool.push_back(sid);
+        pool.push_back(uid);
       }
 
     }
   } else {
     for(int row=0; row<nogood_proxy_model->rowCount(); row++) {
-      pool.push_back(getSidFromRow(row));
+      pool.push_back(getUidFromRow(row));
     }
   }
 
@@ -329,15 +333,17 @@ void NogoodTableView::renameSubsumedSelection(const QCheckBox* resolution,
   const QModelIndexList selection = getSelection();
   for(int i=0; i<selection.count(); i++) {
     int row = selection.at(i).row();
-    int64_t isid = getSidFromRow(row);
+
+    qDebug() << "TODO: sid -> uid";
+    NodeUID iuid = getUidFromRow(row);
 
     string finalString;
     if(resolution->isChecked()) {
-      auto ssrr = sf.getSelfSubsumingResolutionString(isid, only_earlier_sids->isChecked());
+      auto ssrr = sf.getSelfSubsumingResolutionString(iuid, only_earlier_sids->isChecked());
       finalString = ssrr.newNogood;
     } else {
-      int64_t sid = sf.getSubsumingClauseString(isid, only_earlier_sids->isChecked());
-      finalString = _execution.getNogoodBySid(sid, _show_renamed_literals, _show_simplified_nogoods);
+      NodeUID uid = sf.getSubsumingClauseString(iuid, only_earlier_sids->isChecked());
+      finalString = _execution.getNogoodByUID(uid, _show_renamed_literals, _show_simplified_nogoods);
     }
     QModelIndex idx = nogood_proxy_model->mapToSource(nogood_proxy_model->index(row, 0, QModelIndex()));
     _model->setData(idx.sibling(idx.row(), _nogood_col), QString::fromStdString(finalString));
@@ -413,9 +419,9 @@ void NogoodTableView::showFlatZinc() {
   const QModelIndexList selection = getSelection();
   for(int i=0; i<selection.count(); i++) {
     int row = selection.at(i).row();
-    int64_t sid = getSidFromRow(row);
+    NodeUID uid = getUidFromRow(row);
 
-    const string& clause = _execution.getNogoodBySid(sid, false, false);
+    const string& clause = _execution.getNogoodByUID(uid, false, false);
     if(!clause.empty()) {
       const string fzn = convertToFlatZinc(clause);
       QModelIndex idx = nogood_proxy_model->mapToSource(nogood_proxy_model->index(row, 0, QModelIndex()));
@@ -445,8 +451,9 @@ void NogoodTableView::updateLocationFilter(QLineEdit* location_edit) const {
   vector<string> locationFilterText;
   const QModelIndexList selection = getSelection();
   for(int i=0; i<selection.count(); i++) {
-    int64_t sid = getSidFromRow(selection.at(i).row());
-    auto reasons = getReasons(sid, _execution.getInfo());
+    NodeUID uid = getUidFromRow(selection.at(i).row());
+    const string* maybe_info = _execution.getInfo(uid);
+    auto reasons = getReasons(maybe_info);
     locationFilterText.push_back(_execution.getNameMap()->getLocationFilterString(reasons));
   }
 

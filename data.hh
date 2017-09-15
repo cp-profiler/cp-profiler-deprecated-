@@ -38,6 +38,7 @@
 #include <cassert>
 
 #include "nogood_representation.hh"
+#include "cpprofiler/universal.hh"
 
 namespace cpprofiler {
     class Message;
@@ -54,19 +55,18 @@ enum MsgType {
 class DbEntry {
 
 public:
-    DbEntry(int sid, int restart_id, int64_t parent_id, int _alt, int _kids,
+    DbEntry(NodeUID uid, NodeUID parent_uid, int _alt, int _kids,
             std::string _label, int tid, int _status, int64_t _time_stamp,
             int64_t _node_time) :
-        s_node_id(sid), restart_id(restart_id), gid(-1), parent_sid(parent_id), alt(_alt), numberOfKids(_kids), label(_label), thread_id(tid), depth(-1), time_stamp(_time_stamp), node_time(_node_time),
+        nodeUID(uid), parentUID(parent_uid), gid(-1), alt(_alt), numberOfKids(_kids), label(_label), thread_id(tid), depth(-1), time_stamp(_time_stamp), node_time(_node_time),
         status(_status)
     {
     }
 
-    DbEntry(int id, int64_t parent_sid, int alt, int kids, int status)
-        : s_node_id(id),
-          restart_id(0),
+    DbEntry(NodeUID uid, NodeUID parent_uid, int alt, int kids, int status)
+        : nodeUID(uid),
+          parentUID(parent_uid),
           gid(-1),
-          parent_sid(parent_sid),
           alt(alt),
           numberOfKids(kids),
           status(status) {}
@@ -75,16 +75,10 @@ public:
 
     friend std::ostream& operator<<(std::ostream& s, const DbEntry& e);
 
-    /// thread id and node id are stored in one variable (for hashing)
-    union {
-        struct {
-            int32_t s_node_id; // solver node id
-            int32_t restart_id;
-        };
-        int64_t full_sid;
-    };
+    NodeUID nodeUID;
+    NodeUID parentUID;
+
     int32_t gid; // gist id, set to -1 so we don't forget to assign the real value
-    int64_t parent_sid; // TODO(maxim): this needs only 32 bit integer, as restart_id is known
     int32_t alt; // which child by order
     int32_t numberOfKids;
     std::string label;
@@ -113,7 +107,7 @@ Q_OBJECT
     int last_interval_nc;
 
     /// Map solver Id to no-good string (rid = 0 always for chuffed)
-    Sid2Nogood sid2nogood;
+    Uid2Nogood uid2nogood;
 
     NameMap* nameMap;
 
@@ -124,14 +118,14 @@ public:
 
     /// Mapping from solver Id to array Id (nodes_arr)
     /// can't use vector because sid is too big with threads
-    std::unordered_map<int64_t, int> sid2aid;
+    std::unordered_map<NodeUID, int> uid2aid;
 
     /// Maps gist Id to dbEntry (possibly in the other Data instance);
     /// i.e. needed for a merged tree to show labels etc.
     /// TODO(maixm): this should probably be a vector?
     std::unordered_map<int, DbEntry*> gid2entry;
-    
-    std::unordered_map<int64_t, std::string*> sid2info;
+
+    std::unordered_map<NodeUID, std::shared_ptr<std::string>> uid2info;
 
     /// synchronise access to data entries
     mutable QMutex dataMutex;
@@ -153,7 +147,7 @@ public:
     std::string getLabel(int gid);
 
     /// return solver id by gid (Gist ID)
-    int64_t gid2sid(int gid) const;
+    NodeUID gid2uid(int gid) const;
 
     void connectNodeToEntry(int gid, DbEntry* const entry);
 
@@ -165,12 +159,13 @@ public:
     bool isDone(void) { return _isDone; }
 
     const std::vector<DbEntry*>& getEntries() const { return nodes_arr; }
-    inline const Sid2Nogood& getNogoods(void) { return sid2nogood; }
-    inline std::unordered_map<int64_t, std::string*>& getInfo(void) { return sid2info; }
+    inline const Uid2Nogood& getNogoods(void) { return uid2nogood; }
 
     uint64_t getTotalTime();
 
-    unsigned getGidBySid(int64_t sid) { return nodes_arr[sid2aid[sid]]->gid; }
+    int32_t getGidByUID(NodeUID uid) {
+        return nodes_arr[uid2aid[uid]]->gid;
+    }
     /// NOTE(maxim): this only works for a merged tree now?
     DbEntry* getEntry(int gid) const;
 

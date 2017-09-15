@@ -54,7 +54,7 @@ private:
 
 private:
   
-  void populateNogoodTable(QStandardItemModel* model, const std::vector<int64_t>& nogoods);
+  void populateNogoodTable(QStandardItemModel* model, const std::vector<NodeUID>& nogoods);
 
 public:
   PentListWindow(CmpTreeDialog* parent, const ComparisonResult& items);

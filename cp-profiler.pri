@@ -118,6 +118,7 @@ HEADERS  += \
     $$PWD/nogoodtable.hh \
     $$PWD/cpprofiler/utils/string_utils.hh \
     $$PWD/nogood_representation.hh \
-    $$PWD/executiontree.hh
+    $$PWD/executiontree.hh \
+    $$PWD/cpprofiler/universal.hh
 
 FORMS    +=

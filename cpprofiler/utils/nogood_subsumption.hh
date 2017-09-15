@@ -19,36 +19,36 @@ class SubsumptionFinder {
   using Lit = utils::lits::Lit;
   using Clause = std::vector<Lit>;
 public:
-  SubsumptionFinder(const Sid2Nogood& sid2nogood,
-                    const std::vector<int64_t>& pool,
+  SubsumptionFinder(const Uid2Nogood& uid2nogood,
+                    const std::vector<NodeUID>& pool,
                     bool renamed,
                     bool simplified);
 
   /// Use all nogoods for 'pool'
-  SubsumptionFinder(const Sid2Nogood& sid2nogood,
+  SubsumptionFinder(const Uid2Nogood& uid2nogood,
                     bool renamed,
                     bool simplified);
 
-  int64_t getSubsumingClauseString(int64_t sid,
-                                   bool filter_only_earlier_sids = true) const;
+  NodeUID getSubsumingClauseString(NodeUID uid,
+                                   bool filter_only_earlier_uids = true) const;
 
   struct SSRResult {
       std::string newNogood;
-      std::vector<int64_t> sids;
+      std::vector<NodeUID> uids;
   };
-  SSRResult getSelfSubsumingResolutionString(int64_t sid,
+  SSRResult getSelfSubsumingResolutionString(NodeUID uid,
                                              bool filter_only_earlier_sids = true) const;
 
 private:
   const Clause* findSubsumingClause(const Clause& iclause, bool filter_only_earlier_sids) const;
 
-  void populateClauses(const Sid2Nogood& sid2nogood,
-                       const std::vector<int64_t>& pool,
+  void populateClauses(const Uid2Nogood& uid2nogood,
+                       const std::vector<NodeUID>& pool,
                        bool renamed, bool simplified);
 
   std::vector<Clause> clauses;
-  std::unordered_map<int64_t, Clause*> sid2clause;
-  std::map<int, std::vector<int64_t>> ordered_sids;
+  std::unordered_map<NodeUID, Clause*> uid2clause;
+  std::map<int, std::vector<NodeUID>> ordered_uids;
   bool _renamed {false};
   bool _simplified {false};
 };
