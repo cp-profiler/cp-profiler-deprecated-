@@ -7,6 +7,9 @@
 #include "cpprofiler/utils/tree_utils.hh"
 
 using std::string;
+namespace Profiling {
+class Message;
+}
 
 Execution::Execution()
     : m_NodeTree{new NodeTree},
@@ -151,7 +154,7 @@ Statistics& Execution::getStatistics() {
         return m_NodeTree->getStatistics();
 }
 
-void Execution::handleNewNode(const cpprofiler::Message& msg) {
+void Execution::handleNewNode(const Profiling::Message& msg) {
     m_Data->handleNodeCallback(msg);
 }
 

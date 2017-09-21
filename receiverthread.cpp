@@ -89,27 +89,28 @@ static int32_t ArrayToInt(const QByteArray& ba) {
   return *(reinterpret_cast<const quint32*>(p));
 }
 
-using cpprofiler::Message;
+using Profiling::Message;
 
 void ReceiverWorker::handleMessage(const Message& msg) {
 
     switch (msg.type()) {
-        case cpprofiler::MsgType::NODE:
+        case Profiling::MsgType::NODE:
+
             execution->handleNewNode(msg);
         break;
-        case cpprofiler::MsgType::START:
+        case Profiling::MsgType::START:
             // std::cerr << "START\n";
 
             /// Not very first START (in case of restart execution)
             /// NOTE(maxim): Chuffed currently always sends 0 for all restarts...
-            if (msg.restart_id() != -1 && msg.restart_id() != 0) {
+            if (msg.node_restart_id() != -1 && msg.node_restart_id() != 0) {
                 break;
             }
 
             /// ----- Very first START -----
             {
                 // execution = new Execution();
-                bool is_restarts = (msg.restart_id() != -1);
+                bool is_restarts = (msg.node_restart_id() != -1);
                 execution->start(msg.label(), is_restarts);
             }
 
@@ -156,7 +157,7 @@ void ReceiverWorker::handleMessage(const Message& msg) {
             }
 
         break;
-        case cpprofiler::MsgType::DONE:
+        case Profiling::MsgType::DONE:
             emit doneReceiving();
             std::cerr << "DONE\n";
         break;

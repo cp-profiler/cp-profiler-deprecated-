@@ -60,6 +60,7 @@ void ExecutionTreeModel::addExecution(QTreeView* tv, const MetaExecution& me,
   parentItem->appendRow(item);
 
   tv->expand(indexFromItem(item));
+  tv->expandAll();
 }
 
 Execution* ExecutionTreeModel::getExecution(const QModelIndex& ind) const {

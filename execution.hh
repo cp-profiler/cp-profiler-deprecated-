@@ -23,8 +23,8 @@ class Statistics;
 class QMutex;
 struct NodeUID;
 
-namespace cpprofiler {
-    class Message;
+namespace Profiling {
+  class Message;
 }
 
 class TreeBuilder;
@@ -109,7 +109,7 @@ public:
     QWaitCondition has_exec_id_cond;
 
 public slots:
-    void handleNewNode(const cpprofiler::Message& node);
+    void handleNewNode(const Profiling::Message& node);
     /// Compare domains of two nodes (highlighted)
     void compareDomains();
 

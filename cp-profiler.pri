@@ -23,7 +23,6 @@ SOURCES += \
     $$PWD/node_info_dialog.cpp \
     $$PWD/cpprofiler\pixeltree\pixelImage.cpp \
     $$PWD/maybeCaller.cpp \
-    $$PWD/message.cpp \
     $$PWD/profiler-conductor.cpp \
     $$PWD/profiler-tcp-server.cpp \
     $$PWD/ml-stats.cpp \
@@ -59,6 +58,7 @@ HEADERS  += \
     $$PWD/spacenode.hh \
     $$PWD/node.hh \
     $$PWD/node.hpp \
+    $$PWD/submodules/cpp-integration/message.hpp \
     $$PWD/spacenode.hpp \
     $$PWD/visualnode.hpp \
     $$PWD/heap.hpp \
@@ -85,7 +85,6 @@ HEADERS  += \
     $$PWD/treecomparison.hh \
     $$PWD/nogood_dialog.hh \
     $$PWD/node_info_dialog.hh \
-    $$PWD/message.hh \
     $$PWD/profiler-conductor.hh \
     $$PWD/profiler-tcp-server.hh \
     $$PWD/execution.hh \

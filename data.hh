@@ -40,11 +40,10 @@
 #include "nogood_representation.hh"
 #include "cpprofiler/universal.hh"
 
-namespace cpprofiler {
-    class Message;
-}
-
 class NameMap;
+namespace Profiling {
+class Message;
+}
 
 enum MsgType {
   NODE_DATA = 1,
@@ -140,7 +139,7 @@ public:
     Data();
     ~Data(void);
 
-    int handleNodeCallback(const cpprofiler::Message& node);
+    void handleNodeCallback(const Profiling::Message& node);
 
     /// TODO(maxim): Do I want a reference here?
     /// return label by gid (Gist ID)

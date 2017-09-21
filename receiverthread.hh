@@ -29,13 +29,9 @@
 #include <QDebug>
 #include <iostream>
 
-#include "message.hh"
+#include "submodules/cpp-integration/message.hpp"
 
 class Execution;
-
-namespace cpprofiler {
-  class Message;
-}
 
 class ReceiverThread : public QThread {
   Q_OBJECT
@@ -87,7 +83,7 @@ class ReceiverWorker : public QObject {
   /// where to read next from
   int bytes_read = 0;
 
-  MessageMarshalling marshalling;
+  Profiling::MessageMarshalling marshalling;
 
   /// if false -> next to read is size, otherwise -- message itself
   /// number of messages per buffer reset
@@ -100,7 +96,7 @@ class ReceiverWorker : public QObject {
   bool wait_for_name_map = true;
  public slots:
   void doRead();
-  void handleMessage(const cpprofiler::Message& msg);
+  void handleMessage(const Profiling::Message& msg);
 };
 
 #endif

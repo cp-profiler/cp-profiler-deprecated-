@@ -31,10 +31,10 @@
 
 #include "visualnode.hh"
 
-#include "message.hh"
-
 using namespace std;
 using namespace std::chrono;
+
+#include "submodules/cpp-integration/message.hpp"
 
 ostream& operator<<(ostream& s, const NodeUID& uid) {
     s << "{" << uid.nid << ", " << uid.tid << ", " << uid.rid << "}";
@@ -113,12 +113,12 @@ void Data::setDoneReceiving(void) {
 
 }
 
-int Data::handleNodeCallback(const cpprofiler::Message& node) {
+void Data::handleNodeCallback(const Profiling::Message& node) {
 
     search_timer->on_node();
 
-    NodeUID nodeUID {node.id(), node.restart_id(), node.thread_id()};
-    NodeUID parentUID {node.pid(), node.restart_id(), node.thread_id()};
+    NodeUID nodeUID {node.node_id(), node.node_restart_id(), node.node_thread_id()};
+    NodeUID parentUID {node.parent_id(), node.parent_restart_id(), node.parent_thread_id()};
 
     auto entry = new DbEntry(nodeUID, parentUID, node.alt(), node.kids(), node.status());
 
@@ -143,8 +143,6 @@ int Data::handleNodeCallback(const cpprofiler::Message& node) {
 
         uid2nogood[entry->nodeUID] = ng;
     }
-
-    return 0;
 }
 
 std::string Data::getLabel(int gid) {
