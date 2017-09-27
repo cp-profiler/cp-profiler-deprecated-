@@ -1,6 +1,7 @@
 #pragma once
 
 #include <sstream>
+#include "cpprofiler/utils/string_utils.hh"
 
 struct NodeUID {
     int32_t nid;
@@ -12,6 +13,15 @@ inline std::string to_string(const NodeUID& uid) {
     std::stringstream ss;
     ss << "{" << uid.nid << ", " << uid.rid << ", " << uid.tid << "}";
     return ss.str();
+}
+
+inline NodeUID string_to_NodeUID(const std::string& str) {
+    auto elements = utils::split(str.substr(1,str.size()-2), ',');
+    return NodeUID {
+        stoi(elements[0]),
+        stoi(elements[1]),
+        stoi(elements[2])
+    };
 }
 
 inline bool operator==(const NodeUID& lhs, const NodeUID& rhs) {

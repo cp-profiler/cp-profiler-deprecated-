@@ -66,9 +66,9 @@ void NogoodDialog::populateTable(const std::vector<int>& selected_nodes) {
     int gid = *it;
     /// TODO(maxim): find an easier way to get a nogood from gid?
     NodeUID uid = _tc.getExecution().getData().gid2uid(gid);
-    const std::string& clause = _tc.getExecution().getNogoodByUID(uid, false, false);
+    const std::string& clause = _tc.getExecution().getNogoodByUID(uid, true, true);
     if(!clause.empty()) {
-      _model->setItem(row, 0, new QStandardItem(QString::number(uid.nid)));
+      _model->setItem(row, 0, new QStandardItem(QString::fromStdString(to_string(uid))));
       _model->setItem(row, 1, new QStandardItem(QString::fromStdString(clause)));
       row++;
     }

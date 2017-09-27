@@ -602,10 +602,8 @@ void ProfilerConductor::cloneExecution() {
   //TODO
 }
 
-using namespace std;
-
-void ProfilerConductor::createExecution(unique_ptr<NodeTree> nt,
-                                        unique_ptr<Data> data) {
+void ProfilerConductor::createExecution(std::unique_ptr<NodeTree> nt,
+                                        std::unique_ptr<Data> data) {
 
   auto e = new Execution(std::move(nt), std::move(data));
   addExecution(*e);

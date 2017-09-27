@@ -67,7 +67,7 @@ public:
   using ExpressionTable = std::unordered_map<std::string, std::string>;
 
   NameMap() {}
-  NameMap(std::string& path_filename, std::string& model_filename);
+  NameMap(const std::string& path_filename, const std::string& model_filename);
 
   const std::string& getPath(const std::string& ident) const;
   const Location& getLocation(const std::string& ident) const;
@@ -79,7 +79,7 @@ public:
   std::string getLocationFilterString(const std::vector<int>& reasons) const;
 
 private:
-  NameMap(SymbolTable& st);
+  NameMap(const SymbolTable& st);
 
   std::vector<std::string> getPathHead(const std::string& path, bool includeTrail) const;
   std::string replaceAssignments(const std::string& path, const std::string& expression) const;

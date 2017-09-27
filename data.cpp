@@ -54,8 +54,6 @@ ostream& operator<<(ostream& s, const DbEntry& e) {
     return s;
 }
 
-
-
 using TP = system_clock::time_point;
 
 static uint64_t milliseconds_passed(TP begin, TP end) {

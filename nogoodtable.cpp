@@ -126,10 +126,8 @@ bool NogoodProxyModel::filterAcceptsRow(int source_row, const QModelIndex&) cons
 
   bool text_matches = filterAcceptsText(nogood);
 
-  const int sid = sourceModel()->data(sourceModel()->index(source_row, _sid_col)).toInt();
-  /// TODO
-
-  const string* maybe_info = ex.getInfo(NodeUID{sid, -1, -1});
+  const NodeUID node = string_to_NodeUID(sourceModel()->data(sourceModel()->index(source_row, _sid_col)).toString().toStdString());
+  const string* maybe_info = ex.getInfo(node);
   auto reasons = getReasons(maybe_info);
   bool loc_matches = true;
   if(_nm) {
@@ -196,7 +194,7 @@ void NogoodTableView::updateColors(void) {
 NodeUID NogoodTableView::getUidFromRow(int row) const {
   QModelIndex proxy_index = nogood_proxy_model->index(row, _sid_col, QModelIndex());
   QModelIndex mapped_index = nogood_proxy_model->mapToSource(proxy_index);
-  return {(int)_model->data(mapped_index).toLongLong(), -1, -1};
+  return string_to_NodeUID(_model->data(mapped_index).toString().toStdString());
 }
 
 void NogoodTableView::getHeatmapAndEmit(const TreeCanvas& tc, bool record = false) const {
