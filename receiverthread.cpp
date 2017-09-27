@@ -49,18 +49,17 @@ ReceiverThread::run(void) {
 
     /// TODO(maxim): memory leak here
     ReceiverWorker* worker = new ReceiverWorker(tcpSocket, execution);
-    connect(tcpSocket, SIGNAL(readyRead()), worker, SLOT(doRead()));
+    connect(tcpSocket, &QTcpSocket::readyRead, worker, &ReceiverWorker::doRead);
 
-    // connect(worker, SIGNAL(doneReceiving(void)), this, SIGNAL(doneReceiving(void)));
     auto conn_1 = std::make_shared<QMetaObject::Connection>();
 
     *conn_1 = connect(worker, &ReceiverWorker::doneReceiving, [this, conn_1]() {
+        qDebug() << "worker::doneReceiving";
         QObject::disconnect(*conn_1);
         emit doneReceiving();
         quit();
     });
 
-    // connect(worker, SIGNAL(doneReceiving(void)), this, SLOT(quit(void)));
     connect(worker, &ReceiverWorker::executionIdReady, [this](Execution* ex) {
         emit executionIdReady(ex);
     });
@@ -75,12 +74,19 @@ ReceiverThread::run(void) {
         emit executionStarted(ex);
     });
 
-    connect(tcpSocket, SIGNAL(disconnected(void)), this, SLOT(quit(void)));
-    connect(tcpSocket, SIGNAL(disconnected(void)), this, SIGNAL(doneReceiving(void)));
+    // connect(tcpSocket, &QTcpSocket::disconnected, this, &ReceiverThread::doneReceiving);
+    connect(tcpSocket, &QTcpSocket::disconnected, [this]() {
+        qDebug() << "tcpSocket->disconnected";
+        this->doneReceiving();
+    });
 
-    // std::cerr << "Receiver thread " << this << " running event loop\n";
+
+    // connect(tcpSocket, QTcpSocket::disconnected, this, ReceiverThread::quit);
+    connect(tcpSocket, &QTcpSocket::disconnected, [this]() {
+        this->quit();
+    });
+
     exec();
-    // std::cerr << "Receiver thread " << this << " terminating\n";
 }
 
 static int32_t ArrayToInt(const QByteArray& ba) {
@@ -89,29 +95,53 @@ static int32_t ArrayToInt(const QByteArray& ba) {
   return *(reinterpret_cast<const quint32*>(p));
 }
 
-using Profiling::Message;
+using cpprofiler::Message;
 
 void ReceiverWorker::handleMessage(const Message& msg) {
 
     switch (msg.type()) {
-        case Profiling::MsgType::NODE:
+        case cpprofiler::MsgType::NODE:
 
             execution->handleNewNode(msg);
         break;
-        case Profiling::MsgType::START:
+        case cpprofiler::MsgType::START:
             // std::cerr << "START\n";
 
             /// Not very first START (in case of restart execution)
             /// NOTE(maxim): Chuffed currently always sends 0 for all restarts...
-            if (msg.node_restart_id() != -1 && msg.node_restart_id() != 0) {
-                break;
+            // if (msg.node_restart_id() != -1 && msg.node_restart_id() != 0) {
+            //     break;
+            // }
+
+
+            /// We know that solver is doing restarts because:
+            /// the START message (not to confuse with a RESTART message) says so
+
+            if (msg.has_info()) {
+
+                try {
+
+                    std::string s = msg.info();
+                    auto info_json = nlohmann::json::parse(msg.info());
+                    auto rid = info_json.find("restart_id");
+
+                    if(rid != info_json.end()) {
+                        // if (*rid != -1 && 
+                    }
+
+
+                } catch (std::exception& e) {
+                    std::cerr << "Can't parse json in info: " << e.what() << "\n";
+                }
+
             }
 
             /// ----- Very first START -----
             {
                 // execution = new Execution();
-                bool is_restarts = (msg.node_restart_id() != -1);
-                execution->start(msg.label(), is_restarts);
+                // bool is_restarts = (msg.node_restart_id() != -1);
+                bool is_restarts = true; // TODO
+                execution->begin(msg.label(), is_restarts);
             }
 
             emit executionStarted(execution);
@@ -157,7 +187,7 @@ void ReceiverWorker::handleMessage(const Message& msg) {
             }
 
         break;
-        case Profiling::MsgType::DONE:
+        case cpprofiler::MsgType::DONE:
             emit doneReceiving();
             std::cerr << "DONE\n";
         break;

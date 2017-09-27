@@ -149,8 +149,12 @@ GistMainWindow::GistMainWindow(Execution& e,
           SLOT(scroll(void)));
 
   connect(m_Canvas.get(), &TreeCanvas::nodeSelected, this, &GistMainWindow::updateActions);
-  
-  connect(&execution, &Execution::doneReceiving, this, &GistMainWindow::finishStatsBar);
+
+  // TODO(maxim): this won't be called is Gist doesn't exist yet
+  connect(&execution, &Execution::doneReceiving, [this]() {
+    qDebug() << "finish stats bar";
+    this->finishStatsBar();
+  });
 
   connect(m_Canvas.get(), &TreeCanvas::moreNodesDrawn, this, &GistMainWindow::updateStatsBar);
 

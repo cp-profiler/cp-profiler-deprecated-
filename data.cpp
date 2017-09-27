@@ -107,18 +107,20 @@ void Data::setDoneReceiving(void) {
     QMutexLocker locker(&dataMutex);
 
     search_timer->end();
-    qDebug() << "done receiving";
+    // qDebug() << "done receiving";
 
     _isDone = true;
-
 }
 
-void Data::handleNodeCallback(const Profiling::Message& node) {
+void Data::handleNodeCallback(const cpprofiler::Message& node) {
 
     search_timer->on_node();
 
-    NodeUID nodeUID {node.node_id(), node.node_restart_id(), node.node_thread_id()};
-    NodeUID parentUID {node.parent_id(), node.parent_restart_id(), node.parent_thread_id()};
+    auto n_uid = node.nodeUID();
+    auto p_uid = node.parentUID();
+
+    NodeUID nodeUID {n_uid.nid, n_uid.rid, n_uid.tid};
+    NodeUID parentUID {p_uid.nid, p_uid.rid, p_uid.tid};
 
     auto entry = new DbEntry(nodeUID, parentUID, node.alt(), node.kids(), node.status());
 

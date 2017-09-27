@@ -45,13 +45,12 @@
 /** \brief Status of nodes in the search tree
  */
 enum NodeStatus : char {
-  SOLVED,       ///< Node representing a solution
-  FAILED,       ///< Node representing failure
-  BRANCH,       ///< Node representing a branch
+  SOLVED = 0,       ///< Node representing a solution
+  FAILED = 1,       ///< Node representing failure
+  BRANCH = 2,       ///< Node representing a branch
+  SKIPPED = 3,      ///< Skipped by backjumping (basically failed)
   UNDETERMINED, ///< Node that has not been explored yet
-  REMOVED,         ///< Used for unwanted white nodes
-  UNSTOP,       ///< NOT used
-  SKIPPED,       ///< Skipped by backjumping (basically failed)
+  REMOVED,      ///< Used for unwanted white nodes
   MERGING
 };
 

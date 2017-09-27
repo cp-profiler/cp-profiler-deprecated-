@@ -23,7 +23,7 @@ class Statistics;
 class QMutex;
 struct NodeUID;
 
-namespace Profiling {
+namespace cpprofiler {
   class Message;
 }
 
@@ -82,7 +82,7 @@ public:
 
     Data& getData() const;
 
-    void start(std::string label, bool isRestarts);
+    void begin(std::string label, bool isRestarts);
 
     bool isRestarts() const { return _is_restarts; }
 
@@ -109,7 +109,7 @@ public:
     QWaitCondition has_exec_id_cond;
 
 public slots:
-    void handleNewNode(const Profiling::Message& node);
+    void handleNewNode(const cpprofiler::Message& node);
     /// Compare domains of two nodes (highlighted)
     void compareDomains();
 

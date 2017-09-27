@@ -60,6 +60,8 @@ class SimilarShapesWindow : public HistogramWindow {
 
   Filters filters;
 
+  std::vector<SubtreeInfo> patterns_displayed;
+
   void initInterface();
 
   void updateHistogram();

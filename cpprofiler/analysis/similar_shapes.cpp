@@ -158,29 +158,14 @@ SimilarShapesWindow::SimilarShapesWindow(Execution& ex)
 
 SimilarShapesWindow::~SimilarShapesWindow() = default;
 
-void highlightAllSubtrees(NodeTree& nt, GroupsOfNodes_t& groups) {
+void highlightAllSubtrees(NodeTree& nt, std::vector<SubtreeInfo>& groups) {
 
   utils::applyToEachNode(nt, [](VisualNode* n) {
     n->setHighlighted(false);
   });
 
   for (auto& group : groups) {
-    for (auto node : group) {
-      node->setHighlighted(true);
-    }
-  }
-
-  nt.treeModified();
-}
-
-void highlightAllSubtrees(NodeTree& nt, std::vector<ShapeInfo>& shapes) {
-
-  utils::applyToEachNode(nt, [](VisualNode* n) {
-    n->setHighlighted(false);
-  });
-
-  for (auto& si : shapes) {
-    for (auto node : si.nodes) {
+    for (auto node : group.nodes) {
       node->setHighlighted(true);
     }
   }
@@ -304,12 +289,7 @@ void SimilarShapesWindow::initInterface() {
 
     auto highlightAll = new QPushButton{"Highlight All"};
     connect(highlightAll, &QPushButton::clicked, [this]() {
-
-      if (simType == SimilarityType::SUBTREE)
-        highlightAllSubtrees(node_tree, m_identicalGroups);
-      else if (simType == SimilarityType::SHAPE)
-        highlightAllSubtrees(node_tree, shapes);
-
+      highlightAllSubtrees(node_tree, patterns_displayed);
     });
 
 #ifndef MAXIM_THESIS
@@ -608,8 +588,8 @@ void SimilarShapesWindow::updateHistogram() {
 
 void SimilarShapesWindow::drawHistogram() {
 
-  std::vector<SubtreeInfo> vec;
-  vec.reserve(m_identicalGroups.size());
+  patterns_displayed.clear();
+  patterns_displayed.reserve(m_identicalGroups.size());
 
   auto& na = node_tree.getNA();
   VisualNode* root = node_tree.getRoot();
@@ -630,12 +610,16 @@ void SimilarShapesWindow::drawHistogram() {
       continue;
     }
 
-    vec.push_back({group, size, height, count, false});
+    patterns_displayed.push_back({group, size, height, count, false});
   }
 
-  sortSubtrees(vec, m_sortType);
+  qDebug() << "patterns displayed: " << patterns_displayed.size();
 
-  drawAnalysisHistogram(m_histType, vec);
+
+
+  sortSubtrees(patterns_displayed, m_sortType);
+
+  drawAnalysisHistogram(m_histType, patterns_displayed);
 
 }
 

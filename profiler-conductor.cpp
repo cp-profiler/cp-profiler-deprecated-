@@ -227,6 +227,7 @@ int ProfilerConductor::getNextExecId(const std::string& group_name,
 }
 
 void ProfilerConductor::addExecution(Execution& e) {
+  qDebug() << "addExecution";
   executions << &e;
 
   executionInfoHash.insert(&e, new ExecutionInfo);
@@ -587,6 +588,11 @@ void ProfilerConductor::registerWebscriptView(Execution* execution, std::string 
 void ProfilerConductor::createDebugExecution() {
   auto e = new Execution{};
   addExecution(*e);
+
+  //// NOTE(maxim): quick workaround for now:
+  auto eid = getNextExecId("External Execution", e->getTitle(), NameMap());
+  MetaExecution& me = executionMetadata[eid];
+  executionTreeModel.addExecution(&executionTreeView, executionMetadata[eid], e);
 }
 
 void ProfilerConductor::cloneExecution() {
@@ -610,6 +616,7 @@ void ProfilerConductor::createExecution(unique_ptr<NodeTree> nt,
 }
 
 void ProfilerConductor::executionIdReady(Execution* e) {
+  qDebug() << "executionIdReady";
   // latest_execution = e; // TODO(maxim): check if still needed
   int eid = e->getExecutionId();
   auto eit = executionMetadata.find(eid);

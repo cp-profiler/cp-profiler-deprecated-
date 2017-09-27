@@ -58,6 +58,7 @@ static void eliminateSubsumed(const NodeTree& nt, vector<Group>& subtrees) {
 
   {
     /// Remember which group a node belongs to;
+    /// (only needed to check if a node is in one of the patterns)
     /// should remain as local as possible (will soon become invalid)
     std::unordered_map<VisualNode*, Group*> node2group;
     for (auto& group : subtrees) {

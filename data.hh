@@ -41,15 +41,9 @@
 #include "cpprofiler/universal.hh"
 
 class NameMap;
-namespace Profiling {
+namespace cpprofiler {
 class Message;
 }
-
-enum MsgType {
-  NODE_DATA = 1,
-  DONE_SENDING = 2,
-  START_SENDING = 3
-};
 
 class DbEntry {
 
@@ -57,9 +51,16 @@ public:
     DbEntry(NodeUID uid, NodeUID parent_uid, int _alt, int _kids,
             std::string _label, int tid, int _status, int64_t _time_stamp,
             int64_t _node_time) :
-        nodeUID(uid), parentUID(parent_uid), gid(-1), alt(_alt), numberOfKids(_kids), label(_label), thread_id(tid), depth(-1), time_stamp(_time_stamp), node_time(_node_time),
-        status(_status)
+        nodeUID(uid), parentUID(parent_uid), gid(-1), alt(_alt), numberOfKids(_kids), label(_label), thread_id(tid), depth(-1), time_stamp(_time_stamp), node_time(_node_time), status(_status)
     {
+        /// Map message status to profiler status;
+        /// alternatively could make treebuilder use message status
+        // switch (_status) {
+        //     case 0:
+
+        //     break;
+        // }
+        // status 
     }
 
     DbEntry(NodeUID uid, NodeUID parent_uid, int alt, int kids, int status)
@@ -139,7 +140,7 @@ public:
     Data();
     ~Data(void);
 
-    void handleNodeCallback(const Profiling::Message& node);
+    void handleNodeCallback(const cpprofiler::Message& node);
 
     /// TODO(maxim): Do I want a reference here?
     /// return label by gid (Gist ID)

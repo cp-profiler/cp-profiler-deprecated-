@@ -99,18 +99,19 @@ static void deleteWhiteNodes(Execution& ex) {
 }
 
 
-void Execution::start(std::string label, bool isRestarts) {
+void Execution::begin(std::string label, bool isRestarts) {
 
     _is_restarts = isRestarts;
 
-    std::time_t t = std::time(nullptr);
-    string ts = std::asctime(std::localtime(&t));
-
-    // asctime puts a newline at the end; remove it
-    ts.pop_back();
-    setTitle(label);// + " (" + ts + ")");
+    setTitle(label);
 
     connect(this, SIGNAL(doneReceiving(void)), m_Data.get(), SLOT(setDoneReceiving(void)));
+
+    // qDebug() << "Execution::start";
+    connect(this, &Execution::doneReceiving, [this]() {
+      qDebug() << "setDoneReceiving";
+      m_Data->setDoneReceiving();
+    });
 
     connect(m_Builder.get(), &TreeBuilder::addedNode, this, &Execution::newNode);
     connect(m_Builder.get(), &TreeBuilder::addedRoot, this, &Execution::newRoot);
@@ -154,7 +155,7 @@ Statistics& Execution::getStatistics() {
         return m_NodeTree->getStatistics();
 }
 
-void Execution::handleNewNode(const Profiling::Message& msg) {
+void Execution::handleNewNode(const cpprofiler::Message& msg) {
     m_Data->handleNodeCallback(msg);
 }
 

@@ -68,8 +68,8 @@ static int copyTree(VisualNode* target_node, Execution& ex_target,
         if (n->getStatus() != NodeStatus::UNDETERMINED) {
             auto& source_data = ex_source.getData();
 
-            int source_index = source_tree.getIndex(n);
-            DbEntry* entry = source_data.getEntry(source_index);
+            int source_gid = source_tree.getIndex(n);
+            DbEntry* entry = source_data.getEntry(source_gid);
 
             auto& this_data = ex_target.getData();
             int target_index = target_tree.getIndex(next);
@@ -77,14 +77,18 @@ static int copyTree(VisualNode* target_node, Execution& ex_target,
 
             /// TODO(maxim): connect nogoods as well
 
-            auto uid = entry->nodeUID;
-            auto info = source_data.uid2info.find(uid);
-
-            /// note(maxim): should have to maintain another map
-            /// (even though info is only a pointer)
-            if (info != source_data.uid2info.end()) {
-                this_data.uid2info[uid] = info->second;
+            if (entry) {
+              auto uid = entry->nodeUID;
+              auto info = source_data.uid2info.find(uid);
+  
+              /// note(maxim): should have to maintain another map
+              /// (even though info is only a pointer)
+              if (info != source_data.uid2info.end()) {
+                  this_data.uid2info[uid] = info->second;
+              }
             }
+
+
 
         }
 
@@ -233,11 +237,11 @@ static void copy_into(const Execution& s_ex, const VisualNode* source,
   auto& s_na = s_ex.nodeTree().getNA();
   auto& t_na = t_ex.nodeTree().getNA();
 
-  auto s_idx = source->getIndex(s_na);
-  auto t_idx = target->getIndex(t_na);
+  auto s_gid = source->getIndex(s_na);
+  auto t_gid = target->getIndex(t_na);
 
-  auto entry = s_ex.getEntry(s_idx);
-  t_ex.getData().connectNodeToEntry(t_idx, entry);
+  auto entry = s_ex.getEntry(s_gid);
+  t_ex.getData().connectNodeToEntry(t_gid, entry);
 
 }
 

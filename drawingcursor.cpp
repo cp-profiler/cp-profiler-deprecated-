@@ -114,7 +114,7 @@ DrawingCursor::processCurrentNode(void) {
     }
 
     // draw the shape if the node is highlighted
-    painter.setBrush(QColor(160, 160, 160, 125));
+    painter.setBrush(QColor(160, 160, 160, 100));
     if (n->isHighlighted()) {
       drawShape(painter, myx, myy, n);
     }
@@ -144,8 +144,8 @@ DrawingCursor::processCurrentNode(void) {
                 break;
             case BRANCH:
 #ifndef MAXIM_THESIS
-                painter.drawEllipse(myx - HALF_NODE_WIDTH + SHADOW_OFFSET,
-                    myy + SHADOW_OFFSET, NODE_WIDTH, NODE_WIDTH);
+                // painter.drawEllipse(myx - HALF_NODE_WIDTH + SHADOW_OFFSET,
+                //     myy + SHADOW_OFFSET, NODE_WIDTH, NODE_WIDTH);
 #endif
                 break;
             case UNDETERMINED:
@@ -227,9 +227,9 @@ DrawingCursor::processCurrentNode(void) {
             break;
         case BRANCH:
 #ifndef MAXIM_THESIS
-            if (n->isMarked())
-                painter.setBrush(gold);
-            else
+            // if (n->isMarked())
+            //     painter.setBrush(gold);
+            // else
 #endif
                 painter.setBrush(n->childrenLayoutIsDone() ? QBrush(blue) :
                                                              QBrush(white));

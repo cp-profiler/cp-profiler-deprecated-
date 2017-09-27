@@ -122,7 +122,7 @@ bool TreeBuilder::processNode(DbEntry& dbEntry, bool is_delayed) {
     if (!is_delayed)
       read_queue->readLater(&dbEntry);
     else {
-      qDebug() << "node already in the queue";
+      // qDebug() << "node already in the queue";
     }
 
     return false;
