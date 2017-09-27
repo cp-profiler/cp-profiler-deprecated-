@@ -97,99 +97,83 @@ static int32_t ArrayToInt(const QByteArray& ba) {
 
 using cpprofiler::Message;
 
+void ReceiverWorker::handleStartMessage(const Message& msg) {
+
+    qDebug() << "START";
+
+    std::string execution_name = "<no name>";
+    bool has_restarts = false;
+
+    if (msg.has_info()) {
+
+        try {
+            auto info_json = nlohmann::json::parse(msg.info());
+            auto has_restarts_it = info_json.find("has_restarts");
+#ifdef MAXIM_DEBUG
+            if(has_restarts_it != info_json.end()) {
+                qDebug() << "has_restarts: " << has_restarts_it->get<bool>();
+                has_restarts = has_restarts_it->get<bool>();
+            }
+#endif
+            auto name = info_json.find("name");
+            if (name != info_json.end()) {
+                execution_name = *name;
+            }
+
+            auto exec_id = info_json.find("execution_id");
+            if (exec_id != info_json.end()) {
+
+                qDebug() << "execution id:" << exec_id->get<int>();
+
+                if(exec_id != info_json.end()) {
+                    if (!execution_id_communicated) {
+                        execution->setExecutionId(exec_id->get<int>());
+                        emit executionIdReady(execution);
+                    }
+                } else {
+                    /// Note(maxim): should not expect Execution Id in the future,
+                    /// so there is no reason to wait for the name map
+                    wait_for_name_map = false;
+                }
+            }
+
+
+        } catch (std::exception& e) {
+            std::cerr << "Can't parse json in info: " << e.what() << "\n";
+        }
+
+    }
+
+    execution->begin(msg.label(), has_restarts);
+    emit executionStarted(execution);
+
+    /// Wait for condition variable
+    if (!execution_id_communicated && wait_for_name_map) {
+        QMutex m;
+        m.lock();
+        while (!execution->has_exec_id) {
+            execution->has_exec_id_cond.wait(&m);
+        }
+        execution_id_communicated = true;
+        m.unlock();
+    }
+}
+
 void ReceiverWorker::handleMessage(const Message& msg) {
 
     switch (msg.type()) {
         case cpprofiler::MsgType::NODE:
-
             execution->handleNewNode(msg);
         break;
         case cpprofiler::MsgType::START:
-            // std::cerr << "START\n";
-
-            /// Not very first START (in case of restart execution)
-            /// NOTE(maxim): Chuffed currently always sends 0 for all restarts...
-            // if (msg.node_restart_id() != -1 && msg.node_restart_id() != 0) {
-            //     break;
-            // }
-
-
-            /// We know that solver is doing restarts because:
-            /// the START message (not to confuse with a RESTART message) says so
-
-            if (msg.has_info()) {
-
-                try {
-
-                    std::string s = msg.info();
-                    auto info_json = nlohmann::json::parse(msg.info());
-                    auto rid = info_json.find("restart_id");
-
-                    if(rid != info_json.end()) {
-                        // if (*rid != -1 && 
-                    }
-
-
-                } catch (std::exception& e) {
-                    std::cerr << "Can't parse json in info: " << e.what() << "\n";
-                }
-
-            }
-
-            /// ----- Very first START -----
-            {
-                // execution = new Execution();
-                // bool is_restarts = (msg.node_restart_id() != -1);
-                bool is_restarts = true; // TODO
-                execution->begin(msg.label(), is_restarts);
-            }
-
-            emit executionStarted(execution);
-
-            if (msg.has_info()) {
-
-                try {
-                    std::string s = msg.info();
-
-                    auto info_json = nlohmann::json::parse(msg.info());
-
-                    auto execution_id = info_json.find("execution_id");
-                    if(execution_id != info_json.end()) {
-
-                        if (!execution_id_communicated) {
-                            execution->setExecutionId(*execution_id);
-                            emit executionIdReady(execution);
-                        }
-                    } else {
-                        /// Note(maxim): should not expect Execution Id in the future,
-                        /// so there is no reason to wait for the name map
-                        wait_for_name_map = false;
-                    }
-
-                    auto variableListString = info_json.find("variable_list");
-                    if(variableListString != info_json.end()) {
-                        execution->setVariableListString(*variableListString);
-                    }
-                } catch (std::exception& e) {
-                    std::cerr << "Can't parse json in info: " << e.what() << "\n";
-                }
-            }
-            /// Wait for condition variable
-            if (!execution_id_communicated && wait_for_name_map) {
-                QMutex m;
-                m.lock();
-                while (!execution->has_exec_id) {
-                    execution->has_exec_id_cond.wait(&m);
-                }
-                // qDebug() << "exec id communicated";
-                execution_id_communicated = true;
-                m.unlock();
-            }
-
+            handleStartMessage(msg);
         break;
         case cpprofiler::MsgType::DONE:
             emit doneReceiving();
             std::cerr << "DONE\n";
+        break;
+        case cpprofiler::MsgType::RESTART:
+            std::cerr << "RESTART\n";
         break;
         default:
             std::cerr << "unknown type\n";

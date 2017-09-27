@@ -94,6 +94,7 @@ class ReceiverWorker : public QObject {
   bool execution_id_communicated = false;
   /// initialised shortly after execution id is available
   bool wait_for_name_map = true;
+  void handleStartMessage(const cpprofiler::Message& msg);
  public slots:
   void doRead();
   void handleMessage(const cpprofiler::Message& msg);

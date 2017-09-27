@@ -1079,7 +1079,6 @@ void TreeCanvas::setCurrentNode(VisualNode* n, bool finished, bool update) {
     currentNode = n;
     currentNode->setMarked(true);
     if (changed) {
-        emit announceSelectNode(n->getIndex(execution.nodeTree().getNA()));
         emit nodeSelected(n);
     }
     if (update) {
@@ -1753,6 +1752,11 @@ void TreeCanvas::deleteSelectedMiddleNode() {
 
 void TreeCanvas::dirtyUpNode() {
   currentNode->dirtyUp(na);
+  updateCanvas();
+}
+
+void TreeCanvas::computeShape() {
+  currentNode->computeShape(na);
   updateCanvas();
 }
 

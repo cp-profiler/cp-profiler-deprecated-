@@ -572,6 +572,11 @@ void GistMainWindow::addActions() {
   connect(highlightSubtree, &QAction::triggered, canvas, &TreeCanvas::highlightSubtree);
   addAction(highlightSubtree);
 
+  auto computeShape = new QAction{"Compute shape", this};
+  connect(computeShape, &QAction::triggered, canvas, &TreeCanvas::computeShape);
+  // addAction(computeShape);
+
+
 #endif
 
   unhideAll = new QAction("Unhide all", this);
@@ -688,6 +693,7 @@ void GistMainWindow::addActions() {
   contextMenu->addAction(deleteMiddleNode);
   contextMenu->addAction(dirtyUpNode);
   contextMenu->addAction(highlightSubtree);
+  contextMenu->addAction(computeShape);
 #endif
 
 }

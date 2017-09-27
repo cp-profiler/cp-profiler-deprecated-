@@ -496,7 +496,7 @@ BranchLabelCursor::processCurrentNode(void) {
             // return;
 #endif
             VisualNode* p = n->getParent(_na);
-            if (p) {
+            if (p && !n->isHidden()) {
                 int gid = n->getIndex(_na);
                 std::string l = _tc.getLabel(gid);
                 _na.setLabel(n,QString(l.c_str()));

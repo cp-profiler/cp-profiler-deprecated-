@@ -402,6 +402,7 @@ public:
   void deleteSelectedNode();
   void deleteSelectedMiddleNode();
   void dirtyUpNode();
+  void computeShape();
 #endif
 private Q_SLOTS:
   /// Export PDF of the subtree of \a n
