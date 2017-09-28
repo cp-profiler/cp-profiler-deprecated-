@@ -147,7 +147,7 @@ void ReceiverWorker::handleStartMessage(const Message& msg) {
 
     }
 
-    execution->begin(msg.label(), has_restarts);
+    execution->begin(execution_name, has_restarts);
     emit executionStarted(execution);
 
     /// Wait for condition variable

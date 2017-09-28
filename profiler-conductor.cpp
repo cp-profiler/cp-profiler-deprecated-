@@ -614,7 +614,6 @@ void ProfilerConductor::createExecution(std::unique_ptr<NodeTree> nt,
 }
 
 void ProfilerConductor::executionIdReady(Execution* e) {
-  qDebug() << "executionIdReady";
   // latest_execution = e; // TODO(maxim): check if still needed
   int eid = e->getExecutionId();
   auto eit = executionMetadata.find(eid);
