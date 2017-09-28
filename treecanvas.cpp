@@ -1632,24 +1632,12 @@ void TreeCanvas::analyseBackjumps() {
 }
 
 void TreeCanvas::openNodeSearch() {
-
   auto text = QInputDialog::getText(this,
-    tr("Find node by id"), tr("Enter node id (sid):"));
+    tr("Find node by id"), tr("Enter node id {node,restart,thread}):"));
 
-  bool ok;
-  auto sid = text.toInt(&ok);
-
-  if (!ok) {
-    qDebug() << "can't parse int";
-    return;
-  }
-
-  qDebug() << "TODO: should search by UID, not nid; disabled for now";
-
-  // auto gid = execution.getGidByUID(sid);
-
-  // navigateToNodeById(gid);
-
+  auto uid = string_to_NodeUID(text.toStdString());
+  auto gid = execution.getGidByUID(uid);
+  navigateToNodeById(gid);
 }
 
 #ifdef MAXIM_DEBUG
