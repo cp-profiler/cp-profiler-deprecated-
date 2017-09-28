@@ -109,12 +109,14 @@ void ReceiverWorker::handleStartMessage(const Message& msg) {
         try {
             auto info_json = nlohmann::json::parse(msg.info());
             auto has_restarts_it = info_json.find("has_restarts");
-#ifdef MAXIM_DEBUG
+
             if(has_restarts_it != info_json.end()) {
+#ifdef MAXIM_DEBUG
                 qDebug() << "has_restarts: " << has_restarts_it->get<bool>();
+#endif
                 has_restarts = has_restarts_it->get<bool>();
             }
-#endif
+
             auto name = info_json.find("name");
             if (name != info_json.end()) {
                 execution_name = *name;
