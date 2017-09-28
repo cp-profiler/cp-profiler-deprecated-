@@ -288,7 +288,6 @@ CmpTreeDialog::saveComparisonStatsTo(const QString& file_name) {
     if(to_subsume)
       uid = sf.getSubsumingClauseString(uid);
 
-    qDebug() << "sid to UID (cmp_tree_dialog.cpp)";
     const string nogood = left_execution.getNogoodByUID(uid, true, true);
 
     out << nogood.c_str() << "\n";
@@ -317,12 +316,16 @@ infoToNogoodVector(const string& info) {
     if (nogoods.is_array()) {
 
       std::vector<NodeUID> result;
-      qDebug() << "TODO";
       for (auto i = 0u; i < nogoods.size(); i++) {
-        result.push_back({(int)nogoods[i], -1, -1});
+
+        auto nid = nogoods[i]["nid"].get<int>();
+        auto rid = nogoods[i]["rid"].get<int>();
+        auto tid = nogoods[i]["tid"].get<int>();
+
+        result.push_back({nid, rid, tid});
       }
 
-
+      return result;
     }
   } catch (std::exception&) {
 #ifdef MAXIM_DEBUG

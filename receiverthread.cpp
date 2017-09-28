@@ -118,6 +118,7 @@ void ReceiverWorker::handleStartMessage(const Message& msg) {
             auto name = info_json.find("name");
             if (name != info_json.end()) {
                 execution_name = *name;
+                qDebug() << "execution name:" << execution_name.c_str();
             }
 
             auto exec_id = info_json.find("execution_id");
