@@ -213,6 +213,10 @@ const string& NameMap::getNiceName(const string& ident) const {
   return empty_string;
 }
 
+bool NameMap::isEmpty() const {
+  return _nameMap.empty();
+}
+
 const string& NameMap::getPath(const string& ident) const {
   auto it = _nameMap.find(ident);
   if(it != _nameMap.end()) {

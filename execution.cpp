@@ -139,6 +139,11 @@ const NogoodViews* Execution::getNogood(const Node& node) const {
     return &nogood->second;
 }
 
+NodeUID Execution::getParentUID(const NodeUID uid) const {
+  DbEntry* entry = getEntry(getGidByUID(uid));
+  return entry->parentUID;
+}
+
 const std::string* Execution::getInfo(const Node& node) const {
     auto entry = getEntry(node);
     if (!entry) return nullptr;
@@ -187,7 +192,7 @@ DbEntry* Execution::getEntry(const Node& node) const {
     return getEntry(gid);
 }
 
-int32_t Execution::getGidByUID(NodeUID uid) { return m_Data->getGidByUID(uid); }
+int32_t Execution::getGidByUID(NodeUID uid) const { return m_Data->getGidByUID(uid); }
 std::string Execution::getLabel(int gid, bool rename) const {
   std::string origLabel = m_Data->getLabel(gid);
   if(rename) {

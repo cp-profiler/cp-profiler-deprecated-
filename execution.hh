@@ -44,6 +44,7 @@ public:
 
     const NogoodViews* getNogood(const Node& node) const;
     const std::string* getInfo(const Node& node) const;
+    NodeUID getParentUID(const NodeUID uid) const;
     const std::string* getInfo(NodeUID uid) const;
 
     int getExecutionId() const {
@@ -72,7 +73,7 @@ public:
     const Uid2Nogood& getNogoods() const;
     const std::string& getNogoodByUID(NodeUID uid, bool renamed, bool simplified) const;
     // std::unordered_map<NodeUID, std::shared_ptr<std::string>>& getInfo(void) const;
-    int32_t getGidByUID(NodeUID uid);
+    int32_t getGidByUID(NodeUID uid) const;
 
     std::string getLabel(int gid, bool rename = true) const;
 

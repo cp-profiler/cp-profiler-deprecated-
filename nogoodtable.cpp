@@ -197,6 +197,12 @@ NodeUID NogoodTableView::getUidFromRow(int row) const {
   return string_to_NodeUID(_model->data(mapped_index).toString().toStdString());
 }
 
+QString NogoodTableView::getNogoodFromRow(int row) const {
+  QModelIndex proxy_index = nogood_proxy_model->index(row, _nogood_col, QModelIndex());
+  QModelIndex mapped_index = nogood_proxy_model->mapToSource(proxy_index);
+  return _model->data(mapped_index).toString();
+}
+
 void NogoodTableView::getHeatmapAndEmit(const TreeCanvas& tc, bool record = false) const {
   const QModelIndexList selection = getSelection();
   vector<string> label;
@@ -246,7 +252,7 @@ void NogoodTableView::connectLocationButton(const QPushButton* locationButton,
   });
 }
 
-QModelIndexList NogoodTableView::getSelection() const {
+QModelIndexList NogoodTableView::getSelection(void) const {
   QModelIndexList selection = selectionModel()->selectedRows();
   if(selection.count() == 0)
     for(int row=0; row<model()->rowCount(); row++)
@@ -254,13 +260,13 @@ QModelIndexList NogoodTableView::getSelection() const {
   return selection;
 }
 
-void NogoodTableView::updateSelection() const {
+void NogoodTableView::updateSelection(void) const {
   QItemSelection selection = selectionModel()->selection();
   selectionModel()->select(
         selection, QItemSelectionModel::Select | QItemSelectionModel::Rows);
 }
 
-void NogoodTableView::refreshModelRenaming() {
+void NogoodTableView::refreshModelRenaming(void) {
   setSortingEnabled(false);
   const QModelIndexList selection = getSelection();
   for(int i=0; i<selection.count(); i++) {
@@ -412,7 +418,44 @@ string convertToFlatZinc(const string& clause) {
   return fzn.join("\n").toStdString();
 }
 
-void NogoodTableView::showFlatZinc() {
+void NogoodTableView::saveNogoods(void) const {
+  QString fileName = QFileDialog::getSaveFileName(parentWidget(), "Save nogoods to");
+  if(fileName.isEmpty()) return;
+
+  QFile nogood_file(fileName);
+
+  if(!nogood_file.open(QIODevice::WriteOnly)) return;
+  QTextStream nogood_stream(&nogood_file);
+
+  nogood_stream << "nid, nrid, ntid, ";
+  nogood_stream << "pid, prid, ptid, ";
+  nogood_stream << "nogood, ";
+  nogood_stream << "reasons";
+  nogood_stream << "\n";
+
+  const QModelIndexList selection = getSelection();
+  for(int i=0; i<selection.count(); i++) {
+    int row = selection.at(i).row();
+    NodeUID uid = getUidFromRow(row);
+    NodeUID pid = _execution.getParentUID(uid);
+
+    QString clause = getNogoodFromRow(row);
+    auto reasons = getReasons(_execution.getInfo(uid));
+
+    nogood_stream << uid.nid << "," << uid.rid << "," << uid.tid << ", ";
+    nogood_stream << pid.nid << "," << pid.rid << "," << pid.tid << ", ";
+    nogood_stream << clause << ",";
+    for(int con : reasons) nogood_stream << " " << con;
+
+    nogood_stream << "\n";
+  }
+}
+
+void NogoodTableView::connectSaveNogoodTable(const QPushButton* saveNogoodsButton) {
+  connect(saveNogoodsButton, &QPushButton::clicked, this, &NogoodTableView::saveNogoods);
+}
+
+void NogoodTableView::showFlatZinc(void) {
   setSortingEnabled(false);
   const QModelIndexList selection = getSelection();
   for(int i=0; i<selection.count(); i++) {
@@ -467,30 +510,39 @@ void NogoodTableView::connectLocationFilter(QLineEdit* location_edit) {
   });
 }
 
+
 void NogoodTableView::addStandardButtons(QWidget* parent, QVBoxLayout* layout,
                                          TreeCanvas* canvas, const Execution& e) {
   const NameMap* nm = e.getNameMap();
-  if(nm != nullptr) {
-    auto buttons = new QHBoxLayout(parent);
+  auto buttons = new QHBoxLayout(parent);
+
+  if(nm != nullptr && !nm->isEmpty()) {
     auto heatmapButton = new QPushButton("Heatmap");
     heatmapButton->setAutoDefault(false);
     auto changeRepresentation = new QCheckBox("Rename vars");
     changeRepresentation->setChecked(true);
     auto showSimplified = new QCheckBox("Simplify Nogoods");
     showSimplified->setChecked(true);
-    auto getFlatZinc = new QPushButton("Get FlatZinc");
-    getFlatZinc->setAutoDefault(false);
 
     buttons->addWidget(heatmapButton);
     buttons->addWidget(changeRepresentation);
     buttons->addWidget(showSimplified);
-    buttons->addWidget(getFlatZinc);
-    layout->addLayout(buttons);
 
     connectHeatmapButton(heatmapButton, *canvas);
     connectNogoodRepresentationCheckBoxes(changeRepresentation, showSimplified);
-    connectFlatZincButton(getFlatZinc);
   }
+
+  auto saveNogoods = new QPushButton("Save Nogoods");
+  saveNogoods->setAutoDefault(false);
+  connectSaveNogoodTable(saveNogoods);
+  buttons->addWidget(saveNogoods);
+
+  auto getFlatZinc = new QPushButton("Get FlatZinc");
+  getFlatZinc->setAutoDefault(false);
+  connectFlatZincButton(getFlatZinc);
+  buttons->addWidget(getFlatZinc);
+
+  layout->addLayout(buttons);
 
   auto filter_layout = new QHBoxLayout();
   filter_layout->addWidget(new QLabel{"Text Include:"});

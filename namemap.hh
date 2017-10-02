@@ -69,6 +69,7 @@ public:
   NameMap() {}
   NameMap(const std::string& path_filename, const std::string& model_filename);
 
+  bool isEmpty() const;
   const std::string& getPath(const std::string& ident) const;
   const Location& getLocation(const std::string& ident) const;
   const Location& getLocation(const int cid) const;

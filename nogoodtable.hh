@@ -55,6 +55,7 @@ public:
 private:
   // Connect buttons and text filters to their respective functionality
   void connectHeatmapButton(const QPushButton* heatmapButton, const TreeCanvas& tc);
+  void connectSaveNogoodTable(const QPushButton* saveNogoodsButton);
   void connectFlatZincButton(const QPushButton* getFlatZinc);
   void connectNogoodRepresentationCheckBoxes(const QCheckBox* changeRep,
                                                    QCheckBox* showSimplified);
@@ -74,6 +75,8 @@ private:
 
   // Read _sid_col of the row (handles mapping)
   NodeUID getUidFromRow(int row) const;
+  // Get nogood displayed in the table
+  QString getNogoodFromRow(int row) const;
   // Re-select the correct rows (sorting might move rows)
   void updateSelection() const;
   // Set location filter based on selected nodes
@@ -82,18 +85,20 @@ private:
   void updateColors(void);
 
 private slots:
+  // Save nogoods table to csv file
+  void saveNogoods(void) const;
   // Replace selected nogoods with equivalent FlatZinc
-  void showFlatZinc();
+  void showFlatZinc(void);
   // Update the renaming of nogoods, replacing X_INTRODUCED_
   //   with expressions depending on expand_expressions
-  void refreshModelRenaming();
+  void refreshModelRenaming(void);
   // Replace subsumed clauses with their subsuming clause
   void renameSubsumedSelection(const QCheckBox* resolution,
                                const QCheckBox* use_all,
                                const QCheckBox* apply_filter,
                                const QCheckBox* only_earlier_sids);
   // Use self-subsuming resolution
-  void renameResolvingSubsumption();
+  void renameResolvingSubsumption(void);
   // Get heatmap url for the MiniZincIDE and emit signal
   void getHeatmapAndEmit(const TreeCanvas& tc, bool record) const;
 
