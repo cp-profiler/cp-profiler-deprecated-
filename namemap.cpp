@@ -77,7 +77,7 @@ bool Location::operator<(const Location& loc) const {
 Location::Location() {}
 Location::Location(const Location& l) : sl(l.sl), sc(l.sc), el(l.el), ec(l.ec) {}
 Location::Location(const string& pathHead) {
-  const vector<string> splitHead = utils::split(pathHead, minor_sep);
+  const vector<string> splitHead = utils::split(pathHead, minor_sep, true);
   //path = splitHead[0];
   sl = stoi(splitHead[1]);
   sc = stoi(splitHead[2]);
@@ -291,6 +291,7 @@ void NameMap::addIdExpressionToMap(const string& ident, const vector<string>& mo
   if(modelText.size() == 0) return;
 
   const Location& loc = getLocation(ident);
+  if(loc.sl == 0) return;
   string expression = modelText[static_cast<size_t>(loc.sl-1)].substr(
               static_cast<size_t>(loc.sc-1),
               static_cast<size_t>(loc.ec-(loc.sc-1)));
