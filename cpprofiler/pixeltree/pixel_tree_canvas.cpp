@@ -108,6 +108,9 @@ void PixelTreeCanvas::reset(bool post_order, int compr) {
 
   compressTimeHistogram(time_arr, compr);
 
+  gatherObjectiveData();
+  compressObjectiveHistogram(objective_arr, compr);
+
   gatherVarData();
   compressVarData(var_decisions_compressed, compr);
 }
@@ -221,6 +224,44 @@ void PixelTreeCanvas::compressTimeHistogram(vector<float>& compressed,
   }
 }
 
+void PixelTreeCanvas::compressObjectiveHistogram(vector<float>& compressed,
+  int compression) {
+    auto pixel_list = pixel_data.pixel_list;
+    auto data_length = pixel_list.size();
+    auto vlines = ceil(data_length / compression);
+
+    compressed.clear();
+    compressed.resize(vlines);
+
+    auto cur_obj = -1;
+
+    auto group_count = 0;
+
+    for (auto i = 0u; i < pixel_list.size(); i++) {
+      group_count++;
+
+      auto node = pixel_list[i].node();
+
+      auto maybe_obj = _tc.getExecution().getObjective(*node);
+
+      if (maybe_obj != nullptr) {
+        cur_obj = *maybe_obj;
+      }
+
+      if (group_count == compression) {
+        unsigned int vline_id = i / compression;
+        compressed[vline_id] = cur_obj;
+        group_count = 0;
+      }
+    }
+
+    /// deal with the last (not full) group
+    if (group_count > 0) {
+      unsigned int vline_id = data_length / compression;
+      compressed[vline_id] = cur_obj;
+    }
+}
+
 /// TODO: try to avoid code duplication
 void PixelTreeCanvas::getDomainDataCompressed(vector<float>& compressed,
                                               int compression) {
@@ -319,6 +360,10 @@ void PixelTreeCanvas::gatherVarData() {
     /// rememeber decision variables
     var_decisions.push_back(var_id);
   }
+
+}
+
+void PixelTreeCanvas::gatherObjectiveData() {
 
 }
 
@@ -558,6 +603,7 @@ void PixelTreeCanvas::redrawAll() {
 
   /// All Histograms
 
+  if (m_State.show_objective) drawObjective();
   if (m_State.show_time_histogram) drawTimeHistogram();
 
   if (m_State.show_domain_histogram) drawDomainHistogram();
@@ -657,6 +703,10 @@ void PixelTreeCanvas::drawTimeHistogram() {
   drawHistogram(time_arr, qRgb(150, 150, 40));
 }
 
+void PixelTreeCanvas::drawObjective() {
+  drawHistogram(objective_arr, qRgb(150, 150, 40));
+}
+
 void PixelTreeCanvas::drawDomainHistogram() {
   drawHistogram(domain_arr, qRgb(150, 40, 150));
 }
@@ -690,6 +740,9 @@ void PixelTreeCanvas::drawHistogram(const vector<float>& data, int color) {
                                  PixelImage::LIGTH_GRAY);
 
   for (unsigned vline = 0; vline < data.size(); vline++) {
+
+    if (data[vline] == -1) continue;
+
     auto val = floor(data[vline] * coeff);
 
     auto x = static_cast<int>(vline) - xoff;
@@ -970,6 +1023,7 @@ void PixelTreeCanvas::compressionChanged(int value) {
   compressPixelTree(value);
   compressDepthAnalysis(da_data_compressed, value);
   compressTimeHistogram(time_arr, value);
+  compressObjectiveHistogram(objective_arr, value);
   getDomainDataCompressed(domain_arr, value);
   compressVarData(var_decisions_compressed, value);
   compressNogoodData(value);

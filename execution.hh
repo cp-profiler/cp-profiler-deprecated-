@@ -47,6 +47,8 @@ public:
     NodeUID getParentUID(const NodeUID uid) const;
     const std::string* getInfo(NodeUID uid) const;
 
+    const int* getObjective(const Node& node) const;
+
     int getExecutionId() const {
         return execution_id;
     }

@@ -114,6 +114,8 @@ Q_OBJECT
     /// node rate intervals
     std::vector<int> nr_intervals;
 
+    std::unordered_map<NodeUID, int> uid2obj;
+
 public:
 
     /// Mapping from solver Id to array Id (nodes_arr)
@@ -165,6 +167,15 @@ public:
 
     int32_t getGidByUID(NodeUID uid) {
         return nodes_arr[uid2aid[uid]]->gid;
+    }
+
+    const int* getObjective(NodeUID uid) const {
+        auto it = uid2obj.find(uid);
+        if (it != uid2obj.end()) {
+            return &it->second;
+        } else {
+            return nullptr;
+        }
     }
     /// NOTE(maxim): this only works for a merged tree now?
     DbEntry* getEntry(int gid) const;

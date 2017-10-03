@@ -83,11 +83,12 @@ class PixelTreeCanvas : public QWidget {
   Q_OBJECT
 
   struct PixelTreeState {
-    bool show_time_histogram = true;
+    bool show_objective = true;
+    bool show_time_histogram = false;
     bool show_domain_histogram = false;
-    bool show_decision_vars_histogram = true;
-    bool show_depth_analysis_histogram = true;
-    bool show_bj_analysis_histogram = true;
+    bool show_decision_vars_histogram = false;
+    bool show_depth_analysis_histogram = false;
+    bool show_bj_analysis_histogram = false;
 
     /// mouse guidelines
     int mouse_guide_x = 0;
@@ -121,6 +122,7 @@ class PixelTreeCanvas : public QWidget {
   std::vector<float> time_arr;        // time for each vline
   std::vector<float> domain_arr;      // domain for each vline
   std::vector<float> domain_red_arr;  /// domain reduction for each vline
+  std::vector<float> objective_arr;
 
   std::vector<std::string> vars;
 
@@ -156,7 +158,7 @@ class PixelTreeCanvas : public QWidget {
   MaybeCaller maybeCaller;
 
  public:
-  static constexpr int HIST_HEIGHT = 6;  // in fake pixels
+  static constexpr int HIST_HEIGHT = 10;  // in fake pixels
   static constexpr int MARGIN = 2;       // in fake pixels
 
  private:
@@ -177,6 +179,9 @@ class PixelTreeCanvas : public QWidget {
                              int value);
   void compressTimeHistogram(std::vector<float>&, int value);
   void getDomainDataCompressed(std::vector<float>&, int value);
+
+  void gatherObjectiveData();
+  void compressObjectiveHistogram(std::vector<float>&, int value);
   PixelData traverseTree(VisualNode* node);
   PixelData traverseTreePostOrder(VisualNode* node);
 
@@ -189,6 +194,7 @@ class PixelTreeCanvas : public QWidget {
   void drawSolutionLine();
 
   /// Histograms
+  void drawObjective();
   void drawTimeHistogram();
   void drawDomainHistogram();
   void drawDomainReduction();

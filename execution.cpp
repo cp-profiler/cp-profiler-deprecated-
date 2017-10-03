@@ -150,6 +150,12 @@ const std::string* Execution::getInfo(const Node& node) const {
     return getInfo(entry->nodeUID);
 }
 
+const int* Execution::getObjective(const Node& node) const {
+  auto entry = getEntry(node);
+  if (!entry) return nullptr;
+  return m_Data->getObjective(entry->nodeUID);
+}
+
 const std::string* Execution::getInfo(NodeUID uid) const {
   auto info = m_Data->uid2info.find(uid);
   if (info == m_Data->uid2info.end()) return nullptr;

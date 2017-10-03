@@ -22,6 +22,8 @@
 #include "cpprofiler/utils/utils.hh"
 #include "cpprofiler/utils/literals.hh"
 
+#include "third-party/json.hpp"
+
 #include <iostream>
 #include <qdebug.h>
 #include <string>
@@ -126,6 +128,18 @@ void Data::handleNodeCallback(const cpprofiler::Message& node) {
 
     if (node.has_info() && node.info().length() > 0) {
         uid2info[nodeUID] = make_shared<std::string>(node.info());
+
+        try {
+            auto info_json = nlohmann::json::parse(node.info());
+            auto obj_value = info_json.find("objective");
+
+            if(obj_value != info_json.end()) {
+                uid2obj[nodeUID] = (*obj_value)[0].get<int>();
+            }
+        } catch (std::exception& e) {
+            std::cerr << "Can't parse json near objective: " << e.what() << "\n";
+        }
+
     }
 
     pushInstance(entry);

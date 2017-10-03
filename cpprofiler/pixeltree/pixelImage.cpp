@@ -30,7 +30,7 @@ using namespace std::chrono;
 PixelImage::PIXEL_COLOR PixelImage::BLACK = qRgb(0, 0, 0);
 PixelImage::PIXEL_COLOR PixelImage::YELLOW = qRgb(255, 255, 255);
 PixelImage::PIXEL_COLOR PixelImage::DARK_GRAY = qRgb(150, 150, 150);
-PixelImage::PIXEL_COLOR PixelImage::LIGTH_GRAY = qRgb(200, 2000, 200);
+PixelImage::PIXEL_COLOR PixelImage::LIGTH_GRAY = qRgb(180, 180, 180);
 PixelImage::PIXEL_COLOR PixelImage::BLACK_ALPHA = qRgba(255, 0, 0, 50);
 PixelImage::PIXEL_COLOR PixelImage::GRID = qRgb(230, 230, 230);
 PixelImage::PIXEL_COLOR PixelImage::WHITE = qRgb(255, 255, 255);
