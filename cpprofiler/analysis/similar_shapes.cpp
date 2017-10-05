@@ -552,6 +552,12 @@ void SimilarShapesWindow::updateHistogram() {
         m_identicalGroups = subtrees::findIdentical(execution, settings.label_opt);
         perfHelper.end();
         subtrees_cached = true;
+
+
+        /// do it another way
+        // perfHelper.begin("identical_shapes - 2");
+        // m_identicalGroups = runIdenticalSubtrees(node_tree);
+        // perfHelper.end();
       }
 
       groups_shown = m_identicalGroups;

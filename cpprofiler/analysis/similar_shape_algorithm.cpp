@@ -1,5 +1,7 @@
 #include "similar_shape_algorithm.hh"
 #include <set>
+#include <stack>
+#include <memory>
 
 #include "visualnode.hh"
 #include "nodetree.hh"
@@ -143,8 +145,94 @@ collectShapes(NodeTree& nt) {
 
 }
 
+struct Subtree {
+  VisualNode* root;
+  NodeTree* nt;
+};
+
 std::vector<ShapeInfo> runSimilarShapes(NodeTree& nt) {
     return detail::toShapeVector(detail::collectShapes(nt));
+}
+
+
+struct CompareSubtrees {
+
+private:
+
+
+
+public:
+ bool operator()(std::shared_ptr<const Subtree> n1, std::shared_ptr<const Subtree> n2) const {
+
+  using std::make_shared;
+  using std::shared_ptr;
+
+  std::stack<shared_ptr<const Subtree>> stack1;
+  std::stack<shared_ptr<const Subtree>> stack2;
+
+  stack1.push(n1); stack2.push(n2);
+
+  while (stack1.size() > 0) {
+
+    auto s1 = stack1.top(); stack1.pop();
+    auto s2 = stack2.top(); stack2.pop();
+
+    auto nkids1 = s1->root->getNumberOfChildren();
+    auto nkids2 = s2->root->getNumberOfChildren();
+
+    if (nkids1 > nkids2) return true;
+    if (nkids1 < nkids2) return false;
+
+    for (auto i = 0u; i < nkids1; ++i) {
+      auto child1 = s1->root->getChild(s1->nt->getNA(), i);
+      auto child2 = s2->root->getChild(s2->nt->getNA(), i);
+
+      Subtree temp1{child1, s1->nt};
+      Subtree temp2{child2, s2->nt};
+      stack1.push(make_shared<Subtree>(temp1));
+      stack2.push(make_shared<Subtree>(temp2));
+    }
+
+  }
+
+  return false;
+ }
+};
+
+using std::vector;
+
+vector<vector<VisualNode*>> runIdenticalSubtrees(NodeTree& nt) {
+
+  std::multiset<std::shared_ptr<Subtree>, CompareSubtrees> mset;
+
+  auto action = [&mset, &nt](VisualNode* n) {
+    Subtree s{n, &nt};
+    mset.insert(std::make_shared<Subtree>(s));
+  };
+
+  utils::applyToEachNodePO(nt, action);
+
+  vector<vector<VisualNode*>> result;
+
+  auto it = mset.begin(); auto end = mset.end();
+
+  while (it != end) {
+
+    auto upper = mset.upper_bound(*it);
+
+    std::vector<VisualNode*> group;
+
+    while (it != upper) {
+      group.push_back((*it)->root);
+      ++it;
+    }
+
+    result.push_back(group);
+  }
+
+  return result;
+
+
 }
 
 

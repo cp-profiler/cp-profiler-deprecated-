@@ -41,6 +41,8 @@ bool TreeBuilder::processRoot(DbEntry& dbEntry) {
   QMutexLocker locker(&execution.getMutex());
   QMutexLocker layoutLocker(&execution.getLayoutMutex());
 
+  std::cout << "process root: " << dbEntry << std::endl;
+
   Statistics& stats = execution.getStatistics();
 
   stats.choices++;
@@ -70,7 +72,7 @@ bool TreeBuilder::processRoot(DbEntry& dbEntry) {
   } else {
     root = (_na)[0];  // use the root that is already there
     if (root->getStatus() != UNDETERMINED) {
-      qDebug() << "ERROR: can't process node (root)";
+      std::cout << dbEntry << std::endl;
       return true;
     }
     dbEntry.gid = 0;

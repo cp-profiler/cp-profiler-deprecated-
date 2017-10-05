@@ -151,7 +151,7 @@ GistMainWindow::GistMainWindow(Execution& e,
   connect(m_Canvas.get(), &TreeCanvas::nodeSelected, this, &GistMainWindow::updateActions);
 
   // TODO(maxim): this won't be called is Gist doesn't exist yet
-  connect(&execution, &Execution::doneReceiving, [this]() {
+  connect(&execution, &Execution::doneBuilding, [this]() {
     qDebug() << "finish stats bar";
     this->finishStatsBar();
   });

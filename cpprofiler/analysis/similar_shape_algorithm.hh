@@ -19,4 +19,6 @@ struct ShapeInfo {
 
 std::vector<ShapeInfo> runSimilarShapes(NodeTree& nt);
 
+std::vector<std::vector<VisualNode*>> runIdenticalSubtrees(NodeTree& nt);
+
 }}

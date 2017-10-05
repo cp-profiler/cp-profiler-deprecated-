@@ -130,11 +130,15 @@ void Data::handleNodeCallback(const cpprofiler::Message& node) {
         uid2info[nodeUID] = make_shared<std::string>(node.info());
 
         try {
+            qDebug() << "info:" << node.info().c_str();
             auto info_json = nlohmann::json::parse(node.info());
             auto obj_value = info_json.find("objective");
 
             if(obj_value != info_json.end()) {
-                uid2obj[nodeUID] = (*obj_value)[0].get<int>();
+                auto el = (*obj_value)[0];
+                if (el.is_number()) {
+                    uid2obj[nodeUID] = el.get<int>();
+                }
             }
         } catch (std::exception& e) {
             std::cerr << "Can't parse json near objective: " << e.what() << "\n";
