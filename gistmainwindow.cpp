@@ -137,7 +137,14 @@ GistMainWindow::GistMainWindow(Execution& e,
 
   layout->addWidget(scrollArea, 0, 0, -1, 1);
   layout->addWidget(m_Canvas->scaleBar(), 1, 1, Qt::AlignHCenter);
-  layout->addWidget(m_Canvas->smallBox, 2, 1, Qt::AlignHCenter);
+
+  {
+    /// Box for selecting "small subtree" size
+    auto smallBox = new QLineEdit("100");
+    smallBox->setMaximumWidth(50);
+    connect(smallBox, &QLineEdit::textChanged, m_Canvas.get(), &TreeCanvas::hideSize);
+    layout->addWidget(smallBox, 2, 1, Qt::AlignHCenter);
+  }
 
   connect(&e.nodeTree(), &NodeTree::treeModified, [this]() {
     m_Canvas->updateCanvas(false);
@@ -252,7 +259,6 @@ GistMainWindow::GistMainWindow(Execution& e,
   treeVisMenu->addAction(analyzeSimilarSubtrees);
   treeVisMenu->addAction(showPixelTree);
   treeVisMenu->addAction(showIcicleTree);
-  treeVisMenu->addAction(hideSize);
   treeVisMenu->addAction(followPath);
   treeVisMenu->addAction(compareSubtreeLabels);
   treeVisMenu->addAction(printPaths);
@@ -509,10 +515,6 @@ void GistMainWindow::addActions() {
   hideFailed->setShortcut(QKeySequence("F"));
   connect(hideFailed, SIGNAL(triggered()), canvas, SLOT(hideFailed()));
 
-  hideSize = new QAction("Hide small subtrees", this);
-  addAction(hideSize);
-  connect(hideSize, SIGNAL(triggered()), canvas, SLOT(hideSize()));
-
   analyseBackjumps = new QAction("Analyse Backjumps", this);
   addAction(analyseBackjumps);
   connect(analyseBackjumps, &QAction::triggered,
@@ -671,7 +673,6 @@ void GistMainWindow::addActions() {
 
   contextMenu->addAction(toggleHidden);
   contextMenu->addAction(hideFailed);
-  contextMenu->addAction(hideSize);
   contextMenu->addAction(unhideAll);
   contextMenu->addAction(labelBranches);
   contextMenu->addAction(labelPath);

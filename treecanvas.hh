@@ -125,9 +125,6 @@ class TreeCanvas : public QWidget {
   /// The scale bar
   QSlider* m_scaleBar;
 
-  /// Box for selecting "small subtree" size
-  QLineEdit* smallBox;
-
   /// Timer for smooth zooming
   QTimeLine zoomTimeLine{500};
   /// Timer for smooth scrolling
@@ -251,7 +248,7 @@ public Q_SLOTS:
   /// Hide failed subtrees of selected node
   void hideFailed();
   /// Hide subtrees under a certain size
-  void hideSize();
+  void hideSize(const QString&);
   /// Unhide all nodes below selected node
   void unhideAll();
   /// Unselect all nodes

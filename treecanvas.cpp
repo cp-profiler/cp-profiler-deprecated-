@@ -98,10 +98,6 @@ TreeCanvas::TreeCanvas(Execution* e, QWidget* parent)
   connect(this, SIGNAL(scaleChanged(int)), m_scaleBar, SLOT(setValue(int)));
   connect(m_scaleBar, SIGNAL(valueChanged(int)), this, SLOT(scaleTree(int)));
 
-  smallBox = new QLineEdit("100");
-  smallBox->setMaximumWidth(50);
-  connect(smallBox, SIGNAL(returnPressed()), this, SLOT(hideSize()));
-
   connect(&zoomTimeLine, SIGNAL(frameChanged(int)), m_scaleBar,
           SLOT(setValue(int)));
   zoomTimeLine.setCurveShape(QTimeLine::EaseInOutCurve);
@@ -509,10 +505,13 @@ void TreeCanvas::hideFailed(void) {
   centerCurrentNode();
 }
 
-void TreeCanvas::hideSize() {
+void TreeCanvas::hideSize(const QString& text) {
   QMutexLocker locker(&mutex);
-  QString boxContents = smallBox->text();
-  int threshold = boxContents.toInt();
+
+  bool ok;
+  int threshold = text.toInt(&ok);
+  if (!ok) return;
+
   currentNode->hideSize(threshold, execution.nodeTree().getNA());
   updateCanvas();
   centerCurrentNode();
