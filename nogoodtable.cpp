@@ -426,10 +426,11 @@ void NogoodTableView::saveNogoods(void) const {
 
   if(!nogood_file.open(QIODevice::WriteOnly)) return;
   QTextStream nogood_stream(&nogood_file);
+  QString sep = "\t";
 
-  nogood_stream << "nid, nrid, ntid, ";
-  nogood_stream << "pid, prid, ptid, ";
-  nogood_stream << "nogood, ";
+  nogood_stream << "nid" << sep << "nrid" << sep << "ntid" << sep;
+  nogood_stream << "pid" << sep << "prid" << sep << "ptid" << sep;
+  nogood_stream << "nogood" << sep;
   nogood_stream << "reasons";
   nogood_stream << "\n";
 
@@ -442,9 +443,9 @@ void NogoodTableView::saveNogoods(void) const {
     QString clause = getNogoodFromRow(row);
     auto reasons = getReasons(_execution.getInfo(uid));
 
-    nogood_stream << uid.nid << "," << uid.rid << "," << uid.tid << ", ";
-    nogood_stream << pid.nid << "," << pid.rid << "," << pid.tid << ", ";
-    nogood_stream << clause << ",";
+    nogood_stream << uid.nid << sep << uid.rid << sep << uid.tid << sep;
+    nogood_stream << pid.nid << sep << pid.rid << sep << pid.tid << sep;
+    nogood_stream << clause << sep;
     for(int con : reasons) nogood_stream << " " << con;
 
     nogood_stream << "\n";
