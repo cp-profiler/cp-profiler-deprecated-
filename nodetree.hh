@@ -31,10 +31,10 @@ class NodeTree : public QObject {
 Q_OBJECT
 private:
     /// Mutex for synchronizing acccess to the tree
-    QMutex mutex;
+    QMutex treeMutex {QMutex::Recursive};
     /// This should be a part of the `Visual Tree`
     /// Mutex for synchronizing layout and drawing
-    QMutex layoutMutex;
+    QMutex layoutMutex {QMutex::Recursive};
     NodeAllocator na;
     Statistics stats;
 public:
@@ -58,7 +58,7 @@ public:
     const Statistics& getStatistics() const;
     Statistics& getStatistics();
 
-    QMutex& getMutex();
+    QMutex& getTreeMutex();
     QMutex& getLayoutMutex();
 
 private:

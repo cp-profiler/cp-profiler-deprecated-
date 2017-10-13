@@ -54,6 +54,7 @@ namespace cpprofiler { namespace analysis {
 }}
 
 class TreeDialog;
+class TreeScrollArea;
 
 /// TODO(maxim): slowing down search does not work anymore?
 
@@ -104,8 +105,8 @@ class TreeCanvas : public QWidget {
   DisplayOptions m_options;
   ViewState m_view;
 
-  /// Mutex for synchronizing acccess to the tree
-  QMutex& mutex;
+  /// Mutex for synchronizing acccess to the tree (everything except layout?)
+  QMutex& treeMutex;
   /// Mutex for synchronizing layout and drawing
   QMutex& layoutMutex;
   /// Allocator for nodes
@@ -121,9 +122,14 @@ class TreeCanvas : public QWidget {
   /// The bookmarks map
   QVector<VisualNode*> bookmarks;
 
-  /// TODO(maxim): should be taken out to gist
   /// The scale bar
   QSlider* m_scaleBar;
+
+  QAbstractScrollArea* m_scrollArea;
+
+  /// NOTE(maxim): I understand that QPalette won't be freed by Qt;
+    /// this instance is shared with TreeCanvas (not sure why)
+  std::shared_ptr<QPalette> m_palette;
 
   /// Timer for smooth zooming
   QTimeLine zoomTimeLine{500};
@@ -162,11 +168,12 @@ class TreeCanvas : public QWidget {
 public:
 
 
-  TreeCanvas(Execution* execution, QWidget* parent);
+  TreeCanvas(Execution* execution);
 
   ~TreeCanvas();
 
   QSlider* scaleBar() const { return m_scaleBar; }
+  QAbstractScrollArea* scrollArea() const { return m_scrollArea; }
 
   std::string getLabel(int gid);
 
@@ -223,8 +230,6 @@ public Q_SLOTS:
 
   void maybeUpdateCanvas();
   void updateCanvas(bool hide_failed = false);
-  /// React to scroll events
-  void scroll();
   /// Set the selected node to \a n
   void setCurrentNode(VisualNode* n, bool finished=true, bool update=true);
 
@@ -400,6 +405,7 @@ public:
   void deleteSelectedMiddleNode();
   void dirtyUpNode();
   void computeShape();
+  void setLabel();
 #endif
 private Q_SLOTS:
   /// Export PDF of the subtree of \a n

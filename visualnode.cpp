@@ -191,7 +191,7 @@ VisualNode::hideFailed(const NodeAllocator& na, bool onlyDirty) {
 }
 
 void
-VisualNode::hideSize(int threshold, const NodeAllocator& na) {
+VisualNode::hideSize(const NodeAllocator& na, int threshold) {
     SubtreeCountCursor c(this,threshold,na);
     PostorderNodeVisitor<SubtreeCountCursor>(c).run();
     dirtyUp(na);
@@ -414,8 +414,9 @@ Layouter::merge(Extent* result,
 
 void
 VisualNode::setShape(Shape* s) {
-    if (shape != s)
+    if (shape != s) {
         Shape::deallocate(shape);
+    }
     shape = s;
     shape->computeBoundingBox();
 }

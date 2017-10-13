@@ -91,7 +91,7 @@ public:
 
     Statistics& getStatistics();
 
-    QMutex& getMutex();
+    QMutex& getTreeMutex();
     QMutex& getLayoutMutex();
 
     void setVariableListString(const std::string& s) {

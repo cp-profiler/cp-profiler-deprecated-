@@ -511,16 +511,6 @@ BranchLabelCursor::processCurrentNode(void) {
 }
 
 inline
-DisposeCursor::DisposeCursor(VisualNode* root,
-                             const NodeAllocator& na)
-    : NodeCursor(root,na) {}
-
-inline void
-DisposeCursor::processCurrentNode(void) {
-    node()->dispose();
-}
-
-inline
 SubtreeCountCursor::SubtreeCountCursor(VisualNode *theNode,
                    int _threshold,
                    const NodeAllocator& na)
@@ -541,17 +531,22 @@ SubtreeCountCursor::processCurrentNode(void) {
         n->setHidden(false);
         n->setChildrenLayoutDone(false);
     } else if (1 < x && x <= threshold) {
-        n->setHidden(true);
-        n->setChildrenLayoutDone(true);
-        if (x < threshold/4) {
-            n->setSubtreeSize(0);
-        } else if (x < threshold/2) {
-            n->setSubtreeSize(1);
-        } else if (x < 3*threshold/4) {
-            n->setSubtreeSize(2);
-        } else {
-            n->setSubtreeSize(3);
+
+        int size = x;
+        if (threshold > 127) {
+            size = (127 * x) / threshold;
         }
+
+        n->setSubtreeSize(size);
+
+        if (size > 0) {
+            n->setHidden(true);
+            n->setChildrenLayoutDone(true);
+        } else {
+            n->setHidden(false);
+            n->setChildrenLayoutDone(false);
+        }
+
     } else {
         n->setHidden(false);
         n->setChildrenLayoutDone(false);

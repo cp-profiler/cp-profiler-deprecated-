@@ -51,7 +51,7 @@ public:
     DbEntry(NodeUID uid, NodeUID parent_uid, int _alt, int _kids,
             std::string _label, int tid, int _status, int64_t _time_stamp,
             int64_t _node_time) :
-        nodeUID(uid), parentUID(parent_uid), gid(-1), alt(_alt), numberOfKids(_kids), label(_label), thread_id(tid), depth(-1), time_stamp(_time_stamp), node_time(_node_time), status(_status)
+        nodeUID(uid), parentUID(parent_uid), alt(_alt), numberOfKids(_kids), label(_label), thread_id(tid), time_stamp(_time_stamp), node_time(_node_time), status(_status)
     {
         /// Map message status to profiler status;
         /// alternatively could make treebuilder use message status
@@ -66,7 +66,6 @@ public:
     DbEntry(NodeUID uid, NodeUID parent_uid, int alt, int kids, int status)
         : nodeUID(uid),
           parentUID(parent_uid),
-          gid(-1),
           alt(alt),
           numberOfKids(kids),
           status(status) {}
@@ -78,14 +77,14 @@ public:
     NodeUID nodeUID;
     NodeUID parentUID;
 
-    int32_t gid; // gist id, set to -1 so we don't forget to assign the real value
+    int32_t gid {-1}; // gist id, set to -1 so we don't forget to assign the real value
     int32_t alt; // which child by order
     int32_t numberOfKids;
     std::string label;
     int32_t thread_id{-1};
-    int32_t depth;
-    uint64_t time_stamp;
-    uint64_t node_time;
+    int32_t depth {-1};
+    uint64_t time_stamp{0};
+    uint64_t node_time{0};
     char status;
 };
 
@@ -130,7 +129,7 @@ public:
     std::unordered_map<NodeUID, std::shared_ptr<std::string>> uid2info;
 
     /// synchronise access to data entries
-    mutable QMutex dataMutex;
+    mutable QMutex dataMutex {QMutex::Recursive};
 
 private:
 
@@ -140,7 +139,7 @@ private:
 public:
 
     Data();
-    ~Data(void);
+    ~Data();
 
     void handleNodeCallback(const cpprofiler::Message& node);
 
@@ -188,11 +187,12 @@ public:
 
 /// ****************************
 
+/// Starts node timer
+void initReceiving();
 
     public Q_SLOTS:
 
-    // sets _isDone to true when received DONE_SENDING
-    void setDoneReceiving(void);
+    void setDoneReceiving();
 
 #ifdef MAXIM_DEBUG
     void setLabel(int gid, const std::string& str);

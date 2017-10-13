@@ -25,6 +25,7 @@
 
 #include <QMainWindow>
 #include <QVariant>
+#include <QMutex>
 #include <memory>
 
 class QLabel;
@@ -45,7 +46,6 @@ class GistMainWindow : public QMainWindow {
   Q_OBJECT
 private:
 
-  QPalette* myPalette;
   QGridLayout* layout;
 
   std::unique_ptr<TreeCanvas> m_Canvas;
@@ -53,8 +53,6 @@ private:
   ProfilerConductor& conductor;
 
   Execution& execution;
-  /// Whether search is currently running
-  bool isSearching = false;
 
   std::unique_ptr<NodeStatsBar> m_NodeStatsBar;
 
@@ -67,7 +65,7 @@ private:
 
   QString statsFilename;
 
-  /// ****** FROM QTGIST ******
+  QMutex gistMutex {QMutex::Recursive};
 
     /// Context menu
   QMenu* contextMenu;

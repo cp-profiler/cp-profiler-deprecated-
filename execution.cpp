@@ -6,6 +6,8 @@
 #include "nodevisitor.hh"
 #include "cpprofiler/utils/tree_utils.hh"
 
+#include <thread>
+
 using std::string;
 namespace Profiling {
 class Message;
@@ -105,8 +107,6 @@ void Execution::begin(std::string label, bool isRestarts) {
 
     setTitle(label);
 
-    connect(this, SIGNAL(doneReceiving(void)), m_Data.get(), SLOT(setDoneReceiving(void)));
-
     // qDebug() << "Execution::start";
     connect(this, &Execution::doneReceiving, [this]() {
       qDebug() << "setDoneReceiving";
@@ -126,6 +126,7 @@ void Execution::begin(std::string label, bool isRestarts) {
       emit doneBuilding();
     });
 
+    m_Data->initReceiving();
     m_Builder->start();
 
     emit titleKnown();
@@ -242,5 +243,5 @@ void Execution::setNameMap(NameMap* names) {
   m_Data->setNameMap(names);
 }
 
-QMutex& Execution::getMutex() { return m_NodeTree->getMutex(); }
+QMutex& Execution::getTreeMutex() { return m_NodeTree->getTreeMutex(); }
 QMutex& Execution::getLayoutMutex() { return m_NodeTree->getLayoutMutex(); }

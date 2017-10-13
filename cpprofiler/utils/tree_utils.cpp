@@ -178,7 +178,7 @@ int calculateHeight(const NodeTree& nt, const VisualNode& n) {
 void highlightSubtrees(NodeTree& nt, const std::vector<VisualNode*>& nodes,
                        bool hideNotHighlighted) {
 
-  QMutexLocker lock(&nt.getMutex());
+  QMutexLocker lock(&nt.getTreeMutex());
 
   auto& na = nt.getNA();
   auto* root = nt.getRoot();
@@ -265,7 +265,7 @@ std::string compareDomains(const Execution& ex, const VisualNode& lhs,
 
 
 void unhideFromNodeToRoot(NodeTree& nt, VisualNode& n) {
-  QMutexLocker lock(&nt.getMutex());
+  QMutexLocker lock(&nt.getTreeMutex());
 
   auto root = nt.getRoot();
 

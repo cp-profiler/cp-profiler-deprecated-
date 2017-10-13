@@ -38,7 +38,7 @@ TreeBuilder::TreeBuilder(Execution* exec, QObject* parent)
 TreeBuilder::~TreeBuilder() {}
 
 bool TreeBuilder::processRoot(DbEntry& dbEntry) {
-  QMutexLocker locker(&execution.getMutex());
+  QMutexLocker locker(&execution.getTreeMutex());
   QMutexLocker layoutLocker(&execution.getLayoutMutex());
 
   std::cout << "process root: " << dbEntry << std::endl;
@@ -97,7 +97,7 @@ bool TreeBuilder::processRoot(DbEntry& dbEntry) {
 }
 
 bool TreeBuilder::processNode(DbEntry& dbEntry, bool is_delayed) {
-  QMutexLocker locker(&execution.getMutex());
+  QMutexLocker locker(&execution.getTreeMutex());
   QMutexLocker layoutLocker(&execution.getLayoutMutex());
 
   NodeUID p_uid = dbEntry.parentUID;  /// parent ID as it comes from Solver
@@ -264,9 +264,6 @@ void TreeBuilder::run() {
 
   QMutex& dataMutex = _data.dataMutex;
 
-  Statistics& stats = execution.getStatistics();
-  // stats.undetermined = 1;
-
   bool is_delayed;
 
   while (true) {
@@ -302,11 +299,6 @@ void TreeBuilder::run() {
 
   auto elapsed_ms = timer.end();
   std::cout << "Time elapsed: " << elapsed_ms << "ms\n";
-  qDebug() << "solutions:" << stats.solutions;
-  qDebug() << "failures:" << stats.failures;
-  qDebug() << "undetermined:" << stats.undetermined;
-
-
   if (GlobalParser::isSet(GlobalParser::test_option)) {
     qDebug() << "test mode, terminate";
     qApp->exit();

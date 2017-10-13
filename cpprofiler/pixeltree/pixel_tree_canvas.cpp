@@ -206,6 +206,7 @@ void PixelTreeCanvas::compressTimeHistogram(vector<float>& compressed,
     group_count++;
 
     auto entry = _data.getEntry(pixel_list[i].node()->getIndex(_na));
+
     auto value = (entry == nullptr) ? 0 : entry->node_time;
     group_value += value;
 
@@ -1140,7 +1141,7 @@ void PixelTreeCanvas::mouseMoveEvent(QMouseEvent* event) {
       }
 #endif
 
-      pixel_image.drawMouseGuidelines(x, y);
+      // pixel_image.drawMouseGuidelines(x, y);
       pixel_image.update();
       repaint();
 

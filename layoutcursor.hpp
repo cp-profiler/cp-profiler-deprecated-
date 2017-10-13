@@ -46,6 +46,41 @@ LayoutCursor::LayoutCursor(VisualNode* theNode,
                            const NodeAllocator& na)
     : NodeCursor(theNode,na) {}
 
+
+static Shape* sizedRectangleLevels(int levels) {
+
+    using sized_rect::HALF_WIDTH;
+
+    // if (levels == 1) levels = 2;
+
+    auto shape = Shape::allocate(levels);
+    (*shape)[0] = Extent(-HALF_WIDTH, HALF_WIDTH);
+
+    if (levels > 1) {
+        (*shape)[1] = Extent(0, 0);
+    }
+
+    for (int l = 2; l < levels; ++l) {
+        (*shape)[l] = Extent(0, 0);
+    }
+
+    shape->computeBoundingBox();
+
+    return shape;
+}
+
+/// size is between 0 and 127
+static Shape* sizedRectangle(int size) {
+
+    using sized_rect::K; using sized_rect::BASE_HEIGHT;
+
+    /// Figure out how many layers needed:
+    int n = std::ceil((size * K + BASE_HEIGHT) / Layout::dist_y) + 1;
+
+    auto shape = sizedRectangleLevels(n);
+    return shape;
+}
+
 inline void
 LayoutCursor::processCurrentNode(void) {
     VisualNode* currentNode = node();
@@ -54,6 +89,8 @@ LayoutCursor::processCurrentNode(void) {
         // std::cerr << "LayoutCurser: node is dirty\n";
         if (currentNode->isHidden()) {
             // do nothing
+            auto shape = sizedRectangle(currentNode->getSubtreeSize());
+            currentNode->setShape(shape);
         } else if (false && currentNode->getNumberOfChildren() < 1) {
             currentNode->setShape(Shape::leaf);
         } else {

@@ -310,21 +310,6 @@ public:
     //@}
 };
 
-/// \brief A cursor that frees all memory
-class DisposeCursor : public NodeCursor {
-public:
-    /// Constructor
-    DisposeCursor(VisualNode* theNode,
-                  const NodeAllocator& na);
-
-    /// \name Cursor interface
-    //@{
-    /// Dispose node
-    void processCurrentNode(void);
-    //@}
-
-};
-
 class SubtreeCountCursor : public NodeCursor {
 public:
   std::vector<int> stack;

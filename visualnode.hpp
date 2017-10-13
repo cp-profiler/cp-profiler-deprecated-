@@ -145,7 +145,9 @@ inline Shape* Shape::allocate(int d) {
 }
 
 inline void Shape::deallocate(Shape* shape) {
-  if (shape != hidden && shape != leaf) heap.rfree(shape);
+  if (shape != hidden && shape != leaf) {
+    heap.rfree(shape);
+  }
 }
 
 inline bool Shape::getExtentAtDepth(int d, Extent& extent) {
@@ -185,7 +187,6 @@ inline void VisualNode::setOffset(int n) { offset = n; }
 inline bool VisualNode::isDirty(void) const { return getFlag(DIRTY); }
 
 inline void VisualNode::setDirty(bool d) {
-  // std::cerr << "node [" << this->debug_id << "] set dirty: " << d << "\n"; 
   setFlag(DIRTY, d);
 }
 
@@ -224,21 +225,24 @@ inline bool VisualNode::isOnPath(void) const { return getFlag(ONPATH); }
 inline void VisualNode::setOnPath(bool b) { setFlag(ONPATH, b); }
 
 inline void VisualNode::setSubtreeSizeUnknown(void) {
-  setNumericFlag(SUBTREESIZE, 3, 7);
+  setNumericFlag(SUBTREESIZE, 7, 0);
 }
 
 inline void VisualNode::setSubtreeSize(int size) {
-  setNumericFlag(SUBTREESIZE, 3, size);
+  setNumericFlag(SUBTREESIZE, 7, size);
 }
 
-inline int VisualNode::getSubtreeSize(void) {
-  int size = getNumericFlag(SUBTREESIZE, 3);
-  if (size == 7) return -1;
+inline int VisualNode::getSubtreeSize(void) const {
+  int size = getNumericFlag(SUBTREESIZE, 7);
+  if (size == 0) return -1;
   return size;
 }
 
 inline Shape* VisualNode::getShape(void) const {
-  if (isHidden()) return (getStatus() == MERGING) ? Shape::leaf : Shape::hidden;
+
+  if (isHidden() && getSubtreeSize() == -1) {
+    return (getStatus() == MERGING) ? Shape::leaf : Shape::hidden;
+  }
   return shape;
 }
 

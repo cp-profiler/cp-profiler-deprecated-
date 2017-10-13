@@ -49,7 +49,7 @@ void PixelImage::resize(int width, int height) {
   width_ = width;
   height_ = height;
 
-  drawGrid();
+  // drawGrid();
 
   clear();
 }
@@ -151,7 +151,8 @@ void PixelImage::update() {
 
   if (image_ != nullptr) delete image_;
 
-  result_buffer_ = background_buffer_;
+  // result_buffer_ = background_buffer_;
+  result_buffer_ = buffer_;
 
   addLayer(result_buffer_, buffer_);
   addLayer(result_buffer_, guidlines_buffer_);

@@ -39,6 +39,7 @@
 #include <fstream>
 
 #include <QAction>
+#include <QMutexLocker>
 
 class NodeStatsBar : public QWidget {
   /// Status bar label for maximum depth indicator
@@ -95,20 +96,26 @@ GistMainWindow::GistMainWindow(Execution& e,
       execution(e),
       m_NodeStatsBar{new NodeStatsBar{}}
 {
+  QMutexLocker locker(&gistMutex);
+
+  qDebug() << "Gist in thread: " << QThread::currentThreadId();
+
+  resize(500,500);
+  setMinimumSize(400, 200);
+
+  setWindowTitle(tr("CP-Profiler"));
+  statusBar()->showMessage("Ready");
 
   layout = new QGridLayout();
 
-  auto scrollArea = new QAbstractScrollArea(this);
-  scrollArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
-  scrollArea->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
-  scrollArea->setAutoFillBackground(true);
+  auto main_widget = new QWidget{};
+  main_widget->setLayout(layout);
+  setCentralWidget(main_widget);
 
-  myPalette = new QPalette(scrollArea->palette());
+  m_Canvas.reset(new TreeCanvas(&execution));
 
-  myPalette->setColor(QPalette::Window, Qt::white);
-  scrollArea->setPalette(*myPalette);
-
-  m_Canvas.reset(new TreeCanvas(&execution, scrollArea->viewport()));
+  layout->addWidget(m_Canvas->scrollArea(), 0, 0, -1, 1);
+  layout->addWidget(m_Canvas->scaleBar(), 1, 1, Qt::AlignHCenter);
 
   {
     QPixmap zoomPic;
@@ -128,16 +135,6 @@ GistMainWindow::GistMainWindow(Execution& e,
             SLOT(setChecked(bool)));
   }
 
-  m_Canvas->setPalette(*myPalette);
-  m_Canvas->setObjectName("canvas");
-
-  auto main_widget = new QWidget{};
-
-  main_widget->setLayout(layout);
-
-  layout->addWidget(scrollArea, 0, 0, -1, 1);
-  layout->addWidget(m_Canvas->scaleBar(), 1, 1, Qt::AlignHCenter);
-
   {
     /// Box for selecting "small subtree" size
     auto smallBox = new QLineEdit("100");
@@ -150,47 +147,25 @@ GistMainWindow::GistMainWindow(Execution& e,
     m_Canvas->updateCanvas(false);
   });
 
-  connect(scrollArea->horizontalScrollBar(), SIGNAL(valueChanged(int)),
-          m_Canvas.get(), SLOT(scroll(void)));
-  connect(scrollArea->verticalScrollBar(), SIGNAL(valueChanged(int)), m_Canvas.get(),
-          SLOT(scroll(void)));
-
   connect(m_Canvas.get(), &TreeCanvas::nodeSelected, this, &GistMainWindow::updateActions);
 
   // TODO(maxim): this won't be called is Gist doesn't exist yet
-  connect(&execution, &Execution::doneBuilding, [this]() {
-    qDebug() << "finish stats bar";
-    this->finishStatsBar();
-  });
+  connect(&execution, &Execution::doneBuilding, this, &GistMainWindow::finishStatsBar);
 
   connect(m_Canvas.get(), &TreeCanvas::moreNodesDrawn, this, &GistMainWindow::updateStatsBar);
 
   /// in case the above was too late
   if (execution.getData().isDone()) {
+    qDebug() << "too late!";
     updateStatsBar();
     finishStatsBar();
   }
 
-  resize(500, 400);
-
-  auto sa_layout = new QVBoxLayout();
-  sa_layout->setContentsMargins(0, 0, 0, 0);
-  sa_layout->addWidget(m_Canvas.get());
-
-  scrollArea->viewport()->setLayout(sa_layout);
-
-  // *****
-
-  setCentralWidget(main_widget);
-  setWindowTitle(tr("CP-Profiler"));
 
 //  Logos logos;
 //  QPixmap myPic;
 //  myPic.loadFromData(logos.gistLogo, logos.gistLogoSize);
 //  setWindowIcon(myPic);
-
-  resize(500,500);
-  setMinimumSize(400, 200);
 
   menuBar = new QMenuBar(0);
 
@@ -198,17 +173,24 @@ GistMainWindow::GistMainWindow(Execution& e,
 
   addActions();
 
-  QMenu* fileMenu = menuBar->addMenu(tr("&File"));
-  fileMenu->addAction(print);
-  fileMenu->addAction(printSearchLog);
-  fileMenu->addAction(exportWholeTreePDF);
+  {
+    printSearchLog = new QAction("Export search log...", this);
+    addAction(printSearchLog);
+    connect(printSearchLog, SIGNAL(triggered()), m_Canvas.get(), SLOT(printSearchLog()));
 
-  prefAction = fileMenu->addAction(tr("Preferences"));
-  connect(prefAction, SIGNAL(triggered()), this, SLOT(preferences()));
+    QMenu* fileMenu = menuBar->addMenu(tr("&File"));
+    fileMenu->addAction(print);
+    fileMenu->addAction(printSearchLog);
+    fileMenu->addAction(exportWholeTreePDF);
 
-  QAction* quitAction = fileMenu->addAction(tr("Quit"));
-  quitAction->setShortcut(QKeySequence("Ctrl+Q"));
-  connect(quitAction, SIGNAL(triggered()), this, SLOT(close()));
+    prefAction = fileMenu->addAction(tr("Preferences"));
+    connect(prefAction, SIGNAL(triggered()), this, SLOT(preferences()));
+  
+    QAction* quitAction = fileMenu->addAction(tr("Quit"));
+    quitAction->setShortcut(QKeySequence("Ctrl+Q"));
+    connect(quitAction, SIGNAL(triggered()), this, SLOT(close()));
+  }
+
 
   auto printPaths = new QAction{"Print Paths to Highlighted Subtrees", this};
 
@@ -219,7 +201,7 @@ GistMainWindow::GistMainWindow(Execution& e,
   QMenu* nodeMenu = menuBar->addMenu(tr("&Node"));
   nodeMenu->addAction(showNodeStats);
 
-  
+
   bookmarksMenu->addAction(bookmarkNode);
   connect(bookmarksMenu, SIGNAL(aboutToShow()),
           this, SLOT(populateBookmarks()));
@@ -280,10 +262,6 @@ GistMainWindow::GistMainWindow(Execution& e,
 
   statusBar()->addPermanentWidget(m_NodeStatsBar.get());
 
-
-  isSearching = false;
-  statusBar()->showMessage("Ready");
-
   connect(this, SIGNAL(changeMainTitle(QString)),
           this, SLOT(changeTitle(QString)));
 
@@ -319,15 +297,24 @@ GistMainWindow::updateStatsBar() {
 
 void
 GistMainWindow::finishStatsBar() {
+  QMutexLocker locker(&gistMutex);
+
+  qDebug() << "finishStatsBar in thread: " << QThread::currentThreadId();
+
+  qDebug() << "finish stats bar";
 
   /// a quick hack for now
   if (execution.getData().isDone()) {
+
+    qDebug() << "~~~ Done building";
 
     auto totalTime = execution.getData().getTotalTime();
     float seconds = totalTime / 1000000.0;
 
     statusBar()->showMessage("Done in " + QString::number(seconds) + "s");
   } else {
+
+    qDebug() << "~~~ not done building yet";
     statusBar()->showMessage("Searching");
   }
 
@@ -576,7 +563,9 @@ void GistMainWindow::addActions() {
 
   auto computeShape = new QAction{"Compute shape", this};
   connect(computeShape, &QAction::triggered, canvas, &TreeCanvas::computeShape);
-  // addAction(computeShape);
+
+  auto setLabel = new QAction{"Set label", this};
+  connect(setLabel, &QAction::triggered, canvas, &TreeCanvas::setLabel);
 
 
 #endif
@@ -648,10 +637,6 @@ void GistMainWindow::addActions() {
   print->setShortcut(QKeySequence("Ctrl+P"));
   connect(print, SIGNAL(triggered()), canvas, SLOT(print()));
 
-  printSearchLog = new QAction("Export search log...", this);
-  addAction(printSearchLog);
-  connect(printSearchLog, SIGNAL(triggered()), canvas, SLOT(printSearchLog()));
-
   bookmarkNode = new QAction("Add/remove bookmark", this);
   bookmarkNode->setShortcut(QKeySequence("Shift+B"));
   connect(bookmarkNode, SIGNAL(triggered()), canvas, SLOT(bookmarkNode()));
@@ -695,6 +680,7 @@ void GistMainWindow::addActions() {
   contextMenu->addAction(dirtyUpNode);
   contextMenu->addAction(highlightSubtree);
   contextMenu->addAction(computeShape);
+  contextMenu->addAction(setLabel);
 #endif
 
 }

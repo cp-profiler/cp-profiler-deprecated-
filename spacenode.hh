@@ -102,13 +102,13 @@ protected:
    *
    * Anatomy of nstatus
    *
-   *             Subtree
-   *              Size |
-   *   Node            |      flags
-   *   Status          | /------------\
-   *                   | IDHSBHOMHCDHHH
-   *   /--\           /-\VEOEMINRILRSFO
-   *   SSSS           SSSNLVLKGPKDDTCCC
+   *            Subtree
+   *             Size |
+   *   Node           |       flags
+   *   Status         |  /------------\
+   *                  |  IDHSBHOMHCDHHH
+   *   /--\        /----\VEOEMINRILRSFO
+   *   SSSS       SSSSSSSNLVLKGPKDDTCCC
    *   ********************************
    *    3         2         1         0
    *   10987654321098765432109876543210

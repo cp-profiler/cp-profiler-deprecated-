@@ -128,6 +128,19 @@ public:
   const BoundingBox& getBoundingBox(void) const;
 };
 
+namespace sized_rect {
+  static constexpr double BASE_HEIGHT = 14.0;
+  static constexpr double HALF_WIDTH = 20.0;
+  static constexpr int PRECISION = 127;
+  static constexpr int MAX_LEVELS = 5;
+  static constexpr double K = (Layout::dist_y * (MAX_LEVELS - 1) - BASE_HEIGHT) / PRECISION;
+}
+
+static std::ostream& operator<<(std::ostream& o, const Shape& s) {
+    o << "shape of depth: " << s.depth() << "\n";
+  return o;
+}
+
 int shapeSize(const Shape& s);
 
 
@@ -151,6 +164,8 @@ protected:
     SUBTREESIZE,
     SUBTREESIZE2, // reserve this bit for subtree size
     SUBTREESIZE3,  // reserve this bit for subtree size
+    SUBTREESIZE4,  // reserve this bit for subtree size
+    SUBTREESIZE5,  // reserve this bit for subtree size
   };
 
   /// Relative offset from the parent node
@@ -222,7 +237,7 @@ public:
   /// Set the subtree size to a specific category
   void setSubtreeSize(int size);
   /// Get the subtree size (-1 if unknown)
-  int getSubtreeSize(void);
+  int getSubtreeSize(void) const;
 
   bool isInvisible(void) const;
   void setInvisible(bool);
@@ -235,7 +250,7 @@ public:
   /// Hide all failed subtrees of this node
   void hideFailed(const NodeAllocator& na, bool onlyDirty=false);
   /// Hide subtrees by their size
-  void hideSize(int threshold, const NodeAllocator& na);
+  void hideSize(const NodeAllocator& na, int threshold);
   /// Unhide all nodes in the subtree of this node
   void unhideAll(const NodeAllocator& na);
   /// Unselect all nodes in the subtree of this node

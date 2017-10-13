@@ -64,22 +64,53 @@
 
 using namespace cpprofiler::analysis;
 
-TreeCanvas::TreeCanvas(Execution* e, QWidget* parent)
-    : QWidget{parent},
-      execution{*e},
-      mutex(execution.getMutex()),
+static QAbstractScrollArea* makeScrollArea(TreeCanvas* tc) {
+
+  auto sa = new QAbstractScrollArea;
+
+  auto layout = new QVBoxLayout();
+  sa->viewport()->setLayout(layout);
+  layout->setContentsMargins(0, 0, 0, 0);
+  layout->addWidget(tc);
+
+  sa->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
+  sa->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
+  sa->setAutoFillBackground(true);
+
+  return sa;
+}
+
+static QSlider* makeScaleBar(TreeCanvas* tc) {
+  auto sb = new QSlider(Qt::Vertical);
+  sb->setObjectName("scaleBar");
+  sb->setMinimum(LayoutConfig::minScale);
+  sb->setMaximum(LayoutConfig::maxScale);
+
+  return sb;
+}
+
+TreeCanvas::TreeCanvas(Execution* e)
+    : execution{*e},
+      treeMutex(execution.getTreeMutex()),
       layoutMutex(execution.getLayoutMutex()),
       na(execution.nodeTree().getNA())
   {
-  QMutexLocker locker(&mutex);
+  QMutexLocker locker(&treeMutex);
+
+  setObjectName("canvas");
 
   root = execution.nodeTree().getRoot();
 
-  auto init_scale = Settings::get_int("default_scale");
-
-  m_options.scale = init_scale / 100;
-
   setAutoFillBackground(true);
+
+  m_scrollArea = makeScrollArea(this);
+
+  connect(m_scrollArea->horizontalScrollBar(), &QAbstractSlider::valueChanged, [this](int) {
+    QWidget::update();
+  });
+  connect(m_scrollArea->verticalScrollBar(), &QAbstractSlider::valueChanged, [this](int) {
+    QWidget::update();
+  });
 
   connect(&execution, &Execution::newNode, this, &TreeCanvas::maybeUpdateCanvas);
   connect(&execution, &Execution::newRoot, [this]() {
@@ -90,11 +121,17 @@ TreeCanvas::TreeCanvas(Execution* e, QWidget* parent)
 
   scrollTimeLine.setCurveShape(QTimeLine::EaseInOutCurve);
 
-  m_scaleBar = new QSlider(Qt::Vertical, this);
-  m_scaleBar->setObjectName("scaleBar");
-  m_scaleBar->setMinimum(LayoutConfig::minScale);
-  m_scaleBar->setMaximum(LayoutConfig::maxScale);
+  m_palette = std::make_shared<QPalette>(this->palette());
+  m_palette->setColor(QPalette::Window, Qt::white);
+  setPalette(*m_palette);
+  m_scrollArea->setPalette(*m_palette);
+
+  auto init_scale = Settings::get_int("default_scale");
+  m_options.scale = init_scale / 100;
+
+  m_scaleBar = makeScaleBar(this);
   m_scaleBar->setValue(init_scale);
+
   connect(this, SIGNAL(scaleChanged(int)), m_scaleBar, SLOT(setValue(int)));
   connect(m_scaleBar, SIGNAL(valueChanged(int)), this, SLOT(scaleTree(int)));
 
@@ -103,6 +140,7 @@ TreeCanvas::TreeCanvas(Execution* e, QWidget* parent)
   zoomTimeLine.setCurveShape(QTimeLine::EaseInOutCurve);
 
   if (execution.finished) {
+    qDebug() << "finalize";
     finalize();
   }
 
@@ -114,10 +152,7 @@ TreeCanvas::TreeCanvas(Execution* e, QWidget* parent)
 }
 
 TreeCanvas::~TreeCanvas() {
-  if (root) {
-    DisposeCursor dc(root, execution.nodeTree().getNA());
-    PreorderNodeVisitor<DisposeCursor>(dc).run();
-  }
+
 }
 
 ///***********************
@@ -134,11 +169,10 @@ void TreeCanvas::scaleTree(int scale0, int zoomx, int zoomy) {
   int xoff = (sa->horizontalScrollBar()->value() + zoomx) / m_options.scale;
   int yoff = (sa->verticalScrollBar()->value() + zoomy) / m_options.scale;
 
-  BoundingBox bb;
   scale0 = std::min(std::max(scale0, LayoutConfig::minScale),
                     LayoutConfig::maxScale);
   m_options.scale = (static_cast<double>(scale0)) / 100.0;
-  bb = root->getBoundingBox();
+  BoundingBox bb = root->getBoundingBox();
   int w = static_cast<int>((bb.right - bb.left + Layout::extent) * m_options.scale);
   int h = static_cast<int>(2 * Layout::extent +
                            root->getShape()->depth() * Layout::dist_y * m_options.scale);
@@ -160,8 +194,6 @@ void TreeCanvas::scaleTree(int scale0, int zoomx, int zoomy) {
   layoutMutex.unlock();
   QWidget::update();
 }
-
-void TreeCanvas::scroll(void) { QWidget::update(); }
 
 void TreeCanvas::showPixelTree(void) {
   using cpprofiler::pixeltree::PixelTreeDialog;
@@ -244,7 +276,7 @@ void TreeCanvas::deleteSkippedNodes() {
 }
 
 void TreeCanvas::followPath(void) {
-  QMutexLocker locker(&mutex);
+  QMutexLocker locker(&treeMutex);
   bool ok;
   QString text = QInputDialog::getText(this, tr("Path to follow"), tr("Path:"),
                                        QLineEdit::Normal, "", &ok);
@@ -275,7 +307,7 @@ void TreeCanvas::followPath(void) {
 }
 
 void TreeCanvas::analyzeSimilarSubtrees(void) {
-  QMutexLocker locker_1(&mutex);
+  QMutexLocker locker_1(&treeMutex);
   QMutexLocker locker_2(&layoutMutex);
 
   auto ssw = new SimilarShapesWindow{execution};
@@ -491,7 +523,7 @@ class SearchItem {
 };
 
 void TreeCanvas::toggleHidden(void) {
-  QMutexLocker locker(&mutex);
+  QMutexLocker locker(&treeMutex);
   if (currentNode->getNumberOfChildren() == 0) return;
   currentNode->toggleHidden(execution.nodeTree().getNA());
   updateCanvas();
@@ -499,26 +531,26 @@ void TreeCanvas::toggleHidden(void) {
 }
 
 void TreeCanvas::hideFailed(void) {
-  QMutexLocker locker(&mutex);
+  QMutexLocker locker(&treeMutex);
   currentNode->hideFailed(execution.nodeTree().getNA());
   updateCanvas();
   centerCurrentNode();
 }
 
 void TreeCanvas::hideSize(const QString& text) {
-  QMutexLocker locker(&mutex);
+  QMutexLocker locker(&treeMutex);
 
   bool ok;
   int threshold = text.toInt(&ok);
   if (!ok) return;
 
-  currentNode->hideSize(threshold, execution.nodeTree().getNA());
+  root->hideSize(na, threshold);
   updateCanvas();
   centerCurrentNode();
 }
 
 void TreeCanvas::hideAll(void) {
-  QMutexLocker locker_1(&mutex);
+  QMutexLocker locker_1(&treeMutex);
   QMutexLocker locker_2(&layoutMutex);
 
   HideAllCursor hac(root, execution.nodeTree().getNA());
@@ -529,7 +561,7 @@ void TreeCanvas::hideAll(void) {
 }
 
 void TreeCanvas::unhideAll(void) {
-  QMutexLocker locker(&mutex);
+  QMutexLocker locker(&treeMutex);
   QMutexLocker layoutLocker(&layoutMutex);
   currentNode->unhideAll(execution.nodeTree().getNA());
   updateCanvas();
@@ -537,7 +569,7 @@ void TreeCanvas::unhideAll(void) {
 }
 
 void TreeCanvas::unselectAll(void) {
-  QMutexLocker locker(&mutex);
+  QMutexLocker locker(&treeMutex);
   QMutexLocker layoutLocker(&layoutMutex);
   root->unselectAll(execution.nodeTree().getNA());
   updateCanvas();
@@ -604,7 +636,7 @@ void TreeCanvas::zoomToFit(void) {
 }
 
 void TreeCanvas::centerCurrentNode(void) {
-  QMutexLocker locker(&mutex);
+  QMutexLocker locker(&treeMutex);
   int x = 0;
   int y = 0;
 
@@ -655,7 +687,7 @@ void TreeCanvas::scroll(int i) {
 
 /// check what should be uncommented out.
 void TreeCanvas::expandCurrentNode() {
-  QMutexLocker locker(&mutex);
+  QMutexLocker locker(&treeMutex);
 
   if (currentNode->isHidden()) {
     toggleHidden();
@@ -673,13 +705,13 @@ void TreeCanvas::expandCurrentNode() {
 }
 
 void TreeCanvas::labelBranches(void) {
-  QMutexLocker locker(&mutex);
+  QMutexLocker locker(&treeMutex);
   currentNode->labelBranches(execution.nodeTree().getNA(), *this);
   updateCanvas();
   centerCurrentNode();
 }
 void TreeCanvas::labelPath(void) {
-  QMutexLocker locker(&mutex);
+  QMutexLocker locker(&treeMutex);
   currentNode->labelPath(execution.nodeTree().getNA(), *this);
   updateCanvas();
   centerCurrentNode();
@@ -688,7 +720,7 @@ void TreeCanvas::labelPath(void) {
 /// TODO(maxim): this should not not re-build a tree, disabled for now
 /// (it is still called from GistMainWidnow)
 void TreeCanvas::reset() {
-  QMutexLocker locker(&mutex);
+  QMutexLocker locker(&treeMutex);
 
   VisualNode* root = execution.nodeTree().getRoot();
   currentNode = root;
@@ -703,7 +735,7 @@ void TreeCanvas::reset() {
 }
 
 void TreeCanvas::bookmarkNode(void) {
-  QMutexLocker locker(&mutex);
+  QMutexLocker locker(&treeMutex);
   if (!currentNode->isBookmarked()) {
     bool ok;
     QString text = QInputDialog::getText(this, "Add bookmark", "Name:",
@@ -726,7 +758,7 @@ void TreeCanvas::bookmarkNode(void) {
 }
 
 void TreeCanvas::navUp(void) {
-  QMutexLocker locker(&mutex);
+  QMutexLocker locker(&treeMutex);
   VisualNode* p = currentNode->getParent(execution.nodeTree().getNA());
 
   if (p != nullptr) {
@@ -736,7 +768,7 @@ void TreeCanvas::navUp(void) {
 }
 
 void TreeCanvas::navDown(void) {
-  QMutexLocker locker(&mutex);
+  QMutexLocker locker(&treeMutex);
   if (!currentNode->isHidden() && currentNode->getNumberOfChildren() > 0) {
     int alt = std::max(0, currentNode->getPathAlternative(execution.nodeTree().getNA()));
     VisualNode* n = currentNode->getChild(execution.nodeTree().getNA(), alt);
@@ -746,7 +778,7 @@ void TreeCanvas::navDown(void) {
 }
 
 void TreeCanvas::navLeft(void) {
-  QMutexLocker locker(&mutex);
+  QMutexLocker locker(&treeMutex);
   VisualNode* p = currentNode->getParent(execution.nodeTree().getNA());
   if (p != nullptr) {
     int alt = currentNode->getAlternative(execution.nodeTree().getNA());
@@ -759,7 +791,7 @@ void TreeCanvas::navLeft(void) {
 }
 
 void TreeCanvas::navRight(void) {
-  QMutexLocker locker(&mutex);
+  QMutexLocker locker(&treeMutex);
   VisualNode* p = currentNode->getParent(execution.nodeTree().getNA());
   if (p != nullptr) {
     uint alt = currentNode->getAlternative(execution.nodeTree().getNA());
@@ -772,13 +804,13 @@ void TreeCanvas::navRight(void) {
 }
 
 void TreeCanvas::navRoot(void) {
-  QMutexLocker locker(&mutex);
+  QMutexLocker locker(&treeMutex);
   setCurrentNode(root);
   centerCurrentNode();
 }
 
 void TreeCanvas::navNextSol(bool back) {
-  QMutexLocker locker(&mutex);
+  QMutexLocker locker(&treeMutex);
   NextSolCursor nsc(currentNode, back, execution.nodeTree().getNA());
   PreorderNodeVisitor<NextSolCursor> nsv(nsc);
   nsv.run();
@@ -790,7 +822,7 @@ void TreeCanvas::navNextSol(bool back) {
 }
 
 void TreeCanvas::navNextLeaf(bool back) {
-  QMutexLocker locker(&mutex);
+  QMutexLocker locker(&treeMutex);
   NextLeafCursor nsc(currentNode, back, execution.nodeTree().getNA());
   PreorderNodeVisitor<NextLeafCursor> nsv(nsc);
   nsv.run();
@@ -802,7 +834,7 @@ void TreeCanvas::navNextLeaf(bool back) {
 }
 
 void TreeCanvas::navNextPentagon(bool back) {
-  QMutexLocker locker(&mutex);
+  QMutexLocker locker(&treeMutex);
   NextPentagonCursor nsc(currentNode, back, execution.nodeTree().getNA());
   PreorderNodeVisitor<NextPentagonCursor> nsv(nsc);
   nsv.run();
@@ -824,7 +856,7 @@ void TreeCanvas::exportNodePDF(VisualNode* n) {
   if (filename == "") return;
 
   QPrinter printer(QPrinter::ScreenResolution);
-  QMutexLocker locker(&mutex);
+  QMutexLocker locker(&treeMutex);
 
   BoundingBox bb = n->getBoundingBox();
   printer.setFullPage(true);
@@ -872,7 +904,7 @@ void TreeCanvas::exportPDF(void) {
 void TreeCanvas::print(void) {
   QPrinter printer;
   if (QPrintDialog(&printer, this).exec() == QDialog::Accepted) {
-    QMutexLocker locker(&mutex);
+    QMutexLocker locker(&treeMutex);
 
     BoundingBox bb = root->getBoundingBox();
     QRect pageRect = printer.pageRect();
@@ -963,7 +995,7 @@ VisualNode* TreeCanvas::eventNode(QEvent* event) {
 }
 
 bool TreeCanvas::event(QEvent* event) {
-  if (mutex.tryLock()) {
+  if (treeMutex.tryLock()) {
     if (event->type() == QEvent::ToolTip) {
       VisualNode* n = eventNode(event);
       if (n != nullptr) {
@@ -973,7 +1005,7 @@ bool TreeCanvas::event(QEvent* event) {
         QToolTip::hideText();
       }
     }
-    mutex.unlock();
+    treeMutex.unlock();
   }
   return QWidget::event(event);
 }
@@ -1013,32 +1045,32 @@ void TreeCanvas::paintEvent(QPaintEvent* event) {
 }
 
 void TreeCanvas::mouseDoubleClickEvent(QMouseEvent* event) {
-  if (mutex.tryLock()) {
+  if (treeMutex.tryLock()) {
     if (event->button() == Qt::LeftButton) {
       VisualNode* n = eventNode(event);
       if (n == currentNode) {
         expandCurrentNode();
         event->accept();
-        mutex.unlock();
+        treeMutex.unlock();
         return;
       }
     }
-    mutex.unlock();
+    treeMutex.unlock();
   }
   event->ignore();
 }
 
 void TreeCanvas::contextMenuEvent(QContextMenuEvent* event) {
-  if (mutex.tryLock()) {
+  if (treeMutex.tryLock()) {
     VisualNode* n = eventNode(event);
     if (n != nullptr) {
       setCurrentNode(n);
       emit contextMenu(event);
       event->accept();
-      mutex.unlock();
+      treeMutex.unlock();
       return;
     }
-    mutex.unlock();
+    treeMutex.unlock();
   }
   event->ignore();
 }
@@ -1068,28 +1100,33 @@ void TreeCanvas::wheelEvent(QWheelEvent* event) {
 }
 
 void TreeCanvas::setCurrentNode(VisualNode* n, bool finished, bool update) {
-  if (finished) mutex.lock();
+  QMutexLocker locker(&treeMutex);
 
-  if (n != nullptr) {
-    if (currentNode) {
-      currentNode->setMarked(false);
-    }
-    bool changed = (n != currentNode);
-    currentNode = n;
-    currentNode->setMarked(true);
-    if (changed) {
-        emit nodeSelected(n);
-    }
-    if (update) {
-      setCursor(QCursor(Qt::ArrowCursor));
-      QWidget::update();
-    }
+  if (n == nullptr) return;
+
+  if (currentNode == n) return;
+
+  /// deselect current node
+  if (currentNode) {
+    currentNode->setMarked(false);
+    // currentNode->setHighlighted(false);
   }
-  if (finished) mutex.unlock();
+
+  currentNode = n;
+  currentNode->setMarked(true);
+
+  // currentNode->setHighlighted(true);
+
+  if (update) {
+    setCursor(QCursor(Qt::ArrowCursor));
+    QWidget::update();
+  }
+
+  emit nodeSelected(n);
 }
 
 void TreeCanvas::navigateToNodeById(int gid) {
-  QMutexLocker locker(&mutex);
+  QMutexLocker locker(&treeMutex);
 
   VisualNode* node = (execution.nodeTree().getNA())[gid];
 
@@ -1104,18 +1141,18 @@ void TreeCanvas::navigateToNodeById(int gid) {
 }
 
 void TreeCanvas::mousePressEvent(QMouseEvent* event) {
-  if (mutex.tryLock()) {
+  if (treeMutex.tryLock()) {
     if (event->button() == Qt::LeftButton) {
       VisualNode* n = eventNode(event);
       setCurrentNode(n);
       setCursor(QCursor(Qt::ArrowCursor));
       if (n != nullptr) {
         event->accept();
-        mutex.unlock();
+        treeMutex.unlock();
         return;
       }
     }
-    mutex.unlock();
+    treeMutex.unlock();
   }
   event->ignore();
 }
@@ -1173,7 +1210,7 @@ void TreeCanvas::updateViaTimer(void) {
 
 void TreeCanvas::updateCanvas(bool hide_failed) {
 
-  QMutexLocker locker1(&mutex);
+  QMutexLocker locker1(&treeMutex);
   QMutexLocker locker2(&layoutMutex);
 
 
@@ -1662,6 +1699,8 @@ void TreeCanvas::highlightSubtree() {
 
   auto state = currentNode->isHighlighted();
   currentNode->setHighlighted(!state);
+
+  updateCanvas();
 }
 
 void TreeCanvas::nextStatus() {
@@ -1744,6 +1783,18 @@ void TreeCanvas::dirtyUpNode() {
 
 void TreeCanvas::computeShape() {
   currentNode->computeShape(na);
+  updateCanvas();
+}
+
+void TreeCanvas::setLabel() {
+
+  bool ok;
+  auto label = QInputDialog::getText(this, "Enter the new label:", "new label:", QLineEdit::Normal, "", &ok).toStdString();
+
+  if (!ok) return;
+
+  auto entry = execution.getEntry(*currentNode);
+  entry->label = label;
   updateCanvas();
 }
 

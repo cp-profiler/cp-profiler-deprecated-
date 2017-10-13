@@ -48,9 +48,10 @@ CmpTreeDialog::CmpTreeDialog(QWidget* parent, Execution* execution, bool with_la
   setCentralWidget(main_widget);
   main_widget->setLayout(layout);
 
-  auto scrollArea = new QAbstractScrollArea(this);
+  m_Canvas.reset(new TreeCanvas(execution));
 
-  m_Canvas.reset(new TreeCanvas(execution, scrollArea->viewport()));
+  layout->addWidget(m_Canvas->scrollArea(), 0, 0, 2, 1);
+  layout->addWidget(m_Canvas->scaleBar(), 1, 1, Qt::AlignHCenter);
 
   {
     QPixmap zoomPic;
@@ -69,20 +70,6 @@ CmpTreeDialog::CmpTreeDialog(QWidget* parent, Execution* execution, bool with_la
     connect(m_Canvas.get(), SIGNAL(autoZoomChanged(bool)), autoZoomButton,
             SLOT(setChecked(bool)));
   }
-
-  layout->addWidget(scrollArea, 0, 0, 2, 1);
-  layout->addWidget(m_Canvas->scaleBar(), 1, 1, Qt::AlignHCenter);
-
-  auto sa_layout = new QVBoxLayout();
-  sa_layout->setContentsMargins(0, 0, 0, 0);
-  scrollArea->viewport()->setLayout(sa_layout);
-  sa_layout->addWidget(m_Canvas.get());
-
-  connect(scrollArea->horizontalScrollBar(), SIGNAL(valueChanged(int)),
-            m_Canvas.get(), SLOT(scroll(void)));
-
-  connect(scrollArea->verticalScrollBar(), SIGNAL(valueChanged(int)),
-            m_Canvas.get(), SLOT(scroll(void)));
 
   auto menuBar = new QMenuBar(this);
   auto nodeMenu = menuBar->addMenu(tr("&Node"));

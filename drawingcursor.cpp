@@ -33,6 +33,7 @@ constexpr double SHADOW_OFFSET = 3.0;
 constexpr double HIDDEN_DEPTH =
     static_cast<double>(Layout::dist_y) + FAILED_WIDTH;
 
+
 namespace Pens {
     const QPen hovered = QPen{Qt::black, 3};
 }
@@ -41,6 +42,7 @@ static void drawPentagon(QPainter& painter, int myx, int myy, bool shadow);
 static void drawTriangle(QPainter& painter, int myx, int myy, bool shadow);
 static void drawDiamond(QPainter& painter, int myx, int myy, bool shadow);
 static void drawShape(QPainter& painter, int myx, int myy, VisualNode* node);
+static void drawSizedRect(QPainter& painter, int myx, int myy, int subtreeSize, bool shadow);
 static void drawSizedTriangle(QPainter& painter, int myx, int myy, int subtreeSize, bool shadow);
 
 DrawingCursor::DrawingCursor(VisualNode* root,
@@ -90,7 +92,13 @@ DrawingCursor::processCurrentNode(void) {
         } else {
             lx = myx - tw / 2;
         }
-        painter.drawText(QPointF(lx, myy - 4), label);
+
+        // QFont font(painter.font());
+        // font.setPixelSize(28);
+        // painter.setFont(font);
+
+        // painter.drawText(QPointF(lx, myy - 4), label);
+        painter.drawText(QPointF(lx-5, myy), label);
     }
 
     if (!parent || parent->_tid != n->_tid) {
@@ -129,10 +137,12 @@ DrawingCursor::processCurrentNode(void) {
             if (n->getStatus() == MERGING)
                 drawPentagon(painter, myx, myy, true);
             else
-              if (n->getSubtreeSize() != -1)
-                drawSizedTriangle(painter, myx, myy, n->getSubtreeSize(), true);
-              else
+              if (n->getSubtreeSize() != -1) {
+                drawSizedRect(painter, myx, myy, n->getSubtreeSize(), true);
+            }
+              else {
                 drawTriangle(painter, myx, myy, true);
+              }
         } else {
             switch (n->getStatus()) {
             case SOLVED:
@@ -144,8 +154,8 @@ DrawingCursor::processCurrentNode(void) {
                 break;
             case BRANCH:
 #ifndef MAXIM_THESIS
-                // painter.drawEllipse(myx - HALF_NODE_WIDTH + SHADOW_OFFSET,
-                //     myy + SHADOW_OFFSET, NODE_WIDTH, NODE_WIDTH);
+                painter.drawEllipse(myx - HALF_NODE_WIDTH + SHADOW_OFFSET,
+                    myy + SHADOW_OFFSET, NODE_WIDTH, NODE_WIDTH);
 #endif
                 break;
             case UNDETERMINED:
@@ -203,7 +213,7 @@ DrawingCursor::processCurrentNode(void) {
             }
 
             if (n->getSubtreeSize() != -1)
-              drawSizedTriangle(painter, myx, myy, n->getSubtreeSize(), false);
+              drawSizedRect(painter, myx, myy, n->getSubtreeSize(), false);
             else
               drawTriangle(painter, myx, myy, false);
         }
@@ -266,48 +276,91 @@ DrawingCursor::processCurrentNode(void) {
         painter.drawEllipse(myx-10-0, myy, 10.0, 10.0);
     }
 
+
+
 }
 
 static void drawPentagon(QPainter& painter, int myx, int myy, bool shadow) {
-    int shadowOffset = shadow? SHADOW_OFFSET : 0;
-    QPointF points[5] = { QPointF(myx + shadowOffset, myy + shadowOffset),
-        QPointF(myx + HALF_NODE_WIDTH + shadowOffset, myy + THIRD_NODE_WIDTH + shadowOffset),
-        QPointF(myx + THIRD_NODE_WIDTH + shadowOffset, myy + NODE_WIDTH + shadowOffset),
-        QPointF(myx - THIRD_NODE_WIDTH + shadowOffset, myy + NODE_WIDTH + shadowOffset),
-        QPointF(myx - HALF_NODE_WIDTH + shadowOffset, myy + THIRD_NODE_WIDTH + shadowOffset)
+
+    QPointF points[5] = { QPointF(myx, myy),
+        QPointF(myx + HALF_NODE_WIDTH, myy + THIRD_NODE_WIDTH),
+        QPointF(myx + THIRD_NODE_WIDTH, myy + NODE_WIDTH),
+        QPointF(myx - THIRD_NODE_WIDTH, myy + NODE_WIDTH),
+        QPointF(myx - HALF_NODE_WIDTH, myy + THIRD_NODE_WIDTH)
     };
+
+    if (shadow) {
+        for (auto&& p : points) { p += QPointF(SHADOW_OFFSET, SHADOW_OFFSET);}
+    }
 
     painter.drawConvexPolygon(points, 5);
 }
 
 static void drawTriangle(QPainter& painter, int myx, int myy, bool shadow){
-    int shadowOffset = shadow? SHADOW_OFFSET : 0;
-    QPointF points[3] = { QPointF(myx + shadowOffset, myy + shadowOffset),
-        QPointF(myx + NODE_WIDTH + shadowOffset, myy + HIDDEN_DEPTH + shadowOffset),
-        QPointF(myx - NODE_WIDTH + shadowOffset, myy + HIDDEN_DEPTH + shadowOffset)
+
+    QPointF points[3] = { QPointF(myx, myy),
+        QPointF(myx + NODE_WIDTH, myy + HIDDEN_DEPTH),
+        QPointF(myx - NODE_WIDTH, myy + HIDDEN_DEPTH)
     };
+
+    if (shadow) {
+        for (auto&& p : points) { p += QPointF(SHADOW_OFFSET, SHADOW_OFFSET);}
+    }
 
     painter.drawConvexPolygon(points, 3);
 }
 
 static void drawSizedTriangle(QPainter& painter, int myx, int myy, int subtreeSize, bool shadow) {
-    int shadowOffset = shadow? SHADOW_OFFSET : 0;
+
     int height = HIDDEN_DEPTH * (subtreeSize + 1) / 4;
-    QPointF points[3] = { QPointF(myx + shadowOffset, myy + shadowOffset),
-        QPointF(myx + NODE_WIDTH + shadowOffset, myy + height + shadowOffset),
-        QPointF(myx - NODE_WIDTH + shadowOffset, myy + height + shadowOffset)
+    QPointF points[3] = { QPointF(myx, myy),
+        QPointF(myx + NODE_WIDTH, myy + height),
+        QPointF(myx - NODE_WIDTH, myy + height)
     };
+
+    if (shadow) {
+        for (auto&& p : points) { p += QPointF(SHADOW_OFFSET, SHADOW_OFFSET);}
+    }
 
     painter.drawConvexPolygon(points, 3);
 }
 
-static void drawDiamond(QPainter& painter, int myx, int myy, bool shadow) {
-    int shadowOffset = shadow? SHADOW_OFFSET : 0;
-    QPointF points[4] = { QPointF(myx + shadowOffset, myy + shadowOffset),
-        QPointF(myx + HALF_NODE_WIDTH + shadowOffset, myy + HALF_NODE_WIDTH + shadowOffset),
-        QPointF(myx + shadowOffset, myy + NODE_WIDTH + shadowOffset),
-        QPointF(myx - HALF_NODE_WIDTH + shadowOffset, myy + HALF_NODE_WIDTH + shadowOffset)
+static void drawSizedRect(QPainter& painter, int myx, int myy, int subtreeSize, bool shadow) {
+    using sized_rect::K; using sized_rect::BASE_HEIGHT; using sized_rect::HALF_WIDTH;
+
+    int height = K * subtreeSize;
+
+    QPointF points[5] = { QPointF(myx, myy),
+        QPointF(myx + HALF_WIDTH, myy + BASE_HEIGHT),
+        QPointF(myx + HALF_WIDTH, myy + BASE_HEIGHT + height),
+        QPointF(myx - HALF_WIDTH, myy + BASE_HEIGHT + height),
+        QPointF(myx - HALF_WIDTH, myy + BASE_HEIGHT)
     };
+
+    if (shadow) {
+        for (auto&& p : points) { p += QPointF(SHADOW_OFFSET, SHADOW_OFFSET);}
+    }
+
+    painter.drawConvexPolygon(points, 5);
+
+    // QRectF rect { (float)myx - HALF_NODE_WIDTH, (float)myy, (float)NODE_WIDTH, (float)height };
+
+    // if (shadow) rect.translate(SHADOW_OFFSET, SHADOW_OFFSET);
+
+    // painter.drawRect(rect);
+}
+
+static void drawDiamond(QPainter& painter, int myx, int myy, bool shadow) {
+
+    QPointF points[4] = { QPointF(myx, myy),
+        QPointF(myx + HALF_NODE_WIDTH, myy + HALF_NODE_WIDTH),
+        QPointF(myx, myy + NODE_WIDTH),
+        QPointF(myx - HALF_NODE_WIDTH, myy + HALF_NODE_WIDTH)
+    };
+
+    if (shadow) {
+        for (auto&& p : points) { p += QPointF(SHADOW_OFFSET, SHADOW_OFFSET);}
+    }
 
     painter.drawConvexPolygon(points, 4);
 }

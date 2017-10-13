@@ -19,16 +19,21 @@
  */
 
 #include "nodetree.hh"
+#include "cpprofiler/utils/tree_utils.hh"
 
-NodeTree::NodeTree()
-    : mutex(QMutex::Recursive), layoutMutex(QMutex::Recursive) {
+NodeTree::NodeTree() {
   int rootIdx = na.allocateRoot();
   assert(rootIdx == 0);
   (void)rootIdx;
   na[0]->setMarked(true);
 }
 
-NodeTree::~NodeTree() = default;
+NodeTree::~NodeTree() {
+    /// NOTE(maxim): not sure what this does, but was originally in ~TreeCanvas
+    utils::applyToEachNodePO(*this, [](VisualNode* n) {
+        n->dispose();
+    });
+};
 
 const NodeAllocator& NodeTree::getNA() const { return na; }
 NodeAllocator& NodeTree::getNA() { return na; }
@@ -59,5 +64,5 @@ const Statistics& NodeTree::getStatistics() const {
     return stats;
 }
 
-QMutex& NodeTree::getMutex() { return mutex; }
+QMutex& NodeTree::getTreeMutex() { return treeMutex; }
 QMutex& NodeTree::getLayoutMutex() { return layoutMutex; }

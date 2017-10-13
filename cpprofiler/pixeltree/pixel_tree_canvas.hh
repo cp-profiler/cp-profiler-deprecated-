@@ -84,7 +84,7 @@ class PixelTreeCanvas : public QWidget {
 
   struct PixelTreeState {
     bool show_objective = true;
-    bool show_time_histogram = false;
+    bool show_time_histogram = true;
     bool show_domain_histogram = false;
     bool show_decision_vars_histogram = false;
     bool show_depth_analysis_histogram = false;

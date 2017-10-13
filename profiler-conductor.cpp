@@ -14,6 +14,7 @@
 //#include "webscript.hh"
 
 #include "cpprofiler/utils/tree_utils.hh"
+#include "cpprofiler/utils/utils.hh"
 
 #include <fstream>
 #include <QPushButton>
@@ -209,7 +210,11 @@ ProfilerConductor::ProfilerConductor() : QMainWindow(), listen_port(6565) {
   std::cerr << "READY TO LISTEN ON: " << listen_port << " \n";
 }
 
-ProfilerConductor::~ProfilerConductor() = default;
+ProfilerConductor::~ProfilerConductor() {
+  for (auto ex : executions) {
+    delete ex;
+  }
+}
 
 int ProfilerConductor::getListenPort() {
   return static_cast<int>(listen_port);
@@ -230,7 +235,7 @@ void ProfilerConductor::addExecution(Execution& e) {
   qDebug() << "addExecution";
   executions << &e;
 
-  executionInfoHash.insert(&e, new ExecutionInfo);
+  executionInfoHash.insert(&e, ExecutionInfo{});
 
   /// updates titles when a new one becomes known
   connect(&e, SIGNAL(titleKnown()), this, SLOT(updateTitles()));
@@ -253,7 +258,7 @@ void ProfilerConductor::addExecution(Execution& e) {
 }
 
 void ProfilerConductor::displayExecution(Execution& ex, QString&& title) {
-  auto gistMW = executionInfoHash[&ex]->gistWindow;
+  auto gistMW = executionInfoHash[&ex].gistWindow;
   if (!gistMW) {
     gistMW = createGist(ex, title);
   }
@@ -276,7 +281,7 @@ void ProfilerConductor::updateTitles(void) {
 GistMainWindow* ProfilerConductor::createGist(Execution& e, QString title) {
   auto gist = new GistMainWindow{e, this};
   gist->changeTitle(title);
-  executionInfoHash[&e]->gistWindow = gist;
+  executionInfoHash[&e].gistWindow = gist;
 
   connect(gist->getCanvas(), SIGNAL(showNodeInfo(std::string)),
           this, SLOT(showNodeInfoToIDE(std::string)));
@@ -320,8 +325,8 @@ void ProfilerConductor::compareButtonClicked() {
   auto ex1 = selected_executions[0];
   auto ex2 = selected_executions[1];
 
-  auto gmw1 = executionInfoHash[ex1]->gistWindow;
-  auto gmw2 = executionInfoHash[ex2]->gistWindow;
+  auto gmw1 = executionInfoHash[ex1].gistWindow;
+  auto gmw2 = executionInfoHash[ex2].gistWindow;
   if (gmw1 == nullptr || gmw2 == nullptr) return;
 
   const bool withLabels = compareWithLabelsCB.isChecked();
@@ -368,8 +373,8 @@ void ProfilerConductor::compareSubtrees() {
   const auto* ex1 = selected_executions[0];
   const auto* ex2 = selected_executions[1];
 
-  auto gmw1 = executionInfoHash[ex1]->gistWindow;
-  auto gmw2 = executionInfoHash[ex2]->gistWindow;
+  auto gmw1 = executionInfoHash[ex1].gistWindow;
+  auto gmw2 = executionInfoHash[ex2].gistWindow;
 
   if (gmw1 == nullptr || gmw2 == nullptr) return;
 
@@ -415,11 +420,11 @@ void ProfilerConductor::gatherStatisticsClicked() {
   auto selected_executions = getSelectedExecutions();
   for (int i = 0; i < selected_executions.size(); i++) {
     Execution* ex = selected_executions[i];
-    GistMainWindow* g = executionInfoHash[ex]->gistWindow;
+    GistMainWindow* g = executionInfoHash[ex].gistWindow;
 
     if (g == nullptr) {
       g = new GistMainWindow(*ex, this);
-      executionInfoHash[ex]->gistWindow = g;
+      executionInfoHash[ex].gistWindow = g;
     }
     //        g->hide();
 
@@ -480,7 +485,7 @@ void ProfilerConductor::tellVisualisationsSelectNode(Execution* execution, int g
     // p = executionInfoHash[execution]->icicleView;    if (p) p->select(gid);
     // p = executionInfoHash[execution]->variablesView; if (p) p->select(gid);
     GistMainWindow* g;
-    g = executionInfoHash[execution]->gistWindow;    if (g) g->selectNode(gid);
+    g = executionInfoHash[execution].gistWindow;    if (g) g->selectNode(gid);
 }
 
 void ProfilerConductor::tellVisualisationsSelectManyNodes(Execution* execution, QList<QVariant> gids) {
@@ -489,7 +494,7 @@ void ProfilerConductor::tellVisualisationsSelectManyNodes(Execution* execution, 
     // p = executionInfoHash[execution]->icicleView;    if (p) p->selectMany(gids);
     // p = executionInfoHash[execution]->variablesView; if (p) p->selectMany(gids);
     GistMainWindow* g;
-    g = executionInfoHash[execution]->gistWindow;    if (g) g->selectManyNodes(gids);
+    g = executionInfoHash[execution].gistWindow;    if (g) g->selectManyNodes(gids);
 }
 
 void ProfilerConductor::saveExecutionClicked() {
@@ -563,9 +568,9 @@ void ProfilerConductor::deleteExecutionClicked() {
   for (int i = 0; i < selected_executions.size(); i++) {
     auto ex = selected_executions[i];
     executions.removeOne(ex);
-    if (executionInfoHash[ex]->gistWindow != NULL) {
-        executionInfoHash[ex]->gistWindow->stopReceiver();
-        delete executionInfoHash[ex]->gistWindow;
+    if (executionInfoHash[ex].gistWindow != NULL) {
+        executionInfoHash[ex].gistWindow->stopReceiver();
+        delete executionInfoHash[ex].gistWindow;
     }
     delete ex;
   }

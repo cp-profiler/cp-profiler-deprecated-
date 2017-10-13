@@ -58,7 +58,7 @@ ostream& operator<<(ostream& s, const DbEntry& e) {
 
 using TP = system_clock::time_point;
 
-static uint64_t milliseconds_passed(TP begin, TP end) {
+static uint64_t microseconds_passed(TP begin, TP end) {
   return static_cast<uint64_t>(
       duration_cast<microseconds>(end - begin).count());
 }
@@ -76,45 +76,62 @@ class NodeTimer {
   // Total solver time in microseconds
   uint64_t m_total_time;
 
+  bool started{false};
   bool finished{false};
 
  public:
   void start() {
+    if (started) {
+        qDebug() << "timer already started";
+        return;
+    }
+    started = true;
     begin_time = system_clock::now();
+    last_interval_time = begin_time;
     current_time = begin_time;
   }
 
   void end() {
-    m_total_time = milliseconds_passed(begin_time, current_time);
+    if (!started) {
+        qDebug() << "timer not started";
+        return;
+    }
+    m_total_time = microseconds_passed(begin_time, current_time);
     finished = true;
   }
 
-  void on_node() {
+  uint64_t on_node() {
     current_time = system_clock::now();
 
-    //auto time_passed = milliseconds_passed(last_interval_time, current_time);
+    uint64_t time_passed = microseconds_passed(last_interval_time, current_time);
 
+    last_interval_time = current_time;
+
+    return time_passed;
   }
 
   uint64_t total_time() { return finished ? m_total_time : 0; }
 };
 
-Data::Data() : search_timer{new NodeTimer}, nameMap{nullptr} {
+Data::Data() : search_timer{new NodeTimer}, nameMap{nullptr} {}
 
+void Data::initReceiving() {
+    QMutexLocker locker(&dataMutex);
+
+    search_timer->start();
 }
 
-void Data::setDoneReceiving(void) {
+void Data::setDoneReceiving() {
     QMutexLocker locker(&dataMutex);
 
     search_timer->end();
-    // qDebug() << "done receiving";
 
     _isDone = true;
 }
 
 void Data::handleNodeCallback(const cpprofiler::Message& node) {
-
-    search_timer->on_node();
+    QMutexLocker locker(&dataMutex);
+    uint64_t node_time = search_timer->on_node();
 
     auto n_uid = node.nodeUID();
     auto p_uid = node.parentUID();
@@ -124,13 +141,14 @@ void Data::handleNodeCallback(const cpprofiler::Message& node) {
 
     auto entry = new DbEntry(nodeUID, parentUID, node.alt(), node.kids(), node.status());
 
+    entry->node_time = node_time;
+
     entry->label = node.has_label() ? node.label() : "";
 
     if (node.has_info() && node.info().length() > 0) {
         uid2info[nodeUID] = make_shared<std::string>(node.info());
 
         try {
-            qDebug() << "info:" << node.info().c_str();
             auto info_json = nlohmann::json::parse(node.info());
             auto obj_value = info_json.find("objective");
 
@@ -185,12 +203,13 @@ NodeUID Data::gid2uid(int gid) const {
 }
 
 uint64_t Data::getTotalTime() {
+    QMutexLocker locker(&dataMutex);
     return search_timer->total_time();
 }
 
 
 Data::~Data(void) {
-
+    QMutexLocker locker(&dataMutex);
     for (auto it = nodes_arr.begin(); it != nodes_arr.end();) {
         delete (*it);
         it = nodes_arr.erase(it);
@@ -213,6 +232,7 @@ void Data::pushInstance(DbEntry* entry) {
 }
 
 void Data::setNameMap(NameMap* names) {
+    QMutexLocker locker(&dataMutex);
     nameMap = names;
 }
 
@@ -242,6 +262,7 @@ void Data::setLabel(int gid, const std::string& str) {
 }
 
 const std::string Data::getDebugInfo() const {
+    QMutexLocker locker(&dataMutex);
     std::ostringstream os;
 
     os << "---nodes_arr---" << '\n';

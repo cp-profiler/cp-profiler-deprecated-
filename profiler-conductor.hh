@@ -33,7 +33,7 @@ class ProfilerConductor : public QMainWindow {
   Q_OBJECT
  private:
   QList<Execution*> executions;
-  QHash<const Execution*, ExecutionInfo*> executionInfoHash;
+  QHash<const Execution*, ExecutionInfo> executionInfoHash;
 
   quint16 listen_port;
 
