@@ -82,7 +82,6 @@ public:
 private:
   NameMap(const SymbolTable& st);
 
-  std::vector<std::string> getPathHead(const std::string& path, bool includeTrail) const;
   std::string replaceAssignments(const std::string& path, const std::string& expression) const;
 
   void addIdExpressionToMap(const std::string& ident, const std::vector<std::string>& modelText);

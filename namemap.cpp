@@ -6,12 +6,10 @@
 #include "third-party/json.hpp"
 
 #include "cpprofiler/utils/string_utils.hh"
+#include "cpprofiler/utils/path_utils.hh"
 
 #define reg_mzn_ident "[A-Za-z][A-Za-z0-9_]*"
 #define reg_number "[0-9]*"
-
-#define minor_sep '|'
-#define major_sep ';'
 
 std::regex NameMap::var_name_regex(reg_mzn_ident);
 std::regex NameMap::assignment_regex(reg_mzn_ident "=" reg_number);
@@ -19,6 +17,10 @@ std::regex NameMap::assignment_regex(reg_mzn_ident "=" reg_number);
 using std::string;
 using std::vector;
 using std::unordered_set;
+
+using utils::join;
+using utils::split;
+using utils::getPathHead;
 
 vector<int> getReasons(const string* maybe_info) {
 
@@ -196,7 +198,7 @@ NameMap::NameMap(const std::string& path_filename, const std::string& model_file
     string line;
     while(getline(pf, line)) {
       vector<string> s = utils::split(line, '\t');
-      Location loc(getPathHead(s[2], false).back());
+      Location loc(getPathHead(s[2], false, false).back());
       _nameMap[s[0]] = SymbolRecord(s[1], s[2], loc);
       if(s[1].substr(0, 12) == "X_INTRODUCED")
         addIdExpressionToMap(s[0], modelText);
@@ -295,43 +297,12 @@ void NameMap::addIdExpressionToMap(const string& ident, const vector<string>& mo
   string expression = modelText[static_cast<size_t>(loc.sl-1)].substr(
               static_cast<size_t>(loc.sc-1),
               static_cast<size_t>(loc.ec-(loc.sc-1)));
-  const vector<string> components = getPathHead(getPath(ident), true);
+  const vector<string> components = getPathHead(getPath(ident), false, true);
   expression = replaceAssignments(utils::join(components, major_sep), expression);
 
   _expressionMap.insert(make_pair(ident, expression));
 }
 
-// Get the most specific path component that is still in the user model
-vector<string> NameMap::getPathHead(const string& path, bool includeTrail = false) const {
-  vector<string> pathSplit = utils::split(path, major_sep);
-
-  string mzn_file;
-  vector<string> previousHead;
-
-  if(pathSplit.size() == 0)
-    return previousHead;
-
-  size_t i=0;
-  do {
-    string path_head = pathSplit[i];
-    vector<string> head = utils::split(path_head, minor_sep);
-    string head_file;
-    if(head.size() > 0) {
-      if(i==0) mzn_file = head[0];
-      head_file = head[0];
-    }
-
-    if(head_file != mzn_file)
-      return previousHead;
-
-    if(!includeTrail)
-      previousHead.clear();
-    previousHead.push_back(path_head);
-    i++;
-  } while(i < pathSplit.size());
-
-  return previousHead;
-}
 
 string NameMap::getHeatMap(
     const std::unordered_map<int, int>& con_id_counts, int max_count) const {
@@ -340,7 +311,7 @@ string NameMap::getHeatMap(
   std::unordered_map<string, int> locations;
   for(auto it : con_id_counts) {
     const string path = getPath(std::to_string(it.first));
-    const vector<string> path_head_elements = getPathHead(path, false);
+    const vector<string> path_head_elements = getPathHead(path, false, false);
     if(path_head_elements.size() == 0)
       continue;
     const string path_head = path_head_elements[0];
