@@ -200,6 +200,7 @@ DbEntry* Execution::getEntry(const Node& node) const {
 }
 
 int32_t Execution::getGidByUID(NodeUID uid) const { return m_Data->getGidByUID(uid); }
+
 std::string Execution::getLabel(int gid, bool rename) const {
   std::string origLabel = m_Data->getLabel(gid);
   if(rename) {
@@ -241,6 +242,11 @@ void Execution::compareDomains() {
 const NameMap* Execution::getNameMap() const { return m_Data->getNameMap(); }
 void Execution::setNameMap(NameMap* names) {
   m_Data->setNameMap(names);
+}
+
+void Execution::setLabel(const VisualNode& n, const std::string& str) {
+  auto gid = n.getIndex(m_NodeTree->getNA());
+  m_Data->setLabel(gid, str);
 }
 
 QMutex& Execution::getTreeMutex() { return m_NodeTree->getTreeMutex(); }

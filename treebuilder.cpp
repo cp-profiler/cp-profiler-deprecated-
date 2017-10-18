@@ -41,8 +41,6 @@ bool TreeBuilder::processRoot(DbEntry& dbEntry) {
   QMutexLocker locker(&execution.getTreeMutex());
   QMutexLocker layoutLocker(&execution.getLayoutMutex());
 
-  std::cout << "process root: " << dbEntry << std::endl;
-
   Statistics& stats = execution.getStatistics();
 
   stats.choices++;
@@ -109,7 +107,9 @@ bool TreeBuilder::processNode(DbEntry& dbEntry, bool is_delayed) {
   auto pid_it = _data.uid2aid.find(p_uid);
 
   if (pid_it == _data.uid2aid.end()) {
-    if (!is_delayed) read_queue->readLater(&dbEntry);
+    if (!is_delayed) {
+      read_queue->readLater(&dbEntry);
+    }
 
     return false;
   }
@@ -267,14 +267,16 @@ void TreeBuilder::run() {
   bool is_delayed;
 
   while (true) {
-    /// TODO(maxim): isn't it the same as `lock`?
-    while (!dataMutex.tryLock()) {/* qDebug() << "Can't lock, trying again"; */};
 
+    while (!dataMutex.tryLock()) {
+      // msleep(1);
+    };
     /// check if done
     if (!read_queue->canRead()) {
       dataMutex.unlock();
 
       if (_data.isDone()) {
+        dataMutex.unlock();
         break;
       }
       /// can't read, but receiving not done, waiting...
@@ -289,7 +291,6 @@ void TreeBuilder::run() {
 
     /// try to put node into the tree
     bool success = isRoot ? processRoot(*entry) : processNode(*entry, is_delayed);
-
     read_queue->update(success);
 
     dataMutex.unlock();

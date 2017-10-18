@@ -81,6 +81,8 @@ public:
 
     std::string getLabel(const VisualNode& node, bool rename = true) const;
 
+    void setLabel(const VisualNode& n, const std::string& str);
+
     unsigned long long getTotalTime();
 
     Data& getData() const;

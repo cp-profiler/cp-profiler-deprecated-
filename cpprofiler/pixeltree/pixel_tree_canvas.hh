@@ -26,6 +26,7 @@
 #include <QWidget>
 #include <vector>
 #include <string>
+#include <set>
 #include <QDebug>
 
 #include "cpprofiler/analysis/depth_analysis.hh"
@@ -85,10 +86,10 @@ class PixelTreeCanvas : public QWidget {
   struct PixelTreeState {
     bool show_objective = true;
     bool show_time_histogram = true;
-    bool show_domain_histogram = false;
-    bool show_decision_vars_histogram = false;
-    bool show_depth_analysis_histogram = false;
-    bool show_bj_analysis_histogram = false;
+    bool show_domain_histogram = true;
+    bool show_decision_vars_histogram = true;
+    bool show_depth_analysis_histogram = true;
+    bool show_bj_analysis_histogram = true;
 
     /// mouse guidelines
     int mouse_guide_x = 0;
@@ -124,7 +125,7 @@ class PixelTreeCanvas : public QWidget {
   std::vector<float> domain_red_arr;  /// domain reduction for each vline
   std::vector<float> objective_arr;
 
-  std::vector<std::string> vars;
+  std::vector<std::string> all_vars_vector;
 
   // to know which pixels to deselect
   std::vector<PixelItem*> pixels_selected;

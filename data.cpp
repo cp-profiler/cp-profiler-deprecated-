@@ -29,6 +29,7 @@
 #include <string>
 #include <sstream>
 #include <QString>
+#include <QThread>
 #include <ctime>
 
 #include "visualnode.hh"
@@ -46,7 +47,7 @@ ostream& operator<<(ostream& s, const NodeUID& uid) {
 ostream& operator<<(ostream& s, const DbEntry& e) {
     s << "dbEntry: {";
     s << " uid: "   << e.nodeUID;
-    s << " p_uid: " << e.parentUID.nid;
+    s << " p_uid: " << e.parentUID;
     s << " gid: "   << e.gid;
     s << " alt: "   << e.alt;
     s << " kids: "  << e.numberOfKids;
@@ -159,7 +160,7 @@ void Data::handleNodeCallback(const cpprofiler::Message& node) {
                 }
             }
         } catch (std::exception& e) {
-            std::cerr << "Can't parse json near objective: " << e.what() << "\n";
+            // std::cerr << "Can't parse json near objective: " << e.what() << "\n";
         }
 
     }
@@ -183,10 +184,10 @@ void Data::handleNodeCallback(const cpprofiler::Message& node) {
 
 std::string Data::getLabel(int gid) {
     QMutexLocker locker(&dataMutex);
-
     auto it = gid2entry.find(gid);
-    if (it != gid2entry.end() && it->second != nullptr)
+    if (it != gid2entry.end() && it->second != nullptr) {
         return it->second->label;
+    }
     return "";
 
 }
@@ -246,7 +247,6 @@ void Data::setLabel(int gid, const std::string& str) {
     if (it != gid2entry.end() && it->second != nullptr) {
         it->second->label = str;
     } else {
-
         auto entry = new DbEntry{};
         nodes_arr.push_back(entry);
         gid2entry[gid] = entry;

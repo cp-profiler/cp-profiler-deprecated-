@@ -22,6 +22,7 @@
 #include "pixel_tree_canvas.hh"
 #include <numeric>
 #include <stack>
+#include <set>
 #include <utility>
 
 #include "cpprofiler/analysis/backjumps.hh"
@@ -72,8 +73,8 @@ PixelTreeCanvas::PixelTreeCanvas(QWidget* parent, TreeCanvas& tc, InfoPanel& ip)
   //   _nodeCount++;
   // }
 
-  _sa->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
-  _sa->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
+  // _sa->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
+  // _sa->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
 
   setMouseTracking(true);
 
@@ -99,6 +100,8 @@ PixelTreeCanvas::PixelTreeCanvas(QWidget* parent, TreeCanvas& tc, InfoPanel& ip)
   gatherNogoodData();
   compressNogoodData(1);
   // perfHelper.end();
+
+  redrawAll();
 
 }
 
@@ -130,6 +133,15 @@ void PixelTreeCanvas::paintEvent(QPaintEvent*) {
   QPainter painter{this};
 
   painter.drawImage(QPoint{0, 0}, *pixel_image.image());
+
+  auto pixel_h = pixel_image.pixel_height();
+  auto view_h = _sa->viewport()->height();
+  auto page_step = view_h / pixel_h;
+  auto upper_bound = current_image_height - page_step;
+  _sa->verticalScrollBar()->setRange(0, upper_bound);
+
+  _sa->verticalScrollBar()->setPageStep(page_step);
+  _sa->verticalScrollBar()->setSingleStep(pixel_h);
 
 }
 
@@ -332,33 +344,40 @@ void PixelTreeCanvas::gatherVarData() {
   var_decisions.clear();
   var_decisions.reserve(data_length);
 
-  for (auto& pixel : pixel_data.pixel_list) {
-    auto label = _data.getLabel(pixel.node()->getIndex(_na));  /// 1. get label
+  std::set<std::string> all_vars_set;
 
-    /// 2. get variable name
+  /// Obtain all variable names:
+  for (auto& p : pixel_data.pixel_list) {
+    auto label = _data.getLabel(p.node()->getIndex(_na));
     auto found = findAnyOf(label, "=", "!=", "<", ">", ">=", "=<");
 
-    std::string var = "";
-    if (found != std::string::npos) var = label.substr(0, found);
+    string var = "";
+    if (found != string::npos) var = label.substr(0, found);
 
-    /// 3. check if we already know the variable
+    all_vars_set.insert(var);
+  }
 
+  all_vars_vector = std::vector<std::string>{all_vars_set.begin(), all_vars_set.end()};
+
+  std::sort(all_vars_vector.begin(), all_vars_vector.end());
+
+
+  for (auto&p : pixel_data.pixel_list) {
     auto var_id = -1;
 
-    for (unsigned i = 0; i < vars.size(); i++) {
-      if (vars[i] == var) {
+    auto label = _data.getLabel(p.node()->getIndex(_na));
+    auto found = findAnyOf(label, "=", "!=", "<", ">", ">=", "=<");
+
+    string var = "";
+    if (found != string::npos) var = label.substr(0, found);
+
+    for (auto i = 0u; i < all_vars_vector.size(); i++) {
+      if (all_vars_vector[i] == var) {
         var_id = i;
         break;
       }
     }
 
-    if (var_id == -1) {  /// no such variable
-      vars.push_back(var);
-      var_id = vars.size() - 1;
-    } else {
-    }
-
-    /// rememeber decision variables
     var_decisions.push_back(var_id);
   }
 
@@ -593,10 +612,6 @@ void PixelTreeCanvas::redrawAll() {
   auto vlines = ceil((float)pixel_list.size() / pixel_data.compression());
 
   _sa->horizontalScrollBar()->setRange(0, vlines - pixel_image.width() + 20);
-  _sa->verticalScrollBar()->setRange(
-      0, current_image_height -
-             _sa->viewport()->height() / pixel_image.pixel_height());
-
 
   // perfHelper.begin("pixel tree: draw pizel tree");
   drawPixelTree(pixel_data);
@@ -620,10 +635,7 @@ void PixelTreeCanvas::redrawAll() {
 
   if (m_State.show_bj_analysis_histogram) drawBjData();
   // drawNogoodData();
-
-  // perfHelper.begin("pixel tree: update pixel image");
   pixel_image.update();
-  // perfHelper.end();
 
   repaint();
 }
@@ -634,9 +646,7 @@ void PixelTreeCanvas::drawVarData() {
   const auto xoff = _sa->horizontalScrollBar()->value();
   const auto yoff = _sa->verticalScrollBar()->value();
 
-  assert(yoff == 0);
-
-  const int zero_level = current_image_height + vars.size() - yoff;
+  const int zero_level = current_image_height + all_vars_vector.size() - yoff;
 
   hisogramDesc.var_end = zero_level;
   pixel_image.drawHorizontalLine(current_image_height - yoff,
@@ -653,9 +663,9 @@ void PixelTreeCanvas::drawVarData() {
       const auto y = static_cast<int>(zero_level) - var_id;
 
       if (x > pixel_image.width()) break;
-      if (y > pixel_image.width() || y < 0) continue;
+      if (y > pixel_image.height() || y < 0) continue;
 
-      const auto color_value = ceil(var_id * 255 / vars.size());
+      const auto color_value = ceil(var_id * 255 / all_vars_vector.size());
 
       pixel_image.drawPixel(x, y,
                             QColor::fromHsv(color_value, 200, 255).rgba());
@@ -663,7 +673,7 @@ void PixelTreeCanvas::drawVarData() {
   }
 
   hisogramDesc.var_begin = current_image_height;
-  current_image_height += vars.size() + MARGIN;
+  current_image_height += all_vars_vector.size() + MARGIN;
 }
 
 void PixelTreeCanvas::drawNogoodData() {
@@ -754,7 +764,9 @@ void PixelTreeCanvas::drawHistogram(const vector<float>& data, int color) {
       break;  /// note: true (breaks) if x < 0
     if (y > img_height || y < 0) continue;
 
-    pixel_image.drawPixel(x, y, color);
+    for (auto i = zero_level; i > y; --i) {
+      pixel_image.drawPixel(x, i, color);
+    }
   }
 
   current_image_height += HIST_HEIGHT + MARGIN;
@@ -1115,7 +1127,6 @@ void PixelTreeCanvas::mouseMoveEvent(QMouseEvent* event) {
     /// calls redrawAll not more often than 60hz
     maybeCaller.call([this, x, y, vline]() {
 
-#ifdef MAXIM_DEBUG
       if (vline < var_decisions_compressed.size()) {
         string var_info = "";
         // for (const auto& var_id : var_decisions_compressed[vline]) {
@@ -1130,7 +1141,7 @@ void PixelTreeCanvas::mouseMoveEvent(QMouseEvent* event) {
 
           for (auto var_id : var_ids) {
             if (var_id == rel_y) {
-              var_info += vars[var_id];
+              var_info += all_vars_vector[var_id];
               break;
             }
           }
@@ -1139,7 +1150,6 @@ void PixelTreeCanvas::mouseMoveEvent(QMouseEvent* event) {
 
         infoPanel.set_var_info(var_info);
       }
-#endif
 
       // pixel_image.drawMouseGuidelines(x, y);
       pixel_image.update();

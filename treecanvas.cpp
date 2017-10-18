@@ -1676,6 +1676,14 @@ void TreeCanvas::openNodeSearch() {
   navigateToNodeById(gid);
 }
 
+void TreeCanvas::highlightSubtree() {
+
+    auto state = currentNode->isHighlighted();
+    currentNode->setHighlighted(!state);
+
+    updateCanvas();
+}
+
 #ifdef MAXIM_DEBUG
 void TreeCanvas::printDebugInfo() {
   print_debug(na, execution.getData());
@@ -1695,18 +1703,17 @@ void TreeCanvas::_addChildren(VisualNode* node) {
   stats.maxDepth = std::max(stats.maxDepth, new_depth);
 }
 
-void TreeCanvas::highlightSubtree() {
-
-  auto state = currentNode->isHighlighted();
-  currentNode->setHighlighted(!state);
-
-  updateCanvas();
-}
-
 void TreeCanvas::nextStatus() {
   // qDebug() << "next Status";
-  // auto curStatus = (int)currentNode->getStatus();
-  currentNode->setStatus(FAILED);
+  auto curStatus = currentNode->getStatus();
+
+  if (curStatus == UNDETERMINED) {
+    currentNode->setStatus(FAILED);
+  } else if (curStatus == FAILED) {
+    currentNode->setStatus(SOLVED);
+  } else {
+    currentNode->setStatus(UNDETERMINED);
+  }
   currentNode->dirtyUp(na);
   updateCanvas();
 }
@@ -1793,8 +1800,8 @@ void TreeCanvas::setLabel() {
 
   if (!ok) return;
 
-  auto entry = execution.getEntry(*currentNode);
-  entry->label = label;
+  execution.setLabel(*currentNode, label);
+
   updateCanvas();
 }
 

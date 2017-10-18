@@ -216,23 +216,20 @@ VisualNode::labelPath(NodeAllocator& na, TreeCanvas& tc) {
         }
     } else {
         // set labels on path to root
-        std::vector<std::pair<VisualNode*,int> > path;
+        std::vector<VisualNode*> path;
         VisualNode* p = this;
         while (p) {
-            path.push_back(std::pair<VisualNode*,int>(p,p->getAlternative(na)));
+            path.push_back(p);
             p = p->getParent(na);
         }
-        while (!path.empty()) {
-            std::pair<VisualNode*,int> cur = path.back(); path.pop_back();
-            if (p) {
-                int gid = cur.first->getIndex(na);
-                std::string l = tc.getLabel(gid);
 
-                na.setLabel(cur.first, QString(l.c_str()));
-                std::cout << l << "; ";
-            }
-            p = cur.first;
+        for (auto node : path) {
+            int gid = node->getIndex(na);
+            std::string l = tc.getLabel(gid);
+            na.setLabel(node, QString(l.c_str()));
+            std::cout << l << "; ";
         }
+
         std::cout << "\n";
     }
     dirtyUp(na);

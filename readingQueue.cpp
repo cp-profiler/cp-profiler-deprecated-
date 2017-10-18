@@ -81,8 +81,9 @@ ReadingQueue::nextNonemptyIt(QueueMap::iterator it) {
 
 bool
 ReadingQueue::canRead() {
-  if (nodes_arr.size() != last_read || delayed_count > 0)
+  if (nodes_arr.size() != last_read || delayed_count > 0) {
     return true;
+  }
   return false;
 }
 

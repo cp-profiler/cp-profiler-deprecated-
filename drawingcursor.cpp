@@ -79,27 +79,28 @@ DrawingCursor::processCurrentNode(void) {
         path.lineTo(parentX,parentY);
         painter.drawPath(path);
 
-        QFontMetrics fm = painter.fontMetrics();
-        QString label = na.getLabel(n);
-        int alt = n->getAlternative(na);
-        int n_alt = parent->getNumberOfChildren();
-        int tw = fm.width(label);
-        int lx;
-        if (alt == 0 && n_alt > 1) {
-            lx = myx - tw - 4;
-        } else if (alt == n_alt - 1 && n_alt > 1) {
-            lx = myx + 4;
-        } else {
-            lx = myx - tw / 2;
-        }
+    }
 
-        // QFont font(painter.font());
-        // font.setPixelSize(28);
-        // painter.setFont(font);
+    QFontMetrics fm = painter.fontMetrics();
+    QString label = na.getLabel(n);
+    int alt = n->getAlternative(na);
+    int n_alt = parent ? parent->getNumberOfChildren() : 1;
+    int tw = fm.width(label);
+    int lx;
+    if (alt == 0 && n_alt > 1) {
+        lx = myx - tw - 4;
+    } else if (alt == n_alt - 1 && n_alt > 1) {
+        lx = myx + 4;
+    } else {
+        lx = myx - tw / 2;
+    }
+
+    // QFont font(painter.font());
+    // font.setPixelSize(28);
+    // painter.setFont(font);
 
         // painter.drawText(QPointF(lx, myy - 4), label);
-        painter.drawText(QPointF(lx-5, myy), label);
-    }
+    painter.drawText(QPointF(lx-5, myy), label);
 
     if (!parent || parent->_tid != n->_tid) {
         switch (n->_tid) {

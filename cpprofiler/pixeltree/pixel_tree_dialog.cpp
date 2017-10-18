@@ -35,6 +35,8 @@ PixelTreeDialog::PixelTreeDialog(TreeCanvas* tc) : QDialog(tc) {
 
   canvas_ = new PixelTreeCanvas(&scrollArea, *tc, m_infoPanel);
 
+  connect(this, SIGNAL(windowResized()), canvas_, SLOT(resizeCanvas()));
+
   auto layout = new QVBoxLayout();
   setLayout(layout);
 
@@ -101,7 +103,7 @@ PixelTreeDialog::PixelTreeDialog(TreeCanvas* tc) : QDialog(tc) {
             SLOT(toggleTimeHistogram(int)));
 
     auto domains_cb = new QCheckBox("domains", this);
-    domains_cb->setCheckState(Qt::Unchecked);
+    domains_cb->setCheckState(Qt::Checked);
     optionsLayout->addWidget(domains_cb);
     connect(domains_cb, SIGNAL(stateChanged(int)), canvas_,
             SLOT(toggleDomainsHistogram(int)));
@@ -127,8 +129,6 @@ PixelTreeDialog::PixelTreeDialog(TreeCanvas* tc) : QDialog(tc) {
 
   connect(this, SIGNAL(signalPixelSelected(int)), canvas_,
           SLOT(setPixelSelected(int)));
-
-  connect(this, SIGNAL(windowResized()), canvas_, SLOT(resizeCanvas()));
 
   setAttribute(Qt::WA_QuitOnClose, true);
   setAttribute(Qt::WA_DeleteOnClose, true);

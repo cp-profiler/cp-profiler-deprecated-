@@ -392,6 +392,8 @@ public Q_SLOTS:
 
   void openNodeSearch();
 
+  void highlightSubtree();
+
 #ifdef MAXIM_DEBUG
 private:
   void _addChildren(VisualNode* n);
@@ -399,7 +401,6 @@ public:
   void printDebugInfo();
   void addChildren();
   void nextStatus();
-  void highlightSubtree();
   void createRandomTree(); // in place
   void deleteSelectedNode();
   void deleteSelectedMiddleNode();

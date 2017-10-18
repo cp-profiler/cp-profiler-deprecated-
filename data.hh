@@ -157,7 +157,7 @@ public:
 
 /// ********* GETTERS **********
 
-    bool isDone(void) { return _isDone; }
+    bool isDone(void) const { return _isDone; }
 
     const std::vector<DbEntry*>& getEntries() const { return nodes_arr; }
     inline const Uid2Nogood& getNogoods(void) { return uid2nogood; }

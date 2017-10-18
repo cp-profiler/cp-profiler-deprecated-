@@ -513,6 +513,10 @@ void GistMainWindow::addActions() {
   connect(findNode, &QAction::triggered,
           canvas, &TreeCanvas::openNodeSearch);
 
+  auto highlightSubtree = new QAction{"Toggle Highlight Subtree", this};
+  connect(highlightSubtree, &QAction::triggered, canvas, &TreeCanvas::highlightSubtree);
+  addAction(highlightSubtree);
+
 #ifdef MAXIM_DEBUG
   auto printDebugInfo = new QAction("Print Debug Info", this);
   printDebugInfo->setShortcut(QKeySequence("Ctrl+Shift+D"));
@@ -556,10 +560,6 @@ void GistMainWindow::addActions() {
   dirtyUpNode->setShortcut(QKeySequence("D"));
   connect(dirtyUpNode, &QAction::triggered, canvas, &TreeCanvas::dirtyUpNode);
   addAction(dirtyUpNode);
-
-  auto highlightSubtree = new QAction{"Toggle Highlight Subtree", this};
-  connect(highlightSubtree, &QAction::triggered, canvas, &TreeCanvas::highlightSubtree);
-  addAction(highlightSubtree);
 
   auto computeShape = new QAction{"Compute shape", this};
   connect(computeShape, &QAction::triggered, canvas, &TreeCanvas::computeShape);
@@ -673,12 +673,12 @@ void GistMainWindow::addActions() {
 
   contextMenu->addAction(extractSubtree);
   contextMenu->addAction(findSelectedShape);
+  contextMenu->addAction(highlightSubtree);
 
 #ifdef MAXIM_DEBUG
   contextMenu->addAction(deleteNode);
   contextMenu->addAction(deleteMiddleNode);
   contextMenu->addAction(dirtyUpNode);
-  contextMenu->addAction(highlightSubtree);
   contextMenu->addAction(computeShape);
   contextMenu->addAction(setLabel);
 #endif
