@@ -418,7 +418,7 @@ string convertToFlatZinc(const string& clause) {
   return fzn.join("\n").toStdString();
 }
 
-void NogoodTableView::saveNogoods(void) const {
+void NogoodTableView::saveNogoods(bool is_comparison) const {
   QString fileName = QFileDialog::getSaveFileName(parentWidget(), "Save nogoods to");
   if(fileName.isEmpty()) return;
 
@@ -430,6 +430,11 @@ void NogoodTableView::saveNogoods(void) const {
 
   nogood_stream << "nid" << sep << "nrid" << sep << "ntid" << sep;
   nogood_stream << "pid" << sep << "prid" << sep << "ptid" << sep;
+
+  if(is_comparison) {
+      nogood_stream << "count" << sep << "reduction" << sep;
+  }
+
   nogood_stream << "nogood" << sep;
   nogood_stream << "reasons";
   nogood_stream << "\n";
@@ -445,6 +450,22 @@ void NogoodTableView::saveNogoods(void) const {
 
     nogood_stream << uid.nid << sep << uid.rid << sep << uid.tid << sep;
     nogood_stream << pid.nid << sep << pid.rid << sep << pid.tid << sep;
+
+    if(is_comparison) {
+        const int OCCURRENCE_COL = 1;
+        const int REDUCTION_COL = 2;
+        {
+          QModelIndex proxy_index = nogood_proxy_model->index(row, OCCURRENCE_COL, QModelIndex());
+          QModelIndex mapped_index = nogood_proxy_model->mapToSource(proxy_index);
+          nogood_stream << _model->data(mapped_index).toString() << sep;
+        }
+        {
+          QModelIndex proxy_index = nogood_proxy_model->index(row, REDUCTION_COL, QModelIndex());
+          QModelIndex mapped_index = nogood_proxy_model->mapToSource(proxy_index);
+          nogood_stream << _model->data(mapped_index).toString() << sep;
+        }
+    }
+
     nogood_stream << clause << sep;
     for(int con : reasons) nogood_stream << " " << con;
 
@@ -452,8 +473,11 @@ void NogoodTableView::saveNogoods(void) const {
   }
 }
 
-void NogoodTableView::connectSaveNogoodTable(const QPushButton* saveNogoodsButton) {
-  connect(saveNogoodsButton, &QPushButton::clicked, this, &NogoodTableView::saveNogoods);
+void NogoodTableView::connectSaveNogoodTable(const QPushButton* saveNogoodsButton,
+                                             bool is_comparison) {
+    connect(saveNogoodsButton, &QPushButton::clicked, [this, is_comparison](){
+       saveNogoods(is_comparison);
+    });
 }
 
 void NogoodTableView::showFlatZinc(void) {
@@ -513,7 +537,8 @@ void NogoodTableView::connectLocationFilter(QLineEdit* location_edit) {
 
 
 void NogoodTableView::addStandardButtons(QWidget* parent, QVBoxLayout* layout,
-                                         TreeCanvas* canvas, const Execution& e) {
+                                         TreeCanvas* canvas, const Execution& e,
+                                         bool is_comparison) {
   const NameMap* nm = e.getNameMap();
   auto buttons = new QHBoxLayout(parent);
 
@@ -535,7 +560,7 @@ void NogoodTableView::addStandardButtons(QWidget* parent, QVBoxLayout* layout,
 
   auto saveNogoods = new QPushButton("Save Nogoods");
   saveNogoods->setAutoDefault(false);
-  connectSaveNogoodTable(saveNogoods);
+  connectSaveNogoodTable(saveNogoods, is_comparison);
   buttons->addWidget(saveNogoods);
 
   auto getFlatZinc = new QPushButton("Get FlatZinc");

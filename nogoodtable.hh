@@ -50,12 +50,14 @@ public:
                   int sid_col, int nogood_col);
 
   void addStandardButtons(QWidget* parent, QVBoxLayout* layout,
-                          TreeCanvas* canvas, const Execution& e);
+                          TreeCanvas* canvas, const Execution& e,
+                          bool is_comparison = false);
 
 private:
   // Connect buttons and text filters to their respective functionality
   void connectHeatmapButton(const QPushButton* heatmapButton, const TreeCanvas& tc);
-  void connectSaveNogoodTable(const QPushButton* saveNogoodsButton);
+  void connectSaveNogoodTable(const QPushButton* saveNogoodsButton,
+                              bool is_comparison = false);
   void connectFlatZincButton(const QPushButton* getFlatZinc);
   void connectNogoodRepresentationCheckBoxes(const QCheckBox* changeRep,
                                                    QCheckBox* showSimplified);
@@ -86,7 +88,7 @@ private:
 
 private slots:
   // Save nogoods table to csv file
-  void saveNogoods(void) const;
+  void saveNogoods(bool is_comparison) const;
   // Replace selected nogoods with equivalent FlatZinc
   void showFlatZinc(void);
   // Update the renaming of nogoods, replacing X_INTRODUCED_

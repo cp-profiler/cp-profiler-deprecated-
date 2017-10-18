@@ -539,7 +539,7 @@ CmpTreeDialog::showResponsibleNogoods() {
                                  "out of",         QString::number(total_nodes)};
   ng_layout->addWidget(new QLabel{reduction_label.join(" ")});
 
-  ng_table->addStandardButtons(this, ng_layout, m_Canvas.get(), left_execution);
+  ng_table->addStandardButtons(this, ng_layout, m_Canvas.get(), left_execution, true);
 }
 
 TreeCanvas* CmpTreeDialog::getCanvas() {
