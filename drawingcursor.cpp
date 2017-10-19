@@ -99,8 +99,8 @@ DrawingCursor::processCurrentNode(void) {
     // font.setPixelSize(28);
     // painter.setFont(font);
 
-        // painter.drawText(QPointF(lx, myy - 4), label);
-    painter.drawText(QPointF(lx-5, myy), label);
+        painter.drawText(QPointF(lx, myy - 4), label);
+    // painter.drawText(QPointF(lx-5, myy), label);
 
     if (!parent || parent->_tid != n->_tid) {
         switch (n->_tid) {

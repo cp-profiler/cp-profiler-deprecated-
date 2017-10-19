@@ -117,9 +117,16 @@ class IcicleTreeCanvas : public QWidget {
   void mousePressEvent(QMouseEvent* me);
   void mouseMoveEvent(QMouseEvent* me);
 
+Q_SIGNALS:
+
+  void canvasAffected();
+
+
  public:
   IcicleTreeCanvas(QAbstractScrollArea* parent, TreeCanvas* tc);
   int getTreeHeight() { return statistic[0].height; }
+
+
 
  public Q_SLOTS:
   void resizePixel(int value);

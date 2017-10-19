@@ -42,54 +42,71 @@ IcicleTreeDialog::IcicleTreeDialog(TreeCanvas* tc) : QDialog(tc) {
   this->setWindowTitle(
       QString::fromStdString(tc->getExecution().getTitle()));
 
-  scrollArea_ = new QAbstractScrollArea();
-
   auto layout = new QVBoxLayout();
   setLayout(layout);
 
+  scrollArea_ = new QAbstractScrollArea();
   layout->addWidget(scrollArea_);
+
+  canvas_ = new IcicleTreeCanvas(scrollArea_, tc);
+  connect(canvas_, &IcicleTreeCanvas::canvasAffected, [tc]() {
+    tc->updateCanvas(false);
+  });
 
   auto optionsLayout = new QHBoxLayout();
   layout->addLayout(optionsLayout);
 
-  QLabel* colorMapLabel = new QLabel("color map by");
-  colorMapLabel->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
-  auto color_map_cb = new QComboBox();
-  optionsLayout->addWidget(colorMapLabel);
-  optionsLayout->addWidget(color_map_cb);
-  color_map_cb->addItem("default");
-  color_map_cb->addItem("domain reduction");
-  color_map_cb->addItem("node time");
+  {
+    auto colorMapLabel = new QLabel("color map by");
+    colorMapLabel->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
+    optionsLayout->addWidget(colorMapLabel);
+  }
 
-  canvas_ = new IcicleTreeCanvas(scrollArea_, tc);
+  {
+    auto color_map_cb = new QComboBox();
+    color_map_cb->addItem("default");
+    color_map_cb->addItem("domain reduction");
+    color_map_cb->addItem("node time");
+    optionsLayout->addWidget(color_map_cb);
+    connect(color_map_cb, SIGNAL(currentTextChanged(const QString&)), canvas_,
+    SLOT(changeColorMapping(const QString&)));
+  }
 
   setAttribute(Qt::WA_DeleteOnClose, true);
 
   auto controlLayout = new QHBoxLayout();
   layout->addLayout(controlLayout);
 
-  QLabel* pSizeLabel = new QLabel("pixel size");
-  pSizeLabel->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
-  QSpinBox* pixelSizeSB = new QSpinBox(this);
-  pixelSizeSB->setRange(1, 20);
-  pixelSizeSB->setValue(PixelImage::DEFAULT_PIXEL_SIZE);
-  controlLayout->addWidget(pSizeLabel);
-  controlLayout->addWidget(pixelSizeSB);
-  connect(pixelSizeSB, SIGNAL(valueChanged(int)), canvas_,
-          SLOT(resizePixel(int)));
+  {
+    auto pSizeLabel = new QLabel("pixel size");
+    pSizeLabel->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
+    controlLayout->addWidget(pSizeLabel);
+  }
 
-  QLabel* compressLevelLabel = new QLabel("compression");
-  compressLevelLabel->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
-  QSpinBox* compressLevelSB = new QSpinBox(this);
-  compressLevelSB->setRange(0, canvas_->getTreeHeight());
-  controlLayout->addWidget(compressLevelLabel);
-  controlLayout->addWidget(compressLevelSB);
-  connect(compressLevelSB, SIGNAL(valueChanged(int)), canvas_,
-          SLOT(compressLevelChanged(int)));
+  {
+    auto pixelSizeSB = new QSpinBox(this);
+    pixelSizeSB->setRange(1, 40);
+    pixelSizeSB->setValue(PixelImage::DEFAULT_PIXEL_SIZE);
+    controlLayout->addWidget(pixelSizeSB);
+    connect(pixelSizeSB, SIGNAL(valueChanged(int)), canvas_,
+            SLOT(resizePixel(int)));
+  }
+
+  {
+    auto compressLevelLabel = new QLabel("compression");
+    compressLevelLabel->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
+    controlLayout->addWidget(compressLevelLabel);
+  }
+
+  {
+    auto compressLevelSB = new QSpinBox(this);
+    compressLevelSB->setRange(0, canvas_->getTreeHeight());
+    controlLayout->addWidget(compressLevelSB);
+    connect(compressLevelSB, SIGNAL(valueChanged(int)), canvas_,
+            SLOT(compressLevelChanged(int)));
+  }
 
   connect(this, SIGNAL(windowResized()), canvas_, SLOT(resizeCanvas()));
-  connect(color_map_cb, SIGNAL(currentTextChanged(const QString&)), canvas_,
-          SLOT(changeColorMapping(const QString&)));
 }
 
 void IcicleTreeDialog::resizeEvent(QResizeEvent* event) {
@@ -362,7 +379,7 @@ void IcicleTreeCanvas::mouseMoveEvent(QMouseEvent* event) {
       unselectNodes(nodes_selected);
       nodes_selected.push_back(node);
       node->setHovered(true);
-      tc_.updateCanvas();
+      emit canvasAffected();
       redrawAll();
     });
 
@@ -373,7 +390,12 @@ void IcicleTreeCanvas::mouseMoveEvent(QMouseEvent* event) {
 }
 
 void IcicleTreeCanvas::mousePressEvent(QMouseEvent*) {
-  /// do nothing for now
+  /// resets everything for now
+  selectedNode = nullptr;
+  unselectNodes(nodes_selected);
+  redrawAll();
+
+  emit canvasAffected();
 }
 
 IcicleNodeStatistic IcicleTreeCanvas::initTreeStatistic(VisualNode& root, int idx, int absX) {
