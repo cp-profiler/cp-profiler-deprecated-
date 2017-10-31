@@ -244,10 +244,13 @@ void Execution::setNameMap(NameMap* names) {
   m_Data->setNameMap(names);
 }
 
+
+#ifdef MAXIM_DEBUG
 void Execution::setLabel(const VisualNode& n, const std::string& str) {
   auto gid = n.getIndex(m_NodeTree->getNA());
   m_Data->setLabel(gid, str);
 }
+#endif
 
 QMutex& Execution::getTreeMutex() { return m_NodeTree->getTreeMutex(); }
 QMutex& Execution::getLayoutMutex() { return m_NodeTree->getLayoutMutex(); }

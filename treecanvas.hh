@@ -161,7 +161,6 @@ class TreeCanvas : public QWidget {
   void resizeEvent(QResizeEvent* event) override;
   /// Handle mouse wheel events
   void wheelEvent(QWheelEvent* event) override;
-
   /// Timer invoked for smooth zooming and scrolling
   virtual void timerEvent(QTimerEvent* e) override;
 
@@ -175,7 +174,7 @@ public:
   QSlider* scaleBar() const { return m_scaleBar; }
   QAbstractScrollArea* scrollArea() const { return m_scrollArea; }
 
-  std::string getLabel(int gid);
+  std::string getLabel(int gid) const;
 
   Execution& getExecution() const { return execution; }
 

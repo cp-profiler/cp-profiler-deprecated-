@@ -76,7 +76,7 @@ class IcicleTreeDialog : public QDialog {
   void resizeEvent(QResizeEvent* re);
 };
 
-enum class ColorMappingType { DEFAULT, DOMAIN_REDUCTION, NODE_TIME };
+enum class ColorMappingType { DEFAULT, DOMAIN_REDUCTION, NODE_TIME, VARIABLES };
 
 class IcicleTreeCanvas : public QWidget {
   Q_OBJECT
@@ -87,6 +87,8 @@ class IcicleTreeCanvas : public QWidget {
   PixelImage icicle_image_;
   std::vector<IcicleRect> icicle_rects_;
   std::vector<VisualNode*> nodes_selected;  // to know which nodes to deselect
+
+  std::map<std::string, QRgb> var2color;
 
   ColorMappingType color_mapping_type = ColorMappingType::DEFAULT;
 
@@ -129,6 +131,7 @@ Q_SIGNALS:
 
 
  public Q_SLOTS:
+  void selectNode(VisualNode* n);
   void resizePixel(int value);
   void resizeCanvas(void);
   void sliderChanged(int value);

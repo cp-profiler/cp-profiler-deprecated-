@@ -723,7 +723,7 @@ void TreeCanvas::reset() {
   QMutexLocker locker(&treeMutex);
 
   VisualNode* root = execution.nodeTree().getRoot();
-  currentNode = root;
+  setCurrentNode(root);
   m_options.scale = (double)Settings::get_int("default_scale") / 100;
   for (int i = bookmarks.size(); i--;) emit removedBookmark(i);
   bookmarks.clear();
@@ -1518,7 +1518,7 @@ static void copyTree(VisualNode* target, NodeTree& tree_target,
   stats.maxDepth = depth;
 }
 
-std::string TreeCanvas::getLabel(int gid) {
+std::string TreeCanvas::getLabel(int gid) const {
     return execution.getLabel(gid);
 }
 

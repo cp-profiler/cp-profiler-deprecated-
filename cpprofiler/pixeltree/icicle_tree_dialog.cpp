@@ -23,10 +23,12 @@
 #include <QComboBox>
 #include <climits>
 #include <functional>
+#include <set>
 
 #include "treecanvas.hh"
 #include "execution.hh"
 #include "nodetree.hh"
+#include "globalhelper.hh"
 #include "spacenode.hh"
 #include "data.hh"
 #include "libs/perf_helper.hh"
@@ -53,6 +55,8 @@ IcicleTreeDialog::IcicleTreeDialog(TreeCanvas* tc) : QDialog(tc) {
     tc->updateCanvas(false);
   });
 
+  connect(tc, &TreeCanvas::nodeSelected, canvas_, &IcicleTreeCanvas::selectNode);
+
   auto optionsLayout = new QHBoxLayout();
   layout->addLayout(optionsLayout);
 
@@ -67,6 +71,7 @@ IcicleTreeDialog::IcicleTreeDialog(TreeCanvas* tc) : QDialog(tc) {
     color_map_cb->addItem("default");
     color_map_cb->addItem("domain reduction");
     color_map_cb->addItem("node time");
+    color_map_cb->addItem("variables");
     optionsLayout->addWidget(color_map_cb);
     connect(color_map_cb, SIGNAL(currentTextChanged(const QString&)), canvas_,
     SLOT(changeColorMapping(const QString&)));
@@ -117,12 +122,16 @@ void IcicleTreeDialog::resizeEvent(QResizeEvent* event) {
 VisualNode* IcicleTreeCanvas::findLeftLeaf() {
   VisualNode* res = nullptr;
   int maxD = -1;
-  for (IcicleRect i: icicle_rects_) if (i.x == 0 && i.y > maxD) {
-    int idx = node_tree.getIndex(&i.node);
-    if (statistic[idx].height >= compressLevel) {
-      maxD = i.y;
-      res = &i.node;
+  for (IcicleRect rect: icicle_rects_) {
+
+    if (rect.x == 0 && rect.y > maxD) {
+      int idx = node_tree.getIndex(&rect.node);
+      if (statistic[idx].height >= compressLevel) {
+        maxD = rect.y;
+        res = &rect.node;
+      }
     }
+
   }
   return res;
 }
@@ -143,15 +152,18 @@ void IcicleTreeCanvas::compressLevelChanged(int value) {
 
 bool IcicleTreeCanvas::compressInit(VisualNode& root, int idx, int absX) {
   const int kids = root.getNumberOfChildren();
-  auto& na = node_tree.getNA();
+  const auto& na = node_tree.getNA();
   bool hasSolved = false;
+
   int leafCnt = 0, expectSolvedCnt = 0, actualSolvedCnt = 0;
   statistic[idx].ns = root.getStatus();
   statistic[idx].absX = absX;
   for (int i = 0; i < kids; i++) {
     int kidIdx = root.getChild(i);
     VisualNode& kid = *na[kidIdx];
-    if (kid.hasSolvedChildren()) expectSolvedCnt++;
+    if (kid.hasSolvedChildren()) {
+      expectSolvedCnt++;
+    }
     if (statistic[kidIdx].height >= compressLevel) {
       bool kidRes = compressInit(kid, kidIdx, absX + leafCnt);
       hasSolved |= kidRes;
@@ -167,17 +179,51 @@ bool IcicleTreeCanvas::compressInit(VisualNode& root, int idx, int absX) {
   return hasSolved | (statistic[idx].ns == SOLVED);
 }
 
+static std::map<std::string, QRgb> initVariableMap(const TreeCanvas& tc, const NodeTree& nt) {
+
+  using std::string; using std::set; using std::map; using std::vector;
+
+  map<string, QRgb> var2color;
+
+  auto& na = nt.getNA();
+
+  set<string> all_vars_set;
+
+  for (auto gid = 0; gid < na.size(); gid++) {
+    auto label = tc.getLabel(gid);
+
+    string var = "";
+    auto found = findAnyOf(label, "=", "!=", "<", ">", ">=", "=<");
+    if (found != string::npos) var = label.substr(0, found);
+    all_vars_set.insert(var);
+  }
+
+  auto all_vars = vector<string>{all_vars_set.begin(), all_vars_set.end()};
+  std::sort(all_vars.begin(), all_vars.end());
+
+  for (auto var_idx = 0u; var_idx < all_vars.size(); var_idx++) {
+    auto var = all_vars[var_idx];
+    auto val = ceil(var_idx * 255 / all_vars.size());
+    auto color = QColor::fromHsv(val, 200, 255).rgba();
+    var2color[var] = color;
+  }
+
+  return var2color;
+}
+
 IcicleTreeCanvas::IcicleTreeCanvas(QAbstractScrollArea* parent, TreeCanvas* tc)
     : QWidget(parent), sa_(*parent), tc_(*tc), node_tree(tc->getExecution().nodeTree()) {
   compressLevel = 0;
   auto& na = node_tree.getNA();
   statistic.resize(na.size());
-  initTreeStatistic(*na[0], 0, 0);
+  initTreeStatistic(*node_tree.getRoot(), 0, 0);
   connect(sa_.horizontalScrollBar(), SIGNAL(valueChanged(int)), this,
           SLOT(sliderChanged(int)));
   connect(sa_.verticalScrollBar(), SIGNAL(valueChanged(int)), this,
           SLOT(sliderChanged(int)));
   setMouseTracking(true);
+
+  var2color = initVariableMap(tc_, node_tree);
 }
 
 void IcicleTreeCanvas::resizePixel(int value) {
@@ -226,7 +272,7 @@ void IcicleTreeCanvas::redrawAll() {
 void IcicleTreeCanvas::drawIcicleTree() {
   icicle_rects_.clear();
   auto& na = node_tree.getNA();
-  auto& root = *na[0];
+  auto& root = *node_tree.getRoot();
   int idx = 0, curx = 0, cury = 0;
   int yoff = 0 / icicle_image_.pixel_height();
   int xoff = sa_.horizontalScrollBar()->value() / icicle_image_.pixel_height();
@@ -244,8 +290,7 @@ void IcicleTreeCanvas::drawIcicleTree() {
 void IcicleTreeCanvas::drawRects() {
   domain_red_sum = 0;
   for (auto rect: icicle_rects_) {
-    VisualNode& node = rect.node;
-    QRgb color = getColorByType(node);
+    QRgb color = getColorByType(rect.node);
     icicle_image_.drawRect(rect.x, rect.width, rect.y, color);
   }
 }
@@ -300,6 +345,16 @@ QRgb IcicleTreeCanvas::getColorByType(const VisualNode& node) {
       int color_value = static_cast<float>(node_time);
       color = QColor::fromHsv(0, 0, color_value).rgba();
     }
+    case ColorMappingType::VARIABLES: {
+      auto gid = node_tree.getIndex(&node);
+      auto label = tc_.getLabel(gid);
+
+      std::string var = "";
+      auto found = findAnyOf(label, "=", "!=", "<", ">", ">=", "=<");
+      if (found != std::string::npos) var = label.substr(0, found);
+
+      color = var2color[var];
+    } break;
   }
 
   return color;
@@ -313,6 +368,7 @@ void IcicleTreeCanvas::dfsVisible(VisualNode& root, int idx, int curx, int cury,
   auto& na = node_tree.getNA();
   int nextxL = curx;
   int nextxR;
+
   for (int i = 0; i < kids; i++) {
     if (nextxL > xoff + width) break;
     int kidIdx = root.getChild(i);
@@ -324,6 +380,7 @@ void IcicleTreeCanvas::dfsVisible(VisualNode& root, int idx, int curx, int cury,
       nextxL = nextxR;
     }
   }
+
   if (cury >= yoff && cury <= yoff + depth) {
     int rectAbsXL = std::max(curx, xoff);
     int rectAbsXR = std::min(curx + statistic[idx].leafCnt, xoff + width);
@@ -343,16 +400,13 @@ void IcicleTreeCanvas::sliderChanged(int) {
 
 VisualNode* IcicleTreeCanvas::getNodeByXY(int x, int y) const {
   // Find rectangle by x and y (binary or linear search)
-  for (uint i = 0; i < icicle_rects_.size(); i++) {
-    auto& rect = icicle_rects_[i];
-
+  for (auto& rect : icicle_rects_) {
     if ((rect.x <= x) && (x < rect.x + rect.width) &&
         (rect.y == y)) {
 
       return &rect.node;
     }
   }
-
   return nullptr;
 }
 
@@ -363,11 +417,27 @@ static void unselectNodes(std::vector<VisualNode*>& nodes_selected) {
   nodes_selected.clear();
 }
 
+void IcicleTreeCanvas::selectNode(VisualNode* node) {
+  if (node == nullptr) return;
+
+  unselectNodes(nodes_selected);
+  selectedNode = node;
+  nodes_selected.push_back(node);
+  redrawAll();
+}
+
 void IcicleTreeCanvas::mouseMoveEvent(QMouseEvent* event) {
   const auto x = event->x() / icicle_image_.pixel_width();
   const auto y = event->y() / icicle_image_.pixel_height();
 
   auto* node = getNodeByXY(x, y);
+
+  if (node == nullptr && nodes_selected.size() > 0) {
+    selectedNode = nullptr;
+    unselectNodes(nodes_selected);
+    redrawAll();
+    emit canvasAffected();
+  }
 
   if (node == nullptr) return;
 
@@ -390,12 +460,11 @@ void IcicleTreeCanvas::mouseMoveEvent(QMouseEvent* event) {
 }
 
 void IcicleTreeCanvas::mousePressEvent(QMouseEvent*) {
-  /// resets everything for now
-  selectedNode = nullptr;
-  unselectNodes(nodes_selected);
-  redrawAll();
 
-  emit canvasAffected();
+  if (selectedNode) {
+    auto gid = node_tree.getIndex(selectedNode);
+    tc_.navigateToNodeById(gid);
+  }
 }
 
 IcicleNodeStatistic IcicleTreeCanvas::initTreeStatistic(VisualNode& root, int idx, int absX) {
@@ -422,6 +491,8 @@ void IcicleTreeCanvas::changeColorMapping(const QString& text) {
     color_mapping_type = ColorMappingType::DOMAIN_REDUCTION;
   } else if (text == "node time") {
     color_mapping_type = ColorMappingType::NODE_TIME;
+  } else if (text == "variables") {
+    color_mapping_type = ColorMappingType::VARIABLES;
   }
 
   redrawAll();

@@ -181,19 +181,17 @@ public:
 
     const NameMap* getNameMap() const { return nameMap; }
     void setNameMap(NameMap* names);
-
     const std::vector<int>& node_rate_intervals() const { return nr_intervals; }
 
 
 /// ****************************
 
 /// Starts node timer
-void initReceiving();
+    void initReceiving();
 
     public Q_SLOTS:
 
     void setDoneReceiving();
-
 #ifdef MAXIM_DEBUG
     void setLabel(int gid, const std::string& str);
     const std::string getDebugInfo() const;
