@@ -23,10 +23,10 @@ Most recent binaries for Linux and Mac are available [here](https://github.com/c
 Dependencies:
 
   * 5.4.x ≤ Qt < 5.6.x
-  * Protocol Buffers 2.6.x
 
 Compiling Linux/Mac:
 
+    git submodule update --init
     mkdir build && cd build
     qmake .. && make
 
