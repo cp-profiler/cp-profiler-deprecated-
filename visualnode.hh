@@ -136,9 +136,11 @@ namespace sized_rect {
   static constexpr double K = (Layout::dist_y * (MAX_LEVELS - 1) - BASE_HEIGHT) / PRECISION;
 }
 
-static std::ostream& operator<<(std::ostream& o, const Shape& s) {
-    o << "shape of depth: " << s.depth() << "\n";
-  return o;
+template<class Char, class Traits>
+std::basic_ostream<Char,Traits>&
+operator <<(std::basic_ostream<Char,Traits>& os, const Shape& s) {
+  os << "shape of depth: " << s.depth() << "\n";
+  return os;
 }
 
 int shapeSize(const Shape& s);
