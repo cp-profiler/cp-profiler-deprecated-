@@ -40,6 +40,8 @@
 #include "layoutcursor.hh"
 #include "nodevisitor.hh"
 
+ #include "libs/perf_helper.hh"
+
 #include <utility>
 #include <vector>
 
@@ -139,8 +141,12 @@ VisualNode::dirtyUp(const NodeAllocator& na) {
 
 void
 VisualNode::layout(const NodeAllocator& na) {
+
+    perfHelper.begin("layout");
     LayoutCursor l(this,na);
     PostorderNodeVisitor<LayoutCursor>(l).run();
+
+    perfHelper.end();
     // int nodesLayouted = 1;
     // clock_t t0 = clock();
     // while (p.next()) {}

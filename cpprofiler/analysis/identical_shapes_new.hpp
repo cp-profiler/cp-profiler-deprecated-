@@ -125,6 +125,7 @@ GroupsOfNodes_t findIdentical(NodeTree& nt, const GroupsOfNodes_t& init_p) {
           // /// group g_idx will potentially need splitting
           groups_to_split.push_back(p_group); /// NOTE(maxim): has duplicate elements
 
+          // NOTE: sometimes p_group->m_start == p_group->m_end (is that a bug?)
           detail::separateNode(p_group, node2pos, p_inner_idx);
           // // qDebug() << "groups: " << groups;
           // /// split only affected groups

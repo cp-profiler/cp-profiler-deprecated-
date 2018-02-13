@@ -174,14 +174,14 @@ void highlightAllSubtrees(NodeTree& nt, std::vector<SubtreeInfo>& groups) {
 }
 
 void SimilarShapesWindow::initInterface() {
-    settingsLayout->addWidget(new QLabel{"Similarity Type:"}, 0, Qt::AlignRight);
+    settingsLayout->addWidget(new QLabel{"Similarity Criteria:"}, 0, Qt::AlignRight);
 
     auto typeChoice = new QComboBox();
-    typeChoice->addItems({"shape", "subtree"});
+    typeChoice->addItems({"contour", "subtree"});
     settingsLayout->addWidget(typeChoice);
 
     connect(typeChoice, &QComboBox::currentTextChanged, [this](const QString& str) {
-      if (str == "shape") {
+      if (str == "contour") {
           simType = SimilarityType::SHAPE;
       } else if (str == "subtree") {
           simType = SimilarityType::SUBTREE;
@@ -228,7 +228,9 @@ void SimilarShapesWindow::initInterface() {
 
     auto hideNotHighlighted = new QCheckBox{"Hide not selected"};
     hideNotHighlighted->setCheckState(Qt::Checked);
+    #ifndef MAXIM_DEBUG
     settingsLayout->addWidget(hideNotHighlighted);
+    #endif
 
     connect(hideNotHighlighted, &QCheckBox::stateChanged, [this](int state) {
       settings.hideNotHighlighted = (state == Qt::Checked);
@@ -292,7 +294,7 @@ void SimilarShapesWindow::initInterface() {
       highlightAllSubtrees(node_tree, patterns_displayed);
     });
 
-#ifndef MAXIM_THESIS
+#ifndef MAXIM_DEBUG
     miscLayout->addWidget(highlightAll);
 
     auto aggregateBtn = new QPushButton{"Aggregate"};
@@ -579,11 +581,22 @@ void SimilarShapesWindow::updateHistogram() {
 
   groups_shown = filterOutUnique(groups_shown);
 
+  /// remove all groups with 0 elements (why they appear?)
+  auto new_end = std::remove_if(groups_shown.begin(), groups_shown.end(), [](const std::vector<VisualNode*>& group) {
+    return group.size() == 0;
+  });
+
+  groups_shown.erase(new_end, groups_shown.end());
+
+  qDebug() << "patterns before: " << groups_shown.size();
+
   if (!settings.keepSubsumed) {
     perfHelper.begin("subsumed shapes elimination");
     eliminateSubsumed(node_tree, groups_shown);
     perfHelper.end();
   }
+
+  qDebug() << "patterns after: " << groups_shown.size();
 
   /// some shapes may have become unique
   groups_shown = filterOutUnique(groups_shown);

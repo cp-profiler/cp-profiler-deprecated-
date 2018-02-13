@@ -933,6 +933,8 @@ void TreeCanvas::printSearchLog(void) {
 
   QString path = QFileDialog::getSaveFileName(nullptr, "Save File", "");
 
+  // QString path = "/home/maxim/phd/important_models/radiation/used/rad_thesis.sl";
+
   QFile file(path);
 
   if (!file.open(QFile::WriteOnly | QFile::Truncate)) {

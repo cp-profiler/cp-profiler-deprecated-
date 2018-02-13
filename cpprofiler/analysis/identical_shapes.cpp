@@ -313,11 +313,11 @@ GroupsOfNodes_t findIdentical(Execution& ex, LabelOption label_opt = LabelOption
 
   /// TODO(maxim): figure out which one works best and keep only that one
   // return identical_subtrees_new::findIdentical(nt, init_p);
-  // return identical_subtrees_flat::findIdentical(nt, init_p);
+  return identical_subtrees_flat::findIdentical(nt, init_p);
   // return identical_subtrees_old::findIdentical(nt, init_p);
 
   /// TODO(maxim): the below doesn't actually use queue yet
-  return identical_subtrees_queue::findIdentical(nt, init_p);
+  // return identical_subtrees_queue::findIdentical(nt, init_p);
 }
 
 
