@@ -9,10 +9,13 @@ namespace utils {
 #define minor_sep '|'
 #define major_sep ';'
 
-std::vector<std::string> getPathHead(const std::string& path,
-                                     bool leaveModel = false,
-                                     bool includeTrail = false);
+struct PathPair {
+    std::vector<std::string> model_level;
+    std::vector<std::string> decomp_level;
+};
 
+PathPair getPathPair(const std::string& path,
+                     bool omitDecomp = false);
 
 }
 

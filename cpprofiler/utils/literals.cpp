@@ -72,9 +72,14 @@ namespace utils { namespace lits {
   }
 
   Lit parse_lit(const string& lit) {
+    size_t end_lhs = 0;
+
+    if(lit[0] == '\'') {
+      end_lhs = lit.find_last_of('\'');
+    }
 
     for (auto& op : ops) {
-      auto pos = lit.rfind(op);
+      auto pos = lit.find(op, end_lhs);
       if (pos != string::npos) {
 
         auto var = lit.substr(0, pos);
@@ -87,19 +92,17 @@ namespace utils { namespace lits {
         } else if (str_val == "true") {
           val = 1; is_bool = true;
         } else {
-
           try {
             val = std::stoi(str_val);
-          } catch (std::invalid_argument& e) {
-            val = INT_MAX;
+          } catch (std::invalid_argument&) {
+            return {lit, "", 0, false, false};
           }
         }
 
-        return {std::move(var), op, std::move(val), is_bool};
+        return {std::move(var), op, std::move(val), is_bool, true};
       }
     }
-
-    return {"", "", 0, false};
+    return {lit, "", 0, false, false};
   }
 
   static void trim(string& str) {
@@ -245,7 +248,7 @@ namespace utils { namespace lits {
     const auto min_ge = with_min_val(ge_lits).val;
 
     if (min_ge - max_le == 2) {
-      return {{le_lits[0].var, "!=", min_ge - 1, false}};
+      return {{le_lits[0].var, "!=", min_ge - 1, false, true}};
     }
 
     return lits;
@@ -266,6 +269,8 @@ namespace utils { namespace lits {
     return result;
   }
 
+  static string stringify_lit(const Lit& lit);
+
   static vector<Lit> split_to_lits(const string& ng_) {
 
     auto ng = ng_;
@@ -282,6 +287,8 @@ namespace utils { namespace lits {
 
   static string stringify_lit(const Lit& lit) {
     std::ostringstream ss;
+
+    if(!lit.is_clean) return lit.var;
 
     ss << lit.var << lit.op;
 
@@ -326,6 +333,7 @@ namespace utils { namespace lits {
   }
 
   static bool should_keep_as_is(const Lit& l) {
+    if(!l.is_bool) return false;
     if (l.val == 1) {
       if (l.op == "=" || l.op == ">=") return true;
       return false;
@@ -409,7 +417,10 @@ namespace utils { namespace lits {
 
     auto cleaned = remove_redundant_wspaces(ng);
 
-    auto lits = split_to_lits(cleaned);
+    auto all_lits = split_to_lits(cleaned);
+
+    auto lits = filter(all_lits, [](const Lit&l ){return l.is_clean;});
+    auto dirty_lits = filter(all_lits, [](const Lit&l ){return !l.is_clean;});
 
     lits = simplify_expressions_in_ng(lits);
 
@@ -427,6 +438,7 @@ namespace utils { namespace lits {
 
     });
 
+    lits.insert(lits.end(), dirty_lits.begin(), dirty_lits.end());
     std::sort(lits.begin(), lits.end(), [] (const Lit& lhs, const Lit& rhs) { return lhs.var < rhs.var; });
 
     auto res = stringify_lits(lits);
@@ -477,6 +489,7 @@ namespace utils { namespace lits {
   static void test_simplify_ng() {
 
     const std::vector<pair<string, string>> samples {
+      {"'x[11]!=11'=false", "x[11]=11"},
       {"x>=7 x>=8 x<=2", "x>=7 x<=2"},
       {"z!=2 y>=8 y>=5 z>=4", "y>=5 z!=2"},
       {"how[4]<=2 'how[2] = -3'>=1", "how[2]=-3 how[4]<=2"},

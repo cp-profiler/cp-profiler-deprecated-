@@ -20,7 +20,7 @@ using std::unordered_set;
 
 using utils::join;
 using utils::split;
-using utils::getPathHead;
+using utils::getPathPair;
 
 vector<int> getReasons(const string* maybe_info) {
 
@@ -198,10 +198,24 @@ NameMap::NameMap(const std::string& path_filename, const std::string& model_file
     string line;
     while(getline(pf, line)) {
       vector<string> s = utils::split(line, '\t');
-      Location loc(getPathHead(s[2], false, false).back());
+      utils::PathPair ph = getPathPair(s[2], false);
+      Location loc(ph.model_level.back());
       _nameMap[s[0]] = SymbolRecord(s[1], s[2], loc);
-      if(s[1].substr(0, 12) == "X_INTRODUCED")
-        addIdExpressionToMap(s[0], modelText);
+      if(ph.decomp_level.size() == 1) {
+        // At time of writing paths provided for variables introduced
+        // for an array include a IntLit with empty Location.
+        // This code should catch this case
+        Location check_loc(ph.decomp_level.back());
+        if(   check_loc.sl == 0
+           && check_loc.sc == 0
+           && check_loc.el == 0
+           && check_loc.ec == 0)
+          ph.decomp_level.pop_back();
+      }
+      if(ph.decomp_level.empty()) {
+        if(s[1].substr(0, 12) == "X_INTRODUCED")
+          addIdExpressionToMap(s[0], modelText);
+      }
     }
   }
 }
@@ -257,6 +271,9 @@ string NameMap::replaceNames(const string& text, bool expand_expressions) const 
     if(expand_expressions && name.substr(0, 12) == "X_INTRODUCED") {
       auto eit = _expressionMap.find(name);
       if(eit != _expressionMap.end()) {
+          if(eit->second == "c") {
+              std::cerr << "FOUND c\n";
+          }
         std::stringstream ss;
         ss << "\'" << eit->second << "\'";
         name = ss.str();
@@ -297,7 +314,7 @@ void NameMap::addIdExpressionToMap(const string& ident, const vector<string>& mo
   string expression = modelText[static_cast<size_t>(loc.sl-1)].substr(
               static_cast<size_t>(loc.sc-1),
               static_cast<size_t>(loc.ec-(loc.sc-1)));
-  const vector<string> components = getPathHead(getPath(ident), false, true);
+  vector<string> components = getPathPair(getPath(ident), true).model_level;
   expression = replaceAssignments(utils::join(components, major_sep), expression);
 
   _expressionMap.insert(make_pair(ident, expression));
@@ -311,7 +328,7 @@ string NameMap::getHeatMap(
   std::unordered_map<string, int> locations;
   for(auto it : con_id_counts) {
     const string path = getPath(std::to_string(it.first));
-    const vector<string> path_head_elements = getPathHead(path, false, false);
+    vector<string> path_head_elements = getPathPair(path, true).model_level;
     if(path_head_elements.size() == 0)
       continue;
     const string path_head = path_head_elements[0];

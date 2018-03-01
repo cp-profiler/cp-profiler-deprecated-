@@ -123,6 +123,8 @@ void Execution::begin(std::string label, bool isRestarts) {
       }
 
       finished = true;
+
+      std::cerr << "DONE BUILDING\n";
       emit doneBuilding();
     });
 

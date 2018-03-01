@@ -143,6 +143,19 @@ GistMainWindow::GistMainWindow(Execution& e,
     layout->addWidget(smallBox, 2, 1, Qt::AlignHCenter);
   }
 
+
+
+//  Logos logos;
+//  QPixmap myPic;
+//  myPic.loadFromData(logos.gistLogo, logos.gistLogoSize);
+//  setWindowIcon(myPic);
+
+  menuBar = new QMenuBar(0);
+
+  bookmarksMenu = new QMenu("Bookmarks", this);
+
+  addActions();
+
   connect(&e.nodeTree(), &NodeTree::treeModified, [this]() {
     m_Canvas->updateCanvas(false);
   });
@@ -160,19 +173,6 @@ GistMainWindow::GistMainWindow(Execution& e,
     updateStatsBar();
     finishStatsBar();
   }
-
-
-//  Logos logos;
-//  QPixmap myPic;
-//  myPic.loadFromData(logos.gistLogo, logos.gistLogoSize);
-//  setWindowIcon(myPic);
-
-  menuBar = new QMenuBar(0);
-
-  bookmarksMenu = new QMenu("Bookmarks", this);
-
-  addActions();
-
   {
     printSearchLog = new QAction("Export search log...", this);
     addAction(printSearchLog);
@@ -308,6 +308,11 @@ GistMainWindow::finishStatsBar() {
 
     qDebug() << "~~~ Done building";
 
+    if(deleteWhiteNodes) deleteWhiteNodes->setEnabled(true);
+    if(deleteTrials) deleteTrials->setEnabled(true);
+    if(deleteSkippedNodes) deleteSkippedNodes->setEnabled(true);
+    if(compareDomains) compareDomains->setEnabled(true);
+
     auto totalTime = execution.getData().getTotalTime();
     float seconds = totalTime / 1000000.0;
 
@@ -434,18 +439,22 @@ void GistMainWindow::addActions() {
   deleteWhiteNodes = new QAction{"Delete Unexplored Nodes", this};
   addAction(deleteWhiteNodes);
   connect(deleteWhiteNodes, &QAction::triggered, canvas, &TreeCanvas::deleteWhiteNodes);
+  deleteWhiteNodes->setEnabled(false);
 
   deleteTrials = new QAction{"Delete Trials", this};
   addAction(deleteTrials);
   connect(deleteTrials, &QAction::triggered, canvas, &TreeCanvas::deleteTrials);
+  deleteTrials->setEnabled(false);
 
   deleteSkippedNodes = new QAction{"Delete Skipped Nodes", this};
   addAction(deleteSkippedNodes);
   connect(deleteSkippedNodes, &QAction::triggered, canvas, &TreeCanvas::deleteSkippedNodes);
+  deleteSkippedNodes->setEnabled(false);
 
   compareDomains = new QAction{"Compare Domains", this};
   addAction(compareDomains);
   connect(compareDomains, &QAction::triggered, &execution, &Execution::compareDomains);
+  compareDomains->setEnabled(false);
 
   navUp = new QAction("Up", this);
   addAction(navUp);

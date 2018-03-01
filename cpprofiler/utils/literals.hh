@@ -12,6 +12,7 @@ namespace utils { namespace lits {
     std::string op;
     int val;
     bool is_bool;
+    bool is_clean;
   };
 
   Lit parse_lit(const std::string& lit);

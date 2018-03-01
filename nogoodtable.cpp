@@ -452,18 +452,18 @@ void NogoodTableView::saveNogoods(bool is_comparison) const {
     nogood_stream << pid.nid << sep << pid.rid << sep << pid.tid << sep;
 
     if(is_comparison) {
-        const int OCCURRENCE_COL = 1;
-        const int REDUCTION_COL = 2;
-        {
-          QModelIndex proxy_index = nogood_proxy_model->index(row, OCCURRENCE_COL, QModelIndex());
-          QModelIndex mapped_index = nogood_proxy_model->mapToSource(proxy_index);
-          nogood_stream << _model->data(mapped_index).toString() << sep;
-        }
-        {
-          QModelIndex proxy_index = nogood_proxy_model->index(row, REDUCTION_COL, QModelIndex());
-          QModelIndex mapped_index = nogood_proxy_model->mapToSource(proxy_index);
-          nogood_stream << _model->data(mapped_index).toString() << sep;
-        }
+      const int OCCURRENCE_COL = 1;
+      const int REDUCTION_COL = 2;
+      {
+        QModelIndex proxy_index = nogood_proxy_model->index(row, OCCURRENCE_COL, QModelIndex());
+        QModelIndex mapped_index = nogood_proxy_model->mapToSource(proxy_index);
+        nogood_stream << _model->data(mapped_index).toString() << sep;
+      }
+      {
+        QModelIndex proxy_index = nogood_proxy_model->index(row, REDUCTION_COL, QModelIndex());
+        QModelIndex mapped_index = nogood_proxy_model->mapToSource(proxy_index);
+        nogood_stream << _model->data(mapped_index).toString() << sep;
+      }
     }
 
     nogood_stream << clause << sep;
