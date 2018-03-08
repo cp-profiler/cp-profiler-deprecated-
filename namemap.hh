@@ -79,12 +79,16 @@ public:
   std::unordered_set<Location> getLocations(const std::vector<int>& reasons) const;
   std::string getLocationFilterString(const std::vector<int>& reasons) const;
 
+  std::string getAssigns(const std::string& path);
+  std::string getLastId(const std::string& path);
+
 private:
   NameMap(const SymbolTable& st);
 
   std::string replaceAssignments(const std::string& path, const std::string& expression) const;
 
   void addIdExpressionToMap(const std::string& ident, const std::vector<std::string>& modelText);
+  void addDecompIdExpressionToMap(const std::string& ident, const std::vector<std::string>& modelText);
 
   static std::regex var_name_regex;
   static std::regex assignment_regex;

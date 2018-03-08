@@ -183,6 +183,37 @@ NameMap::SymbolRecord::SymbolRecord(const std::string& nn, const std::string& p,
 
 NameMap::NameMap(const SymbolTable& st) : _nameMap(st) {}
 
+struct LocIsEmpty {
+    Location loc;
+    bool is_final;
+};
+
+inline
+LocIsEmpty getLocAndIsFinal(const string& path) {
+  LocIsEmpty lie;
+  lie.is_final = false;
+
+  string model_name = path.substr(0, path.find(minor_sep));
+
+  size_t pos = path.rfind(model_name); // Find last occurance of model_name
+  size_t end_elm = path.find(major_sep, pos);
+  string element = path.substr(pos, end_elm - pos);
+  lie.loc = Location(element);
+  if(end_elm == path.size() - 1) {
+      lie.is_final = true;
+  } else {
+    string remainder = path.substr(end_elm);
+    Location check_loc(remainder);
+    if(   check_loc.sl == 0
+          && check_loc.sc == 0
+          && check_loc.el == 0
+          && check_loc.ec == 0)
+      lie.is_final = true;
+  }
+
+  return lie;
+}
+
 NameMap::NameMap(const std::string& path_filename, const std::string& model_filename) {
   vector<std::string> modelText;
   std::ifstream model_file(model_filename);
@@ -198,23 +229,16 @@ NameMap::NameMap(const std::string& path_filename, const std::string& model_file
     string line;
     while(getline(pf, line)) {
       vector<string> s = utils::split(line, '\t');
-      utils::PathPair ph = getPathPair(s[2], false);
-      Location loc(ph.model_level.back());
-      _nameMap[s[0]] = SymbolRecord(s[1], s[2], loc);
-      if(ph.decomp_level.size() == 1) {
-        // At time of writing paths provided for variables introduced
-        // for an array include a IntLit with empty Location.
-        // This code should catch this case
-        Location check_loc(ph.decomp_level.back());
-        if(   check_loc.sl == 0
-           && check_loc.sc == 0
-           && check_loc.el == 0
-           && check_loc.ec == 0)
-          ph.decomp_level.pop_back();
-      }
-      if(ph.decomp_level.empty()) {
-        if(s[1].substr(0, 12) == "X_INTRODUCED")
+      LocIsEmpty lie = getLocAndIsFinal(s[2]);
+      _nameMap[s[0]] = SymbolRecord(s[1], s[2], lie.loc);
+      if(lie.is_final) {
+        if(s[1].substr(0, 12) == "X_INTRODUCED") {
           addIdExpressionToMap(s[0], modelText);
+        }
+      } else {
+        if(s[1].substr(0, 12) == "X_INTRODUCED") {
+          addDecompIdExpressionToMap(s[0], modelText);
+        }
       }
     }
   }
@@ -253,39 +277,57 @@ const Location& NameMap::getLocation(const string& ident) const {
   return empty_location;
 }
 
+struct TElem {
+  string str;
+  string name;
+  bool is_id;
+};
+
+static std::unordered_map<string, vector<TElem> > TPs;
+
 string NameMap::replaceNames(const string& text, bool expand_expressions) const {
   if (_nameMap.size() == 0) return text;
 
   std::stringstream ss;
-  size_t pos = 0;
 
-  auto var_names_begin = std::sregex_iterator(text.begin(), text.end(), var_name_regex);
-  auto var_names_end = std::sregex_iterator();
+  if(TPs.find(text) == TPs.end()) {
+    vector<TElem>& tp = TPs[text]; // creates empty template
+    auto var_names_begin = std::sregex_iterator(text.begin(), text.end(), var_name_regex);
+    auto var_names_end = std::sregex_iterator();
+    size_t pos = 0;
 
-  for(std::sregex_iterator i = var_names_begin; i != var_names_end; i++) {
-    std::smatch match = *i;
-    ss << text.substr(pos, static_cast<size_t>(match.position())-pos);
-    const string& id = match.str();
-    string name = getNiceName(id);
-
-    if(expand_expressions && name.substr(0, 12) == "X_INTRODUCED") {
-      auto eit = _expressionMap.find(name);
-      if(eit != _expressionMap.end()) {
-          if(eit->second == "c") {
-              std::cerr << "FOUND c\n";
-          }
-        std::stringstream ss;
-        ss << "\'" << eit->second << "\'";
-        name = ss.str();
-      } else {
-        name = id;
-      }
+    for(std::sregex_iterator i = var_names_begin; i != var_names_end; i++) {
+      std::smatch match = *i;
+      tp.push_back({text.substr(pos, static_cast<size_t>(match.position())-pos), "", false});
+      const string& id = match.str();
+      string name = getNiceName(id);
+      tp.push_back({id, name, true});
+      pos = static_cast<size_t>(match.position() + match.length());
     }
-    ss << (name != "" ? name : id);
-    pos = static_cast<size_t>(match.position() + match.length());
+    tp.push_back({text.substr(pos, text.size()), "", false});
   }
 
-  ss << text.substr(pos, text.size());
+  vector<TElem>& tp = TPs[text];
+  for(TElem& te : tp) {
+    if(te.is_id) {
+      string& id = te.str;
+      string name = te.name;
+      if(expand_expressions && name.substr(0, 12) == "X_INTRODUCED") {
+        auto eit = _expressionMap.find(name);
+        if(eit != _expressionMap.end()) {
+          std::stringstream ss;
+          ss << "\'" << eit->second << "\'";
+          name = ss.str();
+        } else {
+          name = id;
+        }
+      }
+      ss << (name != "" ? name : id);
+    } else {
+      ss << te.str;
+    }
+  }
+
   return ss.str();
 }
 
@@ -306,6 +348,14 @@ string NameMap::replaceAssignments(const string& path, const string& expression)
   return nm.replaceNames(expression);
 }
 
+inline
+string getPathUntilDecomp(const string& path) {
+  string model_name = path.substr(0, path.find(minor_sep));
+  size_t last_mod = path.rfind(model_name);
+  size_t endpos = path.find(major_sep, last_mod);
+  return path.substr(0, endpos);
+}
+
 void NameMap::addIdExpressionToMap(const string& ident, const vector<string>& modelText) {
   if(modelText.size() == 0) return;
 
@@ -314,9 +364,74 @@ void NameMap::addIdExpressionToMap(const string& ident, const vector<string>& mo
   string expression = modelText[static_cast<size_t>(loc.sl-1)].substr(
               static_cast<size_t>(loc.sc-1),
               static_cast<size_t>(loc.ec-(loc.sc-1)));
-  vector<string> components = getPathPair(getPath(ident), true).model_level;
-  expression = replaceAssignments(utils::join(components, major_sep), expression);
+  string upto = getPathUntilDecomp(getPath(ident));
+  expression = replaceAssignments(upto, expression);
 
+  _expressionMap.insert(make_pair(ident, expression));
+}
+
+string NameMap::getAssigns(const string& path) {
+  vector<string> assigns;
+  auto assignment_begin = std::sregex_iterator(path.begin(), path.end(), assignment_regex);
+  auto assignment_end = std::sregex_iterator();
+
+  for(std::sregex_iterator i = assignment_begin; i != assignment_end; i++) {
+    std::smatch match = *i;
+    assigns.push_back(match.str());
+  }
+
+  return utils::join(assigns, ',');
+}
+
+string NameMap::getLastId(const string& path) {
+  size_t pos = path.rfind("id" + string(1, minor_sep));
+  if(pos == string::npos) return "";
+  size_t end_pos = path.find(major_sep, pos);
+  if(end_pos == string::npos) end_pos = path.size();
+  return path.substr(pos + 3, end_pos - pos);
+}
+
+string getLastElem(const string& path) {
+  size_t pos = path.rfind(major_sep, path.size()-2);
+  if(pos == string::npos) return "";
+  string last_elem = path.substr(pos+1, path.size()-1);
+  Location loc{last_elem};
+  if(loc.sl == 0 && loc.el == 0 && loc.ec == 0 && loc.el == 0) {
+    int new_pos = path.rfind(major_sep, pos-1);
+    if(new_pos == string::npos) return "";
+    last_elem = path.substr(new_pos+1, new_pos - pos);
+  }
+
+  return last_elem;
+}
+
+void NameMap::addDecompIdExpressionToMap(const string& ident, const vector<string>& modelText) {
+  if(modelText.size() == 0) return;
+
+  const Location& loc = getLocation(ident);
+  if(loc.sl == 0) return;
+
+  const string& path = getPath(ident);
+  std::stringstream ss;
+  ss << "XI:" << loc.sl << ":";
+  ss << "(" << getAssigns(path) << ")";
+  string last_id = getLastId(path);
+  if(last_id.empty()) {
+    string last_elm = getLastElem(path);
+    if(!last_elm.empty()) {
+      Location loc {last_elm};
+      vector<string> split_elem = utils::split(last_elm, minor_sep);
+      string file_path = split_elem[0];
+      size_t pos = file_path.find_last_of("\\/");
+      if(pos != string::npos)
+        file_path = file_path.substr(pos+1);
+      ss << ":" << file_path << ":" << loc.sl;
+    }
+  } else {
+    ss << ":" <<  last_id;
+  }
+
+  string expression = ss.str();
   _expressionMap.insert(make_pair(ident, expression));
 }
 
