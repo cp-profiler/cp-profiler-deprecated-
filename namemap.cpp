@@ -405,6 +405,8 @@ string getLastElem(const string& path) {
   return last_elem;
 }
 
+static std::unordered_set<string> computed;
+
 void NameMap::addDecompIdExpressionToMap(const string& ident, const vector<string>& modelText) {
   if(modelText.size() == 0) return;
 
@@ -413,24 +415,23 @@ void NameMap::addDecompIdExpressionToMap(const string& ident, const vector<strin
 
   const string& path = getPath(ident);
   std::stringstream ss;
-  ss << "XI:" << loc.sl << ":" << loc.sc << ":";
+  ss << "XI:" << loc.toString() << ":";
   ss << "(" << getAssigns(path) << ")";
   string last_id = getLastId(path);
   if(last_id.empty()) {
     string last_elm = getLastElem(path);
     if(!last_elm.empty()) {
-      Location loc {last_elm};
+      Location innerloc {last_elm};
       vector<string> split_elem = utils::split(last_elm, minor_sep);
       string file_path = split_elem[0];
       size_t pos = file_path.find_last_of("\\/");
       if(pos != string::npos)
         file_path = file_path.substr(pos+1);
-      ss << ":" << file_path << ":" << loc.sl << ":" << loc.sc;
+      ss << ":" << file_path << ":" << innerloc.toString();
     }
   } else {
     ss << ":" <<  last_id;
   }
-
   string expression = ss.str();
   _expressionMap.insert(make_pair(ident, expression));
 }
