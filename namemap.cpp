@@ -413,7 +413,7 @@ void NameMap::addDecompIdExpressionToMap(const string& ident, const vector<strin
 
   const string& path = getPath(ident);
   std::stringstream ss;
-  ss << "XI:" << loc.sl << ":";
+  ss << "XI:" << loc.sl << ":" << loc.sc << ":";
   ss << "(" << getAssigns(path) << ")";
   string last_id = getLastId(path);
   if(last_id.empty()) {
@@ -425,7 +425,7 @@ void NameMap::addDecompIdExpressionToMap(const string& ident, const vector<strin
       size_t pos = file_path.find_last_of("\\/");
       if(pos != string::npos)
         file_path = file_path.substr(pos+1);
-      ss << ":" << file_path << ":" << loc.sl;
+      ss << ":" << file_path << ":" << loc.sl << ":" << loc.sc;
     }
   } else {
     ss << ":" <<  last_id;

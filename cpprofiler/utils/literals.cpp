@@ -371,7 +371,7 @@ namespace utils { namespace lits {
     vector<Lit> result;
 
     for (auto& l : lits) {
-      if (l.var[0] == '\'') {
+      if (l.var[0] == '\'' && l.var.substr(0, 3) != "'XI") {
         auto simple = simplify_expr_lit(l);
         result.push_back(simple);
       } else {
