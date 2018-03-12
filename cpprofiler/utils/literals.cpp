@@ -333,7 +333,7 @@ namespace utils { namespace lits {
   }
 
   static bool should_keep_as_is(const Lit& l) {
-    if(!l.is_bool) return false;
+    //if(!l.is_bool) return false;
     if (l.val == 1) {
       if (l.op == "=" || l.op == ">=") return true;
       return false;
