@@ -176,6 +176,14 @@ LocationFilter LocationFilter::fromString(const string& text) {
   return LocationFilter(locs);
 }
 
+
+// TODO: This needs to go somewhere more sensible...
+struct TElem {
+  string str;
+  bool is_id;
+};
+static std::unordered_map<string, vector<TElem> > TPs;
+
 NameMap::SymbolRecord::SymbolRecord()
     : niceName(""), path(""), location() {};
 NameMap::SymbolRecord::SymbolRecord(const std::string& nn, const std::string& p, const Location& l)
@@ -215,6 +223,8 @@ LocIsEmpty getLocAndIsFinal(const string& path) {
 }
 
 NameMap::NameMap(const std::string& path_filename, const std::string& model_filename) {
+  // Clear global cache
+  TPs.clear();
   vector<std::string> modelText;
   std::ifstream model_file(model_filename);
   if(model_file.is_open()) {
@@ -277,14 +287,6 @@ const Location& NameMap::getLocation(const string& ident) const {
   return empty_location;
 }
 
-struct TElem {
-  string str;
-  string name;
-  bool is_id;
-};
-
-static std::unordered_map<string, vector<TElem> > TPs;
-
 string NameMap::replaceNames(const string& text, bool expand_expressions) const {
   if (_nameMap.size() == 0) return text;
 
@@ -298,20 +300,19 @@ string NameMap::replaceNames(const string& text, bool expand_expressions) const 
 
     for(std::sregex_iterator i = var_names_begin; i != var_names_end; i++) {
       std::smatch match = *i;
-      tp.push_back({text.substr(pos, static_cast<size_t>(match.position())-pos), "", false});
+      tp.push_back({text.substr(pos, static_cast<size_t>(match.position())-pos),  false});
       const string& id = match.str();
-      string name = getNiceName(id);
-      tp.push_back({id, name, true});
+      tp.push_back({id, true});
       pos = static_cast<size_t>(match.position() + match.length());
     }
-    tp.push_back({text.substr(pos, text.size()), "", false});
+    tp.push_back({text.substr(pos, text.size()), false});
   }
 
   vector<TElem>& tp = TPs[text];
   for(TElem& te : tp) {
     if(te.is_id) {
       string& id = te.str;
-      string name = te.name;
+      string name = getNiceName(id);
       if(expand_expressions && name.substr(0, 12) == "X_INTRODUCED") {
         auto eit = _expressionMap.find(name);
         if(eit != _expressionMap.end()) {
@@ -404,8 +405,6 @@ string getLastElem(const string& path) {
 
   return last_elem;
 }
-
-static std::unordered_set<string> computed;
 
 void NameMap::addDecompIdExpressionToMap(const string& ident, const vector<string>& modelText) {
   if(modelText.size() == 0) return;
