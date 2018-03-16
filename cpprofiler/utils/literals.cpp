@@ -373,7 +373,8 @@ namespace utils { namespace lits {
     for (auto& l : lits) {
       if (l.var[0] == '\'' && l.var.substr(0, 3) != "'XI") {
         auto simple = simplify_expr_lit(l);
-        result.push_back(simple);
+        if(simple.is_bool || !simple.op.empty()) result.push_back(simple);
+        else result.push_back(l);
       } else {
         result.push_back(l);
       }
@@ -490,6 +491,7 @@ namespace utils { namespace lits {
 
     const std::vector<pair<string, string>> samples {
       {"'x[11]!=11'=false", "x[11]=11"},
+      {"'x[1]=-x[2]'>=1", "'x[1]=-x[2]'>=1"},
       {"x>=7 x>=8 x<=2", "x>=7 x<=2"},
       {"z!=2 y>=8 y>=5 z>=4", "y>=5 z!=2"},
       {"how[4]<=2 'how[2] = -3'>=1", "how[2]=-3 how[4]<=2"},
@@ -507,7 +509,6 @@ namespace utils { namespace lits {
         std::cerr << "test did NOT pass! (expexted: " << s.second << " given: " << simplified << ")\n";
       }
     }
-
   }
 
   static void test_parse_lit() {
