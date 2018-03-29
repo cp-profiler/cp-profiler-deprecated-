@@ -93,6 +93,9 @@ namespace utils { namespace lits {
           val = 1; is_bool = true;
         } else {
           try {
+            for(int i=0; i<str_val.size(); i++)
+              if(!(str_val[i]=='-' || std::isdigit(str_val[i])))
+                return {lit, "", 0, false, false};
             val = std::stoi(str_val);
           } catch (std::invalid_argument&) {
             return {lit, "", 0, false, false};
@@ -347,15 +350,17 @@ namespace utils { namespace lits {
 
     if (should_negate(l)) {
       auto inner_lit = l.var.substr(1, l.var.size() - 2);
-      auto negated = negate_lit(parse_lit(inner_lit));
-      return negated;
+      auto tmplit = parse_lit(inner_lit);
+      if(!tmplit.op.empty()) {
+        auto negated = negate_lit(tmplit);
+        return negated;
+      }
     }
 
     if (should_keep_as_is(l)) {
-
       auto inner_lit = l.var.substr(1, l.var.size() - 2);
       auto mod = parse_lit(inner_lit);
-      return mod;
+      if(!mod.op.empty()) return mod;
     }
 
 #ifdef MAXIM_DEBUG
@@ -482,6 +487,8 @@ namespace utils { namespace lits {
 
     test_simplify_ng();
 
+    test_parse_lit();
+
     performance_test();
 
 
@@ -492,6 +499,8 @@ namespace utils { namespace lits {
     const std::vector<pair<string, string>> samples {
       {"'x[11]!=11'=false", "x[11]=11"},
       {"'x[1]=-x[2]'>=1", "'x[1]=-x[2]'>=1"},
+      {"'bool2int(exists(o in 1..n where o=1)(a[o]=2))'<=0",
+            "'bool2int(exists(oin1..nwhereo=1)(a[o]=2))'<=0"},
       {"x>=7 x>=8 x<=2", "x>=7 x<=2"},
       {"z!=2 y>=8 y>=5 z>=4", "y>=5 z!=2"},
       {"how[4]<=2 'how[2] = -3'>=1", "how[2]=-3 how[4]<=2"},
@@ -506,7 +515,7 @@ namespace utils { namespace lits {
       if (simplified == s.second) {
         std::cerr << "test passed!\n";
       } else {
-        std::cerr << "test did NOT pass! (expexted: " << s.second << " given: " << simplified << ")\n";
+        std::cerr << "test did NOT pass! (expected: " << s.second << " given: " << simplified << ")\n";
       }
     }
   }

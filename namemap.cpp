@@ -210,7 +210,7 @@ LocIsEmpty getLocAndIsFinal(const string& path) {
   if(end_elm == path.size() - 1) {
       lie.is_final = true;
   } else {
-    string remainder = path.substr(end_elm);
+    string remainder = path.substr(end_elm+1);
     Location check_loc(remainder);
     if(   check_loc.sl == 0
           && check_loc.sc == 0
@@ -389,7 +389,16 @@ string NameMap::getLastId(const string& path) {
   if(pos == string::npos) return "";
   size_t end_pos = path.find(major_sep, pos);
   if(end_pos == string::npos) end_pos = path.size();
-  return path.substr(pos + 3, end_pos - pos);
+  string remainder = path.substr(end_pos+1);
+  string id = path.substr(pos + 3, end_pos - pos - 3);
+  if(id.empty()) return "";
+  std::stringstream ss;
+  ss << id;
+  if(!remainder.empty()) {
+    ss << "_" << remainder.substr(remainder.rfind(minor_sep));
+  }
+
+  return ss.str();
 }
 
 string getLastElem(const string& path) {
