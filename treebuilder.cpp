@@ -140,9 +140,14 @@ bool TreeBuilder::processNode(DbEntry& dbEntry, bool is_delayed) {
     return false;
   }
 
-  auto& node = *parent->getChild(_na, alt);
-
   auto& stats = execution.getStatistics();
+
+  if (alt >= parent->getNumberOfChildren()) {
+    parent->addChild(_na);
+    stats.undetermined++;
+  }
+
+  auto& node = *parent->getChild(_na, alt);
 
   /// Normal behaviour: insert into Undetermined
   if (node.getStatus() == UNDETERMINED) {

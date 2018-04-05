@@ -104,6 +104,9 @@ void ReceiverWorker::handleStartMessage(const Message& msg) {
     std::string execution_name = "<no name>";
     bool has_restarts = false;
 
+
+    int execution_id = -1;
+
     if (msg.has_info()) {
 
         try {
@@ -111,9 +114,6 @@ void ReceiverWorker::handleStartMessage(const Message& msg) {
             auto has_restarts_it = info_json.find("has_restarts");
 
             if(has_restarts_it != info_json.end()) {
-#ifdef MAXIM_DEBUG
-                qDebug() << "has_restarts: " << has_restarts_it->get<bool>();
-#endif
                 has_restarts = has_restarts_it->get<bool>();
             }
 
@@ -125,27 +125,20 @@ void ReceiverWorker::handleStartMessage(const Message& msg) {
 
             auto exec_id = info_json.find("execution_id");
             if (exec_id != info_json.end()) {
-
-                qDebug() << "execution id:" << exec_id->get<int>();
-
-                if(exec_id != info_json.end()) {
-                    if (!execution_id_communicated) {
-                        execution->setExecutionId(exec_id->get<int>());
-                        emit executionIdReady(execution);
-                    }
-                } else {
-                    /// Note(maxim): should not expect Execution Id in the future,
-                    /// so there is no reason to wait for the name map
-                    wait_for_name_map = false;
-                }
+                execution_id = exec_id->get<int>();
             }
-
-
         } catch (std::exception& e) {
             std::cerr << "Can't parse json in info: " << e.what() << "\n";
         }
 
     }
+
+    if (execution_id == -1) {
+        wait_for_name_map = false;
+    }
+
+    execution->setExecutionId(execution_id);
+    emit executionIdReady(execution);
 
     execution->begin(execution_name, has_restarts);
     emit executionStarted(execution);
