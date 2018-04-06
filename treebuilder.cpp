@@ -142,7 +142,7 @@ bool TreeBuilder::processNode(DbEntry& dbEntry, bool is_delayed) {
 
   auto& stats = execution.getStatistics();
 
-  if (alt >= parent->getNumberOfChildren()) {
+  while (alt >=  parent->getNumberOfChildren()) {
     parent->addChild(_na);
     stats.undetermined++;
   }
