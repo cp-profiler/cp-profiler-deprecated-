@@ -269,14 +269,15 @@ void TreeBuilder::run() {
   while (true) {
 
     while (!dataMutex.tryLock()) {
-      // msleep(1);
+      msleep(1);
     };
+
     /// check if done
     if (!read_queue->canRead()) {
       dataMutex.unlock();
 
       if (_data.isDone()) {
-        dataMutex.unlock();
+        //dataMutex.unlock();
         break;
       }
       /// can't read, but receiving not done, waiting...
@@ -296,6 +297,7 @@ void TreeBuilder::run() {
     dataMutex.unlock();
   }
 
+  qDebug() << "emit doneBuilding(true) from " << this << ";\n";
   emit doneBuilding(true);
 
   auto elapsed_ms = timer.end();

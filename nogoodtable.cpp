@@ -421,7 +421,10 @@ string convertToFlatZinc(const string& clause) {
 void NogoodTableView::saveNogoods(bool is_comparison) const {
   QString fileName = QFileDialog::getSaveFileName(parentWidget(), "Save nogoods to");
   if(fileName.isEmpty()) return;
+  saveNogoods(fileName, is_comparison);
+}
 
+void NogoodTableView::saveNogoods(const QString& fileName, bool is_comparison) const {
   QFile nogood_file(fileName);
 
   if(!nogood_file.open(QIODevice::WriteOnly)) return;

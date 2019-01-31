@@ -8,6 +8,7 @@
 #include <functional>
 #include <iostream>
 #include <climits>
+#include <ctype.h>
 #include <stdexcept>
 #include <array>
 
@@ -94,7 +95,7 @@ namespace utils { namespace lits {
         } else {
           try {
             for(int i=0; i<str_val.size(); i++)
-              if(!(str_val[i]=='-' || std::isdigit(str_val[i])))
+              if(!(str_val[i]=='-' || isdigit(str_val[i])))
                 return {lit, "", 0, false, false};
             val = std::stoi(str_val);
           } catch (std::invalid_argument&) {

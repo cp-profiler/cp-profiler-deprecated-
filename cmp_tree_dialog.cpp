@@ -330,12 +330,12 @@ PentListWindow::populateNogoodTable(QStandardItemModel* model,
   auto ng_stats = cmp_result.responsible_nogood_stats();
   const Execution& left_execution = cmp_result.left_execution();
 
+  qDebug() << "TODO: sid -> uid";
   for (size_t i = 0; i < nogoods.size(); i++) {
 
     NodeUID uid = nogoods[i];
     model->setItem(static_cast<int>(i), 0, new QStandardItem(QString::number(uid.nid)));
 
-    qDebug() << "TODO: sid -> uid";
     const string& nogood = left_execution.getNogoodByUID(uid, true, true);
 
     int ng_count = ng_stats.at(uid).occurrence;
@@ -476,12 +476,12 @@ CmpTreeDialog::showResponsibleNogoods() {
   ng_dialog->setLayout(ng_layout);
   ng_dialog->show();
 
-  if (GlobalParser::isSet(GlobalParser::auto_compare)) {
-    saveComparisonStatsTo("ng_stats.txt");
-    std::cerr << "STATS SAVED\n";
-    QCoreApplication::quit();
-    return;
-  }
+  //if (GlobalParser::isSet(GlobalParser::auto_compare)) {
+  //  saveComparisonStatsTo("ng_stats.txt");
+  //  std::cerr << "STATS SAVED\n";
+  //  QCoreApplication::quit();
+  //  return;
+  //}
 
   auto ng_stats = m_Cmp_result->responsible_nogood_stats();
   const Execution& left_execution = m_Cmp_result->left_execution();
@@ -527,6 +527,13 @@ CmpTreeDialog::showResponsibleNogoods() {
   ng_layout->addWidget(new QLabel{reduction_label.join(" ")});
 
   ng_table->addStandardButtons(this, ng_layout, m_Canvas.get(), left_execution, true);
+
+  if (GlobalParser::isSet(GlobalParser::auto_compare)) {
+    ng_table->saveNogoods("ng_stats.txt", true);
+    std::cerr << "STATS SAVED\n";
+    QCoreApplication::quit();
+    return;
+  }
 }
 
 TreeCanvas* CmpTreeDialog::getCanvas() {

@@ -26,6 +26,7 @@
 #include <QMutex>
 #include "execution.hh"
 #include <third-party/json.hpp>
+#include <algorithm>
 
 // This is a bit wrong.  We have both a separate thread and
 // asynchronous reading from the socket.  One or the other would
@@ -107,7 +108,16 @@ void ReceiverWorker::handleStartMessage(const Message& msg) {
     if (msg.has_info()) {
 
         try {
-            auto info_json = nlohmann::json::parse(msg.info());
+
+            // Escape backslashes
+            std::string info_copy = msg.info();
+            for(auto i = info_copy.begin();;) {
+              auto const pos = std::find(i, info_copy.end(), '\\');
+              if(pos == info_copy.end()) break;
+              i = std::next(info_copy.insert(pos, '\\'), 2);
+            }
+
+            auto info_json = nlohmann::json::parse(info_copy);
             auto has_restarts_it = info_json.find("has_restarts");
 
             if(has_restarts_it != info_json.end()) {
@@ -142,7 +152,8 @@ void ReceiverWorker::handleStartMessage(const Message& msg) {
 
 
         } catch (std::exception& e) {
-            std::cerr << "Can't parse json in info: " << e.what() << "\n";
+            std::cerr << "Can't parse json in info: error:" << e.what() << "\n"
+                      << "original json: " << msg.info() << "\n";
         }
 
     }

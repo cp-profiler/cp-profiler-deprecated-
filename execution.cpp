@@ -28,35 +28,6 @@ Data& Execution::getData() const {
     return *m_Data.get();
 }
 
-static void printSearchLog(Execution& ex) {
-
-  QString path;
-
-  if (GlobalParser::isSet(GlobalParser::save_log)) {
-    path = "search.log";
-  } else {
-    path = QFileDialog::getSaveFileName(nullptr, "Save File", "");
-  }
-
-  QFile file(path);
-
-  if (!file.open(QFile::WriteOnly | QFile::Truncate)) {
-    qDebug() << "could not open the file: " << path;
-    return;
-  }
-
-  QTextStream out(&file);
-
-  auto& nt = ex.nodeTree();
-  auto root = nt.getRoot();
-  SearchLogCursor slc(root, out, nt.getNA(), ex);
-  PreorderNodeVisitor<SearchLogCursor>(slc).run();
-
-  std::cout << "SEARCH LOG READY" << std::endl;
-
-
-}
-
 static void deleteNode(Execution& ex, Node* n) {
 
   auto& na = ex.nodeTree().getNA();
@@ -100,6 +71,38 @@ static void deleteWhiteNodes(Execution& ex) {
   }
 }
 
+static void printSearchLog(Execution& ex) {
+  QString path;
+
+  if (GlobalParser::isSet(GlobalParser::save_log)) {
+    path = "search.log";
+  } else {
+    path = QFileDialog::getSaveFileName(nullptr, "Save File", "");
+  }
+
+  deleteSkippedNodes(ex);
+  deleteWhiteNodes(ex);
+
+  QFile file(path);
+
+  if (!file.open(QFile::WriteOnly | QFile::Truncate)) {
+    qDebug() << "could not open the file: " << path;
+    return;
+  }
+
+  QTextStream out(&file);
+
+  auto& nt = ex.nodeTree();
+  auto root = nt.getRoot();
+  SearchLogCursor slc(root, out, nt.getNA(), ex);
+  PreorderNodeVisitor<SearchLogCursor>(slc).run();
+
+  qDebug() << "SEARCH LOG READY\n";
+
+
+}
+
+
 
 void Execution::begin(std::string label, bool isRestarts) {
 
@@ -108,7 +111,7 @@ void Execution::begin(std::string label, bool isRestarts) {
     setTitle(label);
 
     // qDebug() << "Execution::start";
-    connect(this, &Execution::doneReceiving, [this]() {
+    connect(this, &Execution::doneReceiving, this, [this]() {
       qDebug() << "setDoneReceiving";
       m_Data->setDoneReceiving();
     });
@@ -116,7 +119,8 @@ void Execution::begin(std::string label, bool isRestarts) {
     connect(m_Builder.get(), &TreeBuilder::addedNode, this, &Execution::newNode);
     connect(m_Builder.get(), &TreeBuilder::addedRoot, this, &Execution::newRoot);
 
-    connect(m_Builder.get(), &TreeBuilder::doneBuilding, [this]() {
+    qDebug() << "m_Builder.get(): " << m_Builder.get() << "\n";
+    connect(m_Builder.get(), &TreeBuilder::doneBuilding, this, [this]() {
 
       if (GlobalParser::isSet(GlobalParser::save_log)) {
         printSearchLog(*this);
@@ -124,9 +128,8 @@ void Execution::begin(std::string label, bool isRestarts) {
 
       finished = true;
 
-      std::cerr << "DONE BUILDING\n";
       emit doneBuilding();
-    });
+    }, Qt::QueuedConnection);
 
     m_Data->initReceiving();
     m_Builder->start();
@@ -207,7 +210,7 @@ std::string Execution::getLabel(int gid, bool rename) const {
   std::string origLabel = m_Data->getLabel(gid);
   if(rename) {
     const auto* nm = m_Data->getNameMap();
-    return nm ? nm->replaceNames(origLabel) : origLabel;
+    return nm ? nm->replaceNames(origLabel, true) : origLabel;
   }
   return origLabel;
 }

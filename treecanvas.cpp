@@ -259,7 +259,8 @@ void TreeCanvas::deleteTrials() {
 
 void TreeCanvas::finalize() {
   if (GlobalParser::isSet(GlobalParser::save_log)) {
-    // deleteWhiteNodes();
+    deleteWhiteNodes();
+    deleteSkippedNodes();
   }
 }
 

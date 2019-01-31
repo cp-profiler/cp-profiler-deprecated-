@@ -53,6 +53,9 @@ public:
                           TreeCanvas* canvas, const Execution& e,
                           bool is_comparison = false);
 
+  // Save nogoods table to fileName
+  void saveNogoods(const QString& fileName, bool is_comparison) const;
+
 private:
   // Connect buttons and text filters to their respective functionality
   void connectHeatmapButton(const QPushButton* heatmapButton, const TreeCanvas& tc);
@@ -87,7 +90,7 @@ private:
   void updateColors(void);
 
 private slots:
-  // Save nogoods table to csv file
+  // Save nogoods table to csv file from dialog box
   void saveNogoods(bool is_comparison) const;
   // Replace selected nogoods with equivalent FlatZinc
   void showFlatZinc(void);

@@ -194,7 +194,7 @@ ProfilerConductor::ProfilerConductor() : QMainWindow(), listen_port(6565) {
     connect(receiver, &ReceiverThread::executionStarted,
       this, &ProfilerConductor::executionStarted);
 
-    connect(receiver, &ReceiverThread::doneReceiving, [this]() {
+    connect(receiver, &ReceiverThread::doneReceiving, this, [this]() {
       latest_execution = nullptr;
     });
 
@@ -242,7 +242,7 @@ void ProfilerConductor::addExecution(Execution& e) {
 
   /// See if should auto compare the first two execution
   if (GlobalParser::isSet(GlobalParser::auto_compare)) {
-    connect(&e, &Execution::doneBuilding, [this]() {
+    connect(&e, &Execution::doneBuilding, this, [this]() {
 
       if (executions.size() < 2) return;
 
