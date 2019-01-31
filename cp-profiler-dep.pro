@@ -15,9 +15,10 @@ QT       += core gui network
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets printsupport
 
-QMAKE_CXXFLAGS += -g
+#QMAKE_CXXFLAGS += -g
 
 CONFIG += c++11
+CONFIG += console
 
 macx: {
   QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.7
@@ -31,7 +32,7 @@ TEMPLATE = app
 
 SOURCES += main_cpprofiler.cpp
 
-include(cp-profiler.pri)
+include(cp-profiler-dep.pri)
 
 win32:CONFIG(release, debug|release): LIBS += -L$$PWD/../../../../../../../usr/local/lib/release/
 else:win32:CONFIG(debug, debug|release): LIBS += -L$$PWD/../../../../../../../usr/local/lib/debug/

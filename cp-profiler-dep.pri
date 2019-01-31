@@ -1,4 +1,4 @@
-RESOURCES += $$PWD/cp-profiler.qrc
+RESOURCES += $$PWD/cp-profiler-dep.qrc
 
 SOURCES += \
     $$PWD/globalhelper.cpp \
