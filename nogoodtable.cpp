@@ -285,15 +285,18 @@ void NogoodTableView::refreshModelRenaming(void) {
   setSortingEnabled(true);
 }
 
+void NogoodTableView::changeNogoodRepresentation(bool rename, bool simplify) {
+    _show_renamed_literals = rename;
+    _show_simplified_nogoods = simplify;
+    refreshModelRenaming();
+}
+
 void NogoodTableView::connectNogoodRepresentationCheckBoxes(const QCheckBox* changeRep,
                                                             QCheckBox* showSimplified) {
   auto refreshRenaming = [this, changeRep, showSimplified]() {
     showSimplified->setEnabled(changeRep->isChecked());
 
-    _show_renamed_literals = changeRep->isChecked();
-    _show_simplified_nogoods = showSimplified->isChecked();
-
-    refreshModelRenaming();
+    this->changeNogoodRepresentation(changeRep->isChecked(), showSimplified->isChecked());
   };
 
   connect(changeRep, &QCheckBox::clicked, refreshRenaming);

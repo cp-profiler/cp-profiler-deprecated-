@@ -56,6 +56,8 @@ public:
   // Save nogoods table to fileName
   void saveNogoods(const QString& fileName, bool is_comparison) const;
 
+  void changeNogoodRepresentation(bool rename, bool simplify);
+
 private:
   // Connect buttons and text filters to their respective functionality
   void connectHeatmapButton(const QPushButton* heatmapButton, const TreeCanvas& tc);

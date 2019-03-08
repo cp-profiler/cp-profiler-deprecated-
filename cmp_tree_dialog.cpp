@@ -529,7 +529,16 @@ CmpTreeDialog::showResponsibleNogoods() {
   ng_table->addStandardButtons(this, ng_layout, m_Canvas.get(), left_execution, true);
 
   if (GlobalParser::isSet(GlobalParser::auto_compare)) {
-    ng_table->saveNogoods("ng_stats.txt", true);
+
+    ng_table->changeNogoodRepresentation(false, false);
+    ng_table->saveNogoods("ng_original.txt", true);
+
+    ng_table->changeNogoodRepresentation(true, false);
+    ng_table->saveNogoods("ng_renamed.txt", true);
+
+    ng_table->changeNogoodRepresentation(true, true);
+    ng_table->saveNogoods("ng_renamed_simplified.txt", true);
+
     std::cerr << "STATS SAVED\n";
     QCoreApplication::quit();
     return;
